@@ -1,0 +1,18 @@
+{
+  "name": "PCSHogar - Economía Doméstica",
+  "short_name": "PCSHogar",
+  "description": "Tu gestor inteligente gratuito de economía doméstica y ahorro familiar.",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0b0f19",
+  "theme_color": "#10b981",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

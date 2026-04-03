@@ -329,13 +329,26 @@ body {
 /* Footer */
 footer {
     text-align: center;
-    padding: 3rem 5%;
-    border-top: 1px solid var(--border-color);
-    margin-top: 4rem;
+    padding: 4rem 2rem;
+    background-color: #05080f;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-footer p {
-    color: var(--text-muted);
+.footer-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.legal-notice {
+    margin-top: 2rem;
+    font-size: 0.85rem;
+    color: #64748b;
+    line-height: 1.6;
+    text-align: justify;
+}
+
+.legal-notice p {
+    margin-bottom: 1rem;
 }
 
 .disclaimer {

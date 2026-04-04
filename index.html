@@ -35,11 +35,11 @@
             <p class="subtitle">Controla tus gastos fijos, administra tus ahorros mediante huchas virtuales y planifica tus meses financieros fácilmente. Diseñado para darte el control total de tu dinero.</p>
             
             <div class="download-grid" id="download">
-                <a href="https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v0.6.3/PCSHogar_Setup_v0.6.3.exe" target="_blank" class="btn btn-primary win-btn">
+                <a id="win-download" href="https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v0.6.4/PCSHogar_Setup_v0.6.4.exe" target="_blank" class="btn btn-primary win-btn">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l16 0 0 16 -16 0ZM4 12l16 0M12 4l0 16"/></svg>
                     <span>Windows (.exe)</span>
                 </a>
-                <a href="https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v0.6.3/PCSHogar_Setup_v0.6.3.apk" target="_blank" class="btn btn-secondary android-btn">
+                <a id="android-download" href="https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v0.6.4/PCSHogar_Setup_v0.6.4.apk" target="_blank" class="btn btn-secondary android-btn">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                     <span>Android (.apk)</span>
                 </a>
@@ -111,6 +111,33 @@
 
     <script>
         document.getElementById('year').textContent = new Date().getFullYear();
+
+        // Automatización de enlaces de descarga
+        async function updateDownloadLinks() {
+            try {
+                const response = await fetch('https://api.github.com/repos/YoTeAyudoESP/pcshogar.github.io/releases/latest');
+                if (!response.ok) return;
+                
+                const data = await response.json();
+                const assets = data.assets;
+                
+                const winAsset = assets.find(a => a.name.toLowerCase().endsWith('.exe'));
+                const androidAsset = assets.find(a => a.name.toLowerCase().endsWith('.apk'));
+                
+                if (winAsset) {
+                    document.getElementById('win-download').href = winAsset.browser_download_url;
+                }
+                if (androidAsset) {
+                    document.getElementById('android-download').href = androidAsset.browser_download_url;
+                }
+                
+                console.log('Enlaces de descarga actualizados a la versión:', data.tag_name);
+            } catch (error) {
+                console.error('Error al actualizar enlaces de descarga:', error);
+            }
+        }
+        
+        updateDownloadLinks();
     </script>
 </body>
 </html>

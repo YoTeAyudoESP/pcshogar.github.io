@@ -65,6 +65,7 @@ body {
     letter-spacing: -0.5px;
     background: linear-gradient(to right, #10b981, #3b82f6);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -151,7 +152,8 @@ body {
     text-decoration: none;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     font-size: 0.95rem;
-    white-space: nowrap;
+    white-space: normal;
+    text-align: center;
     color: white;
     border: none;
     cursor: pointer;
@@ -365,5 +367,14 @@ footer {
     
     .hero {
         padding: 5rem 20px 4rem;
+    }
+
+    .contact-card {
+        padding: 2.5rem 1rem;
+    }
+
+    .contact-card a {
+        word-break: break-word;
+        font-size: 0.9rem;
     }
 }

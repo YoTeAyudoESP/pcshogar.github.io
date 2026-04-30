@@ -1,0 +1,87 @@
+# Domestic Economy App - System Expansion Plan
+
+This expansion transforms the app from a simple income tracker to a comprehensive finance system. It introduces Accounts, Cards, Expenses, and Savings, along with complex forecasting logic.
+
+## User Review Required
+> [!IMPORTANT]
+> **Data Model Changes**: This update introduces complex relationships. Incomes and Expenses will now be linked to specific Accounts or Cards.
+> [!IMPORTANT]
+> **Data Model Changes**: This update introduces complex relationships. Incomes and Expenses will now be linked to specific Accounts or Cards.
+> **"Available to Spend" Logic**: UPDATED: [(Current Month Income) - (Current Month Expenses, regardless of payment method) - (Current Month Savings Allocations)](file:///C:/Users/pablo/.gemini/antigravity/scratch/domestic-economy-app/src/App.tsx#6-17). Ignore previous month CC bills paid this month; count CC usage this month.
+
+## Proposed Changes
+
+### Tech Stack
+-   **No changes**: React + TS + Vite + IndexedDB + Vanilla CSS.
+
+### Data Layer Architecture
+
+#### [NEW] Entities ([src/types/finance.ts](file:///C:/Users/pablo/.gemini/antigravity/scratch/domestic-economy-app/src/types/finance.ts))
+-   [Account](file:///C:/Users/pablo/.gemini/antigravity/scratch/domestic-economy-app/src/types/finance.ts#3-11): Bank Account (ID, Name, Balance).
+-   [Card](file:///C:/Users/pablo/.gemini/antigravity/scratch/domestic-economy-app/src/contexts/FinanceContext.tsx#76-90): Payment Method (ID, Name, Type: Debit/Credit, LinkedAccountId, CutoffDay, PaymentDay).
+-   [Transaction](file:///C:/Users/pablo/.gemini/antigravity/scratch/domestic-economy-app/src/services/db.ts#123-141): Unified record for realized movements? Or separate Expense entity? -> **Separate [Expense](file:///C:/Users/pablo/.gemini/antigravity/scratch/domestic-economy-app/src/types/finance.ts#28-39) entity** for clarity.
+-   [Expense](file:///C:/Users/pablo/.gemini/antigravity/scratch/domestic-economy-app/src/types/finance.ts#28-39): (ID, Amount, Date, Category, PaymentMethodId, IsFixed).
+-   [SavingGoal](file:///C:/Users/pablo/.gemini/antigravity/scratch/domestic-economy-app/src/types/finance.ts#40-48) (Hucha): (ID, Name, TargetAmount, CurrentAmount).
+-   [SavingAllocation](file:///C:/Users/pablo/.gemini/antigravity/scratch/domestic-economy-app/src/types/finance.ts#49-56): Record of money moved to savings.
+
+#### [MODIFY] Income Entity
+-   Add `linkedAccountId`: ID of the account where money is received.
+-   Add `status`: 'pending' | 'received'.
+-   Add `effectiveDate`: Date when money actually hit the bank.
+
+### Core Logic (`src/services/financeLogic.ts`)
+-   **Forecasting**: Function to generate "Virtual" transactions for future months based on Fixed Incomes/Expenses.
+-   **Cash Flow**: Calculate daily/monthly balance accounting for Credit Card payment dates.
+-   **Available to Spend**: Real-time calculation based on current month's data.
+
+### UI Components
+
+#### [NEW] Accounts & Cards
+-   [src/components/accounts/AccountList.tsx](file:///C:/Users/pablo/.gemini/antigravity/scratch/domestic-economy-app/src/components/accounts/AccountList.tsx): Manage bank accounts.
+-   [src/components/accounts/CardList.tsx](file:///C:/Users/pablo/.gemini/antigravity/scratch/domestic-economy-app/src/components/accounts/CardList.tsx): Manage cards and partial payments.
+
+#### [NEW] Expenses
+-   [src/components/expenses/ExpenseForm.tsx](file:///C:/Users/pablo/.gemini/antigravity/scratch/domestic-economy-app/src/components/expenses/ExpenseForm.tsx): Support for multiple payment methods (Bizum, Card, etc.).
+-   [src/components/expenses/ExpenseList.tsx](file:///C:/Users/pablo/.gemini/antigravity/scratch/domestic-economy-app/src/components/expenses/ExpenseList.tsx): Filterable list of outflows.
+
+#### [NEW] Savings
+-   [src/components/savings/PiggyBankList.tsx](file:///C:/Users/pablo/.gemini/antigravity/scratch/domestic-economy-app/src/components/savings/PiggyBankList.tsx): Visual "Jars" or progress bars.
+
+#### [MODIFY] Dashboard
+-   **Timeline Control**: `<MonthSelector />` to switch views.
+-   **Summary Cards**: Update to show "Available", "Saved", "Spent", "Income".
+
+## Verification Plan
+
+### Manual Verification
+1.  **Account Linking**: Create an Account. Create an Income linked to it. Mark Income as "Received". Verify Account balance increases.
+2.  **Credit Card Flow**: Create a Credit Card. Create an Expense using it. Verify Bank Account balance is *not* deducted immediately, but projected for payment day.
+3.  **Savings**: Allocate 10% of Income to a "Travel" Hucha. Verify "Available to Spend" decreases by that amount.
+4.  **Forecasting**: Navigate to next month. Verify Fixed Incomes/Expenses appear automatically.
+
+## Restructuring & Enhancements Plan
+
+### 1. Navigation Architecture
+- **State-based Routing**: Use a simple `currentView` state ('dashboard', 'settings', 'analytics').
+- **Dashboard**: Purely visualization (Summary, Charts).
+- **Settings/Menu**: Central hub for:
+  - Accounts & Cards
+  - Saving Goals (Piggy Banks) configuration
+  - Recurring Expenses
+  - Categories Management
+- **Transactions**: dedicated visuals or modals for "Add Income/Expense".
+
+### 2. Visualization (Recharts)
+- Install `recharts`.
+- **Charts**:
+  - `ExpenseCategoryPie`: Pie chart of current month expenses.
+  - `YearlyCashFlow`: Bar/Area chart of Income vs Expense over 12 months.
+
+### 3. Data Model Updates
+- **Categories**: New Store `categories` { id, name, color, icon }.
+- **SavingGoal**: Update to handle `initialAmount` explicitly if needed, or just allow setting `currentAmount` on creation.
+
+### 4. Component Refactoring
+- Extract "Management" lists (AccountList, CardList, PiggyBankList) into the Settings View.
+- Update [ExpenseForm](file:///C:/Users/pablo/.gemini/antigravity/scratch/domestic-economy-app/src/components/expenses/ExpenseForm.tsx#5-110) to include Category dropdown.
+

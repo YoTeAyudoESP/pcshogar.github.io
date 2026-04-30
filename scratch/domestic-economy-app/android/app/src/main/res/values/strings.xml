@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">PCS Hogar</string>
+    <string name="title_activity_main">PCS Hogar</string>
+    <string name="package_name">com.yta.pcshogar</string>
+    <string name="custom_url_scheme">com.yta.pcshogar</string>
+</resources>

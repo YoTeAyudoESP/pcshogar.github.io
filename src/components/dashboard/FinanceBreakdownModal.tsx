@@ -124,7 +124,9 @@ const FinanceBreakdownModal: React.FC<FinanceBreakdownModalProps> = ({ isOpen, o
                 maxWidth: '450px',
                 padding: '1.5rem',
                 position: 'relative',
-                animation: 'modalSlideUp 0.3s ease-out'
+                animation: 'modalSlideUp 0.3s ease-out',
+                background: '#12141c',
+                backdropFilter: 'none'
             }}>
                 {/* Header */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
@@ -170,23 +172,23 @@ const FinanceBreakdownModal: React.FC<FinanceBreakdownModalProps> = ({ isOpen, o
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                 <span>Fijos Recibidos</span>
-                                <span>{formatCurrency(fijosRecibidos)}</span>
+                                <span style={{ whiteSpace: 'nowrap', marginLeft: '8px' }}>{formatCurrency(fijosRecibidos)}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                 <span>Fijos Proyectados</span>
-                                <span>{formatCurrency(fijosProyectados)}</span>
+                                <span style={{ whiteSpace: 'nowrap', marginLeft: '8px' }}>{formatCurrency(fijosProyectados)}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                 <span>Extras Recibidos</span>
-                                <span>{formatCurrency(extrasRecibidos)}</span>
+                                <span style={{ whiteSpace: 'nowrap', marginLeft: '8px' }}>{formatCurrency(extrasRecibidos)}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', color: '#6366f1' }}>
                                 <span>Financiado de Huchas</span>
-                                <span>{formatCurrency(financiadoHuchas)}</span>
+                                <span style={{ whiteSpace: 'nowrap', marginLeft: '8px' }}>{formatCurrency(financiadoHuchas)}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                 <span>Remanente mes anterior</span>
-                                <span style={{ color: remanente >= 0 ? 'inherit' : '#f43f5e' }}>{formatCurrency(remanente)}</span>
+                                <span style={{ color: remanente >= 0 ? 'inherit' : '#f43f5e', whiteSpace: 'nowrap', marginLeft: '8px' }}>{formatCurrency(remanente)}</span>
                             </div>
                         </div>
                     </div>
@@ -205,11 +207,11 @@ const FinanceBreakdownModal: React.FC<FinanceBreakdownModalProps> = ({ isOpen, o
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                 <span>Pagados</span>
-                                <span>- {pagados.toFixed(2).replace('.', ',')} €</span>
+                                <span style={{ whiteSpace: 'nowrap', marginLeft: '8px' }}>- {pagados.toFixed(2).replace('.', ',')} €</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                 <span>Pendientes Fijos</span>
-                                <span>- {pendientesFijos.toFixed(2).replace('.', ',')} €</span>
+                                <span style={{ whiteSpace: 'nowrap', marginLeft: '8px' }}>- {pendientesFijos.toFixed(2).replace('.', ',')} €</span>
                             </div>
                         </div>
                     </div>
@@ -228,11 +230,11 @@ const FinanceBreakdownModal: React.FC<FinanceBreakdownModalProps> = ({ isOpen, o
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                 <span>Aportaciones Realizadas</span>
-                                <span>- {aportacionesRealizadas.toFixed(2).replace('.', ',')} €</span>
+                                <span style={{ whiteSpace: 'nowrap', marginLeft: '8px' }}>- {aportacionesRealizadas.toFixed(2).replace('.', ',')} €</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <span>Ahorro Mensual Proyectado</span>
-                                <span>- {ahorroMensualPendiente.toFixed(2).replace('.', ',')} €</span>
+                                <span>Ahorro Proyectado</span>
+                                <span style={{ whiteSpace: 'nowrap', marginLeft: '8px' }}>- {ahorroMensualPendiente.toFixed(2).replace('.', ',')} €</span>
                             </div>
                         </div>
                     </div>

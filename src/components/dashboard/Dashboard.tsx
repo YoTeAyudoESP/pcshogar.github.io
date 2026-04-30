@@ -13,7 +13,7 @@ import DateSelector from '../common/DateSelector';
 import { LayoutDashboard, Settings as SettingsIcon, X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, MinusCircle, PiggyBank, ArrowLeftRight } from 'lucide-react';
 
 import { useFinance } from '../../contexts/FinanceContext';
-const version = "0.4.1";
+const version = "0.4.2";
 import RemnantDecisionModal from '../settings/RemnantDecisionModal';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import EditTransactionModal from './EditTransactionModal';

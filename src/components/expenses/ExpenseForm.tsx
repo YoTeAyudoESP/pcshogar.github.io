@@ -76,29 +76,8 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose }) => {
     };
 
     return (
-        <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            background: 'rgba(0,0,0,0.8)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            backdropFilter: 'blur(5px)'
-        }} onClick={onClose}>
-            <div style={{
-                background: '#12141c',
-                width: '100%',
-                maxWidth: '600px',
-                borderRadius: '16px',
-                padding: '2rem',
-                position: 'relative',
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-                border: '1px solid rgba(255,255,255,0.05)'
-            }} onClick={e => e.stopPropagation()}>
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-container" style={{ padding: '2rem' }} onClick={e => e.stopPropagation()}>
                 
                 {/* Header with Close X */}
                 <button onClick={onClose} style={{

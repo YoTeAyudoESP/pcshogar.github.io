@@ -21,7 +21,7 @@ const BalanceAdjustmentView: React.FC = () => {
     const { 
         overrides, closings, incomes,
         setMonthOverride, deleteMonthOverride,
-        updateMonthClosing, refreshFinance
+        updateMonthClosing, reverseMonthClosing, refreshFinance
     } = useFinance();
     const { selectedYear: defaultYear, selectedMonth: defaultMonth } = useDateSelection();
 
@@ -69,12 +69,17 @@ const BalanceAdjustmentView: React.FC = () => {
     };
 
     const handleDeleteClosing = async (id: string) => {
-        // Implement delete logic if needed or just mark as deleted? 
-        // For now, let's assume updateMonthClosing can be used to reset 
+        if (window.confirm('¿Estás seguro de que deseas deshacer este cierre? Se revertirán los movimientos generados y tendrás que decidir de nuevo.')) {
+            await reverseMonthClosing(id);
+        }
     };
 
     const getMonthName = (m: number) => {
         return new Date(2024, m).toLocaleString('es-ES', { month: 'long' });
+    };
+
+    const formatCurrency = (val: number) => {
+        return val.toFixed(2).replace('.', ',') + '€';
     };
 
     return (
@@ -168,8 +173,8 @@ const BalanceAdjustmentView: React.FC = () => {
                                     <span style={{ fontSize: '0.8rem', opacity: 0.5 }}>Base calc.: -- €</span>
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                                    <div style={{ color: '#818cf8', fontWeight: 700, fontSize: '1.1rem' }}>
-                                        {adj.amount.toFixed(2)} €
+                                    <div style={{ color: '#818cf8', fontWeight: 700, fontSize: '1.1rem', whiteSpace: 'nowrap' }}>
+                                        {formatCurrency(adj.amount)}
                                     </div>
                                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                                         <button onClick={() => { setYear(adj.year); setMonth(adj.month); setAmount(adj.amount.toString()); }} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
@@ -215,11 +220,11 @@ const BalanceAdjustmentView: React.FC = () => {
                                     <tr key={c.id} style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                                         <td style={{ padding: '1rem', textTransform: 'capitalize' }}>{getMonthName(c.month)} {c.year}</td>
                                         <td style={{ padding: '1rem' }}>Procesado</td>
-                                        <td style={{ padding: '1rem', textAlign: 'right', color: c.finalBalance >= 0 ? '#2ed573' : '#ff4757', fontWeight: 600 }}>
-                                            {c.finalBalance.toFixed(2)} €
+                                        <td style={{ padding: '1rem', textAlign: 'right', color: c.finalBalance >= 0 ? '#2ed573' : '#ff4757', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                                            {formatCurrency(c.finalBalance)}
                                         </td>
                                         <td style={{ padding: '1rem', textAlign: 'center' }}>
-                                            <button style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                                            <button onClick={() => handleDeleteClosing(c.id)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
                                                 <Trash2 size={16} />
                                             </button>
                                         </td>
@@ -257,7 +262,7 @@ const BalanceAdjustmentView: React.FC = () => {
                                         <tr key={rem.id} style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                                             <td style={{ padding: '0.75rem' }}>--</td>
                                             <td style={{ padding: '0.75rem' }}>{rem.budgetMonth !== undefined ? `${rem.budgetMonth + 1}/${rem.budgetYear}` : '--'}</td>
-                                            <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: 600 }}>{rem.amount.toFixed(2)} €</td>
+                                            <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: 600, whiteSpace: 'nowrap' }}>{formatCurrency(rem.amount)}</td>
                                             <td style={{ padding: '0.75rem', textAlign: 'center', color: 'rgba(255,255,255,0.4)' }}>Vinculado</td>
                                             <td style={{ padding: '0.75rem', textAlign: 'center' }}>
                                                 <button style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>

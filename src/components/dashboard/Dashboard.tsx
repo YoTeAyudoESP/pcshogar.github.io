@@ -10,10 +10,10 @@ import SettingsView from '../settings/SettingsView';
 import ExpenseCategoryChart from '../analytics/ExpenseCategoryChart';
 import YearlyFinancialChart from '../analytics/YearlyFinancialChart';
 import DateSelector from '../common/DateSelector';
-import { LayoutDashboard, Settings as SettingsIcon, X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, MinusCircle, PiggyBank, ArrowLeftRight } from 'lucide-react';
+import { LayoutDashboard, Settings as SettingsIcon, X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, MinusCircle, PiggyBank, ArrowLeftRight, AlertCircle } from 'lucide-react';
 
 import { useFinance } from '../../contexts/FinanceContext';
-const version = "0.4.2";
+const version = "0.4.7";
 import RemnantDecisionModal from '../settings/RemnantDecisionModal';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import EditTransactionModal from './EditTransactionModal';
@@ -21,7 +21,7 @@ import type { Expense } from '../../types/finance';
 import type { Income } from '../../types/income';
 
 const Dashboard: React.FC = () => {
-    const { pendingClosing, setPendingClosing } = useFinance();
+    const { pendingClosing, setPendingClosing, closings } = useFinance();
 
     const [currentView, setCurrentView] = useState<'dashboard' | 'settings'>('dashboard');
     const [settingsTab, setSettingsTab] = useState<'accounts' | 'savings' | 'recurring' | 'loans' | 'balance' | 'categories' | 'app' | 'about'>('accounts');
@@ -136,6 +136,33 @@ const Dashboard: React.FC = () => {
                     Gestión y Ajustes
                 </button>
             </div>
+
+            {/* Pending Closing Discreet Banner */}
+            {closings.find(c => c.status === 'pending') && !pendingClosing && (
+                <div 
+                    onClick={() => setPendingClosing(closings.find(c => c.status === 'pending')!)}
+                    style={{
+                        background: 'rgba(245, 158, 11, 0.15)',
+                        border: '1px solid rgba(245, 158, 11, 0.3)',
+                        borderRadius: 'var(--radius-md)',
+                        padding: '0.75rem 1rem',
+                        marginBottom: '1.5rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        cursor: 'pointer',
+                        color: '#f59e0b',
+                        fontWeight: 600,
+                        fontSize: '0.9rem'
+                    }}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <AlertCircle size={18} />
+                        Tienes un cierre de mes pendiente de decisión
+                    </div>
+                    <span style={{ textDecoration: 'underline', fontSize: '0.8rem' }}>Decidir ahora</span>
+                </div>
+            )}
 
             {/* Content Area */}
             {currentView === 'dashboard' ? (

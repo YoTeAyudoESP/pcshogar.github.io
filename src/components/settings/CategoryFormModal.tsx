@@ -117,26 +117,8 @@ const CategoryFormModal: React.FC<CategoryFormModalProps> = ({ category, onClose
     };
 
     return (
-        <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0,0,0,0.8)',
-            backdropFilter: 'blur(8px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 2000,
-            padding: '1rem'
-        }}>
-            <div className="glass-panel" style={{
-                width: '100%',
-                maxWidth: '450px',
-                padding: '2rem',
-                position: 'relative'
-            }}>
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-container glass-panel" style={{ padding: '2rem', maxWidth: '450px' }} onClick={e => e.stopPropagation()}>
                 <button 
                     onClick={onClose}
                     style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', cursor: 'pointer' }}

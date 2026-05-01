@@ -1,17 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import { 
     X, 
     PiggyBank, 
     Calendar, 
-    Check, 
     AlertCircle, 
-    Plus,
-    ArrowRightCircle,
-    EyeOff
+    ArrowRightCircle
 } from 'lucide-react';
-import type { MonthClosing, SavingGoal } from '../../types/finance';
-import PiggyBankForm from '../savings/PiggyBankForm';
+import type { MonthClosing } from '../../types/finance';
+import { isItemInMonthAndYear } from '../../utils/financeCalculations';
 
 interface RemnantDecisionModalProps {
     closing: MonthClosing;
@@ -19,226 +16,289 @@ interface RemnantDecisionModalProps {
 }
 
 const RemnantDecisionModal: React.FC<RemnantDecisionModalProps> = ({ closing, onClose }) => {
-    const { savings, closeMonthWithDecision, updateMonthClosing } = useFinance();
-    const [distributions, setDistributions] = useState<{ type: 'next_month' | 'saving_goal', targetId?: string, amount: number }[]>([]);
-    const [showNewGoalForm, setShowNewGoalForm] = useState(false);
+    const { 
+        savings, closeMonthWithDecision, 
+        recurringExpenses, fixedIncomes, expenses, incomes,
+        updateRecurringExpense, updateIncome, addExpense, addExtraIncome
+    } = useFinance();
+    const [distributions, setDistributions] = useState<Record<string, number>>({});
     const [error, setError] = useState<string | null>(null);
 
-    const totalToDistribute = closing.finalBalance;
-    const isDeficit = totalToDistribute < 0;
+    const [expenseDecisions, setExpenseDecisions] = useState<Record<string, string>>({});
+    const [incomeDecisions, setIncomeDecisions] = useState<Record<string, string>>({});
+
+    const period = `${closing.year}-${(closing.month + 1).toString().padStart(2, '0')}`;
+    const nextMonthObj = new Date(closing.year, closing.month + 1, 1);
+    const nextPeriod = `${nextMonthObj.getFullYear()}-${(nextMonthObj.getMonth() + 1).toString().padStart(2, '0')}`;
+
+    const pendingExpenses = useMemo(() => {
+        return recurringExpenses.filter(re => {
+            if (!re.active) return false;
+            const isIgnored = re.ignoredPeriods?.includes(period);
+            if (isIgnored) return false;
+            const isPaid = expenses.some(e => e.recurringExpenseId === re.id && isItemInMonthAndYear(e, closing.month, closing.year));
+            return !isPaid;
+        });
+    }, [recurringExpenses, expenses, closing, period]);
+
+    const pendingIncomes = useMemo(() => {
+        return fixedIncomes.filter(inc => {
+            const isIgnored = inc.ignoredPeriods?.includes(period);
+            if (isIgnored) return false;
+            const start = inc.effectiveDate ? new Date(inc.effectiveDate) : new Date(0);
+            const end = inc.expirationDate ? new Date(inc.expirationDate) : new Date(9999, 11, 31);
+            const monthStart = new Date(closing.year, closing.month, 1);
+            const monthEnd = new Date(closing.year, closing.month + 1, 0);
+            return start <= monthEnd && end >= monthStart;
+        });
+    }, [fixedIncomes, closing, period]);
+
+    let derivedFinalBalance = closing.finalBalance;
+    pendingExpenses.forEach(pe => {
+        const dec = expenseDecisions[pe.id] || 'none';
+        if (dec !== 'none') {
+            derivedFinalBalance += pe.amount;
+        }
+    });
+    pendingIncomes.forEach(pi => {
+        const dec = incomeDecisions[pi.id] || 'none';
+        if (dec !== 'none') {
+            derivedFinalBalance -= pi.amount;
+        }
+    });
+
+    const formatCurrency = (val: number) => {
+        return val.toFixed(2).replace('.', ',') + '€';
+    };
+
+    const totalToDistribute = Math.abs(derivedFinalBalance);
+    const isDeficit = derivedFinalBalance < 0;
     
-    const distributedAmount = distributions.reduce((sum, d) => sum + d.amount, 0);
+    const distributedAmount = Object.values(distributions).reduce((sum, amount) => sum + amount, 0);
     const remainingAmount = totalToDistribute - distributedAmount;
 
     useEffect(() => {
-        // Initialize with next month option
-        setDistributions([{ type: 'next_month', amount: 0 }]);
-    }, []);
+        // Initialize state with 'next_month' and all savings goals to 0
+        const initialDists: Record<string, number> = { next_month: 0 };
+        savings.forEach(s => {
+            initialDists[`saving_${s.id}`] = 0;
+        });
+        setDistributions(initialDists);
+    }, [savings]);
 
-    const handleUpdateAmount = (index: number, val: string) => {
-        const amount = parseFloat(val) || 0;
-        const newDist = [...distributions];
-        newDist[index].amount = amount;
-        setDistributions(newDist);
-    };
-
-    const handleUpdateTarget = (index: number, targetId: string) => {
-        const newDist = [...distributions];
-        newDist[index].targetId = targetId;
-        setDistributions(newDist);
-    };
-
-    const addDistribution = () => {
-        setDistributions([...distributions, { type: 'saving_goal', targetId: '', amount: 0 }]);
-    };
-
-    const removeDistribution = (index: number) => {
-        setDistributions(distributions.filter((_, i) => i !== index));
+    const handleUpdateAmount = (key: string, val: string) => {
+        let amount = parseFloat(val);
+        if (isNaN(amount) || amount < 0) amount = 0;
+        setDistributions(prev => ({ ...prev, [key]: amount }));
     };
 
     const handleConfirm = async () => {
         if (Math.abs(remainingAmount) > 0.01) {
-            if (window.confirm(`Aún quedan ${remainingAmount.toFixed(2)}€ por repartir. ¿Deseas continuar y decidir el resto más tarde?`)) {
-                await closeMonthWithDecision({ ...closing, remainingToDistribute: remainingAmount }, distributions.filter(d => d.amount !== 0));
-                onClose();
-            }
+            setError(`Aún quedan ${remainingAmount.toFixed(2)}€ por asignar.`);
             return;
         }
 
         try {
-            await closeMonthWithDecision(closing, distributions.filter(d => d.amount !== 0));
+            for (const pe of pendingExpenses) {
+                const dec = expenseDecisions[pe.id] || 'none';
+                if (dec !== 'none') {
+                    await updateRecurringExpense({
+                        ...pe,
+                        ignoredPeriods: [...(pe.ignoredPeriods || []), period]
+                    });
+                    if (dec === 'postpone') {
+                        await addExpense({
+                            description: `(Aplazado) ${pe.description}`,
+                            amount: pe.amount,
+                            currency: pe.currency,
+                            date: Date.now(),
+                            categoryId: pe.categoryId || 'cat_other',
+                            paymentMethod: pe.paymentMethod || { type: 'cash' },
+                            isFixed: false,
+                            status: 'pending',
+                            period: nextPeriod
+                        });
+                    }
+                }
+            }
+
+            for (const pi of pendingIncomes) {
+                const dec = incomeDecisions[pi.id] || 'none';
+                if (dec !== 'none') {
+                    await updateIncome({
+                        ...pi,
+                        ignoredPeriods: [...(pi.ignoredPeriods || []), period]
+                    });
+                    if (dec === 'postpone') {
+                        await addExtraIncome({
+                            name: `(Aplazado) ${pi.name}`,
+                            amount: pi.amount,
+                            currency: pi.currency,
+                            receivedDate: Date.now(),
+                            effectiveDate: Date.now(),
+                            budgetMonth: nextMonthObj.getMonth(),
+                            budgetYear: nextMonthObj.getFullYear(),
+                            status: 'received',
+                            categoryId: pi.categoryId
+                        });
+                    }
+                }
+            }
+
+            // Build the array
+            const distArray: { type: 'next_month' | 'saving_goal', targetId?: string, amount: number }[] = [];
+            
+            Object.entries(distributions).forEach(([key, amount]) => {
+                if (amount > 0) {
+                    if (key === 'next_month') {
+                        distArray.push({ type: 'next_month', amount: isDeficit ? -amount : amount });
+                    } else if (key.startsWith('saving_')) {
+                        const targetId = key.replace('saving_', '');
+                        distArray.push({ type: 'saving_goal', targetId, amount: isDeficit ? -amount : amount });
+                    }
+                }
+            });
+
+            await closeMonthWithDecision({ ...closing, finalBalance: derivedFinalBalance }, distArray);
             onClose();
         } catch (err: any) {
-            setError(err.message);
-        }
-    };
-
-    const handleIgnore = async () => {
-        if (window.confirm('¿Estás seguro de que deseas ignorar este remanente? No afectará a tus cálculos futuros a menos que lo restaures.')) {
-            await updateMonthClosing({ ...closing, status: 'ignored' });
-            onClose();
+            setError(err.message || 'Error al procesar el cierre.');
         }
     };
 
     const monthName = new Date(closing.year, closing.month).toLocaleString('es-ES', { month: 'long' });
+    const nextMonthName = new Date(closing.year, closing.month + 1).toLocaleString('es-ES', { month: 'long' });
 
     return (
-        <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0,0,0,0.85)',
-            backdropFilter: 'blur(10px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 2000,
-            padding: '1rem'
-        }}>
-            <div className="glass-panel" style={{
-                width: '100%',
-                maxWidth: '500px',
-                padding: '2rem',
-                position: 'relative',
-                maxHeight: '90vh',
-                overflowY: 'auto'
-            }}>
-                <button 
-                    onClick={onClose}
-                    style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
-                >
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-container glass-panel" style={{ padding: '2rem' }} onClick={e => e.stopPropagation()}>
+                <button onClick={onClose} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
                     <X size={24} />
                 </button>
 
-                <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
                     <div style={{ 
-                        width: '64px', 
-                        height: '64px', 
-                        borderRadius: '50%', 
+                        width: '64px', height: '64px', borderRadius: '50%', 
                         background: isDeficit ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
                         margin: '0 auto 1rem'
                     }}>
                         {isDeficit ? <TrendingDown size={32} color="#ef4444" /> : <TrendingUp size={32} color="#10b881" />}
                     </div>
-                    <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>
-                        ¡Mes de {monthName} Cerrado!
+                    <h2 style={{ fontSize: '1.6rem', marginBottom: '0.5rem', textTransform: 'capitalize' }}>
+                        Cierre de {monthName}
                     </h2>
                     <p style={{ opacity: 0.7 }}>
                         Has terminado el mes con un {isDeficit ? 'déficit' : 'remanente'} de:
                     </p>
+                    <div style={{ fontSize: '2.8rem', fontWeight: 800, color: isDeficit ? '#ef4444' : '#10b881', margin: '0.5rem 0', whiteSpace: 'nowrap' }}>
+                        {isDeficit ? '-' : ''}{formatCurrency(totalToDistribute)}
+                    </div>
                     <div style={{ 
-                        fontSize: '2.5rem', 
-                        fontWeight: 800, 
-                        color: isDeficit ? '#ef4444' : '#10b881',
-                        margin: '0.5rem 0'
+                        marginTop: '1rem', padding: '0.5rem', borderRadius: '8px',
+                        background: Math.abs(remainingAmount) <= 0.01 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.2)',
+                        color: Math.abs(remainingAmount) <= 0.01 ? '#10b881' : '#f59e0b',
+                        fontWeight: 700, fontSize: '1rem', whiteSpace: 'nowrap'
                     }}>
-                        {totalToDistribute.toFixed(2)} €
+                        PENDIENTE DE ASIGNAR: {formatCurrency(remainingAmount)}
                     </div>
                 </div>
 
-                <div style={{ marginBottom: '2rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', fontSize: '0.9rem' }}>
-                        <span style={{ opacity: 0.6 }}>Repartido: {distributedAmount.toFixed(2)}€</span>
-                        <span style={{ fontWeight: 700, color: Math.abs(remainingAmount) > 0.01 ? '#f59e0b' : '#10b881' }}>
-                            Restante: {remainingAmount.toFixed(2)}€
-                        </span>
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        {distributions.map((dist, index) => (
-                            <div key={index} style={{ 
-                                display: 'flex', 
-                                gap: '0.75rem', 
-                                alignItems: 'center',
-                                background: 'rgba(255,255,255,0.03)',
-                                padding: '0.75rem',
-                                borderRadius: '0.75rem'
-                            }}>
-                                <div style={{ flex: 1 }}>
-                                    {dist.type === 'next_month' ? (
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: 0.8 }}>
-                                            <Calendar size={18} />
-                                            <span style={{ fontSize: '0.9rem' }}>Siguiente Mes</span>
-                                        </div>
-                                    ) : (
-                                        <select 
-                                            value={dist.targetId} 
-                                            onChange={e => handleUpdateTarget(index, e.target.value)}
-                                            className="form-input"
-                                            style={{ width: '100%', padding: '0.4rem' }}
-                                        >
-                                            <option value="">Seleccionar Hucha...</option>
-                                            {savings.map(s => (
-                                                <option key={s.id} value={s.id}>{s.name}</option>
-                                            ))}
-                                        </select>
-                                    )}
+                {/* Pending Movements Section */}
+                {(pendingExpenses.length > 0 || pendingIncomes.length > 0) && (
+                    <div style={{ marginBottom: '1.5rem', background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '12px' }}>
+                        <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <AlertCircle size={18} color="#f59e0b" /> Movimientos Fijos Pendientes
+                        </h3>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            {pendingExpenses.map(pe => (
+                                <div key={pe.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem' }}>
+                                        <span>Gasto: {pe.description}</span>
+                                        <span style={{ color: '#ef4444', fontWeight: 600, whiteSpace: 'nowrap' }}>-{formatCurrency(pe.amount)}</span>
+                                    </div>
+                                    <select 
+                                        className="form-input" 
+                                        style={{ fontSize: '0.9rem', padding: '0.5rem' }}
+                                        value={expenseDecisions[pe.id] || 'none'}
+                                        onChange={e => setExpenseDecisions(prev => ({ ...prev, [pe.id]: e.target.value }))}
+                                    >
+                                        <option value="none">No hacer nada de momento</option>
+                                        <option value="ignore">Ignorar (Recuperar {formatCurrency(pe.amount)} al remanente)</option>
+                                        <option value="postpone">Aplazar al mes actual</option>
+                                    </select>
                                 </div>
-                                <div style={{ width: '120px', position: 'relative' }}>
-                                    <input 
-                                        type="number" 
-                                        step="0.01"
-                                        value={dist.amount}
-                                        onChange={e => handleUpdateAmount(index, e.target.value)}
-                                        className="form-input"
-                                        style={{ width: '100%', padding: '0.4rem', textAlign: 'right', paddingRight: '1.5rem' }}
-                                    />
-                                    <span style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', opacity: 0.5, fontSize: '0.8rem' }}>€</span>
+                            ))}
+                            {pendingIncomes.map(pi => (
+                                <div key={pi.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem' }}>
+                                        <span>Ingreso: {pi.name}</span>
+                                        <span style={{ color: '#10b881', fontWeight: 600, whiteSpace: 'nowrap' }}>+{formatCurrency(pi.amount)}</span>
+                                    </div>
+                                    <select 
+                                        className="form-input" 
+                                        style={{ fontSize: '0.9rem', padding: '0.5rem' }}
+                                        value={incomeDecisions[pi.id] || 'none'}
+                                        onChange={e => setIncomeDecisions(prev => ({ ...prev, [pi.id]: e.target.value }))}
+                                    >
+                                        <option value="none">No hacer nada de momento</option>
+                                        <option value="ignore">Ignorar (Restar {formatCurrency(pi.amount)} del remanente)</option>
+                                        <option value="postpone">Aplazar al mes actual</option>
+                                    </select>
                                 </div>
-                                {dist.type !== 'next_month' && (
-                                    <button onClick={() => removeDistribution(index)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}>
-                                        <X size={18} />
-                                    </button>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-
-                    {!isDeficit && (
-                        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-                            <button 
-                                onClick={addDistribution}
-                                style={{ 
-                                    flex: 1,
-                                    background: 'rgba(255,255,255,0.05)', 
-                                    border: '1px dashed rgba(255,255,255,0.2)', 
-                                    padding: '0.6rem', 
-                                    borderRadius: '0.75rem',
-                                    fontSize: '0.85rem',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '0.5rem'
-                                }}
-                            >
-                                <PiggyBank size={16} /> Añadir Hucha
-                            </button>
-                            <button 
-                                onClick={() => setShowNewGoalForm(true)}
-                                style={{ 
-                                    background: 'rgba(99, 102, 241, 0.1)', 
-                                    border: '1px solid rgba(99, 102, 241, 0.2)', 
-                                    padding: '0.6rem 1rem', 
-                                    borderRadius: '0.75rem',
-                                    fontSize: '0.85rem',
-                                    color: '#818cf8',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                <Plus size={16} /> Nueva
-                            </button>
+                            ))}
                         </div>
-                    )}
+                    </div>
+                )}
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '2rem' }}>
+                    {/* Next Month Row */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.03)', padding: '0.75rem 1rem', borderRadius: '12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <Calendar size={20} color="#818cf8" />
+                            <span style={{ fontSize: '0.95rem' }}>
+                                {isDeficit ? `Descontar del disponible de ${nextMonthName}` : `Añadir al disponible de ${nextMonthName}`}
+                            </span>
+                        </div>
+                        <div style={{ width: '100px', position: 'relative' }}>
+                            <input 
+                                type="number" step="0.01" min="0"
+                                value={distributions['next_month'] || ''}
+                                onChange={e => handleUpdateAmount('next_month', e.target.value)}
+                                className="form-input"
+                                style={{ width: '100%', padding: '0.5rem', textAlign: 'right', paddingRight: '1.5rem', fontSize: '1rem' }}
+                                placeholder="0.00"
+                            />
+                            <span style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}>€</span>
+                        </div>
+                    </div>
+
+                    {/* Savings Goals Rows */}
+                    {savings.map(s => (
+                        <div key={s.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.03)', padding: '0.75rem 1rem', borderRadius: '12px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <PiggyBank size={20} color={s.color || '#10b881'} />
+                                <span style={{ fontSize: '0.95rem' }}>
+                                    {isDeficit ? `Soportar desde ${s.name}` : `Añadir a ${s.name}`}
+                                </span>
+                            </div>
+                            <div style={{ width: '100px', position: 'relative' }}>
+                                <input 
+                                    type="number" step="0.01" min="0"
+                                    value={distributions[`saving_${s.id}`] || ''}
+                                    onChange={e => handleUpdateAmount(`saving_${s.id}`, e.target.value)}
+                                    className="form-input"
+                                    style={{ width: '100%', padding: '0.5rem', textAlign: 'right', paddingRight: '1.5rem', fontSize: '1rem' }}
+                                    placeholder="0.00"
+                                />
+                                <span style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}>€</span>
+                            </div>
+                        </div>
+                    ))}
                 </div>
 
                 {error && (
-                    <div style={{ color: '#ef4444', fontSize: '0.9rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div style={{ color: '#ef4444', fontSize: '0.9rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
                         <AlertCircle size={16} /> {error}
                     </div>
                 )}
@@ -247,52 +307,26 @@ const RemnantDecisionModal: React.FC<RemnantDecisionModalProps> = ({ closing, on
                     <button 
                         onClick={handleConfirm}
                         className="btn btn-primary"
-                        style={{ width: '100%', padding: '1rem', borderRadius: '0.75rem', fontWeight: 700 }}
+                        disabled={Math.abs(remainingAmount) > 0.01}
+                        style={{ 
+                            width: '100%', padding: '1rem', borderRadius: '0.75rem', fontWeight: 700,
+                            opacity: Math.abs(remainingAmount) > 0.01 ? 0.5 : 1,
+                            cursor: Math.abs(remainingAmount) > 0.01 ? 'not-allowed' : 'pointer'
+                        }}
                     >
-                        Confirmar Reparto
+                        Confirmar Cierre
                     </button>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button 
-                            onClick={handleIgnore}
-                            style={{ 
-                                flex: 1,
-                                background: 'rgba(255,255,255,0.05)', 
-                                border: '1px solid rgba(255,255,255,0.1)', 
-                                padding: '0.75rem', 
-                                borderRadius: '0.75rem',
-                                fontSize: '0.85rem',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '0.5rem'
-                            }}
-                        >
-                            <EyeOff size={16} /> Ignorar
-                        </button>
-                        <button 
-                            onClick={onClose}
-                            style={{ 
-                                flex: 1,
-                                background: 'none', 
-                                border: '1px solid rgba(255,255,255,0.1)', 
-                                padding: '0.75rem', 
-                                borderRadius: '0.75rem',
-                                fontSize: '0.85rem',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            Decidir más tarde
-                        </button>
-                    </div>
+                    <button 
+                        onClick={onClose}
+                        style={{ 
+                            width: '100%', background: 'none', border: '1px solid rgba(255,255,255,0.1)', 
+                            padding: '1rem', borderRadius: '0.75rem', fontSize: '0.9rem', cursor: 'pointer', color: 'var(--text-muted)'
+                        }}
+                    >
+                        Decidir más adelante
+                    </button>
                 </div>
             </div>
-
-            {showNewGoalForm && (
-                <div style={{ zIndex: 2100 }}>
-                    <PiggyBankForm onClose={() => setShowNewGoalForm(false)} />
-                </div>
-            )}
         </div>
     );
 };

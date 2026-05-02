@@ -39,6 +39,8 @@ export interface Expense {
     paymentMethod: PaymentMethod;
     isFixed: boolean;
     status: 'pending' | 'paid';
+    isSettled?: boolean;
+    excludeFromBudget?: boolean;
     updatedAt?: number;
     period?: string; // e.g., "2026-03"
     recurringExpenseId?: string;

@@ -652,25 +652,42 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         const card = cards.find(c => c.id === cardId);
         if (!card) return;
 
-        // 1. Create a "settlement" expense in the linked account
-        // We use a special category or just 'cat_other'
+        // 1. Find and mark expenses in the cycle range as settled
+        // We need the cycle range. The UI component calculates it, 
+        // but here we can find expenses for this card that are not settled.
+        // For simplicity, we'll mark ALL unpaid/unsettled card expenses of this card.
+        const cardExpenses = expenses.filter(e => 
+            e.paymentMethod.type === 'card' && 
+            e.paymentMethod.cardId === cardId && 
+            !e.isSettled
+        );
+
+        for (const exp of cardExpenses) {
+            await incomeDB.updateExpense({
+                ...exp,
+                isSettled: true,
+                updatedAt: Date.now()
+            });
+        }
+
+        // 2. Create a "settlement" expense in the linked account
+        // Marked as excludeFromBudget so it doesn't subtract from "Available" again
         const settlementExpense: Expense = {
             id: uuidv4(),
             description: `Liquidación Tarjeta: ${card.name}`,
             amount: amount,
             currency: 'EUR',
             date: date,
-            categoryId: 'cat_other', // Or maybe 'cat_loans' or a new one
+            categoryId: 'cat_other',
             paymentMethod: { type: 'account', accountId },
             isFixed: false,
             status: 'paid',
+            excludeFromBudget: true,
             updatedAt: Date.now()
         };
         await incomeDB.addExpenseWithTransaction(settlementExpense);
 
-        // 2. Decrease card balance
-        // addExpenseWithTransaction for a 'card' expense ADDS to balance.
-        // Here we want to SUBTRACT. The easiest is to update the card directly.
+        // 3. Decrease card balance
         const updatedCard = {
             ...card,
             currentBalance: Math.max(0, card.currentBalance - amount),

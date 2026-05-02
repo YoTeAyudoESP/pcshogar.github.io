@@ -67,9 +67,12 @@ export function calculateAvailableBalanceForMonth(
     let totalAccountExpenses = 0;
     let totalCardExpenses = 0;
 
-    expenses.filter(exp => isItemInMonthAndYear(exp, month, year)).forEach(exp => {
-        if (exp.linkedSavingGoalId) return;
-        totalMonthExpenses += exp.amount;
+    expenses
+        .filter(exp => isItemInMonthAndYear(exp, month, year))
+        .filter(exp => !exp.excludeFromBudget)
+        .forEach(exp => {
+            if (exp.linkedSavingGoalId) return;
+            totalMonthExpenses += exp.amount;
 
         const method = exp.paymentMethod;
         if (method.type === 'account' || method.type === 'cash') {

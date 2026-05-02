@@ -103,7 +103,7 @@ const CreditCardSettlement: React.FC = () => {
                     // 1. Current Active Cycle Spending
                     const activeExpenses = expenses.filter(exp => {
                         const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === card.id;
-                        if (!isCard) return false;
+                        if (!isCard || exp.isSettled) return false;
                         const expDate = new Date(exp.date);
                         return expDate >= cycleDates.active.start && expDate <= cycleDates.active.cutoff;
                     });
@@ -112,7 +112,7 @@ const CreditCardSettlement: React.FC = () => {
                     // 2. Pending Settlement Cycle Spending
                     const pendingExpenses = expenses.filter(exp => {
                         const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === card.id;
-                        if (!isCard) return false;
+                        if (!isCard || exp.isSettled) return false;
                         const expDate = new Date(exp.date);
                         return expDate >= cycleDates.pending.start && expDate <= cycleDates.pending.cutoff;
                     });

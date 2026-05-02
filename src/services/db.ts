@@ -205,6 +205,20 @@ class IncomeDB {
                         // Ensure required fields like ignoredPeriods exist
                         item.ignoredPeriods = item.ignoredPeriods || [];
                     }
+
+                    // ID Generation for Month-based stores if missing
+                    if (storeName === 'closings' && !item.id && item.year !== undefined && item.month !== undefined) {
+                        item.id = `${item.year}-${String(item.month + 1).padStart(2, '0')}`;
+                        item.status = item.status || 'processed';
+                    }
+                    if (storeName === 'overrides' && !item.id && item.year !== undefined && item.month !== undefined) {
+                        item.id = `${item.year}-${String(item.month + 1).padStart(2, '0')}`;
+                    }
+
+                    // Allocation type recovery
+                    if (storeName === 'allocations' && !item.type) {
+                        item.type = item.amount > 0 ? 'manual' : 'adjustment';
+                    }
                     
                     // Categorization bridge (name to ID)
                     if ((storeName === 'expenses' || storeName === 'incomes' || storeName === 'recurring_expenses') && !item.categoryId && item.category) {
@@ -221,8 +235,9 @@ class IncomeDB {
                             else if (name.includes('vivienda') || name.includes('housing')) item.categoryId = 'cat_housing';
                             else if (name.includes('ocio') || name.includes('leisure')) item.categoryId = 'cat_leisure';
                             else if (name.includes('salud') || name.includes('health')) item.categoryId = 'cat_health';
-                            else if (name.includes('hogar') || name.includes('utilities')) item.categoryId = 'cat_utilities';
-                            else if (name.includes('nomina') || name.includes('salario') || name.includes('ingreso fijo')) item.categoryId = 'cat_income_fixed';
+                            else if (name.includes('hogar') || name.includes('suministro') || name.includes('utility')) item.categoryId = 'cat_utilities';
+                            else if (name.includes('nomina') || name.includes('salario') || name.includes('ingreso fijo') || name.includes('salary')) item.categoryId = 'cat_inc_salary';
+                            else if (name.includes('extra') || name.includes('bonus')) item.categoryId = 'cat_inc_extra';
                         }
                     }
 

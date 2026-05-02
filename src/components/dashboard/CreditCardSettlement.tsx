@@ -23,8 +23,11 @@ const CreditCardSettlement: React.FC = () => {
         let startDate: Date;
         let paymentDate: Date;
 
-        // Current cycle dates
-        if (day <= cutoffDay) {
+        // The "Next Settlement" we care about is the one that JUST closed or is about to close.
+        // If today is after the cutoff day of the PREVIOUS month, that's the one we likely haven't paid yet.
+        
+        if (day > cutoffDay) {
+            // We are in the "Next month's" active period, but the CURRENT month's cycle just closed.
             cutoffDate = new Date(year, month, cutoffDay, 23, 59, 59);
             startDate = new Date(year, month - 1, cutoffDay + 1, 0, 0, 0);
             paymentDate = new Date(year, month, paymentDay, 12, 0, 0);
@@ -32,11 +35,13 @@ const CreditCardSettlement: React.FC = () => {
                 paymentDate = new Date(year, month + 1, paymentDay, 12, 0, 0);
             }
         } else {
-            cutoffDate = new Date(year, month + 1, cutoffDay, 23, 59, 59);
-            startDate = new Date(year, month, cutoffDay + 1, 0, 0, 0);
-            paymentDate = new Date(year, month + 1, paymentDay, 12, 0, 0);
+            // We are BEFORE the cutoff of the current month.
+            // So the cycle that ended LAST month is the one pending/recently paid.
+            cutoffDate = new Date(year, month - 1, cutoffDay, 23, 59, 59);
+            startDate = new Date(year, month - 2, cutoffDay + 1, 0, 0, 0);
+            paymentDate = new Date(year, month - 1, paymentDay, 12, 0, 0);
             if (paymentDay <= cutoffDay) {
-                paymentDate = new Date(year, month + 2, paymentDay, 12, 0, 0);
+                paymentDate = new Date(year, month, paymentDay, 12, 0, 0);
             }
         }
 
@@ -44,7 +49,7 @@ const CreditCardSettlement: React.FC = () => {
             start: startDate,
             cutoff: cutoffDate,
             payment: paymentDate,
-            isCycleClosed: today.getDate() > cutoffDay || today.getMonth() !== startDate.getMonth() // Simple check
+            isCycleClosed: true // For this logic, it's always the closed/closing cycle
         };
     };
 

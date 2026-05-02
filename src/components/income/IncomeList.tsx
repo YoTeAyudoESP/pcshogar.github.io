@@ -27,7 +27,9 @@ const IncomeList: React.FC<IncomeListProps> = ({ onEdit }) => {
     };
 
     const currentMonthIncomes = useMemo(() => {
-        return extraIncomes.filter(isItemInSelectedMonth);
+        return extraIncomes
+            .filter(inc => inc.type !== 'rollover')
+            .filter(isItemInSelectedMonth);
     }, [extraIncomes, selectedMonth, selectedYear]);
 
     const groupedIncomes = useMemo(() => {

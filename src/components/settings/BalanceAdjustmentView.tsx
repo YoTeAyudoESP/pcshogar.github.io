@@ -21,7 +21,8 @@ const BalanceAdjustmentView: React.FC = () => {
     const { 
         overrides, closings, incomes,
         setMonthOverride, deleteMonthOverride,
-        updateMonthClosing, reverseMonthClosing, refreshFinance
+        updateMonthClosing, reverseMonthClosing, refreshFinance,
+        ignoreMonthClosing
     } = useFinance();
     const { selectedYear: defaultYear, selectedMonth: defaultMonth } = useDateSelection();
 
@@ -71,6 +72,12 @@ const BalanceAdjustmentView: React.FC = () => {
     const handleDeleteClosing = async (id: string) => {
         if (window.confirm('¿Estás seguro de que deseas deshacer este cierre? Se revertirán los movimientos generados y tendrás que decidir de nuevo.')) {
             await reverseMonthClosing(id);
+        }
+    };
+
+    const handleIgnoreClosing = async (id: string) => {
+        if (window.confirm('¿Deseas ignorar este cierre? Se revertirán los movimientos generados (remanentes) y el mes dejará de tenerse en cuenta para cálculos futuros.')) {
+            await ignoreMonthClosing(id);
         }
     };
 
@@ -224,9 +231,22 @@ const BalanceAdjustmentView: React.FC = () => {
                                             {formatCurrency(c.finalBalance)}
                                         </td>
                                         <td style={{ padding: '1rem', textAlign: 'center' }}>
-                                            <button onClick={() => handleDeleteClosing(c.id)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
-                                                <Trash2 size={16} />
-                                            </button>
+                                            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+                                                <button 
+                                                    onClick={() => handleIgnoreClosing(c.id)} 
+                                                    title="Ignorar Cierre"
+                                                    style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}
+                                                >
+                                                    <EyeOff size={16} />
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleDeleteClosing(c.id)} 
+                                                    title="Deshacer y Borrar"
+                                                    style={{ background: 'none', border: 'none', color: '#ff4757', cursor: 'pointer' }}
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
@@ -278,41 +298,80 @@ const BalanceAdjustmentView: React.FC = () => {
                 </div>
             </div>
 
-            {/* 4. Ignored Months */}
-            <div>
+            {/* 4. Ignored Months (Collapsible) */}
+            <div style={{ 
+                marginTop: '1rem', 
+                borderTop: '1px solid rgba(255,255,255,0.05)',
+                paddingTop: '2rem'
+            }}>
                 <button 
                     onClick={() => setShowIgnored(!showIgnored)}
                     style={{ 
-                        background: 'none', 
-                        border: 'none', 
+                        background: 'rgba(255, 255, 255, 0.03)', 
+                        border: '1px solid rgba(255, 255, 255, 0.05)', 
                         color: 'var(--text-muted)', 
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
+                        justifyContent: 'space-between',
                         gap: '0.5rem',
-                        fontSize: '0.9rem'
+                        fontSize: '0.9rem',
+                        width: '100%',
+                        padding: '1rem',
+                        borderRadius: '0.75rem',
+                        transition: 'all 0.2s'
                     }}
                 >
-                    {showIgnored ? <Eye size={18} /> : <EyeOff size={18} />}
-                    {showIgnored ? 'Ocultar' : 'Meses Ignorados'} ({ignoredClosings.length})
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <EyeOff size={18} style={{ opacity: 0.5 }} />
+                        <span style={{ fontWeight: 600 }}>Cierres Ignorados</span>
+                        <span style={{ 
+                            background: 'rgba(255,255,255,0.1)', 
+                            padding: '2px 8px', 
+                            borderRadius: '100px', 
+                            fontSize: '0.75rem' 
+                        }}>{ignoredClosings.length}</span>
+                    </div>
+                    {showIgnored ? <TrendingUp size={16} style={{ transform: 'rotate(180deg)' }} /> : <TrendingDown size={16} />}
                 </button>
 
                 {showIgnored && (
-                    <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <div style={{ 
+                        marginTop: '1rem', 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        gap: '0.5rem',
+                        padding: '0 0.5rem'
+                    }}>
                         {ignoredClosings.length === 0 ? (
-                            <div style={{ padding: '1rem', textAlign: 'center', opacity: 0.3, fontSize: '0.85rem' }}>No hay meses ignorados</div>
+                            <div style={{ padding: '2rem', textAlign: 'center', opacity: 0.3, fontSize: '0.85rem' }}>No hay meses ignorados</div>
                         ) : (
                             ignoredClosings.map(c => (
-                                <div key={c.id} className="glass-panel" style={{ padding: '0.75rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div key={c.id} className="glass-panel" style={{ 
+                                    padding: '0.75rem 1rem', 
+                                    display: 'flex', 
+                                    justifyContent: 'space-between', 
+                                    alignItems: 'center',
+                                    background: 'rgba(255,255,255,0.01)'
+                                }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                        <EyeOff size={16} style={{ opacity: 0.4 }} />
-                                        <span style={{ textTransform: 'capitalize' }}>{getMonthName(c.month)} de {c.year}</span>
+                                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)' }} />
+                                        <span style={{ textTransform: 'capitalize', fontWeight: 500 }}>{getMonthName(c.month)} de {c.year}</span>
                                     </div>
                                     <button 
                                         onClick={() => handleRestoreIgnored(c)}
-                                        style={{ background: 'none', border: 'none', color: '#6366f1', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}
+                                        style={{ 
+                                            background: 'rgba(99, 102, 241, 0.1)', 
+                                            border: '1px solid rgba(99, 102, 241, 0.2)', 
+                                            color: '#818cf8', 
+                                            fontSize: '0.75rem', 
+                                            fontWeight: 700, 
+                                            cursor: 'pointer',
+                                            padding: '0.4rem 0.8rem',
+                                            borderRadius: '0.5rem'
+                                        }}
                                     >
-                                        Restaurar
+                                        RESTAURAR
                                     </button>
                                 </div>
                             ))

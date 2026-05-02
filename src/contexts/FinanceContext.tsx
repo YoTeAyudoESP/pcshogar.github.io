@@ -69,9 +69,11 @@ interface FinanceContextType {
     closeMonthWithDecision: (closing: MonthClosing, distributions: { type: 'next_month' | 'saving_goal', targetId?: string, amount: number }[]) => Promise<void>;
     reverseMonthClosing: (id: string) => Promise<void>;
     updateMonthClosing: (closing: MonthClosing) => Promise<void>;
+    ignoreMonthClosing: (id: string) => Promise<void>;
     setPendingClosing: (closing: MonthClosing | null) => void;
     pendingClosing: MonthClosing | null;
     importData: (data: any) => Promise<void>;
+    settleCardCycle: (cardId: string, amount: number, date: number, accountId: string) => Promise<void>;
     refreshFinance: () => Promise<void>;
 }
 
@@ -646,6 +648,78 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         await refreshFinance();
     };
 
+    const settleCardCycle = async (cardId: string, amount: number, date: number, accountId: string) => {
+        const card = cards.find(c => c.id === cardId);
+        if (!card) return;
+
+        // 1. Create a "settlement" expense in the linked account
+        // We use a special category or just 'cat_other'
+        const settlementExpense: Expense = {
+            id: uuidv4(),
+            description: `Liquidación Tarjeta: ${card.name}`,
+            amount: amount,
+            currency: 'EUR',
+            date: date,
+            categoryId: 'cat_other', // Or maybe 'cat_loans' or a new one
+            paymentMethod: { type: 'account', accountId },
+            isFixed: false,
+            status: 'paid',
+            updatedAt: Date.now()
+        };
+        await incomeDB.addExpenseWithTransaction(settlementExpense);
+
+        // 2. Decrease card balance
+        // addExpenseWithTransaction for a 'card' expense ADDS to balance.
+        // Here we want to SUBTRACT. The easiest is to update the card directly.
+        const updatedCard = {
+            ...card,
+            currentBalance: Math.max(0, card.currentBalance - amount),
+            updatedAt: Date.now()
+        };
+        await incomeDB.updateCard(updatedCard);
+
+        await refreshFinance();
+    };
+
+    const ignoreMonthClosing = async (id: string) => {
+        const closing = closings.find(c => c.id === id);
+        if (!closing) return;
+
+        // 1. Revert distributions if any (same as reverse)
+        if (closing.distributions) {
+            for (const dist of closing.distributions) {
+                if (dist.type === 'next_month') {
+                    let nextMonth = closing.month + 1;
+                    let nextYear = closing.year;
+                    if (nextMonth > 11) {
+                        nextMonth = 0;
+                        nextYear++;
+                    }
+                    const rolloverInc = extraIncomes.find(i => 
+                        i.type === 'rollover' && 
+                        i.budgetMonth === nextMonth && 
+                        i.budgetYear === nextYear &&
+                        i.amount === dist.amount
+                    );
+                    if (rolloverInc) {
+                        await incomeDB.deleteIncomeWithTransaction(rolloverInc.id);
+                    }
+                } else if (dist.type === 'saving_goal' && dist.targetId) {
+                    await incomeDB.adjustSavingGoalWithTransaction(dist.targetId, -dist.amount, undefined, true);
+                }
+            }
+        }
+
+        // 2. Set status to ignored
+        await incomeDB.addMonthClosing({
+            ...closing,
+            status: 'ignored',
+            distributions: undefined
+        });
+
+        await refreshFinance();
+    };
+
     return (
         <FinanceContext.Provider value={{
             accounts,
@@ -700,6 +774,8 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
             closeMonthWithDecision,
             reverseMonthClosing,
             updateMonthClosing,
+            ignoreMonthClosing,
+            settleCardCycle,
             pendingClosing,
             setPendingClosing,
             importData,

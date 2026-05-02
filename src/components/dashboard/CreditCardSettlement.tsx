@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
-import { CreditCard as CardIcon } from 'lucide-react';
+import { CreditCard as CardIcon, CheckCircle2, Calendar, AlertCircle } from 'lucide-react';
+import type { CreditCard } from '../../types/finance';
 
 const CreditCardSettlement: React.FC = () => {
     const { cards } = useFinance();
@@ -11,7 +12,8 @@ const CreditCardSettlement: React.FC = () => {
 
     if (creditCards.length === 0) return null;
 
-    const calculateDates = (cutoffDay: number, paymentDay: number) => {
+    const calculateDates = (card: CreditCard) => {
+        const { cutoffDay, paymentDay } = card;
         const today = new Date();
         const year = today.getFullYear();
         const month = today.getMonth();
@@ -21,27 +23,28 @@ const CreditCardSettlement: React.FC = () => {
         let startDate: Date;
         let paymentDate: Date;
 
+        // Current cycle dates
         if (day <= cutoffDay) {
-            cutoffDate = new Date(year, month, cutoffDay);
-            startDate = new Date(year, month - 1, cutoffDay + 1);
-            paymentDate = new Date(year, month, paymentDay);
-            // If paymentDay <= cutoffDay, payment of the current cycle is usually NEXT month
+            cutoffDate = new Date(year, month, cutoffDay, 23, 59, 59);
+            startDate = new Date(year, month - 1, cutoffDay + 1, 0, 0, 0);
+            paymentDate = new Date(year, month, paymentDay, 12, 0, 0);
             if (paymentDay <= cutoffDay) {
-                paymentDate = new Date(year, month + 1, paymentDay);
+                paymentDate = new Date(year, month + 1, paymentDay, 12, 0, 0);
             }
         } else {
-            cutoffDate = new Date(year, month + 1, cutoffDay);
-            startDate = new Date(year, month, cutoffDay + 1);
-            paymentDate = new Date(year, month + 1, paymentDay);
+            cutoffDate = new Date(year, month + 1, cutoffDay, 23, 59, 59);
+            startDate = new Date(year, month, cutoffDay + 1, 0, 0, 0);
+            paymentDate = new Date(year, month + 1, paymentDay, 12, 0, 0);
             if (paymentDay <= cutoffDay) {
-                paymentDate = new Date(year, month + 2, paymentDay);
+                paymentDate = new Date(year, month + 2, paymentDay, 12, 0, 0);
             }
         }
 
         return {
             start: startDate,
             cutoff: cutoffDate,
-            payment: paymentDate
+            payment: paymentDate,
+            isCycleClosed: today.getDate() > cutoffDay || today.getMonth() !== startDate.getMonth() // Simple check
         };
     };
 
@@ -51,6 +54,18 @@ const CreditCardSettlement: React.FC = () => {
 
     const formatDateFull = (date: Date) => {
         return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+    };
+
+    const { expenses, settleCardCycle } = useFinance();
+
+    const handleSettle = async (cardId: string, amount: number, accountId: string) => {
+        if (amount <= 0) {
+            alert('No hay importe pendiente para liquidar.');
+            return;
+        }
+        if (window.confirm(`¿Confirmas el pago de ${amount.toFixed(2)}€ de la tarjeta? Se descontará de la cuenta vinculada.`)) {
+            await settleCardCycle(cardId, amount, Date.now(), accountId);
+        }
     };
 
     return (
@@ -68,13 +83,28 @@ const CreditCardSettlement: React.FC = () => {
             </h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {creditCards.map(card => {
-                    const dates = calculateDates(card.cutoffDay, card.paymentDay);
+                {creditCards.map((card: CreditCard) => {
+                    const dates = calculateDates(card);
                     
+                    // Dynamic calculation of cycle spending
+                    const cycleExpenses = expenses.filter(exp => {
+                        const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === card.id;
+                        if (!isCard) return false;
+                        const expDate = new Date(exp.date);
+                        return expDate >= dates.start && expDate <= dates.cutoff;
+                    });
+                    
+                    const cycleTotal = cycleExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+                    
+                    // Logic to determine if we show the settle button
+                    // The cycle is closed if today is between cutoff and payment, or after cutoff
+                    const today = new Date();
+                    const isSettlementPending = today > dates.cutoff || (today.getDate() > card.cutoffDay);
+
                     return (
                         <div key={card.id} className="glass-panel" style={{ 
                             padding: '1.5rem', 
-                            borderLeft: '4px solid #fbbf24', // Use yellowish for credit cards
+                            borderLeft: `4px solid ${card.color || '#fbbf24'}`,
                             position: 'relative',
                             overflow: 'hidden'
                         }}>
@@ -83,16 +113,16 @@ const CreditCardSettlement: React.FC = () => {
                                     <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                         TARJETA DE CRÉDITO
                                     </div>
-                                    <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#fbbf24', marginTop: '0.25rem' }}>
+                                    <div style={{ fontSize: '1.4rem', fontWeight: 800, color: card.color || '#fbbf24', marginTop: '0.25rem' }}>
                                         {card.name.toUpperCase()}
                                     </div>
                                 </div>
                                 <div style={{ textAlign: 'right' }}>
                                     <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'white' }}>
-                                        {card.currentBalance.toLocaleString('es-ES', { minimumFractionDigits: 2 })} €
+                                        {cycleTotal.toLocaleString('es-ES', { minimumFractionDigits: 2 })} €
                                     </div>
-                                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fbbf24', textTransform: 'uppercase' }}>
-                                        CICLO ACTUAL
+                                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: card.color || '#fbbf24', textTransform: 'uppercase' }}>
+                                        GASTO CICLO
                                     </div>
                                 </div>
                             </div>
@@ -122,10 +152,18 @@ const CreditCardSettlement: React.FC = () => {
 
                                     {/* Cierre */}
                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-                                        <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: '#fbbf24', border: '3px solid #1a1f2e', zIndex: 2, boxShadow: '0 0 10px rgba(251, 191, 36, 0.4)' }} />
+                                        <div style={{ 
+                                            width: '16px', 
+                                            height: '16px', 
+                                            borderRadius: '50%', 
+                                            background: today > dates.cutoff ? '#10b981' : (card.color || '#fbbf24'), 
+                                            border: '3px solid #1a1f2e', 
+                                            zIndex: 2, 
+                                            boxShadow: today > dates.cutoff ? '0 0 10px rgba(16, 185, 129, 0.4)' : `0 0 10px ${card.color || 'rgba(251, 191, 36, 0.4)'}` 
+                                        }} />
                                         <div style={{ textAlign: 'center' }}>
                                             <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase' }}>CIERRE</div>
-                                            <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#fbbf24' }}>{formatDate(dates.cutoff)}</div>
+                                            <div style={{ fontSize: '0.85rem', fontWeight: 800, color: today > dates.cutoff ? '#10b981' : (card.color || '#fbbf24') }}>{formatDate(dates.cutoff)}</div>
                                         </div>
                                     </div>
 
@@ -133,25 +171,60 @@ const CreditCardSettlement: React.FC = () => {
                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
                                         <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)', border: '2px solid #1a1f2e', zIndex: 2 }} />
                                         <div style={{ textAlign: 'center' }}>
-                                            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase' }}>FECHA DE PAGO</div>
+                                            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase' }}>PAGO</div>
                                             <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>{formatDate(dates.payment)}</div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Footer Range */}
-                            <div style={{ 
-                                marginTop: '1.5rem', 
-                                background: 'rgba(255,255,255,0.03)', 
-                                padding: '0.75rem', 
-                                borderRadius: '0.5rem', 
-                                textAlign: 'center', 
-                                fontSize: '0.8rem', 
-                                color: 'rgba(255,255,255,0.5)' 
-                            }}>
-                                Periodo actual: {formatDateFull(dates.start)} - {formatDateFull(dates.cutoff)}
+                            {/* Actions / Settle Button */}
+                            <div style={{ marginTop: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                    <Calendar size={12} />
+                                    {formatDateFull(dates.start)} - {formatDateFull(dates.cutoff)}
+                                </div>
+
+                                {isSettlementPending && (
+                                    <button 
+                                        onClick={() => handleSettle(card.id, cycleTotal, card.linkedAccountId)}
+                                        style={{
+                                            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                            color: 'white',
+                                            border: 'none',
+                                            padding: '0.6rem 1.2rem',
+                                            borderRadius: '0.75rem',
+                                            fontSize: '0.85rem',
+                                            fontWeight: 700,
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.5rem',
+                                            boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
+                                        }}
+                                    >
+                                        <CheckCircle2 size={16} /> Confirmar Pago
+                                    </button>
+                                )}
                             </div>
+                            
+                            {/* Warning if balance mismatch (total vs cycle) - optional helper */}
+                            {Math.abs(card.currentBalance - cycleTotal) > 1 && (
+                                <div style={{ 
+                                    marginTop: '1rem', 
+                                    fontSize: '0.7rem', 
+                                    color: 'rgba(255,255,255,0.3)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.4rem',
+                                    padding: '0.5rem',
+                                    background: 'rgba(0,0,0,0.1)',
+                                    borderRadius: '4px'
+                                }}>
+                                    <AlertCircle size={12} />
+                                    Deuda total acumulada: {card.currentBalance.toFixed(2)}€
+                                </div>
+                            )}
                         </div>
                     );
                 })}

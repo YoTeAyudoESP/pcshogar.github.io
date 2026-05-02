@@ -13,7 +13,7 @@ import BalanceAdjustmentView from './BalanceAdjustmentView';
 import CategoryManagementView from './CategoryManagementView';
 import AppSettingsView from './AppSettingsView';
 import { useFinance } from '../../contexts/FinanceContext';
-const version = "0.5.0";
+const version = "0.5.1";
 import type { Account, CreditCard, RecurringExpense, SavingGoal, Loan } from '../../types/finance';
 import { 
     Wallet, 

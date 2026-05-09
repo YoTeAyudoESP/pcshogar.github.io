@@ -202,6 +202,7 @@ export interface SyncSettings {
         pass: string;
     };
     dropboxToken?: string;
+    dropboxUserEmail?: string;
     lastSync?: number;
 }
 

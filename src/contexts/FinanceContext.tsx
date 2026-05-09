@@ -15,6 +15,7 @@ import { SyncService } from '../services/syncService';
 import { useAppSettings } from './AppSettingsContext';
 import { v4 as uuidv4 } from 'uuid';
 import { calculateAvailableBalanceForMonth } from '../utils/financeCalculations';
+import { DropboxService } from '../services/dropboxService';
 
 interface FinanceContextType {
     accounts: Account[];
@@ -215,27 +216,33 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
 
     // Auto-sync watcher
     useEffect(() => {
-        if (!loading && settings.sync.enabled && settings.sync.localPath) {
-            const lastSync = settings.sync.lastSync || 0;
-            const now = Date.now();
-            
-            // Only sync if data has changed and some time has passed (to avoid too many writes)
-            // But for now, simple is better.
+        if (!loading && settings.sync.enabled) {
             const triggerSync = async () => {
-                const success = await SyncService.syncToLocalFile(settings.sync.localPath!);
-                if (success) {
-                  updateSyncSettings({ lastSync: Date.now() });
+                if (settings.sync.type === 'local' && settings.sync.localPath) {
+                    const success = await SyncService.syncToLocalFile(settings.sync.localPath);
+                    if (success) {
+                        updateSyncSettings({ lastSync: Date.now() });
+                    }
+                } else if (settings.sync.type === 'dropbox' && settings.sync.dropboxToken) {
+                    try {
+                        const timestamp = await DropboxService.sync();
+                        if (timestamp) {
+                            updateSyncSettings({ lastSync: timestamp });
+                        }
+                    } catch (e) {
+                        console.error("Auto-sync Dropbox failed", e);
+                    }
                 }
             };
 
-            const timer = setTimeout(triggerSync, 1000); // Debounce 1s
+            const timer = setTimeout(triggerSync, 2000); // Debounce 2s for cloud
             return () => clearTimeout(timer);
         }
     }, [
         accounts, cards, expenses, savings, allocations, 
         recurringExpenses, loans, movements, categories, 
         transfers, closings, overrides, incomes,
-        settings.sync.enabled, settings.sync.localPath, loading
+        settings.sync.enabled, settings.sync.localPath, settings.sync.dropboxToken, settings.sync.type, loading
     ]);
 
     const importData = async (data: any) => {

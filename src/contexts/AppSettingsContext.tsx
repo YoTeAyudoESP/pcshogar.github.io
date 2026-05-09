@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import type { AppSettings, SyncSettings } from '../types/finance';
+import { DropboxService } from '../services/dropboxService';
 
 interface AppSettingsContextType {
     settings: AppSettings;
@@ -41,6 +42,11 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
     });
 
     useEffect(() => {
+        // Initialize Dropbox if token exists
+        if (settings.sync.type === 'dropbox' && settings.sync.dropboxToken) {
+            DropboxService.init(settings.sync.dropboxToken);
+        }
+
         localStorage.setItem('pcshogar_settings', JSON.stringify(settings));
         
         // Apply theme color tokens to root if necessary

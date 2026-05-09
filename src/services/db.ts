@@ -467,25 +467,25 @@ class IncomeDB {
     async getAllClosings(): Promise<MonthClosing[]> { return (await this.dbPromise).getAll('closings'); }
     async getAllOverrides(): Promise<MonthOverride[]> { return (await this.dbPromise).getAll('overrides'); }
 
-    async addMonthClosing(closing: MonthClosing): Promise<void> { await (await this.dbPromise).put('closings', closing); }
+    async addMonthClosing(closing: MonthClosing): Promise<void> { await (await this.dbPromise).put('closings', { ...closing }); }
     async deleteMonthClosing(id: string): Promise<void> { await (await this.dbPromise).delete('closings', id); }
 
-    async addMonthOverride(override: MonthOverride): Promise<void> { await (await this.dbPromise).put('overrides', override); }
+    async addMonthOverride(override: MonthOverride): Promise<void> { await (await this.dbPromise).put('overrides', { ...override, updatedAt: Date.now() }); }
     async deleteMonthOverride(id: string): Promise<void> { await (await this.dbPromise).delete('overrides', id); }
 
-    async addAccount(account: Account): Promise<void> { await (await this.dbPromise).put('accounts', account); }
-    async updateAccount(account: Account): Promise<void> { await (await this.dbPromise).put('accounts', account); }
-    async addCard(card: CreditCard): Promise<void> { await (await this.dbPromise).put('cards', card); }
-    async updateCard(card: CreditCard): Promise<void> { await (await this.dbPromise).put('cards', card); }
+    async addAccount(account: Account): Promise<void> { await (await this.dbPromise).put('accounts', { ...account, updatedAt: Date.now() }); }
+    async updateAccount(account: Account): Promise<void> { await (await this.dbPromise).put('accounts', { ...account, updatedAt: Date.now() }); }
+    async addCard(card: CreditCard): Promise<void> { await (await this.dbPromise).put('cards', { ...card, updatedAt: Date.now() }); }
+    async updateCard(card: CreditCard): Promise<void> { await (await this.dbPromise).put('cards', { ...card, updatedAt: Date.now() }); }
     async deleteAccount(id: string): Promise<void> { await (await this.dbPromise).delete('accounts', id); }
     async deleteCard(id: string): Promise<void> { await (await this.dbPromise).delete('cards', id); }
 
-    async addSavingGoal(goal: SavingGoal): Promise<void> { await (await this.dbPromise).put('savings', goal); }
-    async updateSavingGoal(goal: SavingGoal): Promise<void> { await (await this.dbPromise).put('savings', goal); }
+    async addSavingGoal(goal: SavingGoal): Promise<void> { await (await this.dbPromise).put('savings', { ...goal, updatedAt: Date.now() }); }
+    async updateSavingGoal(goal: SavingGoal): Promise<void> { await (await this.dbPromise).put('savings', { ...goal, updatedAt: Date.now() }); }
     async deleteSavingGoal(id: string): Promise<void> { await (await this.dbPromise).delete('savings', id); }
 
-    async addCategory(category: Category): Promise<void> { await (await this.dbPromise).put('categories', category); }
-    async updateCategory(category: Category): Promise<void> { await (await this.dbPromise).put('categories', category); }
+    async addCategory(category: Category): Promise<void> { await (await this.dbPromise).put('categories', { ...category, updatedAt: Date.now() }); }
+    async updateCategory(category: Category): Promise<void> { await (await this.dbPromise).put('categories', { ...category, updatedAt: Date.now() }); }
     
     async deleteCategoryWithReassignment(id: string, reassignToId?: string): Promise<void> {
         const db = await this.dbPromise;
@@ -607,11 +607,11 @@ class IncomeDB {
         await tx.done;
     }
 
-    async addRecurringExpense(expense: RecurringExpense): Promise<void> { await (await this.dbPromise).put('recurring_expenses', expense); }
-    async updateRecurringExpense(expense: RecurringExpense): Promise<void> { await (await this.dbPromise).put('recurring_expenses', expense); }
+    async addRecurringExpense(expense: RecurringExpense): Promise<void> { await (await this.dbPromise).put('recurring_expenses', { ...expense, updatedAt: Date.now() }); }
+    async updateRecurringExpense(expense: RecurringExpense): Promise<void> { await (await this.dbPromise).put('recurring_expenses', { ...expense, updatedAt: Date.now() }); }
     async deleteRecurringExpense(id: string): Promise<void> { await (await this.dbPromise).delete('recurring_expenses', id); }
-    async addLoan(loan: Loan): Promise<void> { await (await this.dbPromise).put('loans', loan); }
-    async updateLoan(loan: Loan): Promise<void> { await (await this.dbPromise).put('loans', loan); }
+    async addLoan(loan: Loan): Promise<void> { await (await this.dbPromise).put('loans', { ...loan, updatedAt: Date.now() }); }
+    async updateLoan(loan: Loan): Promise<void> { await (await this.dbPromise).put('loans', { ...loan, updatedAt: Date.now() }); }
     async deleteLoan(id: string): Promise<void> { await (await this.dbPromise).delete('loans', id); }
 
     async amortizeLoanWithTransaction(loanId: string, amount: number, accountId: string, date: number, notes?: string): Promise<void> {

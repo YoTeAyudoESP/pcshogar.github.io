@@ -20,6 +20,7 @@ import { useAppSettings } from '../../contexts/AppSettingsContext';
 import { useFinance } from '../../contexts/FinanceContext';
 import { SyncService } from '../../services/syncService';
 import { incomeDB } from '../../services/db';
+import { DropboxService } from '../../services/dropboxService';
 import { SUPPORTED_CURRENCIES, SUPPORTED_LANGUAGES, APP_THEMES } from '../../types/finance';
 
 const AppSettingsView: React.FC = () => {
@@ -324,8 +325,70 @@ const AppSettingsView: React.FC = () => {
                     )}
 
                     {settings.sync.type === 'dropbox' && (
-                        <div style={{ textAlign: 'center', padding: '1rem', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '0.75rem' }}>
-                            <p style={{ opacity: 0.5, fontSize: '0.9rem' }}>Conexión con Dropbox próximamente...</p>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <div style={{ 
+                                padding: '1.25rem', 
+                                border: '1px solid rgba(255,255,255,0.1)', 
+                                borderRadius: '1rem',
+                                background: 'rgba(255,255,255,0.02)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '1rem'
+                            }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                        <Cloud size={24} color="#0061FF" />
+                                        <div>
+                                            <p style={{ margin: 0, fontWeight: 700, fontSize: '1rem' }}>Estado de Dropbox</p>
+                                            <p style={{ margin: 0, fontSize: '0.8rem', opacity: 0.6 }}>
+                                                {settings.sync.dropboxToken ? `Conectado como ${settings.sync.dropboxUserEmail || 'Usuario'}` : 'No conectado'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    {settings.sync.dropboxToken ? (
+                                        <button 
+                                            onClick={() => updateSyncSettings({ dropboxToken: undefined, dropboxUserEmail: undefined })}
+                                            style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.5rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 600 }}
+                                        >
+                                            Desconectar
+                                        </button>
+                                    ) : (
+                                        <button 
+                                            onClick={() => {
+                                                const url = DropboxService.getAuthUrl();
+                                                window.location.href = url;
+                                            }}
+                                            style={{ background: '#0061FF', color: 'white', border: 'none', padding: '0.5rem 1.25rem', borderRadius: '0.5rem', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 700 }}
+                                        >
+                                            Conectar Cuenta
+                                        </button>
+                                    )}
+                                </div>
+
+                                {settings.sync.dropboxToken && (
+                                    <div style={{ display: 'flex', gap: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1rem' }}>
+                                        <button 
+                                            onClick={async () => {
+                                                try {
+                                                    const timestamp = await DropboxService.sync();
+                                                    updateSyncSettings({ lastSync: timestamp });
+                                                    alert('Sincronización completada.');
+                                                } catch (e) {
+                                                    alert('Error en la sincronización.');
+                                                }
+                                            }}
+                                            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.05)', color: 'white', border: 'none', padding: '0.75rem', borderRadius: '0.75rem', cursor: 'pointer', fontWeight: 600 }}
+                                        >
+                                            <Server size={16} /> Sincronizar Ahora
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                            {!settings.sync.dropboxToken && (
+                                <p style={{ fontSize: '0.75rem', opacity: 0.4, margin: 0, fontStyle: 'italic' }}>
+                                    Al conectar Dropbox, la app podrá leer y escribir el archivo 'pcshogar_data.json' en tu cuenta para sincronizar con otros dispositivos.
+                                </p>
+                            )}
                         </div>
                     )}
                 </div>

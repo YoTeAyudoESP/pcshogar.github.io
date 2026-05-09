@@ -8,7 +8,7 @@ import {
     ArrowRightCircle
 } from 'lucide-react';
 import type { MonthClosing } from '../../types/finance';
-import { isItemInMonthAndYear } from '../../utils/financeCalculations';
+import { isItemInMonthAndYear, isRecurringActiveInMonth } from '../../utils/financeCalculations';
 
 interface RemnantDecisionModalProps {
     closing: MonthClosing;
@@ -37,7 +37,10 @@ const RemnantDecisionModal: React.FC<RemnantDecisionModalProps> = ({ closing, on
             const isIgnored = re.ignoredPeriods?.includes(period);
             if (isIgnored) return false;
             const isPaid = expenses.some(e => e.recurringExpenseId === re.id && isItemInMonthAndYear(e, closing.month, closing.year));
-            return !isPaid;
+            if (isPaid) return false;
+            
+            const start = re.updatedAt || 0;
+            return isRecurringActiveInMonth(re.frequency, re.paymentMonth, closing.month, closing.year, start);
         });
     }, [recurringExpenses, expenses, closing, period]);
 
@@ -45,11 +48,15 @@ const RemnantDecisionModal: React.FC<RemnantDecisionModalProps> = ({ closing, on
         return fixedIncomes.filter(inc => {
             const isIgnored = inc.ignoredPeriods?.includes(period);
             if (isIgnored) return false;
-            const start = inc.effectiveDate ? new Date(inc.effectiveDate) : new Date(0);
-            const end = inc.expirationDate ? new Date(inc.expirationDate) : new Date(9999, 11, 31);
-            const monthStart = new Date(closing.year, closing.month, 1);
-            const monthEnd = new Date(closing.year, closing.month + 1, 0);
-            return start <= monthEnd && end >= monthStart;
+            const start = inc.effectiveDate || inc.createdAt || 0;
+            const end = inc.expirationDate || new Date(9999, 11, 31).getTime();
+            const monthStart = new Date(closing.year, closing.month, 1).getTime();
+            const monthEnd = new Date(closing.year, closing.month + 1, 0).getTime();
+            
+            if (start <= monthEnd && end >= monthStart) {
+                return isRecurringActiveInMonth(inc.frequency, inc.paymentMonth, closing.month, closing.year, start);
+            }
+            return false;
         });
     }, [fixedIncomes, closing, period]);
 

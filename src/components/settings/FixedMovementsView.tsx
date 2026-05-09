@@ -16,6 +16,8 @@ import {
 import FixedIncomeForm from './FixedIncomeForm';
 import RecurringExpenseForm from '../expenses/RecurringExpenseForm';
 import ConfirmMovementModal from './ConfirmMovementModal';
+import { useDateSelection } from '../../contexts/DateSelectionContext';
+import { isRecurringActiveInMonth } from '../../utils/financeCalculations';
 
 interface FixedMovementsViewProps {
     onBack?: () => void;
@@ -41,9 +43,20 @@ const FixedMovementsView: React.FC<FixedMovementsViewProps> = ({ onBack }) => {
         item: FixedIncome | RecurringExpense | null;
     }>({ show: false, type: 'expense', item: null });
 
-    const fixedIncomes = incomes.filter(i => (i as any).type === 'fixed') as FixedIncome[];
-    
-    const currentMonthPeriod = new Date().toISOString().substring(0, 7);
+    const { selectedMonth, selectedYear } = useDateSelection();
+    const currentMonthPeriod = `${selectedYear}-${(selectedMonth + 1).toString().padStart(2, '0')}`;
+
+    const filteredFixedIncomes = incomes
+        .filter((i): i is FixedIncome => i.type === 'fixed')
+        .filter(inc => {
+            const start = inc.effectiveDate || inc.createdAt || 0;
+            return isRecurringActiveInMonth(inc.frequency, inc.paymentMonth, selectedMonth, selectedYear, start);
+        });
+
+    const filteredRecurringExpenses = recurringExpenses.filter(re => {
+        const start = re.updatedAt || 0;
+        return isRecurringActiveInMonth(re.frequency, re.paymentMonth, selectedMonth, selectedYear, start);
+    });
 
     const isProcessed = (item: FixedIncome | RecurringExpense) => {
         return item.ignoredPeriods?.includes(currentMonthPeriod) || false;
@@ -165,7 +178,7 @@ const FixedMovementsView: React.FC<FixedMovementsViewProps> = ({ onBack }) => {
 
             {/* List Section */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {(activeTab === 'expense' ? recurringExpenses : fixedIncomes).map(item => {
+                {(activeTab === 'expense' ? filteredRecurringExpenses : filteredFixedIncomes).map(item => {
                     const processed = isProcessed(item);
                     return (
                         <div 
@@ -264,10 +277,10 @@ const FixedMovementsView: React.FC<FixedMovementsViewProps> = ({ onBack }) => {
                     );
                 })}
 
-                {(activeTab === 'expense' ? recurringExpenses : fixedIncomes).length === 0 && (
+                {(activeTab === 'expense' ? filteredRecurringExpenses : filteredFixedIncomes).length === 0 && (
                     <div style={{ textAlign: 'center', padding: '3rem', opacity: 0.5 }}>
                         <CalendarClock size={48} style={{ margin: '0 auto 1rem auto' }} />
-                        <p>No hay {activeTab === 'income' ? 'ingresos fijos' : 'gastos fijos'} configurados.</p>
+                        <p>No hay {activeTab === 'income' ? 'ingresos fijos' : 'gastos fijos'} para este periodo.</p>
                     </div>
                 )}
             </div>

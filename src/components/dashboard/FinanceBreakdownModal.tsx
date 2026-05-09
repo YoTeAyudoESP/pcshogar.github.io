@@ -2,6 +2,7 @@ import React from 'react';
 import { X, Info, ChevronRight, TrendingUp, TrendingDown, Target, Wallet } from 'lucide-react';
 import { useFinance } from '../../contexts/FinanceContext';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
+import { isRecurringActiveInMonth } from '../../utils/financeCalculations';
 
 interface FinanceBreakdownModalProps {
     isOpen: boolean;
@@ -44,11 +45,16 @@ const FinanceBreakdownModal: React.FC<FinanceBreakdownModalProps> = ({ isOpen, o
             if (!inc.active) return false;
             // Si ya está en ignoredPeriods para este mes, es que ya se recibió (o se ignoró)
             if (inc.ignoredPeriods?.includes(currentPeriod)) return false;
-            const start = inc.effectiveDate ? new Date(inc.effectiveDate) : new Date(0);
-            const end = inc.expirationDate ? new Date(inc.expirationDate) : new Date(9999, 11, 31);
-            const monthStart = new Date(selectedYear, selectedMonth, 1);
-            const monthEnd = new Date(selectedYear, selectedMonth + 1, 0);
-            return start <= monthEnd && end >= monthStart;
+            
+            const start = inc.effectiveDate || inc.createdAt || 0;
+            const end = inc.expirationDate || new Date(9999, 11, 31).getTime();
+            const monthStart = new Date(selectedYear, selectedMonth, 1).getTime();
+            const monthEnd = new Date(selectedYear, selectedMonth + 1, 0).getTime();
+            
+            if (start <= monthEnd && end >= monthStart) {
+                return isRecurringActiveInMonth(inc.frequency, inc.paymentMonth, selectedMonth, selectedYear, start);
+            }
+            return false;
         })
         .reduce((sum, inc) => sum + inc.amount, 0);
 
@@ -74,9 +80,19 @@ const FinanceBreakdownModal: React.FC<FinanceBreakdownModalProps> = ({ isOpen, o
     const pendientesFijos = recurringExpenses
         .filter(re => {
             if (!re.active) return false;
+            
+            const start = re.updatedAt || 0;
+            const monthEnd = new Date(selectedYear, selectedMonth + 1, 0).getTime();
+            if (start > monthEnd) return false;
+
             // Si ya hay un gasto este mes vinculado a este recurrente
             const isPaid = expenses.some(e => e.recurringExpenseId === re.id && isItemInSelectedMonth(e));
-            return !isPaid;
+            const isIgnored = re.ignoredPeriods?.includes(currentPeriod);
+
+            if (!isPaid && !isIgnored) {
+                return isRecurringActiveInMonth(re.frequency, re.paymentMonth, selectedMonth, selectedYear, start);
+            }
+            return false;
         })
         .reduce((sum, re) => sum + re.amount, 0);
 

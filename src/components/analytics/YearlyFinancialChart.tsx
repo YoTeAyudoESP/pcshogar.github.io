@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { isRecurringActiveInMonth } from '../../utils/financeCalculations';
 
 const YearlyFinancialChart: React.FC = () => {
     const { expenses, fixedIncomes, extraIncomes } = useFinance();
@@ -23,11 +24,15 @@ const YearlyFinancialChart: React.FC = () => {
             // Calculate Income
             const monthlyFixedIncome = fixedIncomes
                 .filter(inc => {
-                    const start = inc.effectiveDate ? new Date(inc.effectiveDate) : new Date(0);
-                    const end = inc.expirationDate ? new Date(inc.expirationDate) : new Date(9999, 11, 31);
-                    const monthStart = new Date(currentYear, index, 1);
-                    const monthEnd = new Date(currentYear, index + 1, 0);
-                    return start <= monthEnd && end >= monthStart;
+                    const start = inc.effectiveDate || inc.createdAt || 0;
+                    const end = inc.expirationDate || new Date(9999, 11, 31).getTime();
+                    const monthStart = new Date(currentYear, index, 1).getTime();
+                    const monthEnd = new Date(currentYear, index + 1, 0).getTime();
+                    
+                    if (start <= monthEnd && end >= monthStart) {
+                        return isRecurringActiveInMonth(inc.frequency, inc.paymentMonth, index, currentYear, start);
+                    }
+                    return false;
                 })
                 .reduce((sum, inc) => sum + inc.amount, 0);
 

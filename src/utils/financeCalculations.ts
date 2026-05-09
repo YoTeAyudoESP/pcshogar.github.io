@@ -12,11 +12,41 @@ export function isItemInMonthAndYear(item: any, month: number, year: number) {
         const [y, m] = item.period.split('-').map(Number);
         return y === year && (m - 1) === month;
     }
-    const timestamp = item.receivedDate || item.date || item.updatedAt;
+    const timestamp = item.receivedDate || item.date || item.updatedAt || item.createdAt;
     if (!timestamp) return false;
     
     const d = new Date(timestamp);
     return d.getFullYear() === year && d.getMonth() === month;
+}
+
+export function isRecurringActiveInMonth(
+    frequency: string,
+    paymentMonth: number | undefined,
+    targetMonth: number, // 0-indexed
+    targetYear: number,
+    startTimestamp: number
+) {
+    const startDate = new Date(startTimestamp);
+    const startMonth = startDate.getMonth();
+    const startYear = startDate.getFullYear();
+
+    if (frequency === 'monthly' || frequency === 'weekly') return true;
+
+    // For frequencies that depend on a specific month
+    const referenceMonth = (paymentMonth !== undefined) ? (paymentMonth - 1) : startMonth;
+    
+    if (frequency === 'yearly') {
+        return targetMonth === referenceMonth;
+    }
+
+    const diffMonths = (targetYear - startYear) * 12 + (targetMonth - referenceMonth);
+    if (diffMonths < 0) return false;
+
+    if (frequency === 'bi-monthly') return diffMonths % 2 === 0;
+    if (frequency === 'quarterly') return diffMonths % 3 === 0;
+    if (frequency === 'semi-annually') return diffMonths % 6 === 0;
+
+    return false;
 }
 
 export function calculateAvailableBalanceForMonth(
@@ -48,16 +78,18 @@ export function calculateAvailableBalanceForMonth(
                 totalMonthIncome += inc.amount;
             }
         } else {
-            const start = inc.effectiveDate ? new Date(inc.effectiveDate) : new Date(0);
-            const end = inc.expirationDate ? new Date(inc.expirationDate) : new Date(9999, 11, 31);
-            const monthStart = new Date(year, month, 1);
-            const monthEnd = new Date(year, month + 1, 0);
+            const start = inc.effectiveDate || inc.createdAt || 0;
+            const end = inc.expirationDate || new Date(9999, 11, 31).getTime();
+            const monthStart = new Date(year, month, 1).getTime();
+            const monthEnd = new Date(year, month + 1, 0).getTime();
 
             const period = `${year}-${(month + 1).toString().padStart(2, '0')}`;
             const isIgnored = inc.ignoredPeriods?.includes(period);
 
             if (start <= monthEnd && end >= monthStart && !isIgnored) {
-                totalMonthIncome += inc.amount;
+                if (isRecurringActiveInMonth(inc.frequency, inc.paymentMonth, month, year, start)) {
+                    totalMonthIncome += inc.amount;
+                }
             }
         }
     });
@@ -106,12 +138,23 @@ export function calculateAvailableBalanceForMonth(
     // Pending Fixed Expenses
     const period = `${year}-${(month + 1).toString().padStart(2, '0')}`;
     let pendingFixedExpenses = 0;
+    const monthStart = new Date(year, month, 1).getTime();
+    const monthEnd = new Date(year, month + 1, 0).getTime();
+
     recurringExpenses.forEach(re => {
         if (!re.active) return;
+        
+        // Date range check (if updatedAt or createdAt can be used as start)
+        const start = re.updatedAt || 0;
+        if (start > monthEnd) return;
+
         const isPaid = expenses.some(e => e.recurringExpenseId === re.id && isItemInMonthAndYear(e, month, year));
         const isIgnored = re.ignoredPeriods?.includes(period);
+        
         if (!isPaid && !isIgnored) {
-            pendingFixedExpenses += re.amount;
+            if (isRecurringActiveInMonth(re.frequency, re.paymentMonth, month, year, start)) {
+                pendingFixedExpenses += re.amount;
+            }
         }
     });
 

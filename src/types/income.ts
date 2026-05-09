@@ -1,4 +1,4 @@
-export type Frequency = 'weekly' | 'monthly' | 'yearly';
+export type Frequency = 'weekly' | 'monthly' | 'bi-monthly' | 'quarterly' | 'semi-annually' | 'yearly';
 
 export interface IncomeBase {
     id: string; // UUID
@@ -22,6 +22,7 @@ export interface FixedIncome extends IncomeBase {
     frequency: Frequency;
     expirationDate?: number; // Timestamp, optional (null means indefinite)
     paymentDay: number;
+    paymentMonth?: number; // 1-indexed
     active: boolean;
     ignoredPeriods?: string[]; // Format: "YYYY-MM"
 }

@@ -15,8 +15,9 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
     const [description, setDescription] = useState(editingExpense?.description || '');
     const [amount, setAmount] = useState(editingExpense?.amount?.toString() || '');
     const [currency, setCurrency] = useState(editingExpense?.currency || 'EUR');
-    const [frequency, setFrequency] = useState(editingExpense?.frequency || 'monthly');
+    const [frequency, setFrequency] = useState<any>(editingExpense?.frequency || 'monthly');
     const [paymentDay, setPaymentDay] = useState(editingExpense?.paymentDay?.toString() || '1');
+    const [paymentMonth, setPaymentMonth] = useState(editingExpense?.paymentMonth?.toString() || '1');
     const [categoryId, setCategoryId] = useState(editingExpense?.categoryId || expenseCategories[0]?.id || '');
     
     // Payment Method State
@@ -45,6 +46,7 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
             currency: currency as any,
             frequency: frequency as any,
             paymentDay: parseInt(paymentDay) || 1,
+            paymentMonth: (frequency !== 'monthly' && frequency !== 'weekly') ? parseInt(paymentMonth) : undefined,
             active: true,
             categoryId,
             paymentMethod,
@@ -130,24 +132,51 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
                     >
                         <option value="monthly">Mensual</option>
                         <option value="weekly">Semanal</option>
-                        <option value="yearly">Anual</option>
                         <option value="bi-monthly">Bimensual</option>
+                        <option value="quarterly">Trimestral</option>
+                        <option value="semi-annually">Semestral</option>
+                        <option value="yearly">Anual</option>
                     </select>
                 </div>
             </div>
 
-            {/* Día de Pago */}
-            <div style={containerStyle}>
-                <label style={labelStyle}>Día de Pago</label>
-                <input 
-                    type="number" 
-                    min="1" 
-                    max="31" 
-                    style={inputStyle} 
-                    value={paymentDay} 
-                    onChange={e => setPaymentDay(e.target.value)} 
-                    required 
-                />
+            {/* Día y Mes de Pago */}
+            <div style={{ display: 'flex', gap: '1rem', ...containerStyle }}>
+                <div style={{ flex: 1 }}>
+                    <label style={labelStyle}>Día de Pago</label>
+                    <input 
+                        type="number" 
+                        min="1" 
+                        max="31" 
+                        style={inputStyle} 
+                        value={paymentDay} 
+                        onChange={e => setPaymentDay(e.target.value)} 
+                        required 
+                    />
+                </div>
+                {(frequency !== 'monthly' && frequency !== 'weekly') && (
+                    <div style={{ flex: 1 }}>
+                        <label style={labelStyle}>Mes de Referencia</label>
+                        <select 
+                            style={{ ...inputStyle, appearance: 'none', backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'rgba(255,255,255,0.4)\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpath d=\'m6 9 6 6 6-6\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center' }} 
+                            value={paymentMonth} 
+                            onChange={e => setPaymentMonth(e.target.value)}
+                        >
+                            <option value="1">Enero</option>
+                            <option value="2">Febrero</option>
+                            <option value="3">Marzo</option>
+                            <option value="4">Abril</option>
+                            <option value="5">Mayo</option>
+                            <option value="6">Junio</option>
+                            <option value="7">Julio</option>
+                            <option value="8">Agosto</option>
+                            <option value="9">Septiembre</option>
+                            <option value="10">Octubre</option>
+                            <option value="11">Noviembre</option>
+                            <option value="12">Diciembre</option>
+                        </select>
+                    </div>
+                )}
             </div>
 
             {/* Categoría */}

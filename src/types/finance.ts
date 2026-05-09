@@ -82,9 +82,9 @@ export interface RecurringExpense {
     description: string;
     amount: number;
     currency: Currency;
-    frequency: 'weekly' | 'monthly' | 'yearly' | 'bi-monthly';
+    frequency: 'weekly' | 'monthly' | 'bi-monthly' | 'quarterly' | 'semi-annually' | 'yearly';
     paymentDay: number; // Day of month
-    paymentMonth?: number; // For yearly/bi-monthly
+    paymentMonth?: number; // For yearly/bi-monthly/quarterly/etc. (1-indexed)
     active: boolean;
     sourceAccountId?: string;
     categoryId?: string;

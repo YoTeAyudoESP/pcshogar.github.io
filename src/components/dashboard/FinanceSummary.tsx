@@ -26,7 +26,8 @@ const FinanceSummary: React.FC = () => {
         totalMonthIncome,
         totalAccountExpenses,
         totalCardExpenses,
-        remanente
+        remanente,
+        pendingFixedExpenses
     } = useMemo(() => {
         return calculateAvailableBalanceForMonth(selectedYear, selectedMonth, {
             fixedIncomes,
@@ -154,6 +155,14 @@ const FinanceSummary: React.FC = () => {
                     </div>
                     <div style={{ color: '#fbbf24', fontWeight: 700, fontSize: '1.1rem', whiteSpace: 'nowrap' }}>
                         {totalCardExpenses.toFixed(2).replace('.', ',')}€
+                    </div>
+                </div>
+                <div>
+                    <div style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.85rem', marginBottom: '4px' }}>
+                        Fijos (Pend.)
+                    </div>
+                    <div style={{ color: '#818cf8', fontWeight: 700, fontSize: '1.1rem', whiteSpace: 'nowrap' }}>
+                        {pendingFixedExpenses.toFixed(2).replace('.', ',')}€
                     </div>
                 </div>
             </div>

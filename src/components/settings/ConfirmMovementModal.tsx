@@ -14,6 +14,7 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
     const { accounts, confirmFixedMovement } = useFinance();
     const [amount, setAmount] = useState(item.amount);
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    const [budgetPeriod, setBudgetPeriod] = useState(new Date().toISOString().substring(0, 7));
     const [accountId, setAccountId] = useState('');
 
     useEffect(() => {
@@ -33,7 +34,7 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
             return;
         }
 
-        const period = date.substring(0, 7); // YYYY-MM
+        const period = budgetPeriod;
         const description = (item as any).description || (item as any).name;
         const categoryId = (item as any).categoryId;
 
@@ -144,6 +145,29 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
                                 </option>
                             ))}
                         </select>
+                    </div>
+
+                    {/* Period Select */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <label style={{ fontSize: '0.85rem', opacity: 0.6, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                            <Calendar size={14} /> Mes de Presupuesto
+                        </label>
+                        <input 
+                            type="month"
+                            value={budgetPeriod}
+                            onChange={(e) => setBudgetPeriod(e.target.value)}
+                            style={{
+                                background: 'rgba(255, 255, 255, 0.05)',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                padding: '1rem',
+                                borderRadius: '0.75rem',
+                                color: 'white',
+                                width: '100%'
+                            }}
+                        />
+                        <p style={{ fontSize: '0.7rem', opacity: 0.4, margin: 0 }}>
+                            Indica a qué mes corresponde este movimiento en tu contabilidad.
+                        </p>
                     </div>
 
                     <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>

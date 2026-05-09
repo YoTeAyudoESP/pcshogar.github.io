@@ -184,7 +184,12 @@ const CategoryManagementView: React.FC = () => {
             </div>
 
             {/* List */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
+            <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', 
+                gap: '1rem',
+                paddingBottom: '100px' // Space for FAB
+            }}>
                 {filteredCategories.length === 0 ? (
                     <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '4rem', opacity: 0.3 }}>
                         No hay categorías definidas de este tipo

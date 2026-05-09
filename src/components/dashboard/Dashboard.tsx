@@ -4,6 +4,7 @@ import IncomeList from '../income/IncomeList';
 import ExpenseForm from '../expenses/ExpenseForm';
 import ExpenseList from '../expenses/ExpenseList';
 import FinanceSummary from './FinanceSummary';
+import PendingActionsWidget from './PendingActionsWidget';
 import FinanceGlobalSummary from './FinanceGlobalSummary';
 import CreditCardSettlement from './CreditCardSettlement';
 import SettingsView from '../settings/SettingsView';
@@ -13,7 +14,7 @@ import DateSelector from '../common/DateSelector';
 import { LayoutDashboard, Settings as SettingsIcon, X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, MinusCircle, PiggyBank, ArrowLeftRight, AlertCircle } from 'lucide-react';
 
 import { useFinance } from '../../contexts/FinanceContext';
-const version = "0.5.2";
+const version = "0.6.2";
 import RemnantDecisionModal from '../settings/RemnantDecisionModal';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import EditTransactionModal from './EditTransactionModal';
@@ -207,6 +208,7 @@ const Dashboard: React.FC = () => {
                     </div>
 
                     <FinanceSummary />
+                    <PendingActionsWidget />
                     <FinanceGlobalSummary />
                     <CreditCardSettlement />
 

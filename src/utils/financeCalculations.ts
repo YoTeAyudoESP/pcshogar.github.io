@@ -165,13 +165,46 @@ export function calculateAvailableBalanceForMonth(
     });
     const pendingSavings = Math.max(0, projectedTotalSavings - totalMonthAllocations);
 
-    // If there's an override, apply override logic
+    // Pending Fixed Incomes (expected but not received)
+    let pendingFixedIncomes = 0;
+    fixedIncomes.forEach(inc => {
+        const start = inc.effectiveDate || inc.createdAt || 0;
+        const end = inc.expirationDate || new Date(9999, 11, 31).getTime();
+        const isIgnored = inc.ignoredPeriods?.includes(period);
+
+        if (start <= monthEnd && end >= monthStart && !isIgnored) {
+            if (isRecurringActiveInMonth(inc.frequency, inc.paymentMonth, month, year, start)) {
+                // Check if received in this month
+                const isReceived = extraIncomes.some(ei => ei.period === period && (ei as any).fixedIncomeId === inc.id);
+                // Note: The extraIncomes check might need to be more robust depending on how we link them.
+                // For now, let's use the status or a linked ID if available.
+                // If it's not marked as received, add to pending.
+                if (inc.status === 'pending') {
+                    pendingFixedIncomes += inc.amount;
+                }
+            }
+        }
+    });
+
+    const summary = {
+        availableToSpend: totalMonthIncome - totalMonthExpenses - totalMonthAllocations + remanente - pendingFixedExpenses - pendingSavings,
+        totalMonthIncome,
+        totalMonthExpenses,
+        totalAccountExpenses,
+        totalCardExpenses,
+        totalMonthAllocations,
+        remanente,
+        pendingFixedExpenses,
+        pendingFixedIncomes,
+        pendingSavings,
+        activeOverride
+    };
+
     if (activeOverride) {
         const overrideTime = activeOverride.updatedAt;
         
         const incomeAfter = [...fixedIncomes, ...extraIncomes].filter(inc => {
             if (inc.type === 'rollover') return false;
-            // Use updatedAt as the primary source of truth for "after override"
             const rawTime = inc.updatedAt || inc.effectiveDate || (inc as any).date || 0;
             const t = Number(rawTime);
             return isItemInMonthAndYear(inc, month, year) && t > overrideTime;
@@ -190,34 +223,11 @@ export function calculateAvailableBalanceForMonth(
             return isItemInMonthAndYear(alloc, month, year) && t > overrideTime && (alloc.type === 'manual' || alloc.type === 'automatic');
         }).reduce((sum, alloc) => sum + alloc.amount, 0);
 
-        // For manual overrides, the user wants the amount to be the starting "Available"
-        // and only subtract/add what arises AFTER that point.
-        // We don't subtract pending items here because they are assumed to be 
-        // part of the user's manual estimation or will be subtracted when they "arise" (are paid).
         return {
+            ...summary,
             availableToSpend: activeOverride.amount + incomeAfter - expensesAfter - allocationsAfter,
-            totalMonthIncome,
-            totalMonthExpenses,
-            totalAccountExpenses,
-            totalCardExpenses,
-            totalMonthAllocations,
-            remanente,
-            pendingFixedExpenses,
-            pendingSavings,
-            activeOverride
         };
     }
 
-    return {
-        availableToSpend: totalMonthIncome - totalMonthExpenses - totalMonthAllocations + remanente - pendingFixedExpenses - pendingSavings,
-        totalMonthIncome,
-        totalMonthExpenses,
-        totalAccountExpenses,
-        totalCardExpenses,
-        totalMonthAllocations,
-        remanente,
-        pendingFixedExpenses,
-        pendingSavings,
-        activeOverride
-    };
+    return summary;
 }

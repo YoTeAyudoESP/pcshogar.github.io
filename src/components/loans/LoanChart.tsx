@@ -26,8 +26,16 @@ const LoanChart: React.FC = () => {
 
         const data = [];
 
+        const actualDate = new Date();
+        const isCurrentYear = selectedYear === actualDate.getFullYear();
+        const currentMonth = actualDate.getMonth();
+
         for (let month = 0; month < 12; month++) {
-            const startOfMonth = new Date(selectedYear, month, 1).getTime();
+            if (isCurrentYear && month > currentMonth) {
+                data.push({ name: monthNames[month] });
+                continue;
+            }
+
             const endOfMonth = new Date(selectedYear, month + 1, 0, 23, 59, 59, 999).getTime();
             
             const monthData: any = { 

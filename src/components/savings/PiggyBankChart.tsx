@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
 import { 
     ResponsiveContainer, 
-    LineChart, 
-    Line, 
+    AreaChart, 
+    Area, 
     XAxis, 
     YAxis, 
     CartesianGrid, 
@@ -16,23 +16,24 @@ const PiggyBankChart: React.FC = () => {
     const { savings, allocations } = useFinance();
     const { selectedYear } = useDateSelection();
 
-    const monthNames = [
-        'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 
-        'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'
-    ];
-
     const chartData = useMemo(() => {
         if (!savings || savings.length === 0) return [];
 
-        const data = [];
+        const monthNames = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sept', 'oct', 'nov', 'dic'];
+        const actualDate = new Date();
+        const isCurrentYear = selectedYear === actualDate.getFullYear();
+        const currentMonth = actualDate.getMonth();
 
-        // Evolution month by month for the current selected year
-        for (let month = 0; month < 12; month++) {
+        return monthNames.map((monthName, monthIndex) => {
+            if (isCurrentYear && monthIndex > currentMonth) {
+                return { name: monthName };
+            }
+
             // Last moment of the month
-            const endOfMonth = new Date(selectedYear, month + 1, 0, 23, 59, 59, 999).getTime();
+            const endOfMonth = new Date(selectedYear, monthIndex + 1, 0, 23, 59, 59, 999).getTime();
             
             const monthData: any = { 
-                name: monthNames[month]
+                name: monthName
             };
 
             savings.forEach(goal => {
@@ -44,10 +45,8 @@ const PiggyBankChart: React.FC = () => {
                 monthData[goal.name] = balanceAtEndOfMonth;
             });
 
-            data.push(monthData);
-        }
-
-        return data;
+            return monthData;
+        });
     }, [savings, allocations, selectedYear]);
 
     if (!savings || savings.length === 0) return null;
@@ -58,48 +57,88 @@ const PiggyBankChart: React.FC = () => {
     ];
 
     return (
-        <div className="glass-panel" style={{ padding: 'var(--space-md)', height: '350px', marginBottom: '1.5rem' }}>
-            <h3 style={{ marginBottom: '1rem', color: 'var(--text-muted)', fontSize: '1rem', textAlign: 'center', width: '100%', fontWeight: 500 }}>Evolución Anual de Huchas ({selectedYear})</h3>
-            <ResponsiveContainer width="100%" height="90%">
-                <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+        <div className="glass-panel" style={{ 
+            padding: '2rem 1.5rem', 
+            height: '400px', 
+            marginBottom: '1.5rem',
+            background: 'rgba(25, 27, 34, 0.3)'
+        }}>
+            <h3 style={{ 
+                margin: '0 0 1.5rem 0', 
+                fontSize: '1.4rem', 
+                fontWeight: 700, 
+                color: 'rgba(255, 255, 255, 0.8)',
+                textAlign: 'left'
+            }}>
+                Evolución Huchas {selectedYear}
+            </h3>
+            
+            <ResponsiveContainer width="100%" height="80%">
+                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                        {savings.map((goal, index) => {
+                            const color = goal.color || colors[index % colors.length];
+                            return (
+                                <linearGradient key={`grad-${goal.id}`} id={`color-${goal.id}`} x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor={color} stopOpacity={0.3}/>
+                                    <stop offset="95%" stopColor={color} stopOpacity={0}/>
+                                </linearGradient>
+                            );
+                        })}
+                    </defs>
+                    
+                    <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                    
                     <XAxis 
                         dataKey="name" 
                         stroke="rgba(255,255,255,0.3)" 
-                        fontSize={10}
+                        interval={0} 
+                        fontSize={12} 
                         tickLine={false}
                         axisLine={false}
-                        interval={0}
+                        dy={10}
                     />
+                    
                     <YAxis 
                         stroke="rgba(255,255,255,0.3)" 
-                        fontSize={10}
-                        tickLine={false}
+                        fontSize={12} 
+                        tickLine={false} 
                         axisLine={false}
                         tickFormatter={(value) => `${value}€`}
-                        domain={[0, 'auto']}
                     />
+                    
                     <Tooltip 
                         contentStyle={{ 
-                            background: 'rgba(30, 32, 47, 0.95)', 
-                            border: '1px solid rgba(255,255,255,0.1)',
-                            borderRadius: '8px',
-                            fontSize: '0.85rem'
+                            backgroundColor: 'rgba(26, 27, 34, 0.9)', 
+                            border: '1px solid rgba(255,255,255,0.1)', 
+                            borderRadius: '12px',
+                            color: '#fff',
+                            backdropFilter: 'blur(10px)'
                         }}
+                        itemStyle={{ color: '#fff' }}
+                        formatter={(value: any) => [`${Number(value).toFixed(2)}€`]}
                     />
-                    <Legend />
+                    
+                    <Legend 
+                        verticalAlign="bottom" 
+                        align="center" 
+                        height={40}
+                        iconType="circle"
+                        formatter={(value) => <span style={{ color: 'rgba(255,255,255,0.7)', fontWeight: 500, marginLeft: '8px' }}>{value}</span>}
+                    />
+                    
                     {savings.map((goal, index) => (
-                        <Line 
+                        <Area 
                             key={goal.id}
                             type="monotone" 
                             dataKey={goal.name} 
                             stroke={goal.color || colors[index % colors.length]} 
-                            strokeWidth={2}
-                            dot={{ r: 3 }}
-                            activeDot={{ r: 5 }}
+                            strokeWidth={3}
+                            fillOpacity={1} 
+                            fill={`url(#color-${goal.id})`}
                         />
                     ))}
-                </LineChart>
+                </AreaChart>
             </ResponsiveContainer>
         </div>
     );

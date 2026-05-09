@@ -228,22 +228,24 @@ const FixedMovementsView: React.FC<FixedMovementsViewProps> = ({ onBack }) => {
                             </div>
 
                             <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                {!processed && (
-                                    <button 
-                                        onClick={() => handleConfirm(activeTab, item)}
-                                        title="Confirmar cobro/pago"
-                                        style={{
-                                            padding: '0.6rem',
-                                            borderRadius: '0.75rem',
-                                            border: 'none',
-                                            background: activeTab === 'income' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(99, 102, 241, 0.1)',
-                                            color: activeTab === 'income' ? '#10b981' : '#818cf8',
-                                            cursor: 'pointer'
-                                        }}
-                                    >
-                                        <CheckCircle2 size={18} />
-                                    </button>
-                                )}
+                                <button 
+                                    onClick={() => handleConfirm(activeTab, item)}
+                                    title={processed ? "Confirmar de nuevo" : "Confirmar cobro/pago"}
+                                    style={{
+                                        padding: '0.6rem',
+                                        borderRadius: '0.75rem',
+                                        border: 'none',
+                                        background: processed 
+                                            ? 'rgba(255, 255, 255, 0.05)' 
+                                            : (activeTab === 'income' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(99, 102, 241, 0.1)'),
+                                        color: processed
+                                            ? 'rgba(255, 255, 255, 0.4)'
+                                            : (activeTab === 'income' ? '#10b981' : '#818cf8'),
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    {processed ? <Plus size={18} /> : <CheckCircle2 size={18} />}
+                                </button>
                                 <button 
                                     onClick={() => handleEdit(activeTab, item)}
                                     title="Editar"

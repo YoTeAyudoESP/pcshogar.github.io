@@ -2,7 +2,7 @@
 import { Dropbox } from 'dropbox';
 import { incomeDB } from './db';
 
-const DROPBOX_CLIENT_ID = 'YOUR_DROPBOX_APP_KEY'; // Placeholder
+const DROPBOX_CLIENT_ID = 'y9nh44kplesrdd1';
 const DATA_FILE_PATH = '/pcshogar_data.json';
 
 export class DropboxService {

@@ -23,5 +23,8 @@ Enable multi-device synchronization using Dropbox as a cloud provider, allowing 
 5. **Auto-Sync**: `FinanceContext` watches for state changes and triggers background sync when Dropbox is enabled.
 
 ## Next Steps for the User
-1. **Dropbox App Key**: Open `src/services/dropboxService.ts` and replace `YOUR_DROPBOX_APP_KEY` with your actual App Key from the Dropbox Developer Console.
-2. **Redirect URI**: Ensure `http://localhost:5173/` (or your app's origin) is added as a Redirect URI in your Dropbox app settings.
+1. **Dropbox App Key**: CONFIGURED (`y9nh44kplesrdd1`).
+2. **Redirect URI**: CONFIGURED (`http://localhost:5173/`).
+3. **Permissions**: CONFIGURED (read/write access enabled).
+
+La aplicación está lista para sincronizar.

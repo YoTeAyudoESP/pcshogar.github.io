@@ -16,6 +16,7 @@ const DEFAULT_SETTINGS: AppSettings = {
         enabled: false,
         type: 'local',
         localPath: '',
+        dropboxPath: '/pcshogar_data.json',
         lastSync: 0
     }
 };
@@ -44,7 +45,7 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         // Initialize Dropbox if token exists
         if (settings.sync.type === 'dropbox' && settings.sync.dropboxToken) {
-            DropboxService.init(settings.sync.dropboxToken);
+            DropboxService.init(settings.sync.dropboxToken, settings.sync.dropboxPath);
         }
 
         localStorage.setItem('pcshogar_settings', JSON.stringify(settings));

@@ -1,9 +1,9 @@
 {
   "name": "pcshogar",
   "private": true,
-  "version": "0.7.1",
-  "versionCode": 71,
-  "versionName": "0.7.1",
+  "version": "0.8.2",
+  "versionCode": 82,
+  "versionName": "0.8.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -13,6 +13,8 @@
   },
   "dependencies": {
     "@capacitor/android": "^6.1.2",
+    "@capacitor/app": "^6.0.3",
+    "@capacitor/browser": "^6.0.6",
     "@capacitor/core": "^6.1.2",
     "@types/uuid": "^10.0.0",
     "dropbox": "^10.30.0",

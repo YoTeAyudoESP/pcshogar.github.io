@@ -22,12 +22,14 @@ import { SyncService } from '../../services/syncService';
 import { incomeDB } from '../../services/db';
 import { DropboxService } from '../../services/dropboxService';
 import { SUPPORTED_CURRENCIES, SUPPORTED_LANGUAGES, APP_THEMES } from '../../types/finance';
+import DropboxFolderPicker from './DropboxFolderPicker';
 
 const AppSettingsView: React.FC = () => {
     const { settings, updateSettings, updateSyncSettings } = useAppSettings();
     const { importData } = useFinance();
     const [showImportWarning, setShowImportWarning] = useState(false);
     const [importFile, setImportFile] = useState<File | null>(null);
+    const [showFolderPicker, setShowFolderPicker] = useState(false);
 
     const handleExport = async () => {
         const data = await incomeDB.exportFullData();
@@ -366,7 +368,34 @@ const AppSettingsView: React.FC = () => {
                                 </div>
 
                                 {settings.sync.dropboxToken && (
-                                    <div style={{ display: 'flex', gap: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1rem' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1rem' }}>
+                                        <div>
+                                            <label style={labelStyle}><FolderOpen size={16} /> Carpeta en Dropbox</label>
+                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                <input 
+                                                    style={{ ...selectStyle, cursor: 'text', flex: 1 }}
+                                                    value={settings.sync.dropboxPath || '/pcshogar_data.json'}
+                                                    readOnly
+                                                    placeholder="/carpeta/pcshogar_data.json"
+                                                />
+                                                <button 
+                                                    onClick={() => setShowFolderPicker(true)}
+                                                    style={{ 
+                                                        background: 'rgba(255,255,255,0.05)', 
+                                                        color: 'white', 
+                                                        border: '1px solid rgba(255,255,255,0.1)', 
+                                                        padding: '0.5rem 1rem', 
+                                                        borderRadius: '0.75rem', 
+                                                        cursor: 'pointer',
+                                                        fontWeight: 600,
+                                                        fontSize: '0.85rem'
+                                                    }}
+                                                >
+                                                    Cambiar
+                                                </button>
+                                            </div>
+                                        </div>
+
                                         <button 
                                             onClick={async () => {
                                                 try {
@@ -384,6 +413,14 @@ const AppSettingsView: React.FC = () => {
                                     </div>
                                 )}
                             </div>
+                            
+                            {showFolderPicker && (
+                                <DropboxFolderPicker 
+                                    currentPath={settings.sync.dropboxPath || '/'}
+                                    onSelect={(path) => updateSyncSettings({ dropboxPath: path })}
+                                    onClose={() => setShowFolderPicker(false)}
+                                />
+                            )}
                             {!settings.sync.dropboxToken && (
                                 <p style={{ fontSize: '0.75rem', opacity: 0.4, margin: 0, fontStyle: 'italic' }}>
                                     Al conectar Dropbox, la app podrá leer y escribir el archivo 'pcshogar_data.json' en tu cuenta para sincronizar con otros dispositivos.

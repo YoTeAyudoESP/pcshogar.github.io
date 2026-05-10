@@ -203,6 +203,7 @@ export interface SyncSettings {
     };
     dropboxToken?: string;
     dropboxUserEmail?: string;
+    dropboxPath?: string;
     lastSync?: number;
 }
 

@@ -3,18 +3,22 @@ import { Dropbox } from 'dropbox';
 import { incomeDB } from './db';
 
 const DROPBOX_CLIENT_ID = 'y9nh44kplesrdd1';
-const DATA_FILE_PATH = '/pcshogar_data.json';
-
 export class DropboxService {
     private static dbx: Dropbox | null = null;
+    private static currentPath: string = '/pcshogar_data.json';
 
-    static init(token: string) {
+    static init(token: string, path?: string) {
         this.dbx = new Dropbox({ accessToken: token });
+        if (path) this.currentPath = path;
     }
 
     static getAuthUrl() {
-        // For Capacitor/Mobile, we might need a specific redirect URI
-        const redirectUri = window.location.origin + '/auth/dropbox';
+        // Detect if we are on a real mobile device or emulator via Capacitor
+        const isMobile = window.location.origin.includes('localhost') && !window.location.port;
+        const redirectUri = isMobile 
+            ? 'com.pcshogar.app://auth/dropbox' 
+            : window.location.origin + '/auth/dropbox';
+            
         return `https://www.dropbox.com/oauth2/authorize?client_id=${DROPBOX_CLIENT_ID}&response_type=token&redirect_uri=${encodeURIComponent(redirectUri)}`;
     }
 
@@ -24,12 +28,18 @@ export class DropboxService {
         return response.result;
     }
 
+    static async listFolders(path: string = '') {
+        if (!this.dbx) throw new Error('Dropbox not initialized');
+        const response = await this.dbx.filesListFolder({ path, recursive: false });
+        return response.result.entries.filter(entry => entry['.tag'] === 'folder');
+    }
+
     static async uploadData(data: any) {
         if (!this.dbx) throw new Error('Dropbox not initialized');
         
         const content = JSON.stringify(data);
         await this.dbx.filesUpload({
-            path: DATA_FILE_PATH,
+            path: this.currentPath,
             contents: content,
             mode: { '.tag': 'overwrite' }
         });
@@ -40,7 +50,7 @@ export class DropboxService {
         if (!this.dbx) throw new Error('Dropbox not initialized');
         
         try {
-            const response = await this.dbx.filesDownload({ path: DATA_FILE_PATH });
+            const response = await this.dbx.filesDownload({ path: this.currentPath });
             // @ts-ignore - contents is in the result in some versions, or blob
             const fileBlob = (response.result as any).fileBlob;
             const text = await fileBlob.text();

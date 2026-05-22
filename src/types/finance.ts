@@ -41,6 +41,13 @@ export interface Expense {
     status: 'pending' | 'paid';
     isSettled?: boolean;
     excludeFromBudget?: boolean;
+    isSettlement?: boolean;
+    settlementMetadata?: {
+        cardId: string;
+        rangeStart: number;
+        rangeEnd: number;
+        isCarryover?: boolean;
+    };
     updatedAt?: number;
     period?: string; // e.g., "2026-03"
     recurringExpenseId?: string;

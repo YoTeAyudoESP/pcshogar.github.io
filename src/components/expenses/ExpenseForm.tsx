@@ -1,7 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
-import { X, Calendar } from 'lucide-react';
+import { X, Calendar, Info } from 'lucide-react';
+import { predictSettlementDate } from '../../utils/financeCalculations';
+import type { CreditCard } from '../../types/finance';
 
 interface ExpenseFormProps {
     onClose: () => void;
@@ -20,6 +22,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose }) => {
     const [status, setStatus] = useState<'paid' | 'pending'>('paid');
     const [isFinancedByHucha, setIsFinancedByHucha] = useState(false);
     const [selectedHuchaId, setSelectedHuchaId] = useState('');
+    const [settlementAdjustment, setSettlementAdjustment] = useState<number>(0);
 
     useEffect(() => {
         if (!categoryId && expenseCategories.length > 0) {
@@ -37,7 +40,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose }) => {
             paymentMethod = { type: 'account', accountId: selectedMethodId };
         } else if (paymentMethodType === 'card') {
             if (!selectedMethodId) return;
-            paymentMethod = { type: 'card', cardId: selectedMethodId };
+            paymentMethod = { type: 'card', cardId: selectedMethodId, settlementAdjustment };
         } else {
             paymentMethod = { type: 'cash' };
         }
@@ -162,17 +165,57 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose }) => {
                         </div>
                     </div>
 
-                    <div>
-                        <label style={labelStyle}>Estado</label>
-                        <select 
-                            style={inputStyle} 
-                            value={status} 
-                            onChange={e => setStatus(e.target.value as any)}
-                        >
-                            <option value="paid">Pagado ({paymentMethodType === 'account' ? 'Banco' : paymentMethodType === 'card' ? 'Tarjeta' : 'Efectivo'})</option>
-                            <option value="pending">Pendiente</option>
-                        </select>
+                    <div style={{ display: 'flex', gap: '1rem' }}>
+                        <div style={{ flex: 1 }}>
+                            <label style={labelStyle}>Estado</label>
+                            <select 
+                                style={inputStyle} 
+                                value={status} 
+                                onChange={e => setStatus(e.target.value as any)}
+                            >
+                                <option value="paid">Pagado ({paymentMethodType === 'account' ? 'Banco' : paymentMethodType === 'card' ? 'Tarjeta' : 'Efectivo'})</option>
+                                <option value="pending">Pendiente</option>
+                            </select>
+                        </div>
+                        {paymentMethodType === 'card' && (
+                            <div style={{ flex: 1 }}>
+                                <label style={labelStyle}>Ajuste de Liquidación</label>
+                                <select 
+                                    style={inputStyle} 
+                                    value={settlementAdjustment} 
+                                    onChange={e => setSettlementAdjustment(parseInt(e.target.value))}
+                                >
+                                    <option value={-1}>Forzar Mes Anterior</option>
+                                    <option value={0}>Mes Actual (Auto)</option>
+                                    <option value={1}>Forzar Mes Siguiente</option>
+                                </select>
+                            </div>
+                        )}
                     </div>
+
+                    {paymentMethodType === 'card' && selectedMethodId && (
+                        <div style={{ 
+                            background: 'rgba(251, 191, 36, 0.05)', 
+                            border: '1px solid rgba(251, 191, 36, 0.15)',
+                            padding: '0.75rem 1rem',
+                            borderRadius: '10px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.75rem',
+                            marginTop: '-0.5rem'
+                        }}>
+                            <Info size={16} style={{ color: '#fbbf24' }} />
+                            <span style={{ fontSize: '0.85rem', color: '#fbbf24', fontWeight: 600 }}>
+                                Se liquidará aprox. el: {
+                                    predictSettlementDate(
+                                        cards.find(c => c.id === selectedMethodId) as CreditCard,
+                                        new Date(date).getTime(),
+                                        settlementAdjustment
+                                    ).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })
+                                }
+                            </span>
+                        </div>
+                    )}
 
                     {paymentMethodType !== 'cash' && (
                         <div>

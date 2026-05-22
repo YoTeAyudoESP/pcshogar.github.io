@@ -13,9 +13,17 @@ import {
 import { incomeDB } from '../services/db';
 import { SyncService } from '../services/syncService';
 import { useAppSettings } from './AppSettingsContext';
-import { v4 as uuidv4 } from 'uuid';
 import { calculateAvailableBalanceForMonth } from '../utils/financeCalculations';
 import { DropboxService } from '../services/dropboxService';
+import { useToast } from './ToastContext';
+
+// Simple fallback for uuidv4 to avoid dependency issues on some devices
+const uuidv4 = () => {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+};
 
 interface FinanceContextType {
     accounts: Account[];
@@ -74,7 +82,7 @@ interface FinanceContextType {
     setPendingClosing: (closing: MonthClosing | null) => void;
     pendingClosing: MonthClosing | null;
     importData: (data: any) => Promise<void>;
-    settleCardCycle: (cardId: string, amount: number, date: number, accountId: string) => Promise<void>;
+    settleCardCycle: (cardId: string, amount: number, totalPending: number, date: number, accountId: string, rangeStart?: number, rangeEnd?: number) => Promise<void>;
     refreshFinance: () => Promise<void>;
 }
 
@@ -213,6 +221,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
     }, [refreshFinance]);
 
     const { settings, updateSyncSettings } = useAppSettings();
+    const { showToast } = useToast();
 
     // Auto-sync watcher
     useEffect(() => {
@@ -222,15 +231,19 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                     const success = await SyncService.syncToLocalFile(settings.sync.localPath);
                     if (success) {
                         updateSyncSettings({ lastSync: Date.now() });
+                        showToast('Copia local actualizada', 'success');
                     }
                 } else if (settings.sync.type === 'dropbox' && settings.sync.dropboxToken) {
                     try {
+                        showToast('Sincronizando con Dropbox...', 'sync');
                         const timestamp = await DropboxService.sync();
                         if (timestamp) {
                             updateSyncSettings({ lastSync: timestamp });
+                            showToast('Dropbox actualizado', 'success');
                         }
                     } catch (e) {
                         console.error("Auto-sync Dropbox failed", e);
+                        showToast('Error al sincronizar con Dropbox', 'error');
                     }
                 }
             };
@@ -242,7 +255,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         accounts, cards, expenses, savings, allocations, 
         recurringExpenses, loans, movements, categories, 
         transfers, closings, overrides, incomes,
-        settings.sync.enabled, settings.sync.localPath, settings.sync.dropboxToken, settings.sync.type, loading
+        settings.sync.enabled, settings.sync.localPath, settings.sync.dropboxToken, settings.sync.type, loading, showToast
     ]);
 
     const importData = async (data: any) => {
@@ -348,6 +361,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const deleteRecurringExpense = async (id: string) => {
+        await incomeDB.recordDeletion('recurring_expenses', id);
         await incomeDB.deleteRecurringExpense(id);
         await refreshFinance();
     };
@@ -358,31 +372,45 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
             id: uuidv4(),
             type: 'fixed',
             createdAt: Date.now(),
-            status: 'pending'
+            updatedAt: Date.now(),
+            status: data.status || 'pending'
         };
         await incomeDB.addIncomeWithTransaction(newIncome);
         await refreshFinance();
     };
 
     const addExtraIncome = async (data: Omit<ExtraIncome, 'id' | 'type' | 'createdAt'>) => {
+        const now = Date.now();
         const newIncome: any = {
             ...data,
             id: uuidv4(),
             type: 'extra',
-            createdAt: Date.now(),
-            status: data.effectiveDate ? 'received' : 'pending'
+            createdAt: now,
+            updatedAt: now,
+            status: data.status || (data.effectiveDate ? 'received' : 'pending'),
+            effectiveDate: data.effectiveDate || (data.status === 'received' ? now : undefined)
         };
         await incomeDB.addIncomeWithTransaction(newIncome);
         await refreshFinance();
     };
 
     const deleteIncome = async (id: string) => {
+        const income = incomes.find(i => i.id === id);
+        if (income && (income as any).fixedIncomeId && income.period) {
+            const fixed = incomes.find(i => i.id === (income as any).fixedIncomeId) as FixedIncome;
+            if (fixed) {
+                const ignoredPeriods = (fixed.ignoredPeriods || []).filter(p => p !== income.period);
+                await incomeDB.updateIncome({ ...fixed, ignoredPeriods, updatedAt: Date.now() } as any);
+            }
+        }
+        
+        await incomeDB.recordDeletion('incomes', id);
         await incomeDB.deleteIncomeWithTransaction(id);
         await refreshFinance();
     };
 
     const updateIncome = async (income: Income) => {
-        await incomeDB.updateIncomeWithTransaction(income);
+        await incomeDB.updateIncomeWithTransaction({ ...income, updatedAt: Date.now() });
         await refreshFinance();
     };
 
@@ -409,7 +437,8 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                 type: 'extra',
                 budgetMonth: new Date(date).getMonth(),
                 budgetYear: new Date(date).getFullYear(),
-                period
+                period,
+                fixedIncomeId: fixedId
             };
             await incomeDB.addIncomeWithTransaction(newIncome);
             
@@ -419,6 +448,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                 await incomeDB.updateIncome({ ...fixed, ignoredPeriods });
             }
         } else {
+            const isCard = cards.some(c => c.id === accountId);
             const newExpense: Expense = {
                 id: uuidv4(),
                 description,
@@ -426,7 +456,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                 currency: 'EUR',
                 date,
                 categoryId: categoryId || 'cat_other',
-                paymentMethod: { type: 'account', accountId },
+                paymentMethod: isCard ? { type: 'card', cardId: accountId } : { type: 'account', accountId },
                 isFixed: true,
                 status: 'paid',
                 period,
@@ -489,16 +519,63 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const deleteAccount = async (id: string) => {
+        await incomeDB.recordDeletion('accounts', id);
         await incomeDB.deleteAccount(id);
         await refreshFinance();
     };
 
     const deleteCard = async (id: string) => {
+        await incomeDB.recordDeletion('cards', id);
         await incomeDB.deleteCard(id);
         await refreshFinance();
     };
 
     const deleteExpense = async (id: string) => {
+        const expense = expenses.find(e => e.id === id);
+        if (!expense) return;
+
+        if (expense.recurringExpenseId && expense.period) {
+            // Restore the fixed movement to "Pending"
+            const rec = recurringExpenses.find(r => r.id === expense.recurringExpenseId);
+            if (rec) {
+                const ignoredPeriods = (rec.ignoredPeriods || []).filter(p => p !== expense.period);
+                await incomeDB.updateRecurringExpense({ ...rec, ignoredPeriods, updatedAt: Date.now() });
+            }
+        }
+
+        // Handle settlement reversal
+        if (expense.isSettlement && expense.settlementMetadata) {
+            const { cardId, rangeStart, rangeEnd, isCarryover } = expense.settlementMetadata;
+            
+            if (!isCarryover) {
+                // Find all expenses that were settled in this range and un-settle them
+                const settledExpenses = expenses.filter(e => 
+                    e.paymentMethod.type === 'card' && 
+                    e.paymentMethod.cardId === cardId && 
+                    e.isSettled
+                );
+
+                for (const exp of settledExpenses) {
+                    if (!exp?.paymentMethod) continue;
+                    const d = new Date(exp.date);
+                    const adjustment = (exp.paymentMethod as any)?.settlementAdjustment || 0;
+                    if (adjustment !== 0) d.setMonth(d.getMonth() + adjustment);
+                    const effectiveTime = d.getTime();
+
+                    if (effectiveTime >= rangeStart && effectiveTime <= rangeEnd) {
+                        await incomeDB.updateExpense({
+                            ...exp,
+                            isSettled: false,
+                            updatedAt: Date.now()
+                        });
+                    }
+                }
+            }
+        }
+        
+        // Track deletion for sync
+        await incomeDB.recordDeletion('expenses', id);
+        
         await incomeDB.deleteExpenseWithTransaction(id);
         await refreshFinance();
     };
@@ -655,19 +732,35 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         await refreshFinance();
     };
 
-    const settleCardCycle = async (cardId: string, amount: number, date: number, accountId: string) => {
+    const settleCardCycle = async (
+        cardId: string, 
+        amount: number, 
+        totalPending: number,
+        date: number, 
+        accountId: string,
+        rangeStart?: number,
+        rangeEnd?: number
+    ) => {
         const card = cards.find(c => c.id === cardId);
         if (!card) return;
 
         // 1. Find and mark expenses in the cycle range as settled
-        // We need the cycle range. The UI component calculates it, 
-        // but here we can find expenses for this card that are not settled.
-        // For simplicity, we'll mark ALL unpaid/unsettled card expenses of this card.
-        const cardExpenses = expenses.filter(e => 
-            e.paymentMethod.type === 'card' && 
-            e.paymentMethod.cardId === cardId && 
-            !e.isSettled
-        );
+        const cardExpenses = expenses.filter(e => {
+            if (!e?.paymentMethod) return false;
+            const isCard = e.paymentMethod.type === 'card' && e.paymentMethod.cardId === cardId;
+            if (!isCard || e.isSettled) return false;
+            
+            if (rangeStart && rangeEnd) {
+                const d = new Date(e.date);
+                const adjustment = (e.paymentMethod as any)?.settlementAdjustment || 0;
+                if (adjustment !== 0) {
+                    d.setMonth(d.getMonth() + adjustment);
+                }
+                const effectiveTime = d.getTime();
+                return effectiveTime >= rangeStart && effectiveTime <= rangeEnd;
+            }
+            return true;
+        });
 
         for (const exp of cardExpenses) {
             await incomeDB.updateExpense({
@@ -678,7 +771,6 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         }
 
         // 2. Create a "settlement" expense in the linked account
-        // Marked as excludeFromBudget so it doesn't subtract from "Available" again
         const settlementExpense: Expense = {
             id: uuidv4(),
             description: `Liquidación Tarjeta: ${card.name}`,
@@ -690,11 +782,48 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
             isFixed: false,
             status: 'paid',
             excludeFromBudget: true,
+            isSettlement: true,
+            settlementMetadata: {
+                cardId: card.id,
+                rangeStart: rangeStart || 0,
+                rangeEnd: rangeEnd || 0,
+                isCarryover: false
+            },
             updatedAt: Date.now()
         };
         await incomeDB.addExpenseWithTransaction(settlementExpense);
 
-        // 3. Decrease card balance
+        // 3. Handle difference if paid less than pending (carryover)
+        if (amount < totalPending) {
+            const difference = totalPending - amount;
+            // The carryover date should be in the next cycle. 
+            // We use rangeEnd + 1 day as a safe bet for the next cycle's date.
+            const carryoverDate = rangeEnd ? rangeEnd + (24 * 60 * 60 * 1000) : Date.now();
+            
+            const carryoverExpense: Expense = {
+                id: uuidv4(),
+                description: `Remanente Liquidación Anterior: ${card.name}`,
+                amount: difference,
+                currency: 'EUR',
+                date: carryoverDate,
+                categoryId: 'cat_other',
+                paymentMethod: { type: 'card', cardId },
+                isFixed: false,
+                status: 'paid',
+                excludeFromBudget: true,
+                isSettlement: true,
+                settlementMetadata: {
+                    cardId: card.id,
+                    rangeStart: carryoverDate,
+                    rangeEnd: carryoverDate,
+                    isCarryover: true
+                },
+                updatedAt: Date.now()
+            };
+            await incomeDB.addExpenseWithTransaction(carryoverExpense);
+        }
+
+        // 4. Update card balance
         const updatedCard = {
             ...card,
             currentBalance: Math.max(0, card.currentBalance - amount),

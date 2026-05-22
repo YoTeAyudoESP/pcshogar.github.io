@@ -14,7 +14,8 @@ import {
     Check,
     X,
     HardDrive,
-    Save
+    Save,
+    RefreshCw
 } from 'lucide-react';
 import { useAppSettings } from '../../contexts/AppSettingsContext';
 import { useFinance } from '../../contexts/FinanceContext';
@@ -24,9 +25,12 @@ import { DropboxService } from '../../services/dropboxService';
 import { SUPPORTED_CURRENCIES, SUPPORTED_LANGUAGES, APP_THEMES } from '../../types/finance';
 import DropboxFolderPicker from './DropboxFolderPicker';
 
+import { useToast } from '../../contexts/ToastContext';
+
 const AppSettingsView: React.FC = () => {
     const { settings, updateSettings, updateSyncSettings } = useAppSettings();
     const { importData } = useFinance();
+    const { showToast } = useToast();
     const [showImportWarning, setShowImportWarning] = useState(false);
     const [importFile, setImportFile] = useState<File | null>(null);
     const [showFolderPicker, setShowFolderPicker] = useState(false);
@@ -35,6 +39,7 @@ const AppSettingsView: React.FC = () => {
         const data = await incomeDB.exportFullData();
         const dateStr = new Date().toISOString().split('T')[0];
         SyncService.exportToJSON(data, `pcshogar_backup_${dateStr}.json`);
+        showToast('Copia de seguridad exportada', 'success');
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,9 +56,9 @@ const AppSettingsView: React.FC = () => {
             try {
                 const data = JSON.parse(event.target?.result as string);
                 await importData(data);
-                alert('Importación completada con éxito.');
+                showToast('Importación completada con éxito', 'success');
             } catch (err) {
-                alert('Archivo no válido.');
+                showToast('Archivo no válido', 'error');
                 console.error(err);
             } finally {
                 setShowImportWarning(false);
@@ -341,20 +346,29 @@ const AppSettingsView: React.FC = () => {
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                                         <Cloud size={24} color="#0061FF" />
                                         <div>
-                                            <p style={{ margin: 0, fontWeight: 700, fontSize: '1rem' }}>Estado de Dropbox</p>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <p style={{ margin: 0, fontWeight: 700, fontSize: '1rem' }}>Estado de Dropbox</p>
+                                                {settings.sync.dropboxToken && (
+                                                    <span style={{ 
+                                                        background: 'rgba(16, 185, 129, 0.15)', 
+                                                        color: '#10b981', 
+                                                        fontSize: '0.65rem', 
+                                                        padding: '2px 8px', 
+                                                        borderRadius: '12px',
+                                                        fontWeight: 800,
+                                                        textTransform: 'uppercase',
+                                                        letterSpacing: '0.05em'
+                                                    }}>
+                                                        Conectado
+                                                    </span>
+                                                )}
+                                            </div>
                                             <p style={{ margin: 0, fontSize: '0.8rem', opacity: 0.6 }}>
-                                                {settings.sync.dropboxToken ? `Conectado como ${settings.sync.dropboxUserEmail || 'Usuario'}` : 'No conectado'}
+                                                {settings.sync.dropboxToken ? `${settings.sync.dropboxUserEmail || 'Usuario vinculado'}` : 'No conectado'}
                                             </p>
                                         </div>
                                     </div>
-                                    {settings.sync.dropboxToken ? (
-                                        <button 
-                                            onClick={() => updateSyncSettings({ dropboxToken: undefined, dropboxUserEmail: undefined })}
-                                            style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: 'none', padding: '0.5rem 1rem', borderRadius: '0.5rem', fontSize: '0.8rem', cursor: 'pointer', fontWeight: 600 }}
-                                        >
-                                            Desconectar
-                                        </button>
-                                    ) : (
+                                    {!settings.sync.dropboxToken && (
                                         <button 
                                             onClick={() => {
                                                 const url = DropboxService.getAuthUrl();
@@ -368,16 +382,25 @@ const AppSettingsView: React.FC = () => {
                                 </div>
 
                                 {settings.sync.dropboxToken && (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1rem' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1.25rem' }}>
+                                        {/* Path configuration */}
                                         <div>
                                             <label style={labelStyle}><FolderOpen size={16} /> Carpeta en Dropbox</label>
                                             <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                                <input 
-                                                    style={{ ...selectStyle, cursor: 'text', flex: 1 }}
-                                                    value={settings.sync.dropboxPath || '/pcshogar_data.json'}
-                                                    readOnly
-                                                    placeholder="/carpeta/pcshogar_data.json"
-                                                />
+                                                <div style={{ 
+                                                    ...selectStyle, 
+                                                    flex: 1, 
+                                                    display: 'flex', 
+                                                    alignItems: 'center', 
+                                                    gap: '0.5rem',
+                                                    background: 'rgba(255,255,255,0.03)',
+                                                    cursor: 'default'
+                                                }}>
+                                                    <FileJson size={16} color="rgba(255,255,255,0.3)" />
+                                                    <span style={{ fontSize: '0.85rem', opacity: 0.8, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                        {settings.sync.dropboxPath || '/pcshogar_data.json'}
+                                                    </span>
+                                                </div>
                                                 <button 
                                                     onClick={() => setShowFolderPicker(true)}
                                                     style={{ 
@@ -388,7 +411,8 @@ const AppSettingsView: React.FC = () => {
                                                         borderRadius: '0.75rem', 
                                                         cursor: 'pointer',
                                                         fontWeight: 600,
-                                                        fontSize: '0.85rem'
+                                                        fontSize: '0.85rem',
+                                                        whiteSpace: 'nowrap'
                                                     }}
                                                 >
                                                     Cambiar
@@ -396,20 +420,55 @@ const AppSettingsView: React.FC = () => {
                                             </div>
                                         </div>
 
-                                        <button 
-                                            onClick={async () => {
-                                                try {
-                                                    const timestamp = await DropboxService.sync();
-                                                    updateSyncSettings({ lastSync: timestamp });
-                                                    alert('Sincronización completada.');
-                                                } catch (e) {
-                                                    alert('Error en la sincronización.');
-                                                }
-                                            }}
-                                            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.05)', color: 'white', border: 'none', padding: '0.75rem', borderRadius: '0.75rem', cursor: 'pointer', fontWeight: 600 }}
-                                        >
-                                            <Server size={16} /> Sincronizar Ahora
-                                        </button>
+                                        {/* Actions */}
+                                        <div style={{ display: 'flex', gap: '0.75rem' }}>
+                                            <button 
+                                                onClick={async () => {
+                                                    try {
+                                                        showToast('Sincronizando con la nube...', 'sync');
+                                                        const timestamp = await DropboxService.sync();
+                                                        updateSyncSettings({ lastSync: timestamp });
+                                                        showToast('Sincronización manual completada', 'success');
+                                                    } catch (e) {
+                                                        showToast('Error en la sincronización', 'error');
+                                                    }
+                                                }}
+                                                style={{ 
+                                                    flex: 2, 
+                                                    display: 'flex', 
+                                                    alignItems: 'center', 
+                                                    justifyContent: 'center', 
+                                                    gap: '0.6rem', 
+                                                    background: 'var(--color-primary)', 
+                                                    color: 'white', 
+                                                    border: 'none', 
+                                                    padding: '0.85rem', 
+                                                    borderRadius: '0.75rem', 
+                                                    cursor: 'pointer', 
+                                                    fontWeight: 700,
+                                                    boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)'
+                                                }}
+                                            >
+                                                <RefreshCw size={18} /> Sincronizar Ahora
+                                            </button>
+                                            <button 
+                                                onClick={() => updateSyncSettings({ dropboxToken: undefined, dropboxUserEmail: undefined })}
+                                                style={{ 
+                                                    flex: 1, 
+                                                    background: 'rgba(239, 68, 68, 0.05)', 
+                                                    color: '#ef4444', 
+                                                    border: '1px solid rgba(239, 68, 68, 0.2)', 
+                                                    padding: '0.85rem', 
+                                                    borderRadius: '0.75rem', 
+                                                    fontSize: '0.85rem', 
+                                                    cursor: 'pointer', 
+                                                    fontWeight: 600,
+                                                    transition: 'all 0.2s ease'
+                                                }}
+                                            >
+                                                Desconectar
+                                            </button>
+                                        </div>
                                     </div>
                                 )}
                             </div>

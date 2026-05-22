@@ -64,40 +64,61 @@ export function calculateAvailableBalanceForMonth(
     }
 ) {
     const { 
-        fixedIncomes, extraIncomes, expenses, allocations, 
-        savings, recurringExpenses, overrides, cards
-    } = data;
+        fixedIncomes = [], 
+        extraIncomes = [], 
+        expenses = [], 
+        allocations = [], 
+        savings = [], 
+        recurringExpenses = [], 
+        overrides = [], 
+        cards = [] 
+    } = data || {};
 
-    // Calculate Monthly Income
-    let totalMonthIncome = 0;
-    [...fixedIncomes, ...extraIncomes].forEach(inc => {
-        if (inc.type === 'rollover') return;
+    // Calculate Incomes
+    let extraIncomesReceived = 0;
+    let pendingFixedIncomes = 0;
+    let totalProjectedFixedIncomes = 0; // Total that should happen
 
-        if (inc.type === 'extra') {
-            if (isItemInMonthAndYear(inc, month, year)) {
-                totalMonthIncome += inc.amount;
-            }
-        } else {
-            const start = inc.effectiveDate || inc.createdAt || 0;
-            const end = inc.expirationDate || new Date(9999, 11, 31).getTime();
-            const monthStart = new Date(year, month, 1).getTime();
-            const monthEnd = new Date(year, month + 1, 0).getTime();
+    const period = `${year}-${(month + 1).toString().padStart(2, '0')}`;
+    const monthStart = new Date(year, month, 1).getTime();
+    const monthEnd = new Date(year, month + 1, 0).getTime();
 
-            const period = `${year}-${(month + 1).toString().padStart(2, '0')}`;
-            const isIgnored = inc.ignoredPeriods?.includes(period);
+    // 1. Process Fixed Incomes (Templates)
+    fixedIncomes.forEach(inc => {
+        if (!inc.active) return;
+        const start = inc.effectiveDate || inc.createdAt || 0;
+        const end = inc.expirationDate || new Date(9999, 11, 31).getTime();
+        const isIgnored = inc.ignoredPeriods?.includes(period);
 
-            if (start <= monthEnd && end >= monthStart && !isIgnored) {
-                if (isRecurringActiveInMonth(inc.frequency, inc.paymentMonth, month, year, start)) {
-                    totalMonthIncome += inc.amount;
+        if (start <= monthEnd && end >= monthStart && !isIgnored) {
+            if (isRecurringActiveInMonth(inc.frequency, inc.paymentMonth, month, year, start)) {
+                totalProjectedFixedIncomes += inc.amount;
+                
+                // Check if actually confirmed/received
+                const isConfirmed = extraIncomes.some(ei => ei.period === period && (ei as any).fixedIncomeId === inc.id);
+                if (!isConfirmed && inc.status !== 'received') {
+                    pendingFixedIncomes += inc.amount;
                 }
             }
         }
     });
 
+    // 2. Process Extra Incomes (Actual records)
+    extraIncomes.forEach(inc => {
+        if (inc.type === 'rollover') return;
+        if (isItemInMonthAndYear(inc, month, year)) {
+            extraIncomesReceived += inc.amount;
+        }
+    });
+
+    const totalMonthIncome = extraIncomesReceived + pendingFixedIncomes;
+
     // Calculate Expenses
     let totalMonthExpenses = 0;
     let totalAccountExpenses = 0;
     let totalCardExpenses = 0;
+    let variableExpensesPaid = 0;
+    let fixedExpensesDeviations = 0;
 
     expenses
         .filter(exp => isItemInMonthAndYear(exp, month, year))
@@ -106,15 +127,48 @@ export function calculateAvailableBalanceForMonth(
             if (exp.linkedSavingGoalId) return;
             totalMonthExpenses += exp.amount;
 
-        const method = exp.paymentMethod;
-        if (method.type === 'account' || method.type === 'cash') {
-            totalAccountExpenses += exp.amount;
-        } else if (method.type === 'card') {
-            const card = cards.find(c => c.id === method.cardId);
-            if (card && card.type === 'debit') {
-                totalAccountExpenses += exp.amount;
+            if (exp.isFixed) {
+                const re = recurringExpenses.find(r => r.id === exp.recurringExpenseId);
+                if (re) {
+                    fixedExpensesDeviations += (exp.amount - re.amount);
+                } else {
+                    // If it's fixed but no recurring record found, treat it as a variable expense for budget purposes
+                    variableExpensesPaid += exp.amount;
+                }
             } else {
-                totalCardExpenses += exp.amount;
+                variableExpensesPaid += exp.amount;
+            }
+
+            const method = exp.paymentMethod || { type: 'cash' };
+            if (method.type === 'account' || method.type === 'cash') {
+                totalAccountExpenses += exp.amount;
+            } else if (method.type === 'card') {
+                const card = (cards || []).find(c => c.id === (method as any).cardId);
+                if (card && card.type === 'debit') {
+                    totalAccountExpenses += exp.amount;
+                } else {
+                    totalCardExpenses += exp.amount;
+                }
+            }
+        });
+
+    // Calculate Projected Fixed Expenses
+    let totalProjectedFixedExpenses = 0;
+    let pendingFixedExpenses = 0;
+
+    recurringExpenses.forEach(re => {
+        if (!re.active) return;
+        const start = re.updatedAt || 0;
+        if (start > monthEnd) return;
+        const isIgnored = re.ignoredPeriods?.includes(period);
+        
+        if (!isIgnored && isRecurringActiveInMonth(re.frequency, re.paymentMonth, month, year, start)) {
+            totalProjectedFixedExpenses += re.amount;
+            
+            // For the 'Pending' report specifically
+            const isPaid = expenses.some(e => e.recurringExpenseId === re.id && isItemInMonthAndYear(e, month, year));
+            if (!isPaid) {
+                pendingFixedExpenses += re.amount;
             }
         }
     });
@@ -131,63 +185,25 @@ export function calculateAvailableBalanceForMonth(
         remanente += inc.amount;
     });
 
-    // Active Override
-    const overrideId = `${year}-${(month + 1).toString().padStart(2, '0')}`;
-    const activeOverride = overrides.find(o => o.id === overrideId);
-
-    // Pending Fixed Expenses
-    const period = `${year}-${(month + 1).toString().padStart(2, '0')}`;
-    let pendingFixedExpenses = 0;
-    const monthStart = new Date(year, month, 1).getTime();
-    const monthEnd = new Date(year, month + 1, 0).getTime();
-
-    recurringExpenses.forEach(re => {
-        if (!re.active) return;
-        
-        // Date range check (if updatedAt or createdAt can be used as start)
-        const start = re.updatedAt || 0;
-        if (start > monthEnd) return;
-
-        const isPaid = expenses.some(e => e.recurringExpenseId === re.id && isItemInMonthAndYear(e, month, year));
-        const isIgnored = re.ignoredPeriods?.includes(period);
-        
-        if (!isPaid && !isIgnored) {
-            if (isRecurringActiveInMonth(re.frequency, re.paymentMonth, month, year, start)) {
-                pendingFixedExpenses += re.amount;
-            }
-        }
-    });
-
-    // Pending Savings
+    // Projected Savings
     let projectedTotalSavings = 0;
     savings.filter(s => (s.monthlySavingAmount || 0) > 0).forEach(s => {
         projectedTotalSavings += (s.monthlySavingAmount || 0);
     });
     const pendingSavings = Math.max(0, projectedTotalSavings - totalMonthAllocations);
 
-    // Pending Fixed Incomes (expected but not received)
-    let pendingFixedIncomes = 0;
-    fixedIncomes.forEach(inc => {
-        const start = inc.effectiveDate || inc.createdAt || 0;
-        const end = inc.expirationDate || new Date(9999, 11, 31).getTime();
-        const isIgnored = inc.ignoredPeriods?.includes(period);
+    // Active Override
+    const overrideId = `${year}-${(month + 1).toString().padStart(2, '0')}`;
+    const activeOverride = overrides.find(o => o.id === overrideId);
 
-        if (start <= monthEnd && end >= monthStart && !isIgnored) {
-            if (isRecurringActiveInMonth(inc.frequency, inc.paymentMonth, month, year, start)) {
-                // Check if received in this month
-                const isReceived = extraIncomes.some(ei => ei.period === period && (ei as any).fixedIncomeId === inc.id);
-                // Note: The extraIncomes check might need to be more robust depending on how we link them.
-                // For now, let's use the status or a linked ID if available.
-                // If it's not marked as received, add to pending.
-                if (inc.status === 'pending') {
-                    pendingFixedIncomes += inc.amount;
-                }
-            }
-        }
-    });
+    // Formula: Total Received (Extra + Confirmed Fixed) + Pending Fixed - (Projected Fixed Expenses + Variable Paid + Deviations + Allocations + Projected Savings) + Remanente
+    const availableToSpend = 
+        (extraIncomesReceived + pendingFixedIncomes) 
+        - (totalProjectedFixedExpenses + variableExpensesPaid + fixedExpensesDeviations + totalMonthAllocations + projectedTotalSavings)
+        + remanente;
 
     const summary = {
-        availableToSpend: totalMonthIncome - totalMonthExpenses - totalMonthAllocations + remanente - pendingFixedExpenses - pendingSavings,
+        availableToSpend,
         totalMonthIncome,
         totalMonthExpenses,
         totalAccountExpenses,
@@ -195,7 +211,7 @@ export function calculateAvailableBalanceForMonth(
         totalMonthAllocations,
         remanente,
         pendingFixedExpenses,
-        pendingFixedIncomes,
+        pendingFixedIncomes: 0, // Simplified for now as fixed incomes are also in the 'projected' pool
         pendingSavings,
         activeOverride
     };
@@ -203,31 +219,84 @@ export function calculateAvailableBalanceForMonth(
     if (activeOverride) {
         const overrideTime = activeOverride.updatedAt;
         
-        const incomeAfter = [...fixedIncomes, ...extraIncomes].filter(inc => {
+        // Correct logic for Override (Budget-First):
+        // The user sets the "Starting Available" for the rest of the month.
+        // We add Extra Incomes that happen AFTER the override.
+        // We subtract Variable Expenses that happen AFTER the override.
+        // We subtract the DEVIATION of Fixed Expenses (only the difference from planned).
+        // We subtract any Manual Allocations to savings that happen AFTER the override.
+        
+        const extraIncomeAfter = extraIncomes.filter(inc => {
             if (inc.type === 'rollover') return false;
-            const rawTime = inc.updatedAt || inc.effectiveDate || (inc as any).date || 0;
-            const t = Number(rawTime);
+            const t = Number(inc.updatedAt || inc.effectiveDate || (inc as any).receivedDate || (inc as any).createdAt || 0);
             return isItemInMonthAndYear(inc, month, year) && t > overrideTime;
         }).reduce((sum, inc) => sum + inc.amount, 0);
 
-        const expensesAfter = expenses.filter(exp => {
-            if (exp.linkedSavingGoalId) return false;
-            const rawTime = exp.updatedAt || exp.date || 0;
-            const t = Number(rawTime);
+        const varExpensesAfter = expenses.filter(exp => {
+            if (exp.isFixed || exp.excludeFromBudget) return false;
+            const t = Number(exp.updatedAt || exp.date || (exp as any).createdAt || 0);
             return isItemInMonthAndYear(exp, month, year) && t > overrideTime;
         }).reduce((sum, exp) => sum + exp.amount, 0);
 
+        const fixedDeviationsAfter = expenses.filter(exp => {
+            if (!exp.isFixed || exp.excludeFromBudget) return false;
+            const t = Number(exp.updatedAt || exp.date || (exp as any).createdAt || 0);
+            return isItemInMonthAndYear(exp, month, year) && t > overrideTime;
+        }).reduce((sum, exp) => {
+            const re = recurringExpenses.find(r => r.id === exp.recurringExpenseId);
+            return sum + (exp.amount - (re?.amount || 0));
+        }, 0);
+
         const allocationsAfter = allocations.filter(alloc => {
-            const rawTime = alloc.updatedAt || alloc.date || 0;
-            const t = Number(rawTime);
+            const t = Number(alloc.updatedAt || (alloc as any).date || (alloc as any).createdAt || 0);
             return isItemInMonthAndYear(alloc, month, year) && t > overrideTime && (alloc.type === 'manual' || alloc.type === 'automatic');
         }).reduce((sum, alloc) => sum + alloc.amount, 0);
 
         return {
             ...summary,
-            availableToSpend: activeOverride.amount + incomeAfter - expensesAfter - allocationsAfter,
+            availableToSpend: activeOverride.amount + extraIncomeAfter - varExpensesAfter - fixedDeviationsAfter - allocationsAfter,
         };
     }
 
     return summary;
+}
+
+export function getEffectiveSettlementDate(exp: Expense) {
+    if (!exp) return new Date();
+    const d = new Date(exp.date || Date.now());
+    const adjustment = (exp.paymentMethod as any)?.settlementAdjustment || 0;
+    if (adjustment !== 0) {
+        d.setMonth(d.getMonth() + adjustment);
+    }
+    return d;
+}
+
+export function predictSettlementDate(card: CreditCard, date: number, adjustment: number = 0) {
+    const d = new Date(date);
+    const cutoffDay = card.cutoffDay || 1;
+    const paymentDay = card.paymentDay || 1;
+    
+    // Apply the user's manual adjustment
+    if (adjustment !== 0) {
+        d.setMonth(d.getMonth() + adjustment);
+    }
+    
+    const year = d.getFullYear();
+    const month = d.getMonth();
+    const day = d.getDate();
+    
+    let settlementMonth = month;
+    let settlementYear = year;
+    
+    if (day > cutoffDay) {
+        // Belongs to the next settlement period
+        settlementMonth++;
+    }
+    
+    // If payment day is on or before cutoff, it usually pays in the month AFTER the settlement period closes
+    if (paymentDay <= cutoffDay) {
+        settlementMonth++;
+    }
+    
+    return new Date(settlementYear, settlementMonth, paymentDay);
 }

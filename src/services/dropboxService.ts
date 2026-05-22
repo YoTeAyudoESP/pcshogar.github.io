@@ -65,7 +65,7 @@ export class DropboxService {
 
     /**
      * Intelligent merge between local and remote data
-     * Based on updatedAt timestamps
+     * Based on updatedAt timestamps and tombstones for deletions
      */
     static mergeData(localData: any, remoteData: any) {
         if (!remoteData) return localData;
@@ -73,10 +73,25 @@ export class DropboxService {
         const merged: any = { ...localData };
         
         // Helper to merge arrays of objects with 'id' and 'updatedAt'
-        const mergeArray = (localArr: any[], remoteArr: any[]) => {
+        const mergeArray = (localArr: any[], remoteArr: any[], storeName: string, localTombstones: any[], remoteTombstones: any[]) => {
             const result = [...localArr];
+            
+            // Track all known tombstones for this store
+            const allTombstones = [...localTombstones, ...remoteTombstones]
+                .filter(t => t.store === storeName);
+
+            // Process remote items
             remoteArr.forEach(remoteItem => {
                 const localIndex = result.findIndex(l => l.id === remoteItem.id);
+                
+                // Check if this item has a tombstone anywhere
+                const tombstone = allTombstones.find(t => t.id === `${storeName}:${remoteItem.id}`);
+                if (tombstone && tombstone.deletedAt > (remoteItem.updatedAt || 0)) {
+                    // Item was deleted after it was last updated, skip/remove it
+                    if (localIndex !== -1) result.splice(localIndex, 1);
+                    return;
+                }
+
                 if (localIndex === -1) {
                     // New item from remote
                     result.push(remoteItem);
@@ -88,7 +103,12 @@ export class DropboxService {
                     }
                 }
             });
-            return result;
+
+            // One final pass to remove local items that have a remote tombstone
+            return result.filter(item => {
+                const tombstone = allTombstones.find(t => t.id === `${storeName}:${item.id}`);
+                return !tombstone || (item.updatedAt || 0) > tombstone.deletedAt;
+            });
         };
 
         // List of keys to merge (collections in our DB)
@@ -98,11 +118,19 @@ export class DropboxService {
             'categories', 'monthClosings', 'monthOverrides', 'accountMovements'
         ];
 
+        const localTombstones = localData['deleted_items'] || [];
+        const remoteTombstones = remoteData['deleted_items'] || [];
+        
+        // Merge tombstones collection first
+        merged['deleted_items'] = mergeArray(localTombstones, remoteTombstones, 'deleted_items', [], []);
+
         collections.forEach(key => {
+            const dbStoreName = key === 'recurringExpenses' ? 'recurring_expenses' : key;
             if (localData[key] && remoteData[key]) {
-                merged[key] = mergeArray(localData[key], remoteData[key]);
+                merged[key] = mergeArray(localData[key], remoteData[key], dbStoreName, localTombstones, remoteTombstones);
             } else if (remoteData[key]) {
-                merged[key] = remoteData[key];
+                // If remote has data and local doesn't, we still need to check against local tombstones
+                merged[key] = mergeArray([], remoteData[key], dbStoreName, localTombstones, remoteTombstones);
             }
         });
 

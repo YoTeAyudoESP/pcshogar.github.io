@@ -14,6 +14,7 @@ export interface IncomeBase {
     budgetYear?: number;
     period?: string; // "YYYY-MM"
     categoryId?: string;
+    fixedIncomeId?: string;
     updatedAt?: number;
 }
 

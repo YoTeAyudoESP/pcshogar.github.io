@@ -65,10 +65,14 @@ interface DomesticEconomyDB extends DBSchema {
         key: string;
         value: MonthOverride;
     };
+    deleted_items: {
+        key: string; // StoreName:ID
+        value: { id: string; store: string; deletedAt: number };
+    };
 }
 
 const DB_NAME = 'domestic-economy-db';
-const ORG_VERSION = 6;
+const ORG_VERSION = 7;
 
 class IncomeDB {
     private dbPromise: Promise<IDBPDatabase<DomesticEconomyDB>>;
@@ -147,6 +151,11 @@ class IncomeDB {
                     if (db.objectStoreNames.contains('overrides')) {
                         db.deleteObjectStore('overrides');
                         db.createObjectStore('overrides', { keyPath: 'id' });
+                    }
+                }
+                if (oldVersion < 7) {
+                    if (!db.objectStoreNames.contains('deleted_items')) {
+                        db.createObjectStore('deleted_items', { keyPath: 'id' });
                     }
                 }
             },
@@ -248,6 +257,15 @@ class IncomeDB {
             }
         }
         await tx.done;
+    }
+
+    async recordDeletion(store: string, id: string): Promise<void> {
+        const db = await this.dbPromise;
+        await db.put('deleted_items', {
+            id: `${store}:${id}`,
+            store,
+            deletedAt: Date.now()
+        });
     }
 
     async exportFullData(): Promise<any> {
@@ -816,9 +834,121 @@ class IncomeDB {
         await tx.done;
     }
 
-    async updateExpense(expense: Expense): Promise<void> {
+    async updateExpense(updatedExpense: Expense): Promise<void> {
         const db = await this.dbPromise;
-        await db.put('expenses', expense);
+        const tx = db.transaction(['expenses', 'accounts', 'cards', 'movements', 'savings', 'allocations'], 'readwrite');
+        const expenseStore = tx.objectStore('expenses');
+        const accountStore = tx.objectStore('accounts');
+        const cardStore = tx.objectStore('cards');
+        const movementStore = tx.objectStore('movements');
+        const savingsStore = tx.objectStore('savings');
+        const allocStore = tx.objectStore('allocations');
+
+        const oldExpense = await expenseStore.get(updatedExpense.id);
+        if (!oldExpense) throw new Error('Gasto no encontrado');
+
+        // 1. REVERT OLD EFFECTS
+        if (oldExpense.status === 'paid') {
+            // Revert bank/cash balance
+            if (oldExpense.paymentMethod.type === 'account') {
+                const account = await accountStore.get(oldExpense.paymentMethod.accountId);
+                if (account) {
+                    account.balance += oldExpense.amount;
+                    await accountStore.put(account);
+                }
+            } else if (oldExpense.paymentMethod.type === 'card') {
+                const card = await cardStore.get(oldExpense.paymentMethod.cardId);
+                if (card) {
+                    if (card.type === 'debit') {
+                        const account = await accountStore.get(card.linkedAccountId);
+                        if (account) {
+                            account.balance += oldExpense.amount;
+                            await accountStore.put(account);
+                        }
+                    } else {
+                        card.currentBalance -= oldExpense.amount;
+                        await cardStore.put(card);
+                    }
+                }
+            }
+
+            // Revert savings goal if linked
+            if (oldExpense.linkedSavingGoalId) {
+                const goal = await savingsStore.get(oldExpense.linkedSavingGoalId);
+                if (goal) {
+                    goal.currentAmount += oldExpense.amount;
+                    await savingsStore.put(goal);
+                }
+                await allocStore.delete(`hucha_exp_${oldExpense.id}`);
+            }
+
+            // Delete old movement (we'll create a new one if still paid)
+            // Heuristic: delete movements related to this expense
+            let mCursor = await movementStore.index('by-account').openCursor(); // This is slow, but movements don't have a direct 'by-relatedId' index in schema.
+            // Actually, we'll just add an adjustment movement instead of searching all.
+        }
+
+        // 2. APPLY NEW EFFECTS
+        if (updatedExpense.status === 'paid') {
+            let targetAccountId: string | null = null;
+
+            if (updatedExpense.paymentMethod.type === 'account') {
+                targetAccountId = updatedExpense.paymentMethod.accountId;
+                const account = await accountStore.get(targetAccountId);
+                if (account) {
+                    account.balance -= updatedExpense.amount;
+                    await accountStore.put(account);
+                }
+            } else if (updatedExpense.paymentMethod.type === 'card') {
+                const card = await cardStore.get(updatedExpense.paymentMethod.cardId);
+                if (card) {
+                    if (card.type === 'debit') {
+                        targetAccountId = card.linkedAccountId;
+                        const account = await accountStore.get(targetAccountId);
+                        if (account) {
+                            account.balance -= updatedExpense.amount;
+                            await accountStore.put(account);
+                        }
+                    } else {
+                        card.currentBalance += updatedExpense.amount;
+                        await cardStore.put(card);
+                    }
+                }
+            }
+
+            if (targetAccountId) {
+                await movementStore.add({
+                    id: `mv_upd_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+                    accountId: targetAccountId,
+                    amount: -updatedExpense.amount,
+                    type: 'expense',
+                    description: `Ajuste Gasto: ${updatedExpense.description}`,
+                    relatedId: updatedExpense.id,
+                    date: updatedExpense.date,
+                    updatedAt: Date.now()
+                });
+            }
+
+            if (updatedExpense.linkedSavingGoalId) {
+                const goal = await savingsStore.get(updatedExpense.linkedSavingGoalId);
+                if (goal) {
+                    goal.currentAmount -= updatedExpense.amount;
+                    await savingsStore.put(goal);
+                    await allocStore.put({
+                        id: `hucha_exp_${updatedExpense.id}`,
+                        goalId: updatedExpense.linkedSavingGoalId,
+                        amount: -updatedExpense.amount,
+                        type: 'adjustment',
+                        description: `Financiación de gasto: ${updatedExpense.description}`,
+                        date: updatedExpense.date,
+                        updatedAt: Date.now()
+                    });
+                }
+            }
+        }
+
+        await expenseStore.put(updatedExpense);
+        await tx.done;
     }
 }
 

@@ -3,9 +3,11 @@ import React, { useEffect } from 'react';
 import { App } from '@capacitor/app';
 import { useAppSettings } from '../../contexts/AppSettingsContext';
 import { DropboxService } from '../../services/dropboxService';
+import { useToast } from '../../contexts/ToastContext';
 
 const DropboxAuthHandler: React.FC = () => {
     const { settings, updateSyncSettings } = useAppSettings();
+    const { showToast } = useToast();
 
     const handleToken = (token: string) => {
         // Initialize service and get user info
@@ -17,10 +19,10 @@ const DropboxAuthHandler: React.FC = () => {
                 enabled: true,
                 type: 'dropbox'
             });
-            alert(`Dropbox conectado con éxito: ${user.email}`);
+            showToast(`Dropbox conectado con éxito: ${user.email}`, 'success');
         }).catch(err => {
             console.error("Error fetching dropbox user", err);
-            alert("Error al conectar con Dropbox.");
+            showToast("Error al conectar con Dropbox.", 'error');
         });
     };
 

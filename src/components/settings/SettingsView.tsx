@@ -13,7 +13,8 @@ import BalanceAdjustmentView from './BalanceAdjustmentView';
 import CategoryManagementView from './CategoryManagementView';
 import AppSettingsView from './AppSettingsView';
 import { useFinance } from '../../contexts/FinanceContext';
-const version = "0.5.2";
+import { useToast } from '../../contexts/ToastContext';
+const version = "0.8.7";
 import type { Account, CreditCard, RecurringExpense, SavingGoal, Loan } from '../../types/finance';
 import { 
     Wallet, 
@@ -41,6 +42,7 @@ interface SettingsViewProps {
 
 const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) => {
     const [activeTab, setActiveTab] = useState(initialTab);
+    const { showToast } = useToast();
     const { 
         updateAccount, addAccount, 
         updateCard, addCard, 
@@ -82,7 +84,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
             if (fileName.endsWith('.json') || file.type === 'application/json') {
                 setSelectedImportFile(file);
             } else {
-                alert('Por favor, selecciona un archivo .json válido.');
+                showToast('Por favor, selecciona un archivo .json válido.', 'error');
             }
         }
         // Small timeout to allow state to settle before clearing input value
@@ -103,10 +105,10 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
             try {
                 const content = JSON.parse(e.target?.result as string);
                 await importData(content);
-                alert('Datos importados con éxito.');
+                showToast('Datos importados con éxito.', 'success');
                 setSelectedImportFile(null);
             } catch (err) {
-                alert('Error al procesar el archivo JSON.');
+                showToast('Error al procesar el archivo JSON.', 'error');
                 console.error(err);
             }
         };

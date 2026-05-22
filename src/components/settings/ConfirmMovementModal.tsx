@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Check, Calendar, CreditCard, DollarSign } from 'lucide-react';
 import { useFinance } from '../../contexts/FinanceContext';
+import { useToast } from '../../contexts/ToastContext';
 import type { FixedIncome } from '../../types/income';
 import type { RecurringExpense, Account } from '../../types/finance';
 
@@ -12,25 +13,35 @@ interface ConfirmMovementModalProps {
 
 const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item, onClose }) => {
     const { accounts, confirmFixedMovement } = useFinance();
+    const { showToast } = useToast();
     const [amount, setAmount] = useState(item.amount);
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [budgetPeriod, setBudgetPeriod] = useState(new Date().toISOString().substring(0, 7));
     const [accountId, setAccountId] = useState('');
+    const [methodType, setMethodType] = useState<'account' | 'card'>('account');
 
     useEffect(() => {
         // Find default account
         if (type === 'income') {
             const incomeItem = item as FixedIncome;
             setAccountId(incomeItem.linkedAccountId || accounts.find(a => a.isMain)?.id || accounts[0]?.id || '');
+            setMethodType('account');
         } else {
             const expenseItem = item as RecurringExpense;
-            setAccountId(expenseItem.sourceAccountId || accounts.find(a => a.isMain)?.id || accounts[0]?.id || '');
+            const pm = expenseItem.paymentMethod;
+            if (pm?.type === 'card') {
+                setAccountId(pm.cardId);
+                setMethodType('card');
+            } else {
+                setAccountId((pm as any)?.accountId || accounts.find(a => a.isMain)?.id || accounts[0]?.id || '');
+                setMethodType('account');
+            }
         }
     }, [item, accounts, type]);
 
     const handleConfirm = async () => {
         if (!accountId) {
-            alert('Por favor, selecciona una cuenta.');
+            showToast('Por favor, selecciona una cuenta.', 'error');
             return;
         }
 
@@ -52,7 +63,7 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
             onClose();
         } catch (error) {
             console.error("Error confirming movement:", error);
-            alert("Error al confirmar el movimiento.");
+            showToast("Error al confirmar el movimiento.", 'error');
         }
     };
 
@@ -127,8 +138,12 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
                             <CreditCard size={14} /> Cuenta/Banco
                         </label>
                         <select 
-                            value={accountId}
-                            onChange={(e) => setAccountId(e.target.value)}
+                            value={`${methodType}:${accountId}`}
+                            onChange={(e) => {
+                                const [mType, mId] = e.target.value.split(':');
+                                setMethodType(mType as any);
+                                setAccountId(mId);
+                            }}
                             style={{
                                 background: 'rgba(255, 255, 255, 0.05)',
                                 border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -138,12 +153,23 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
                                 width: '100%'
                             }}
                         >
-                            <option value="">Selecciona una cuenta</option>
-                            {accounts.map(acc => (
-                                <option key={acc.id} value={acc.id}>
-                                    {acc.name} ({acc.balance.toFixed(2)} €)
-                                </option>
-                            ))}
+                            <option value="">Selecciona una cuenta o tarjeta</option>
+                            <optgroup label="Cuentas Bancarias">
+                                {accounts.map(acc => (
+                                    <option key={acc.id} value={`account:${acc.id}`}>
+                                        {acc.name} ({acc.balance.toFixed(2)} €)
+                                    </option>
+                                ))}
+                            </optgroup>
+                            {type === 'expense' && (
+                                <optgroup label="Tarjetas de Crédito">
+                                    {useFinance().cards.map(card => (
+                                        <option key={card.id} value={`card:${card.id}`}>
+                                            {card.name}
+                                        </option>
+                                    ))}
+                                </optgroup>
+                            )}
                         </select>
                     </div>
 

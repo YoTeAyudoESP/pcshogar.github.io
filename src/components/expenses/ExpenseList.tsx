@@ -9,7 +9,7 @@ interface ExpenseListProps {
 }
 
 const ExpenseList: React.FC<ExpenseListProps> = ({ onEdit }) => {
-    const { expenses, accounts, cards, deleteExpense } = useFinance();
+    const { expenses, accounts, cards, categories, deleteExpense } = useFinance();
     const { selectedMonth, selectedYear } = useDateSelection();
 
     const isItemInSelectedMonth = (item: any) => {
@@ -132,7 +132,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ onEdit }) => {
                                         {expense.description}
                                     </div>
                                     <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', fontWeight: 500 }}>
-                                        {expense.categoryId && accounts.find(a => a.id === expense.categoryId)?.name || 'Sin Categoría'}
+                                        {categories.find(c => c.id === expense.categoryId)?.name || 'Sin Categoría'}
                                     </div>
                                     <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.35)' }}>
                                         {new Date(expense.date).toLocaleDateString()}

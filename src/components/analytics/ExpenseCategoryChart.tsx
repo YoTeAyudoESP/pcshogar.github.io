@@ -4,7 +4,7 @@ import { DEFAULT_CATEGORIES } from '../../types/finance';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
 const ExpenseCategoryChart: React.FC = () => {
-    const { expenses } = useFinance();
+    const { expenses, categories } = useFinance();
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
 
@@ -24,7 +24,7 @@ const ExpenseCategoryChart: React.FC = () => {
 
         // Map to Recharts data format
         return Object.entries(grouped).map(([catId, value]) => {
-            const category = DEFAULT_CATEGORIES.find(c => c.id === catId);
+            const category = categories.find(c => c.id === catId);
             return {
                 name: category ? category.name : 'Desconocido',
                 value: value,

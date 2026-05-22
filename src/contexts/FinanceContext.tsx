@@ -193,7 +193,8 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                         month: prevMonth,
                         closedAt: Date.now(),
                         finalBalance: availableToSpend,
-                        status: 'pending'
+                        status: 'pending',
+                        updatedAt: Date.now()
                     };
                     await incomeDB.addMonthClosing(newPendingClosing);
                     clss.push(newPendingClosing);
@@ -235,11 +236,11 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                     }
                 } else if (settings.sync.type === 'dropbox' && settings.sync.dropboxToken) {
                     try {
-                        showToast('Sincronizando con Dropbox...', 'sync');
                         const timestamp = await DropboxService.sync();
                         if (timestamp) {
                             updateSyncSettings({ lastSync: timestamp });
-                            showToast('Dropbox actualizado', 'success');
+                            await refreshFinance();
+                            showToast('Datos sincronizados con Dropbox', 'success');
                         }
                     } catch (e) {
                         console.error("Auto-sync Dropbox failed", e);
@@ -255,7 +256,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         accounts, cards, expenses, savings, allocations, 
         recurringExpenses, loans, movements, categories, 
         transfers, closings, overrides, incomes,
-        settings.sync.enabled, settings.sync.localPath, settings.sync.dropboxToken, settings.sync.type, loading, showToast
+        settings.sync.enabled, settings.sync.localPath, settings.sync.dropboxToken, settings.sync.type, loading, showToast, refreshFinance
     ]);
 
     const importData = async (data: any) => {
@@ -341,6 +342,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const deleteSavingGoal = async (id: string) => {
+        await incomeDB.recordDeletion('savings', id);
         await incomeDB.deleteSavingGoal(id);
         await refreshFinance();
     };
@@ -514,6 +516,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         if (loan && (loan.currentDebt ?? 0) > 0) {
             throw new Error('No se puede eliminar un préstamo con deuda pendiente. Por favor, amortízalo primero.');
         }
+        await incomeDB.recordDeletion('loans', id);
         await incomeDB.deleteLoan(id);
         await refreshFinance();
     };
@@ -581,7 +584,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const updateExpense = async (expense: Expense) => {
-        await incomeDB.updateExpense(expense);
+        await incomeDB.updateExpense({ ...expense, updatedAt: Date.now() });
         await refreshFinance();
     };
 
@@ -615,6 +618,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const deleteMonthOverride = async (id: string) => {
+        await incomeDB.recordDeletion('overrides', id);
         await incomeDB.deleteMonthOverride(id);
         await refreshFinance();
     };
@@ -638,6 +642,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const deleteCategory = async (id: string, reassignToId?: string) => {
+        await incomeDB.recordDeletion('categories', id);
         await incomeDB.deleteCategoryWithReassignment(id, reassignToId);
         await refreshFinance();
     };
@@ -685,7 +690,8 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
             ...closing,
             status: 'processed',
             closedAt: Date.now(),
-            distributions
+            distributions,
+            updatedAt: Date.now()
         });
         
         await refreshFinance();
@@ -726,7 +732,8 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         await incomeDB.addMonthClosing({
             ...closing,
             status: 'pending',
-            distributions: undefined
+            distributions: undefined,
+            updatedAt: Date.now()
         });
 
         await refreshFinance();
@@ -867,7 +874,8 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         await incomeDB.addMonthClosing({
             ...closing,
             status: 'ignored',
-            distributions: undefined
+            distributions: undefined,
+            updatedAt: Date.now()
         });
 
         await refreshFinance();

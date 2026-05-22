@@ -146,6 +146,7 @@ export interface MonthClosing {
     rolloverAmount?: number;
     remainingToDistribute?: number;
     distributions?: { type: 'next_month' | 'saving_goal', targetId?: string, amount: number }[];
+    updatedAt?: number;
 }
 
 export interface MonthOverride {

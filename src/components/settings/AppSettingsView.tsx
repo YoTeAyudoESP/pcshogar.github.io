@@ -29,7 +29,7 @@ import { useToast } from '../../contexts/ToastContext';
 
 const AppSettingsView: React.FC = () => {
     const { settings, updateSettings, updateSyncSettings } = useAppSettings();
-    const { importData } = useFinance();
+    const { importData, refreshFinance } = useFinance();
     const { showToast } = useToast();
     const [showImportWarning, setShowImportWarning] = useState(false);
     const [importFile, setImportFile] = useState<File | null>(null);
@@ -427,7 +427,8 @@ const AppSettingsView: React.FC = () => {
                                                     try {
                                                         showToast('Sincronizando con la nube...', 'sync');
                                                         const timestamp = await DropboxService.sync();
-                                                        updateSyncSettings({ lastSync: timestamp });
+                                                        updateSyncSettings({ lastSync: timestamp || Date.now() });
+                                                        await refreshFinance();
                                                         showToast('Sincronización manual completada', 'success');
                                                     } catch (e) {
                                                         showToast('Error en la sincronización', 'error');

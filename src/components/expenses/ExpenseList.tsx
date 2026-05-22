@@ -24,7 +24,13 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ onEdit }) => {
     };
 
     const currentMonthExpenses = useMemo(() => {
-        return expenses.filter(isItemInSelectedMonth);
+        return expenses
+            .filter(isItemInSelectedMonth)
+            .sort((a, b) => {
+                const dateA = new Date(a.date).getTime();
+                const dateB = new Date(b.date).getTime();
+                return dateB - dateA;
+            });
     }, [expenses, selectedMonth, selectedYear]);
 
     const groupedExpenses = useMemo(() => {

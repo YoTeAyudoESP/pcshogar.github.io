@@ -1,9 +1,9 @@
 {
   "name": "pcshogar",
   "private": true,
-  "version": "0.9.6",
-  "versionCode": 96,
-  "versionName": "0.9.6",
+  "version": "0.9.8",
+  "versionCode": 98,
+  "versionName": "0.9.8",
   "type": "module",
   "scripts": {
     "dev": "vite",

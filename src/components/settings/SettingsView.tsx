@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import AccountList from '../accounts/AccountList';
 import AccountForm from '../accounts/AccountForm';
 import CardList from '../accounts/CardList';
@@ -14,8 +14,8 @@ import CategoryManagementView from './CategoryManagementView';
 import AppSettingsView from './AppSettingsView';
 import { useFinance } from '../../contexts/FinanceContext';
 import { useToast } from '../../contexts/ToastContext';
-const version = "0.11.6";
-import { Browser } from '@capacitor/browser';
+const version = "0.11.7";
+// Browser plugin removed: manual opens in-app via window.location.href
 import type { Account, CreditCard, RecurringExpense, SavingGoal, Loan } from '../../types/finance';
 import { 
     Wallet, 
@@ -45,12 +45,10 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
     const [activeTab, setActiveTab] = useState(initialTab);
     const { showToast } = useToast();
     
-    const handleOpenManual = async () => {
-        try {
-            await Browser.open({ url: window.location.origin + '/manual.html' });
-        } catch (e) {
-            window.open('/manual.html', '_blank');
-        }
+    const handleOpenManual = () => {
+        // Navigate within the app's webview so the bundled manual.html
+        // is accessible locally (no internet required).
+        window.location.href = '/manual.html';
     };
     const { 
         updateAccount, addAccount, 
@@ -93,7 +91,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
             if (fileName.endsWith('.json') || file.type === 'application/json') {
                 setSelectedImportFile(file);
             } else {
-                showToast('Por favor, selecciona un archivo .json válido.', 'error');
+                showToast('Por favor, selecciona un archivo .json vÃ¡lido.', 'error');
             }
         }
         // Small timeout to allow state to settle before clearing input value
@@ -114,7 +112,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
             try {
                 const content = JSON.parse(e.target?.result as string);
                 await importData(content);
-                showToast('Datos importados con éxito.', 'success');
+                showToast('Datos importados con Ã©xito.', 'success');
                 setSelectedImportFile(null);
             } catch (err) {
                 showToast('Error al procesar el archivo JSON.', 'error');
@@ -132,10 +130,10 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
         { id: 'accounts', label: 'Cuentas y Tarjetas', icon: Wallet },
         { id: 'savings', label: 'Huchas', icon: PiggyBank },
         { id: 'recurring', label: 'Movimientos Fijos', icon: CalendarClock },
-        { id: 'loans', label: 'Préstamos', icon: Landmark },
+        { id: 'loans', label: 'PrÃ©stamos', icon: Landmark },
         { id: 'balance', label: 'Ajustes Saldo', icon: RefreshCw },
-        { id: 'categories', label: 'Categorías', icon: Tag },
-        { id: 'app', label: 'Aplicación', icon: Monitor },
+        { id: 'categories', label: 'CategorÃ­as', icon: Tag },
+        { id: 'app', label: 'AplicaciÃ³n', icon: Monitor },
         { id: 'about', label: 'Acerca de', icon: Heart },
     ] as const;
 
@@ -274,7 +272,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
                                     boxShadow: '0 4px 15px rgba(245, 158, 11, 0.4)'
                                 }}
                             >
-                                <Plus size={20} /> Nuevo Préstamo
+                                <Plus size={20} /> Nuevo PrÃ©stamo
                             </button>
                         </div>
 
@@ -326,9 +324,9 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
                                 maxWidth: '500px',
                                 margin: '0 auto'
                             }}>
-                                Esta aplicación está desarrollada de forma independiente por <strong>Yo Te Ayudo (ESP)</strong> y su uso es íntegro y gratuito. 
-                                Si te resulta útil, considera realizar una pequeña aportación o enviarnos tus sugerencias. 
-                                ¡La app funcionará siempre exactamente igual aportes o no!
+                                Esta aplicaciÃ³n estÃ¡ desarrollada de forma independiente por <strong>Yo Te Ayudo (ESP)</strong> y su uso es Ã­ntegro y gratuito. 
+                                Si te resulta Ãºtil, considera realizar una pequeÃ±a aportaciÃ³n o enviarnos tus sugerencias. 
+                                Â¡La app funcionarÃ¡ siempre exactamente igual aportes o no!
                             </p>
                         </div>
 
@@ -375,7 +373,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
                                     cursor: 'pointer',
                                     fontSize: '0.85rem'
                                 }}>
-                                    <Coffee size={18} /> Invitar a un café (PayPal)
+                                    <Coffee size={18} /> Invitar a un cafÃ© (PayPal)
                                 </button>
                             </div>
                             <button style={{ 
@@ -407,11 +405,11 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
                             border: '1px solid rgba(255,255,255,0.05)',
                             maxWidth: '500px'
                         }}>
-                            <strong>Aviso legal y protección de datos:</strong> La aportación económica (donación) es 100% voluntaria, de carácter final y no reembolsable bajo ninguna circunstancia. Al realizarla aceptas expresamente que no constituye el pago por un servicio profesional, ni el despliegue de ventajas en la app, ni la compra de artículos. Esta aplicación no requiere pagos para funcionar. <strong>Yo Te Ayudo (ESP)</strong> no almacena, recopila ni procesa ningún dato personal, financiero ni tarjeta bancaria del usuario. El procesamiento íntegro y seguro de los pagos se deriva de forma exclusiva y externa a los servidores de PayPal, aplicando únicamente su propia Política de Privacidad Términos de Servicio.
+                            <strong>Aviso legal y protecciÃ³n de datos:</strong> La aportaciÃ³n econÃ³mica (donaciÃ³n) es 100% voluntaria, de carÃ¡cter final y no reembolsable bajo ninguna circunstancia. Al realizarla aceptas expresamente que no constituye el pago por un servicio profesional, ni el despliegue de ventajas en la app, ni la compra de artÃ­culos. Esta aplicaciÃ³n no requiere pagos para funcionar. <strong>Yo Te Ayudo (ESP)</strong> no almacena, recopila ni procesa ningÃºn dato personal, financiero ni tarjeta bancaria del usuario. El procesamiento Ã­ntegro y seguro de los pagos se deriva de forma exclusiva y externa a los servidores de PayPal, aplicando Ãºnicamente su propia PolÃ­tica de Privacidad TÃ©rminos de Servicio.
                         </div>
 
                         <p style={{ fontSize: '0.85rem', opacity: 0.4, marginTop: '0.5rem' }}>
-                            Versión {version}
+                            VersiÃ³n {version}
                         </p>
                     </div>
                 )}
@@ -421,3 +419,4 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
 };
 
 export default SettingsView;
+

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import IncomeForm from '../income/IncomeForm';
 import IncomeList from '../income/IncomeList';
 import ExpenseForm from '../expenses/ExpenseForm';
@@ -14,7 +14,7 @@ import DateSelector from '../common/DateSelector';
 import { LayoutDashboard, Settings as SettingsIcon, X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, MinusCircle, PiggyBank, ArrowLeftRight, AlertCircle } from 'lucide-react';
 
 import { useFinance } from '../../contexts/FinanceContext';
-const version = "0.11.6";
+const version = "0.11.7";
 import RemnantDecisionModal from '../settings/RemnantDecisionModal';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import EditTransactionModal from './EditTransactionModal';
@@ -76,7 +76,7 @@ const Dashboard: React.FC = () => {
                     letterSpacing: '-0.02em',
                     margin: 0
                 }}>
-                    Economía Doméstica
+                    EconomÃ­a DomÃ©stica
                 </h1>
                 <span style={{ 
                     fontSize: '0.85rem', 
@@ -134,7 +134,7 @@ const Dashboard: React.FC = () => {
                     }}
                 >
                     <SettingsIcon size={18} />
-                    Gestión y Ajustes
+                    GestiÃ³n y Ajustes
                 </button>
             </div>
 
@@ -159,7 +159,7 @@ const Dashboard: React.FC = () => {
                 >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <AlertCircle size={18} />
-                        Tienes un cierre de mes pendiente de decisión
+                        Tienes un cierre de mes pendiente de decisiÃ³n
                     </div>
                     <span style={{ textDecoration: 'underline', fontSize: '0.8rem' }}>Decidir ahora</span>
                 </div>
@@ -236,7 +236,7 @@ const Dashboard: React.FC = () => {
                             <IncomeList onEdit={(income) => { setEditingTx(income); setEditingType('income'); }} />
                         </div>
                         <div>
-                            <h2 style={{ fontSize: '1.7rem', fontWeight: 800, marginBottom: '1.5rem', color: '#ffffff' }}>Últimos Gastos</h2>
+                            <h2 style={{ fontSize: '1.7rem', fontWeight: 800, marginBottom: '1.5rem', color: '#ffffff' }}>Ãšltimos Gastos</h2>
                             <ExpenseList onEdit={(expense) => { setEditingTx(expense); setEditingType('expense'); }} />
                         </div>
                     </div>
@@ -280,3 +280,4 @@ const Dashboard: React.FC = () => {
 };
 
 export default Dashboard;
+

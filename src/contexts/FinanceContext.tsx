@@ -79,6 +79,7 @@ interface FinanceContextType {
     reverseMonthClosing: (id: string) => Promise<void>;
     updateMonthClosing: (closing: MonthClosing) => Promise<void>;
     ignoreMonthClosing: (id: string) => Promise<void>;
+    editMonthClosingAmount: (closingId: string, newAmount: number) => Promise<void>;
     setPendingClosing: (closing: MonthClosing | null) => void;
     pendingClosing: MonthClosing | null;
     importData: (data: any) => Promise<void>;
@@ -173,7 +174,14 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
             
             let existingClosing = clss.find(c => c.id === prevId);
             
-            if (!existingClosing) {
+            // Check if there is already a rollover income for the target month
+            const hasExistingRollover = incs.some(i => 
+                i.type === 'rollover' && 
+                i.budgetMonth === currentRealMonth && 
+                i.budgetYear === currentRealYear
+            );
+
+            if (!existingClosing && !hasExistingRollover) {
                 // We need to calculate if there's any remaining balance
                 const { availableToSpend } = calculateAvailableBalanceForMonth(prevYear, prevMonth, {
                     fixedIncomes: incs.filter((i): i is FixedIncome => i.type === 'fixed'),
@@ -194,7 +202,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                         closedAt: Date.now(),
                         finalBalance: availableToSpend,
                         status: 'pending',
-                        updatedAt: Date.now()
+                        updatedAt: 1 // Low timestamp so synced 'processed' closings always overwrite it
                     };
                     await incomeDB.addMonthClosing(newPendingClosing);
                     clss.push(newPendingClosing);
@@ -311,6 +319,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
             ...goalData,
             id: uuidv4(),
             currentAmount: goalData.currentAmount ?? 0,
+            createdAt: Date.now(),
             updatedAt: Date.now()
         };
         await incomeDB.addSavingGoal(newGoal);
@@ -664,20 +673,37 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                     nextYear++;
                 }
 
-                // Create a special ROLLOVER income for the next month
-                const rolloverIncome: any = {
-                    id: uuidv4(),
-                    name: `Remanente de ${new Date(closing.year, closing.month).toLocaleString('es-ES', { month: 'long' })}`,
-                    amount: dist.amount,
-                    currency: 'EUR',
-                    type: 'rollover',
-                    createdAt: Date.now(),
-                    effectiveDate: new Date(nextYear, nextMonth, 1).getTime(),
-                    budgetMonth: nextMonth,
-                    budgetYear: nextYear,
-                    status: 'received'
-                };
-                await incomeDB.addIncomeWithTransaction(rolloverIncome);
+                // Check if a rollover already exists for the next month
+                const existingRollover = incomes.find(i => 
+                    i.type === 'rollover' && 
+                    i.budgetMonth === nextMonth && 
+                    i.budgetYear === nextYear
+                );
+
+                if (existingRollover) {
+                    // Update the existing one instead of adding a new one
+                    await incomeDB.updateIncomeWithTransaction({
+                        ...existingRollover,
+                        amount: dist.amount,
+                        name: `Remanente de ${new Date(closing.year, closing.month).toLocaleString('es-ES', { month: 'long' })}`,
+                        updatedAt: Date.now()
+                    });
+                } else {
+                    // Create a special ROLLOVER income for the next month
+                    const rolloverIncome: any = {
+                        id: uuidv4(),
+                        name: `Remanente de ${new Date(closing.year, closing.month).toLocaleString('es-ES', { month: 'long' })}`,
+                        amount: dist.amount,
+                        currency: 'EUR',
+                        type: 'rollover',
+                        createdAt: Date.now(),
+                        effectiveDate: new Date(nextYear, nextMonth, 1).getTime(),
+                        budgetMonth: nextMonth,
+                        budgetYear: nextYear,
+                        status: 'received'
+                    };
+                    await incomeDB.addIncomeWithTransaction(rolloverIncome);
+                }
             } else if (dist.type === 'saving_goal' && dist.targetId) {
                 // Adjust saving goal (this doesn't affect account balance by default as it's an "available" distribution)
                 // Use isBudgetAdjustment=true to make it affect the monthly summary logic
@@ -881,6 +907,73 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         await refreshFinance();
     };
 
+    const editMonthClosingAmount = async (closingId: string, newAmount: number) => {
+        const closing = closings.find(c => c.id === closingId);
+        if (!closing) return;
+
+        // 1. Update closing finalBalance
+        const updatedClosing = {
+            ...closing,
+            finalBalance: newAmount,
+            updatedAt: Date.now()
+        };
+        await incomeDB.addMonthClosing(updatedClosing);
+
+        // 2. Find and update the corresponding rollover income if it exists
+        if (closing.distributions) {
+            const nextMonthDist = closing.distributions.find(d => d.type === 'next_month');
+            if (nextMonthDist) {
+                // Calculate next month to match rollover
+                let nextMonth = closing.month + 1;
+                let nextYear = closing.year;
+                if (nextMonth > 11) {
+                    nextMonth = 0;
+                    nextYear++;
+                }
+
+                // Find rollover income in target month
+                const rolloverInc = incomes.find(i => 
+                    i.type === 'rollover' && 
+                    i.budgetMonth === nextMonth && 
+                    i.budgetYear === nextYear &&
+                    Math.abs(Math.abs(i.amount) - nextMonthDist.amount) < 0.01
+                );
+
+                if (rolloverInc) {
+                    const huchasSum = closing.distributions
+                        .filter(d => d.type === 'saving_goal')
+                        .reduce((sum, d) => sum + d.amount, 0);
+
+                    const isDeficit = newAmount < 0;
+                    const newRolloverAmount = isDeficit 
+                        ? -(Math.abs(newAmount) - huchasSum)
+                        : (newAmount - huchasSum);
+
+                    // Update distributions in closing
+                    const updatedDistributions = closing.distributions.map(d => {
+                        if (d.type === 'next_month') {
+                            return { ...d, amount: Math.abs(newRolloverAmount) };
+                        }
+                        return d;
+                    });
+
+                    await incomeDB.addMonthClosing({
+                        ...updatedClosing,
+                        distributions: updatedDistributions
+                    });
+
+                    // Update rollover income record
+                    await incomeDB.updateIncomeWithTransaction({
+                        ...rolloverInc,
+                        amount: newRolloverAmount,
+                        updatedAt: Date.now()
+                    });
+                }
+            }
+        }
+        await refreshFinance();
+    };
+
     return (
         <FinanceContext.Provider value={{
             accounts,
@@ -936,6 +1029,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
             reverseMonthClosing,
             updateMonthClosing,
             ignoreMonthClosing,
+            editMonthClosingAmount,
             settleCardCycle,
             pendingClosing,
             setPendingClosing,

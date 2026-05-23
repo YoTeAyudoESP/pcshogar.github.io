@@ -10,7 +10,9 @@ interface RecurringExpenseFormProps {
 
 const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpense, onClose }) => {
     const { addRecurringExpense, updateRecurringExpense, accounts, cards, categories } = useFinance();
-    const expenseCategories = categories.filter(c => c.type === 'expense');
+    const expenseCategories = categories
+        .filter(c => c.type === 'expense')
+        .sort((a, b) => a.name.localeCompare(b.name, 'es', { sensitivity: 'base' }));
     
     const [description, setDescription] = useState(editingExpense?.description || '');
     const [amount, setAmount] = useState(editingExpense?.amount?.toString() || '');

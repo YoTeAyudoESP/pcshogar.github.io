@@ -17,7 +17,7 @@ import FixedIncomeForm from './FixedIncomeForm';
 import RecurringExpenseForm from '../expenses/RecurringExpenseForm';
 import ConfirmMovementModal from './ConfirmMovementModal';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
-import { isRecurringActiveInMonth } from '../../utils/financeCalculations';
+import { isRecurringActiveInMonth, formatMoney } from '../../utils/financeCalculations';
 
 interface FixedMovementsViewProps {
     onBack?: () => void;
@@ -222,7 +222,7 @@ const FixedMovementsView: React.FC<FixedMovementsViewProps> = ({ onBack }) => {
                                     )}
                                 </div>
                                 <div style={{ display: 'flex', gap: '1rem', marginTop: '0.25rem', opacity: 0.6, fontSize: '0.85rem' }}>
-                                    <span>{item.amount.toFixed(2)} €</span>
+                                    <span>{formatMoney(item.amount)}</span>
                                     <span>Día { (item as any).paymentDay || (item as any).dayOfMonth }</span>
                                 </div>
                             </div>

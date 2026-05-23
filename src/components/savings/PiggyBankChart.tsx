@@ -11,6 +11,7 @@ import {
 } from 'recharts';
 import { useFinance } from '../../contexts/FinanceContext';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
+import { formatMoney } from '../../utils/financeCalculations';
 
 const PiggyBankChart: React.FC = () => {
     const { savings, allocations } = useFinance();
@@ -37,10 +38,26 @@ const PiggyBankChart: React.FC = () => {
             };
 
             savings.forEach(goal => {
-                // Sum all allocations for this goal up to the end of this month
-                const balanceAtEndOfMonth = allocations
-                    .filter(a => a.goalId === goal.id && a.date <= endOfMonth)
-                    .reduce((sum, a) => sum + a.amount, 0);
+                // 1. Filtrar asignaciones de esta hucha
+                const goalAllocations = allocations.filter(a => a.goalId === goal.id);
+                
+                // 2. Determinar la fecha de creación de la hucha (retrocompatible)
+                const creationDate = goal.createdAt !== undefined
+                    ? goal.createdAt
+                    : (goalAllocations.length > 0 ? Math.min(...goalAllocations.map(a => a.date)) : 0);
+
+                // 3. Si el fin de mes es anterior a la creación de la hucha, el saldo era 0
+                if (endOfMonth < creationDate) {
+                    monthData[goal.name] = 0;
+                    return;
+                }
+
+                // 4. Sumar todas las asignaciones ocurridas después del fin de este mes
+                const allocationsAfter = goalAllocations.filter(a => a.date > endOfMonth);
+                const sumAfter = allocationsAfter.reduce((sum, a) => sum + a.amount, 0);
+                
+                // 5. Restar la suma posterior del saldo actual para obtener el saldo histórico
+                const balanceAtEndOfMonth = Math.max(0, goal.currentAmount - sumAfter);
                 
                 monthData[goal.name] = balanceAtEndOfMonth;
             });
@@ -116,7 +133,7 @@ const PiggyBankChart: React.FC = () => {
                             backdropFilter: 'blur(10px)'
                         }}
                         itemStyle={{ color: '#fff' }}
-                        formatter={(value: any) => [`${Number(value).toFixed(2)}€`]}
+                        formatter={(value: any, name: any) => [formatMoney(Number(value)), name]}
                     />
                     
                     <Legend 

@@ -3,6 +3,7 @@ import { useFinance } from '../../contexts/FinanceContext';
 import { Trash2, Edit2, TrendingDown, DollarSign } from 'lucide-react';
 import type { Loan } from '../../types/finance';
 import AmortizeLoanModal from './AmortizeLoanModal';
+import { formatMoney } from '../../utils/financeCalculations';
 
 interface LoanListProps {
     onEdit: (loan: Loan) => void;
@@ -14,7 +15,7 @@ const LoanList: React.FC<LoanListProps> = ({ onEdit }) => {
 
     const handleDelete = async (loan: Loan) => {
         if ((loan.currentDebt ?? 0) > 0) {
-            alert(`No se puede eliminar el préstamo "${loan.name}" porque aún tiene una deuda de ${loan.currentDebt.toFixed(2)}€. Por favor, amortízalo completamente primero.`);
+            alert(`No se puede eliminar el préstamo "${loan.name}" porque aún tiene una deuda de ${formatMoney(loan.currentDebt)}. Por favor, amortízalo completamente primero.`);
             return;
         }
 
@@ -51,7 +52,7 @@ const LoanList: React.FC<LoanListProps> = ({ onEdit }) => {
                             <div>
                                 <h4 style={{ margin: 0, fontSize: '1.1rem' }}>{loan.name || 'Sin nombre'}</h4>
                                 <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                                    Cuota: {monthlyPayment.toFixed(2)}€/mes
+                                    Cuota: {formatMoney(monthlyPayment)}/mes
                                 </span>
                             </div>
                             <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -84,8 +85,8 @@ const LoanList: React.FC<LoanListProps> = ({ onEdit }) => {
                         </div>
 
                         <div style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
-                            <span>Pagado: {paid.toFixed(2)}€</span>
-                            <span style={{ fontWeight: 600 }}>Deuda: {currentDebt.toFixed(2)}€</span>
+                            <span>Pagado: {formatMoney(paid)}</span>
+                            <span style={{ fontWeight: 600 }}>Deuda: {formatMoney(currentDebt)}</span>
                         </div>
 
                         <div style={{ 

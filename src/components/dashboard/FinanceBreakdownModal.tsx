@@ -115,8 +115,13 @@ const FinanceBreakdownModal: React.FC<FinanceBreakdownModalProps> = ({ isOpen, o
 
     const totalDisponible = ingresosTotales - gastosDelMes - ahorrosYHuchas;
 
-    const formatCurrency = (val: number) => {
-        return (val >= 0 ? '+' : '-') + ' ' + Math.abs(val).toFixed(2).replace('.', ',') + '€';
+    const formatCurrency = (val: number, includeSign: boolean = true) => {
+        const isNegative = val < 0;
+        const [integerPart, decimalPart] = Math.abs(val).toFixed(2).split('.');
+        const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        const formattedVal = `${formattedInteger},${decimalPart}€`;
+        if (!includeSign) return formattedVal;
+        return (val >= 0 ? '+' : '-') + ' ' + formattedVal;
     };
 
     return (
@@ -161,7 +166,7 @@ const FinanceBreakdownModal: React.FC<FinanceBreakdownModalProps> = ({ isOpen, o
                     }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem', alignItems: 'center' }}>
                             <span style={{ color: '#10b981', fontWeight: 600 }}>Ingresos Totales</span>
-                            <span style={{ color: '#10b981', fontWeight: 700, fontSize: '1.1rem', whiteSpace: 'nowrap' }}>{ingresosTotales.toFixed(2).replace('.', ',')}€</span>
+                            <span style={{ color: '#10b981', fontWeight: 700, fontSize: '1.1rem', whiteSpace: 'nowrap' }}>{formatCurrency(ingresosTotales, false)}</span>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -196,16 +201,16 @@ const FinanceBreakdownModal: React.FC<FinanceBreakdownModalProps> = ({ isOpen, o
                     }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem', alignItems: 'center' }}>
                             <span style={{ color: '#f43f5e', fontWeight: 600 }}>Gastos del Mes</span>
-                            <span style={{ color: '#f43f5e', fontWeight: 700, fontSize: '1.1rem', whiteSpace: 'nowrap' }}>-{gastosDelMes.toFixed(2).replace('.', ',')}€</span>
+                            <span style={{ color: '#f43f5e', fontWeight: 700, fontSize: '1.1rem', whiteSpace: 'nowrap' }}>-{formatCurrency(gastosDelMes, false)}</span>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                 <span>Pagados</span>
-                                <span style={{ whiteSpace: 'nowrap', marginLeft: '8px' }}>-{pagados.toFixed(2).replace('.', ',')}€</span>
+                                <span style={{ whiteSpace: 'nowrap', marginLeft: '8px' }}>-{formatCurrency(pagados, false)}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                 <span>Pendientes Fijos</span>
-                                <span style={{ whiteSpace: 'nowrap', marginLeft: '8px' }}>-{pendientesFijos.toFixed(2).replace('.', ',')}€</span>
+                                <span style={{ whiteSpace: 'nowrap', marginLeft: '8px' }}>-{formatCurrency(pendientesFijos, false)}</span>
                             </div>
                         </div>
                     </div>
@@ -219,16 +224,16 @@ const FinanceBreakdownModal: React.FC<FinanceBreakdownModalProps> = ({ isOpen, o
                     }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem', alignItems: 'center' }}>
                             <span style={{ color: 'white', fontWeight: 600 }}>Ahorros y Huchas</span>
-                            <span style={{ color: 'white', fontWeight: 700, fontSize: '1.1rem', whiteSpace: 'nowrap' }}>-{ahorrosYHuchas.toFixed(2).replace('.', ',')}€</span>
+                            <span style={{ color: 'white', fontWeight: 700, fontSize: '1.1rem', whiteSpace: 'nowrap' }}>-{formatCurrency(ahorrosYHuchas, false)}</span>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                 <span>Aportaciones Realizadas</span>
-                                <span style={{ whiteSpace: 'nowrap', marginLeft: '8px' }}>-{aportacionesRealizadas.toFixed(2).replace('.', ',')}€</span>
+                                <span style={{ whiteSpace: 'nowrap', marginLeft: '8px' }}>-{formatCurrency(aportacionesRealizadas, false)}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                 <span>Ahorro Proyectado</span>
-                                <span style={{ whiteSpace: 'nowrap', marginLeft: '8px' }}>-{ahorroMensualPendiente.toFixed(2).replace('.', ',')}€</span>
+                                <span style={{ whiteSpace: 'nowrap', marginLeft: '8px' }}>-{formatCurrency(ahorroMensualPendiente, false)}</span>
                             </div>
                         </div>
                     </div>
@@ -246,7 +251,7 @@ const FinanceBreakdownModal: React.FC<FinanceBreakdownModalProps> = ({ isOpen, o
                 }}>
                     <span style={{ fontSize: '1.1rem', fontWeight: 700 }}>Total Disponible</span>
                     <span style={{ fontSize: '1.5rem', fontWeight: 900, color: totalDisponible >= 0 ? '#10b981' : '#f43f5e', whiteSpace: 'nowrap' }}>
-                        {totalDisponible.toFixed(2).replace('.', ',')}€
+                        {formatCurrency(totalDisponible, false)}
                     </span>
                 </div>
             </div>

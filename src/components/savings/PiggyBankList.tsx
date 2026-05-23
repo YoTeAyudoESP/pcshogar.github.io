@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import { Target, History, Settings, Trash2, PlusCircle } from 'lucide-react';
 import type { SavingGoal } from '../../types/finance';
+import { formatMoney } from '../../utils/financeCalculations';
 
 interface PiggyBankListProps {
     onEdit: (goal: SavingGoal) => void;
@@ -22,7 +23,7 @@ const PiggyBankList: React.FC<PiggyBankListProps> = ({ onEdit, onAddMoney, onSho
     const handleDelete = async (goal: SavingGoal) => {
         if (goal.currentAmount > 0) {
             const action = window.confirm(
-                `La hucha "${goal.name}" tiene ${goal.currentAmount.toFixed(2)}€. \n\n` +
+                `La hucha "${goal.name}" tiene ${formatMoney(goal.currentAmount)}. \n\n` +
                 `¿Quieres repartir este dinero entre otras huchas? (Cancelar para mover al disponible del mes)`
             );
 
@@ -88,7 +89,7 @@ const PiggyBankList: React.FC<PiggyBankListProps> = ({ onEdit, onAddMoney, onSho
                                 {!isMobile && (
                                     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                                         <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '3px', whiteSpace: 'nowrap' }}>
-                                            <Target size={12} /> Meta: {goal.targetAmount ? `${goal.targetAmount.toFixed(0)}€` : 'N/A'}
+                                            <Target size={12} /> Meta: {goal.targetAmount ? formatMoney(goal.targetAmount) : 'N/A'}
                                         </div>
                                         {sourceAcc && (
                                             <div style={{ fontSize: '0.75rem', color: '#6366f1', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
@@ -109,7 +110,7 @@ const PiggyBankList: React.FC<PiggyBankListProps> = ({ onEdit, onAddMoney, onSho
                                     letterSpacing: '-0.02em',
                                     whiteSpace: 'nowrap'
                                 }}>
-                                    {goal.currentAmount.toFixed(2).replace('.', ',')} €
+                                    {formatMoney(goal.currentAmount)}
                                 </div>
                             </div>
                         </div>
@@ -125,7 +126,7 @@ const PiggyBankList: React.FC<PiggyBankListProps> = ({ onEdit, onAddMoney, onSho
                         }}>
                             {isMobile && (
                                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    <Target size={14} /> {goal.targetAmount ? `${goal.targetAmount.toFixed(0)}€` : 'N/A'}
+                                    <Target size={14} /> {goal.targetAmount ? formatMoney(goal.targetAmount) : 'N/A'}
                                 </div>
                             )}
 

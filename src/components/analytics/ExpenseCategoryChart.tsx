@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import { DEFAULT_CATEGORIES } from '../../types/finance';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { formatMoney } from '../../utils/financeCalculations';
 
 const ExpenseCategoryChart: React.FC = () => {
     const { expenses, categories } = useFinance();
@@ -59,7 +60,7 @@ const ExpenseCategoryChart: React.FC = () => {
                                 <Cell key={`cell-${index}`} fill={entry.color} />
                             ))}
                         </Pie>
-                        <Tooltip formatter={(value: any) => `${Number(value).toFixed(2)}€`} />
+                        <Tooltip formatter={(value: any, name: any) => [formatMoney(Number(value)), `Gasto en ${name}`]} />
                         <Legend />
                     </PieChart>
                 </ResponsiveContainer>

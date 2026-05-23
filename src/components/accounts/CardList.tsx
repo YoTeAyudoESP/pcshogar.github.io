@@ -3,14 +3,27 @@ import { useFinance } from '../../contexts/FinanceContext';
 import type { CreditCard } from '../../types/finance';
 import { Edit2, Trash2 } from 'lucide-react';
 import DeleteCardDialog from './DeleteCardDialog';
+import { formatMoney } from '../../utils/financeCalculations';
 
 interface CardListProps {
     onEdit?: (card: CreditCard) => void;
 }
 
 const CardList: React.FC<CardListProps> = ({ onEdit }) => {
-    const { cards, accounts } = useFinance();
+    const { cards, accounts, expenses } = useFinance();
     const [cardToDelete, setCardToDelete] = useState<CreditCard | null>(null);
+
+    const getYearTotalForCard = (cardId: string) => {
+        const currentYear = new Date().getFullYear();
+        const cardExpenses = expenses.filter(exp => {
+            if (!exp?.paymentMethod) return false;
+            const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === cardId;
+            if (!isCard) return false;
+            const expDate = new Date(exp.date);
+            return expDate.getFullYear() === currentYear;
+        });
+        return cardExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+    };
 
     const handleDeleteClick = (card: CreditCard) => {
         setCardToDelete(card);
@@ -65,6 +78,21 @@ const CardList: React.FC<CardListProps> = ({ onEdit }) => {
                                     Cierra el {card.cutoffDay} • Paga el {card.paymentDay}
                                 </div>
                             )}
+                            <div style={{ 
+                                fontSize: '0.8rem', 
+                                color: 'rgba(255,255,255,0.4)', 
+                                marginTop: '0.75rem', 
+                                paddingTop: '0.5rem',
+                                borderTop: '1px solid rgba(255,255,255,0.05)',
+                                display: 'flex', 
+                                justifyContent: 'space-between',
+                                alignItems: 'center'
+                            }}>
+                                <span>Uso total en {new Date().getFullYear()}:</span>
+                                <span style={{ fontWeight: 700, color: 'rgba(255,255,255,0.6)' }}>
+                                    {formatMoney(getYearTotalForCard(card.id))}
+                                </span>
+                            </div>
                         </div>
                     ))}
 

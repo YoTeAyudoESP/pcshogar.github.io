@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import type { Income, ExtraIncome } from '../../types/income';
-import { Pencil, Trash2, Plus } from 'lucide-react';
+import { Pencil, Trash2, Plus, ChevronDown, ChevronRight } from 'lucide-react';
+import { formatMoney } from '../../utils/financeCalculations';
 
 interface IncomeListProps {
     onEdit?: (income: Income) => void;
@@ -11,6 +12,7 @@ interface IncomeListProps {
 const IncomeList: React.FC<IncomeListProps> = ({ onEdit }) => {
     const { extraIncomes, deleteIncome, accounts } = useFinance();
     const { selectedMonth, selectedYear } = useDateSelection();
+    const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
 
     const isItemInSelectedMonth = (item: any) => {
         if (item.budgetMonth !== undefined && item.budgetYear !== undefined) {
@@ -64,136 +66,160 @@ const IncomeList: React.FC<IncomeListProps> = ({ onEdit }) => {
         );
     }
 
+    const toggleGroup = (name: string) => {
+        const isCollapsed = collapsedGroups[name] !== false;
+        setCollapsedGroups(prev => ({
+            ...prev,
+            [name]: !isCollapsed
+        }));
+    };
+
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-            {groupNames.map(name => (
-                <div key={name}>
-                    {/* Group Header */}
-                    <div style={{ 
-                        display: 'flex', 
-                        justifyContent: 'space-between', 
-                        alignItems: 'baseline',
-                        padding: '0 0.5rem 0.75rem 0.5rem',
-                        borderBottom: '1px solid rgba(255,255,255,0.05)',
-                        marginBottom: '1rem'
-                    }}>
-                        <h4 style={{ 
-                            fontSize: '0.9rem', 
-                            fontWeight: 800, 
-                            color: 'rgba(255,255,255,0.6)', 
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.05em',
-                            margin: 0
-                        }}>
-                            {name}
-                        </h4>
-                        <div style={{ fontSize: '1rem', fontWeight: 700, color: '#2ed573' }}>
-                            Total: {groupedIncomes[name].total.toFixed(2).replace('.', ',')}€
-                        </div>
-                    </div>
-
-                    {/* Incomes in this group */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                        {groupedIncomes[name].items.map(income => (
-                            <div 
-                                key={income.id} 
-                                className="glass-panel"
-                                style={{ 
-                                    padding: '0.65rem 0.5rem', 
-                                    display: 'flex', 
-                                    alignItems: 'center',
-                                    borderRadius: '1rem',
-                                    background: 'rgba(255,255,255,0.02)',
-                                    border: '1px solid rgba(255,255,255,0.03)',
-                                    gap: '0.65rem',
-                                    width: '100%',
-                                    boxSizing: 'border-box'
-                                }}
-                            >
-                                {/* Left Section: Icon (50% smaller) */}
-                                <div style={{ 
-                                    width: '28px', 
-                                    height: '28px', 
-                                    borderRadius: '8px', 
-                                    background: 'rgba(46, 213, 115, 0.1)', 
-                                    display: 'flex', 
-                                    flexShrink: 0,
-                                    alignItems: 'center', 
-                                    justifyContent: 'center',
-                                    color: '#2ed573',
-                                    border: '1px solid rgba(46, 213, 115, 0.15)'
+            {groupNames.map(name => {
+                const isCollapsed = collapsedGroups[name] !== false;
+                return (
+                    <div key={name}>
+                        {/* Group Header */}
+                        <div 
+                            onClick={() => toggleGroup(name)}
+                            style={{ 
+                                display: 'flex', 
+                                justifyContent: 'space-between', 
+                                alignItems: 'center',
+                                padding: '0.5rem',
+                                borderBottom: '1px solid rgba(255,255,255,0.05)',
+                                marginBottom: '1rem',
+                                cursor: 'pointer',
+                                userSelect: 'none',
+                                borderRadius: '8px',
+                                transition: 'background-color 0.2s'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.02)'}
+                            onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                {isCollapsed ? <ChevronRight size={18} color="rgba(255,255,255,0.6)" /> : <ChevronDown size={18} color="rgba(255,255,255,0.6)" />}
+                                <h4 style={{ 
+                                    fontSize: '0.9rem', 
+                                    fontWeight: 800, 
+                                    color: 'rgba(255,255,255,0.6)', 
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.05em',
+                                    margin: 0
                                 }}>
-                                    <Plus size={10} strokeWidth={4} />
-                                </div>
-                                
-                                {/* Middle Section: Info (Vertical Stack) */}
-                                <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '1px' }}>
-                                    <div style={{ 
-                                        fontWeight: 800, 
-                                        fontSize: '0.85rem', 
-                                        color: 'white', 
-                                        lineHeight: '1.2'
-                                    }}>
-                                        {income.name}
-                                    </div>
-                                    <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', fontWeight: 500 }}>
-                                        {income.type === 'extra' ? 'Ingreso Extra' : 'Presupuesto: ' + (income.name.toLowerCase().includes('abr') ? 'abr' : 'mes')}
-                                    </div>
-                                    <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.35)' }}>
-                                        {new Date(income.effectiveDate || income.createdAt).toLocaleDateString()}
-                                    </div>
-                                </div>
-
-                                {/* Right Section: Amount & Badge */}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
-
-                                    <div style={{ fontWeight: 800, fontSize: '0.85rem', color: '#2ed573', whiteSpace: 'nowrap' }}>
-                                        +{income.amount.toFixed(2).replace('.', ',')}€
-                                    </div>
-                                    
-                                    {/* Actions */}
-                                    <div style={{ display: 'flex', gap: '0.4rem' }}>
-                                        <button 
-                                            onClick={() => onEdit?.(income)}
-                                            style={{ 
-                                                width: '28px', 
-                                                height: '28px', 
-                                                borderRadius: '50%', 
-                                                background: 'transparent', 
-                                                border: '1px solid rgba(129, 140, 248, 0.2)', 
-                                                color: '#818cf8', 
-                                                display: 'flex', 
-                                                alignItems: 'center', 
-                                                justifyContent: 'center',
-                                                cursor: 'pointer'
-                                            }}
-                                        >
-                                            <Pencil size={12} />
-                                        </button>
-                                        <button 
-                                            onClick={() => { if(window.confirm('¿Seguro que quieres eliminar este ingreso?')) deleteIncome(income.id); }}
-                                            style={{ 
-                                                width: '28px', 
-                                                height: '28px', 
-                                                borderRadius: '50%', 
-                                                background: 'transparent', 
-                                                border: '1px solid rgba(244, 63, 94, 0.2)', 
-                                                color: '#f43f5e', 
-                                                display: 'flex', 
-                                                alignItems: 'center', 
-                                                justifyContent: 'center',
-                                                cursor: 'pointer'
-                                            }}
-                                        >
-                                            <Trash2 size={12} />
-                                        </button>
-                                    </div>
-                                </div>
+                                    {name}
+                                </h4>
                             </div>
-                        ))}
+                            <div style={{ fontSize: '1rem', fontWeight: 700, color: '#2ed573' }}>
+                                Total: {formatMoney(groupedIncomes[name].total)}
+                            </div>
+                        </div>
+
+                        {/* Incomes in this group */}
+                        {!isCollapsed && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                {groupedIncomes[name].items.map(income => (
+                                    <div 
+                                        key={income.id} 
+                                        className="glass-panel"
+                                        style={{ 
+                                            padding: '0.65rem 0.5rem', 
+                                            display: 'flex', 
+                                            alignItems: 'center',
+                                            borderRadius: '1rem',
+                                            background: 'rgba(255,255,255,0.02)',
+                                            border: '1px solid rgba(255,255,255,0.03)',
+                                            gap: '0.65rem',
+                                            width: '100%',
+                                            boxSizing: 'border-box'
+                                        }}
+                                    >
+                                        {/* Left Section: Icon (50% smaller) */}
+                                        <div style={{ 
+                                            width: '28px', 
+                                            height: '28px', 
+                                            borderRadius: '8px', 
+                                            background: 'rgba(46, 213, 115, 0.1)', 
+                                            display: 'flex', 
+                                            flexShrink: 0,
+                                            alignItems: 'center', 
+                                            justifyContent: 'center',
+                                            color: '#2ed573',
+                                            border: '1px solid rgba(46, 213, 115, 0.15)'
+                                        }}>
+                                            <Plus size={10} strokeWidth={4} />
+                                        </div>
+                                        
+                                        {/* Middle Section: Info (Vertical Stack) */}
+                                        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                                            <div style={{ 
+                                                fontWeight: 800, 
+                                                fontSize: '0.85rem', 
+                                                color: 'white', 
+                                                lineHeight: '1.2'
+                                            }}>
+                                                {income.name}
+                                            </div>
+                                            <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', fontWeight: 500 }}>
+                                                {income.type === 'extra' ? 'Ingreso Extra' : 'Presupuesto: ' + (income.name.toLowerCase().includes('abr') ? 'abr' : 'mes')}
+                                            </div>
+                                            <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.35)' }}>
+                                                {new Date(income.effectiveDate || income.createdAt).toLocaleDateString()}
+                                            </div>
+                                        </div>
+
+                                        {/* Right Section: Amount & Badge */}
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+                                            <div style={{ fontWeight: 800, fontSize: '0.85rem', color: '#2ed573', whiteSpace: 'nowrap' }}>
+                                                +{formatMoney(income.amount)}
+                                            </div>
+                                            
+                                            {/* Actions */}
+                                            <div style={{ display: 'flex', gap: '0.4rem' }}>
+                                                <button 
+                                                    onClick={() => onEdit?.(income)}
+                                                    style={{ 
+                                                        width: '28px', 
+                                                        height: '28px', 
+                                                        borderRadius: '50%', 
+                                                        background: 'transparent', 
+                                                        border: '1px solid rgba(129, 140, 248, 0.2)', 
+                                                        color: '#818cf8', 
+                                                        display: 'flex', 
+                                                        alignItems: 'center', 
+                                                        justifyContent: 'center',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                >
+                                                    <Pencil size={12} />
+                                                </button>
+                                                <button 
+                                                    onClick={() => { if(window.confirm('¿Seguro que quieres eliminar este ingreso?')) deleteIncome(income.id); }}
+                                                    style={{ 
+                                                        width: '28px', 
+                                                        height: '28px', 
+                                                        borderRadius: '50%', 
+                                                        background: 'transparent', 
+                                                        border: '1px solid rgba(244, 63, 94, 0.2)', 
+                                                        color: '#f43f5e', 
+                                                        display: 'flex', 
+                                                        alignItems: 'center', 
+                                                        justifyContent: 'center',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                >
+                                                    <Trash2 size={12} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
-                </div>
-            ))}
+                );
+            })}
         </div>
     );
 };

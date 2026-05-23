@@ -300,3 +300,26 @@ export function predictSettlementDate(card: CreditCard, date: number, adjustment
     
     return new Date(settlementYear, settlementMonth, paymentDay);
 }
+
+export function formatMoney(amount: number | undefined | null, includeSymbol: boolean = true): string {
+    if (amount === undefined || amount === null || isNaN(amount)) {
+        return includeSymbol ? '0,00€' : '0,00';
+    }
+    const isNegative = amount < 0;
+    const fixedVal = Math.abs(amount).toFixed(2);
+    const [integerPart, decimalPart] = fixedVal.split('.');
+    const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    const base = `${isNegative ? '-' : ''}${formattedInteger},${decimalPart}`;
+    return includeSymbol ? `${base}€` : base;
+}
+
+export function formatMoneySigned(amount: number | undefined | null): string {
+    if (amount === undefined || amount === null || isNaN(amount)) {
+        return '0,00€';
+    }
+    const sign = amount > 0 ? '+' : amount < 0 ? '-' : '';
+    const fixedVal = Math.abs(amount).toFixed(2);
+    const [integerPart, decimalPart] = fixedVal.split('.');
+    const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return `${sign}${formattedInteger},${decimalPart}€`;
+}

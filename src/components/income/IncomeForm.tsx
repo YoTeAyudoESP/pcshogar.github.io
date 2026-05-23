@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import { X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, PiggyBank } from 'lucide-react';
 import type { Income, FixedIncome, ExtraIncome, Frequency } from '../../types/income';
+import { formatMoney } from '../../utils/financeCalculations';
 
 interface IncomeFormProps {
     onClose: () => void;
@@ -11,7 +12,9 @@ interface IncomeFormProps {
 
 const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData }) => {
     const { addFixedIncome, addExtraIncome, updateIncome, accounts, categories, savings, allocateSavings } = useFinance();
-    const incomeCategories = categories.filter(c => c.type === 'income');
+    const incomeCategories = categories
+        .filter(c => c.type === 'income')
+        .sort((a, b) => a.name.localeCompare(b.name, 'es', { sensitivity: 'base' }));
     const isEditing = !!initialData;
 
     const [type, setType] = useState<'fixed' | 'extra'>(initialData?.type === 'fixed' ? 'fixed' : 'extra');
@@ -258,7 +261,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData }) => {
                             <label style={labelStyle}>Banco / Método de Cobro</label>
                             <select style={inputStyle} value={linkedAccountId} onChange={e => setLinkedAccountId(e.target.value)}>
                                 <option value="">Solo efectivo / Sin banco</option>
-                                {accounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name} ({acc.balance.toFixed(2)}€)</option>)}
+                                {accounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name} ({formatMoney(acc.balance)})</option>)}
                             </select>
                         </div>
                         {status === 'received' && (
@@ -282,7 +285,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData }) => {
                             <select style={inputStyle} value={targetSavingGoalId} onChange={e => setTargetSavingGoalId(e.target.value)}>
                                 <option value="">No ahorrar este ingreso</option>
                                 {savings.map(goal => (
-                                    <option key={goal.id} value={goal.id}>{goal.name} (Meta: {goal.targetAmount}€)</option>
+                                    <option key={goal.id} value={goal.id}>{goal.name} (Meta: {formatMoney(goal.targetAmount)})</option>
                                 ))}
                             </select>
                             <small style={{ color: 'rgba(255,255,255,0.4)', marginTop: '0.5rem', display: 'block' }}>

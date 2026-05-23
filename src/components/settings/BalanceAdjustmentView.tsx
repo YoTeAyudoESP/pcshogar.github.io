@@ -22,7 +22,7 @@ const BalanceAdjustmentView: React.FC = () => {
         overrides, closings, incomes,
         setMonthOverride, deleteMonthOverride,
         updateMonthClosing, reverseMonthClosing, refreshFinance,
-        ignoreMonthClosing
+        ignoreMonthClosing, deleteIncome, editMonthClosingAmount
     } = useFinance();
     const { selectedYear: defaultYear, selectedMonth: defaultMonth } = useDateSelection();
 
@@ -30,6 +30,7 @@ const BalanceAdjustmentView: React.FC = () => {
     const [month, setMonth] = useState(defaultMonth);
     const [amount, setAmount] = useState('');
     const [showIgnored, setShowIgnored] = useState(false);
+    const [editingClosing, setEditingClosing] = useState<MonthClosing | null>(null);
 
     // Derived data
     const activeAdjustments = useMemo(() => {
@@ -81,12 +82,21 @@ const BalanceAdjustmentView: React.FC = () => {
         }
     };
 
+    const handleDeleteRemnant = async (id: string) => {
+        if (window.confirm('¿Estás seguro de que deseas eliminar este remanente activo? Esto modificará el saldo disponible del mes de destino y de la cuenta asociada.')) {
+            await deleteIncome(id);
+        }
+    };
+
     const getMonthName = (m: number) => {
         return new Date(2024, m).toLocaleString('es-ES', { month: 'long' });
     };
 
     const formatCurrency = (val: number) => {
-        return val.toFixed(2).replace('.', ',') + '€';
+        const isNegative = val < 0;
+        const [integerPart, decimalPart] = Math.abs(val).toFixed(2).split('.');
+        const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        return `${isNegative ? '-' : ''}${formattedInteger},${decimalPart}€`;
     };
 
     return (
@@ -233,6 +243,13 @@ const BalanceAdjustmentView: React.FC = () => {
                                         <td style={{ padding: '1rem', textAlign: 'center' }}>
                                             <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
                                                 <button 
+                                                    onClick={() => setEditingClosing(c)} 
+                                                    title="Editar Importe"
+                                                    style={{ background: 'none', border: 'none', color: '#818cf8', cursor: 'pointer' }}
+                                                >
+                                                    <Edit3 size={16} />
+                                                </button>
+                                                <button 
                                                     onClick={() => handleIgnoreClosing(c.id)} 
                                                     title="Ignorar Cierre"
                                                     style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}
@@ -285,7 +302,11 @@ const BalanceAdjustmentView: React.FC = () => {
                                             <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: 600, whiteSpace: 'nowrap' }}>{formatCurrency(rem.amount)}</td>
                                             <td style={{ padding: '0.75rem', textAlign: 'center', color: 'rgba(255,255,255,0.4)' }}>Vinculado</td>
                                             <td style={{ padding: '0.75rem', textAlign: 'center' }}>
-                                                <button style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                                                <button 
+                                                    onClick={() => handleDeleteRemnant(rem.id)}
+                                                    style={{ background: 'none', border: 'none', color: '#ff4757', cursor: 'pointer' }}
+                                                    title="Eliminar Remanente"
+                                                >
                                                     <Trash2 size={14} />
                                                 </button>
                                             </td>
@@ -379,6 +400,65 @@ const BalanceAdjustmentView: React.FC = () => {
                     </div>
                 )}
             </div>
+
+            {editingClosing && (
+                <div className="modal-overlay" onClick={() => setEditingClosing(null)}>
+                    <div className="modal-container glass-panel" style={{ padding: '2rem', maxWidth: '400px' }} onClick={e => e.stopPropagation()}>
+                        <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '1.5rem', color: 'white' }}>
+                            Editar Importe de Cierre
+                        </h3>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
+                            Modifica el importe del cierre de {getMonthName(editingClosing.month)} de {editingClosing.year}. Esto actualizará el remanente arrastrado al mes siguiente.
+                        </p>
+                        
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem', marginBottom: '0.5rem' }}>Importe (€)</label>
+                            <input 
+                                type="number" 
+                                step="0.01" 
+                                defaultValue={editingClosing.finalBalance}
+                                id="editClosingAmountInput"
+                                style={{
+                                    width: '100%',
+                                    background: 'rgba(255,255,255,0.05)',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    borderRadius: '12px',
+                                    padding: '0.8rem',
+                                    color: 'white',
+                                    fontSize: '1.1rem',
+                                    fontWeight: 700
+                                }}
+                            />
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '1rem' }}>
+                            <button 
+                                onClick={async () => {
+                                    const input = document.getElementById('editClosingAmountInput') as HTMLInputElement;
+                                    const val = parseFloat(input?.value);
+                                    if (!isNaN(val)) {
+                                        await editMonthClosingAmount(editingClosing.id, val);
+                                        setEditingClosing(null);
+                                    }
+                                }}
+                                className="btn btn-primary"
+                                style={{ flex: 1, padding: '0.75rem', borderRadius: '12px', fontWeight: 800 }}
+                            >
+                                Guardar
+                            </button>
+                            <button 
+                                onClick={() => setEditingClosing(null)}
+                                style={{ 
+                                    flex: 1, background: 'none', border: '1px solid rgba(255,255,255,0.1)', 
+                                    padding: '0.75rem', borderRadius: '12px', fontSize: '0.9rem', cursor: 'pointer', color: 'var(--text-muted)'
+                                }}
+                            >
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

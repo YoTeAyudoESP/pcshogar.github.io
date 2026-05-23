@@ -3,7 +3,7 @@ import { useFinance } from '../../contexts/FinanceContext';
 import type { Expense, Category, PaymentMethod, CreditCard } from '../../types/finance';
 import type { Income } from '../../types/income';
 import { X, Calendar, Info } from 'lucide-react';
-import { predictSettlementDate } from '../../utils/financeCalculations';
+import { predictSettlementDate, formatMoney } from '../../utils/financeCalculations';
 
 interface EditTransactionModalProps {
     transaction: Expense | Income;
@@ -48,8 +48,12 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction
         type === 'expense' ? (transaction as Expense).linkedSavingGoalId || '' : ''
     );
 
-    const expenseCategories = categories.filter(c => c.type === 'expense');
-    const incomeCategories = categories.filter(c => c.type === 'income');
+    const expenseCategories = categories
+        .filter(c => c.type === 'expense')
+        .sort((a, b) => a.name.localeCompare(b.name, 'es', { sensitivity: 'base' }));
+    const incomeCategories = categories
+        .filter(c => c.type === 'income')
+        .sort((a, b) => a.name.localeCompare(b.name, 'es', { sensitivity: 'base' }));
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -261,7 +265,7 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction
                                     <select style={inputStyle} value={selectedMethodId} onChange={e => setSelectedMethodId(e.target.value)} required>
                                         <option value="">Seleccione...</option>
                                         {paymentMethodType === 'account'
-                                            ? accounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name} ({acc.balance.toFixed(2)}€)</option>)
+                                            ? accounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name} ({formatMoney(acc.balance)})</option>)
                                             : cards.map(c => <option key={c.id} value={c.id}>{c.name}</option>)
                                         }
                                     </select>
@@ -300,7 +304,7 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction
                                         >
                                             <option value="">Seleccione Hucha...</option>
                                             {savings.map(h => (
-                                                <option key={h.id} value={h.id}>{h.name} ({h.currentAmount.toFixed(2)}€)</option>
+                                                <option key={h.id} value={h.id}>{h.name} ({formatMoney(h.currentAmount)})</option>
                                             ))}
                                         </select>
                                     </div>

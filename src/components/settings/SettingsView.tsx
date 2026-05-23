@@ -14,7 +14,7 @@ import CategoryManagementView from './CategoryManagementView';
 import AppSettingsView from './AppSettingsView';
 import { useFinance } from '../../contexts/FinanceContext';
 import { useToast } from '../../contexts/ToastContext';
-const version = "0.9.8";
+const version = "0.11.5";
 import type { Account, CreditCard, RecurringExpense, SavingGoal, Loan } from '../../types/finance';
 import { 
     Wallet, 

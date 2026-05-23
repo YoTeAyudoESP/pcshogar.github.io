@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import { CheckCircle, Clock, ArrowUpRight, ArrowDownLeft, ChevronRight } from 'lucide-react';
-import { isRecurringActiveInMonth } from '../../utils/financeCalculations';
+import { isRecurringActiveInMonth, formatMoney } from '../../utils/financeCalculations';
 import ConfirmMovementModal from '../settings/ConfirmMovementModal';
 
 const PendingActionsWidget: React.FC = () => {
@@ -164,7 +164,7 @@ const PendingActionsWidget: React.FC = () => {
                             fontWeight: 800, 
                             color: item.actionType === 'income' ? '#10b981' : 'white',
                         }}>
-                            {item.amount.toFixed(2).replace('.', ',')}€
+                            {formatMoney(item.amount)}
                         </div>
 
                         <div style={{ 

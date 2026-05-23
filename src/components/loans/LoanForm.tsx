@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import { X, Check, Calendar, CreditCard, DollarSign, Info } from 'lucide-react';
 import type { Loan } from '../../types/finance';
+import { formatMoney } from '../../utils/financeCalculations';
 
 interface LoanFormProps {
     editingLoan?: Loan;
@@ -190,7 +191,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
                         <label style={labelStyle}><CreditCard size={14} /> Cuenta Bancaria Domiciliada</label>
                         <select style={inputStyle} value={linkedAccountId} onChange={e => setLinkedAccountId(e.target.value)}>
                             {accounts.map(acc => (
-                                <option key={acc.id} value={acc.id}>{acc.name} ({acc.balance.toFixed(2)} €)</option>
+                                <option key={acc.id} value={acc.id}>{acc.name} ({formatMoney(acc.balance)})</option>
                             ))}
                         </select>
                     </div>

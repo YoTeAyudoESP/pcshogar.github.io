@@ -4,6 +4,7 @@ import { useFinance } from '../../contexts/FinanceContext';
 import { useToast } from '../../contexts/ToastContext';
 import type { FixedIncome } from '../../types/income';
 import type { RecurringExpense, Account } from '../../types/finance';
+import { formatMoney } from '../../utils/financeCalculations';
 
 interface ConfirmMovementModalProps {
     type: 'income' | 'expense';
@@ -157,7 +158,7 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
                             <optgroup label="Cuentas Bancarias">
                                 {accounts.map(acc => (
                                     <option key={acc.id} value={`account:${acc.id}`}>
-                                        {acc.name} ({acc.balance.toFixed(2)} €)
+                                        {acc.name} ({formatMoney(acc.balance)})
                                     </option>
                                 ))}
                             </optgroup>

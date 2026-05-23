@@ -45,6 +45,14 @@ const FinanceSummary: React.FC = () => {
         recurringExpenses, overrides, cards
     ]);
 
+    const formatCurrency = (val: number, includeSymbol: boolean = true) => {
+        const isNegative = val < 0;
+        const [integerPart, decimalPart] = Math.abs(val).toFixed(2).split('.');
+        const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        const base = `${isNegative ? '-' : ''}${formattedInteger},${decimalPart}`;
+        return includeSymbol ? `${base}€` : base;
+    };
+
     const monthName = new Date(selectedYear, selectedMonth).toLocaleString('es-ES', { month: 'long' });
 
     return (
@@ -85,7 +93,7 @@ const FinanceSummary: React.FC = () => {
                     transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
                     whiteSpace: 'nowrap'
                 }}>
-                    {Math.abs(availableToSpend).toFixed(2).replace('.', ',')}€{availableToSpend >= 0 ? '' : '-'}
+                    {formatCurrency(Math.abs(availableToSpend), false)}€{availableToSpend >= 0 ? '' : '-'}
                 </div>
                 
                 {/* Info Icon (Circular i) */}
@@ -120,7 +128,7 @@ const FinanceSummary: React.FC = () => {
                 }}>
                     <span>Remanente mes anterior:</span>
                     <span style={{ color: remanente >= 0 ? '#2ed573' : '#ff4757', fontWeight: 600 }}>
-                        {remanente.toFixed(2).replace('.', ',')}€
+                        {formatCurrency(remanente)}
                     </span>
                 </div>
             )}
@@ -138,7 +146,7 @@ const FinanceSummary: React.FC = () => {
                         Ingresos (Mes)
                     </div>
                     <div style={{ color: 'white', fontWeight: 700, fontSize: '1.1rem', whiteSpace: 'nowrap' }}>
-                        {totalMonthIncome.toFixed(2).replace('.', ',')}€
+                        {formatCurrency(totalMonthIncome)}
                     </div>
                 </div>
                 <div>
@@ -146,7 +154,7 @@ const FinanceSummary: React.FC = () => {
                         Gastos Cuentas
                     </div>
                     <div style={{ color: 'white', fontWeight: 700, fontSize: '1.1rem', whiteSpace: 'nowrap' }}>
-                        {totalAccountExpenses.toFixed(2).replace('.', ',')}€
+                        {formatCurrency(totalAccountExpenses)}
                     </div>
                 </div>
                 <div>
@@ -154,7 +162,7 @@ const FinanceSummary: React.FC = () => {
                         Gastos Tarjetas
                     </div>
                     <div style={{ color: '#fbbf24', fontWeight: 700, fontSize: '1.1rem', whiteSpace: 'nowrap' }}>
-                        {totalCardExpenses.toFixed(2).replace('.', ',')}€
+                        {formatCurrency(totalCardExpenses)}
                     </div>
                 </div>
                 <div>
@@ -162,7 +170,7 @@ const FinanceSummary: React.FC = () => {
                         Fijos (Pend.)
                     </div>
                     <div style={{ color: '#818cf8', fontWeight: 700, fontSize: '1.1rem', whiteSpace: 'nowrap' }}>
-                        {pendingFixedExpenses.toFixed(2).replace('.', ',')}€
+                        {formatCurrency(pendingFixedExpenses)}
                     </div>
                 </div>
             </div>

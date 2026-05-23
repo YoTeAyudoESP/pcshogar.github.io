@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useFinance } from '../../../contexts/FinanceContext';
 import { PlusCircle, AlertTriangle } from 'lucide-react';
 import type { SavingGoal } from '../../../types/finance';
+import { formatMoney } from '../../../utils/financeCalculations';
 
 interface PiggyBankAddMoneyFormProps {
     goal: SavingGoal;
@@ -85,7 +86,7 @@ const PiggyBankAddMoneyForm: React.FC<PiggyBankAddMoneyFormProps> = ({ goal, onC
                     <select style={inputStyle} value={accountId} onChange={e => setAccountId(e.target.value)} required>
                         <option value="">Seleccionar cuenta...</option>
                         {accounts.map(a => (
-                            <option key={a.id} value={a.id}>{a.name} ({a.balance.toFixed(2)}€)</option>
+                            <option key={a.id} value={a.id}>{a.name} ({formatMoney(a.balance)})</option>
                         ))}
                     </select>
                 </div>

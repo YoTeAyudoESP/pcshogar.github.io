@@ -23,6 +23,8 @@ const RemnantDecisionModal: React.FC<RemnantDecisionModalProps> = ({ closing, on
     } = useFinance();
     const [distributions, setDistributions] = useState<Record<string, number>>({});
     const [error, setError] = useState<string | null>(null);
+    const [customBalance, setCustomBalance] = useState<number | null>(null);
+    const [isEditingBalance, setIsEditingBalance] = useState(false);
 
     const [expenseDecisions, setExpenseDecisions] = useState<Record<string, string>>({});
     const [incomeDecisions, setIncomeDecisions] = useState<Record<string, string>>({});
@@ -75,11 +77,15 @@ const RemnantDecisionModal: React.FC<RemnantDecisionModalProps> = ({ closing, on
     });
 
     const formatCurrency = (val: number) => {
-        return val.toFixed(2).replace('.', ',') + '€';
+        const isNegative = val < 0;
+        const [integerPart, decimalPart] = Math.abs(val).toFixed(2).split('.');
+        const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        return `${isNegative ? '-' : ''}${formattedInteger},${decimalPart}€`;
     };
 
-    const totalToDistribute = Math.abs(derivedFinalBalance);
-    const isDeficit = derivedFinalBalance < 0;
+    const activeBalance = customBalance !== null ? customBalance : derivedFinalBalance;
+    const totalToDistribute = Math.abs(activeBalance);
+    const isDeficit = activeBalance < 0;
     
     const distributedAmount = Object.values(distributions).reduce((sum, amount) => sum + amount, 0);
     const remainingAmount = totalToDistribute - distributedAmount;
@@ -101,7 +107,7 @@ const RemnantDecisionModal: React.FC<RemnantDecisionModalProps> = ({ closing, on
 
     const handleConfirm = async () => {
         if (Math.abs(remainingAmount) > 0.01) {
-            setError(`Aún quedan ${remainingAmount.toFixed(2)}€ por asignar.`);
+            setError(`Aún quedan ${formatCurrency(remainingAmount)} por asignar.`);
             return;
         }
 
@@ -166,7 +172,7 @@ const RemnantDecisionModal: React.FC<RemnantDecisionModalProps> = ({ closing, on
                 }
             });
 
-            await closeMonthWithDecision({ ...closing, finalBalance: derivedFinalBalance }, distArray);
+            await closeMonthWithDecision({ ...closing, finalBalance: activeBalance }, distArray);
             onClose();
         } catch (err: any) {
             setError(err.message || 'Error al procesar el cierre.');
@@ -198,9 +204,73 @@ const RemnantDecisionModal: React.FC<RemnantDecisionModalProps> = ({ closing, on
                     <p style={{ opacity: 0.7 }}>
                         Has terminado el mes con un {isDeficit ? 'déficit' : 'remanente'} de:
                     </p>
-                    <div style={{ fontSize: '2.8rem', fontWeight: 800, color: isDeficit ? '#ef4444' : '#10b881', margin: '0.5rem 0', whiteSpace: 'nowrap' }}>
-                        {isDeficit ? '-' : ''}{formatCurrency(totalToDistribute)}
-                    </div>
+                    {!isEditingBalance ? (
+                        <>
+                            <div style={{ fontSize: '2.8rem', fontWeight: 800, color: isDeficit ? '#ef4444' : '#10b881', margin: '0.5rem 0', whiteSpace: 'nowrap' }}>
+                                {isDeficit ? '-' : ''}{formatCurrency(totalToDistribute)}
+                            </div>
+                            <button 
+                                type="button"
+                                onClick={() => {
+                                    setCustomBalance(activeBalance);
+                                    setIsEditingBalance(true);
+                                }}
+                                style={{ 
+                                    background: 'none', border: 'none', color: '#818cf8', 
+                                    fontSize: '0.9rem', cursor: 'pointer', display: 'inline-flex', 
+                                    alignItems: 'center', gap: '0.25rem', marginTop: '0.25rem',
+                                    textDecoration: 'underline'
+                                }}
+                            >
+                                ✏️ Modificar manualmente
+                            </button>
+                        </>
+                    ) : (
+                        <div style={{ margin: '1rem 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+                                <input 
+                                    type="number" 
+                                    step="0.01"
+                                    value={customBalance ?? ''}
+                                    onChange={e => setCustomBalance(parseFloat(e.target.value) || 0)}
+                                    className="form-input"
+                                    style={{ 
+                                        width: '180px', 
+                                        padding: '0.5rem 0.75rem', 
+                                        fontSize: '1.4rem', 
+                                        fontWeight: 700, 
+                                        textAlign: 'center',
+                                        border: '1px solid rgba(255,255,255,0.2)',
+                                        borderRadius: '8px',
+                                        background: 'rgba(0,0,0,0.2)',
+                                        color: (customBalance ?? 0) < 0 ? '#ef4444' : '#10b881'
+                                    }}
+                                />
+                                <span style={{ fontSize: '1.4rem', fontWeight: 700 }}>€</span>
+                                <button 
+                                    type="button"
+                                    onClick={() => setIsEditingBalance(false)}
+                                    className="btn btn-primary"
+                                    style={{ padding: '0.5rem 1rem', fontSize: '0.9rem', borderRadius: '8px' }}
+                                >
+                                    Aceptar
+                                </button>
+                            </div>
+                            <div style={{ 
+                                fontSize: '0.85rem', 
+                                background: 'rgba(245, 158, 11, 0.1)', 
+                                border: '1px solid rgba(245, 158, 11, 0.2)',
+                                color: '#f59e0b',
+                                padding: '0.75rem', 
+                                borderRadius: '8px', 
+                                maxWidth: '360px',
+                                textAlign: 'left',
+                                lineHeight: '1.4'
+                            }}>
+                                <strong>Aviso de corrección manual:</strong> Esta modificación cambiará el importe a repartir para el próximo mes (disponible y/o huchas), pero no afectará a los saldos reales de tus cuentas bancarias.
+                            </div>
+                        </div>
+                    )}
                     <div style={{ 
                         marginTop: '1rem', padding: '0.5rem', borderRadius: '8px',
                         background: Math.abs(remainingAmount) <= 0.01 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.2)',

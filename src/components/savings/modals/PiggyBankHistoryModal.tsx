@@ -2,6 +2,7 @@ import React from 'react';
 import { useFinance } from '../../../contexts/FinanceContext';
 import { History, X, ArrowUpRight, ArrowDownLeft, RefreshCw } from 'lucide-react';
 import type { SavingGoal, SavingAllocation } from '../../../types/finance';
+import { formatMoney } from '../../../utils/financeCalculations';
 
 interface PiggyBankHistoryModalProps {
     goal: SavingGoal;
@@ -102,7 +103,7 @@ const PiggyBankHistoryModal: React.FC<PiggyBankHistoryModalProps> = ({ goal, onC
                                         fontSize: '1rem',
                                         color: item.amount >= 0 ? '#10b981' : '#f43f5e'
                                     }}>
-                                        {item.amount >= 0 ? '+' : ''}{item.amount.toFixed(2).replace('.', ',')} €
+                                        {item.amount >= 0 ? '+' : ''}{formatMoney(item.amount)}
                                     </div>
                                 </div>
                             ))}
@@ -112,7 +113,7 @@ const PiggyBankHistoryModal: React.FC<PiggyBankHistoryModalProps> = ({ goal, onC
 
                 <div style={{ padding: '1.5rem', background: 'rgba(0,0,0,0.1)', borderBottomLeftRadius: '1.5rem', borderBottomRightRadius: '1.5rem', textAlign: 'center' }}>
                     <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Saldo Total Acumulado</div>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'white' }}>{goal.currentAmount.toFixed(2).replace('.', ',')} €</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'white' }}>{formatMoney(goal.currentAmount)}</div>
                 </div>
             </div>
         </div>

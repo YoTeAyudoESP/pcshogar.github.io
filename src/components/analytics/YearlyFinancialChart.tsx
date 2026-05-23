@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { isRecurringActiveInMonth } from '../../utils/financeCalculations';
+import { isRecurringActiveInMonth, formatMoney } from '../../utils/financeCalculations';
 
 const YearlyFinancialChart: React.FC = () => {
     const { expenses, fixedIncomes, extraIncomes } = useFinance();
@@ -117,7 +117,12 @@ const YearlyFinancialChart: React.FC = () => {
                                 backdropFilter: 'blur(10px)'
                             }}
                             itemStyle={{ color: '#fff' }}
-                            formatter={(value: any) => [`${Number(value).toFixed(2)}€`]}
+                            formatter={(value: any, name: any) => {
+                                const formattedValue = formatMoney(Number(value));
+                                if (name === 'Ingresos') return [`+${formattedValue}`, 'Ingresos'];
+                                if (name === 'Gastos') return [`-${formattedValue}`, 'Gastos'];
+                                return [formattedValue, name];
+                            }}
                         />
                         
                         <Legend 

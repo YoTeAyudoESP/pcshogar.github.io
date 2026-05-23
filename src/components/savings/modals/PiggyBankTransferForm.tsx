@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useFinance } from '../../../contexts/FinanceContext';
 import { ArrowRightLeft, AlertCircle } from 'lucide-react';
+import { formatMoney } from '../../../utils/financeCalculations';
 
 interface PiggyBankTransferFormProps {
     onClose: () => void;
@@ -86,7 +87,7 @@ const PiggyBankTransferForm: React.FC<PiggyBankTransferFormProps> = ({ onClose }
                         <select style={inputStyle} value={fromId} onChange={e => setFromId(e.target.value)} required>
                             <option value="">Seleccionar hucha...</option>
                             {savings.map(s => (
-                                <option key={s.id} value={s.id}>{s.name} ({s.currentAmount.toFixed(2)}€)</option>
+                                <option key={s.id} value={s.id}>{s.name} ({formatMoney(s.currentAmount)})</option>
                             ))}
                         </select>
                     </div>

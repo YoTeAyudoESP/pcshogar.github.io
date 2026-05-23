@@ -70,6 +70,7 @@ export interface SavingGoal {
     isVirtual?: boolean;
     linkedFixedIncomeId?: string;
     updatedAt?: number;
+    createdAt?: number; // Fecha de creación de la hucha
 }
 
 export interface SavingAllocation {

@@ -386,15 +386,16 @@ const AppSettingsView: React.FC = () => {
                                         {/* Path configuration */}
                                         <div>
                                             <label style={labelStyle}><FolderOpen size={16} /> Carpeta en Dropbox</label>
-                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                                                 <div style={{ 
                                                     ...selectStyle, 
-                                                    flex: 1, 
+                                                    flex: '1 1 200px', 
                                                     display: 'flex', 
                                                     alignItems: 'center', 
                                                     gap: '0.5rem',
                                                     background: 'rgba(255,255,255,0.03)',
-                                                    cursor: 'default'
+                                                    cursor: 'default',
+                                                    minWidth: '200px'
                                                 }}>
                                                     <FileJson size={16} color="rgba(255,255,255,0.3)" />
                                                     <span style={{ fontSize: '0.85rem', opacity: 0.8, overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -412,7 +413,12 @@ const AppSettingsView: React.FC = () => {
                                                         cursor: 'pointer',
                                                         fontWeight: 600,
                                                         fontSize: '0.85rem',
-                                                        whiteSpace: 'nowrap'
+                                                        whiteSpace: 'nowrap',
+                                                        flex: '1 1 auto',
+                                                        height: '44px',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center'
                                                     }}
                                                 >
                                                     Cambiar

@@ -3,14 +3,11 @@ import { useFinance } from '../../contexts/FinanceContext';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import { CreditCard as CardIcon, CheckCircle2, Calendar, AlertCircle, X } from 'lucide-react';
 import type { CreditCard, Expense } from '../../types/finance';
+import { formatMoney } from '../../utils/financeCalculations';
 
 const CreditCardSettlement: React.FC = () => {
     const { cards = [], expenses = [], settleCardCycle } = useFinance();
     const { selectedYear } = useDateSelection();
-
-    const creditCards = useMemo(() => {
-        return (cards || []).filter(c => c && c.type === 'credit');
-    }, [cards]);
 
     const getEffectiveSettlementDate = (exp: Expense) => {
         if (!exp) return new Date();
@@ -66,6 +63,34 @@ const CreditCardSettlement: React.FC = () => {
             pending: { start: pendingStart, cutoff: pendingCutoff, payment: pendingPayment }
         };
     };
+
+    const creditCards = useMemo(() => {
+        return (cards || []).filter(c => {
+            if (!c || c.type !== 'credit') return false;
+
+            const cycleDates = calculateDates(c);
+            
+            const activeExpenses = (expenses || []).filter(exp => {
+                if (!exp?.paymentMethod) return false;
+                const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === c.id;
+                if (!isCard || exp.isSettled) return false;
+                const expDate = getEffectiveSettlementDate(exp);
+                return expDate >= cycleDates.active.start && expDate <= cycleDates.active.cutoff;
+            });
+            const activeTotal = activeExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+
+            const pendingExpenses = (expenses || []).filter(exp => {
+                if (!exp?.paymentMethod) return false;
+                const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === c.id;
+                if (!isCard || exp.isSettled) return false;
+                const expDate = getEffectiveSettlementDate(exp);
+                return expDate >= cycleDates.pending.start && expDate <= cycleDates.pending.cutoff;
+            });
+            const pendingTotal = pendingExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+
+            return activeTotal > 0.009 || pendingTotal > 0.009;
+        });
+    }, [cards, expenses]);
 
     const formatDate = (date: Date) => {
         if (!date || isNaN(date.getTime())) return '-';
@@ -172,7 +197,7 @@ const CreditCardSettlement: React.FC = () => {
                                 </div>
                                 <div style={{ textAlign: 'right' }}>
                                     <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'white' }}>
-                                        {activeTotal.toLocaleString('es-ES', { minimumFractionDigits: 2 })} €
+                                        {formatMoney(activeTotal)}
                                     </div>
                                     <div style={{ fontSize: '0.7rem', fontWeight: 700, color: card.color || '#fbbf24', textTransform: 'uppercase' }}>
                                         CICLO ACTUAL (EN CURSO)
@@ -196,7 +221,7 @@ const CreditCardSettlement: React.FC = () => {
                                             <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'rgba(255,255,255,0.7)' }}>LIQUIDACIÓN PENDIENTE</span>
                                         </div>
                                         <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'white' }}>
-                                            {pendingTotal.toLocaleString('es-ES', { minimumFractionDigits: 2 })} €
+                                            {formatMoney(pendingTotal)}
                                         </div>
                                     </div>
 
@@ -240,7 +265,7 @@ const CreditCardSettlement: React.FC = () => {
                                     Uso total en {selectedYear}
                                 </div>
                                 <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'rgba(255,255,255,0.5)' }}>
-                                    {yearTotal.toLocaleString('es-ES', { minimumFractionDigits: 2 })}€
+                                    {formatMoney(yearTotal)}
                                 </div>
                             </div>
                         </div>
@@ -282,7 +307,7 @@ const CreditCardSettlement: React.FC = () => {
                             {parseFloat(settleAmount) < settlingCard.total && (
                                 <p style={{ color: '#fbbf24', fontSize: '0.75rem', marginTop: '0.5rem', fontWeight: 600 }}>
                                     <AlertCircle size={12} style={{ display: 'inline', marginRight: '4px' }} />
-                                    La diferencia de {(settlingCard.total - parseFloat(settleAmount)).toFixed(2)}€ se pasará a la próxima liquidación.
+                                    La diferencia de {formatMoney(settlingCard.total - parseFloat(settleAmount))} se pasará a la próxima liquidación.
                                 </p>
                             )}
                         </div>

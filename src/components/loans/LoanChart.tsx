@@ -11,6 +11,7 @@ import {
 } from 'recharts';
 import { useFinance } from '../../contexts/FinanceContext';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
+import { formatMoney } from '../../utils/financeCalculations';
 
 const LoanChart: React.FC = () => {
     const { loans, expenses } = useFinance();
@@ -120,6 +121,13 @@ const LoanChart: React.FC = () => {
                             border: '1px solid rgba(255,255,255,0.1)',
                             borderRadius: '8px',
                             fontSize: '0.85rem'
+                        }}
+                        formatter={(value: any, name: any) => {
+                            const formattedValue = formatMoney(Number(value));
+                            if (name === 'Total Deuda') {
+                                return [formattedValue, 'Total Deuda Pendiente'];
+                            }
+                            return [formattedValue, `Deuda de ${name}`];
                         }}
                     />
                     <Legend />

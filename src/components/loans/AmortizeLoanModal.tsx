@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Check, CreditCard, DollarSign, Calendar, MessageSquare } from 'lucide-react';
 import { useFinance } from '../../contexts/FinanceContext';
 import type { Loan } from '../../types/finance';
+import { formatMoney } from '../../utils/financeCalculations';
 
 interface AmortizeLoanModalProps {
     loan: Loan;
@@ -79,7 +80,7 @@ const AmortizeLoanModal: React.FC<AmortizeLoanModalProps> = ({ loan, onClose }) 
                     <DollarSign size={24} /> Amortizar Préstamo
                 </h2>
                 <p style={{ opacity: 0.6, fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-                    {loan.name} — Deuda pendiente: <strong>{loan.currentDebt.toFixed(2)}€</strong>
+                    {loan.name} — Deuda pendiente: <strong>{formatMoney(loan.currentDebt)}</strong>
                 </p>
 
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -126,7 +127,7 @@ const AmortizeLoanModal: React.FC<AmortizeLoanModalProps> = ({ loan, onClose }) 
                         >
                             {accounts.map(acc => (
                                 <option key={acc.id} value={acc.id}>
-                                    {acc.name} ({acc.balance.toFixed(2)} €)
+                                    {acc.name} ({formatMoney(acc.balance)})
                                 </option>
                             ))}
                         </select>

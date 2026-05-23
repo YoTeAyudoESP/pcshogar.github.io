@@ -9,6 +9,25 @@ interface HelpFeedbackModalProps {
 const HelpFeedbackModal: React.FC<HelpFeedbackModalProps> = ({ isOpen, onClose }) => {
     if (!isOpen) return null;
 
+    const handlePayPal = () => {
+        // URL oficial de donaciones PayPal — funciona con cualquier cuenta PayPal personal.
+        // No requiere configuración previa de botón en el panel de PayPal.
+        // La donación se clasifica como "sin contraprestación" (ítem = descripción informativa).
+        const paypalUrl =
+            'https://www.paypal.com/donate/?business=pablopcs%40hotmail.com' +
+            '&currency_code=EUR' +
+            '&item_name=Invita%20a%20un%20caf%C3%A9%20-%20PCS%20Hogar';
+        // '_system' indica a Capacitor que abra la URL en el navegador externo del dispositivo
+        window.open(paypalUrl, '_system');
+    };
+
+    const handleSuggestion = () => {
+        const subject = encodeURIComponent('Sugerencia app PCSHogar');
+        const mailtoUrl = `mailto:yoayudo2020@gmail.com?subject=${subject}`;
+        // '_system' abre el cliente de correo nativo del dispositivo (Gmail, Outlook, etc.)
+        window.open(mailtoUrl, '_system');
+    };
+
     return (
         <div style={{
             position: 'fixed',
@@ -96,51 +115,78 @@ const HelpFeedbackModal: React.FC<HelpFeedbackModalProps> = ({ isOpen, onClose }
 
                 {/* Buttons */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
-                    <button style={{
-                        width: '100%',
-                        padding: '16px',
-                        borderRadius: '12px',
-                        background: '#4f46e5',
-                        color: 'white',
-                        border: 'none',
-                        fontWeight: 600,
-                        fontSize: '1.1rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '10px',
-                        cursor: 'pointer',
-                        boxShadow: '0 4px 15px rgba(79, 70, 229, 0.3)'
-                    }}>
-                        <Coffee size={24} />
+
+                    {/* PayPal donation button */}
+                    <button
+                        onClick={handlePayPal}
+                        style={{
+                            width: '100%',
+                            padding: '16px',
+                            borderRadius: '12px',
+                            background: 'linear-gradient(135deg, #009cde 0%, #003087 100%)',
+                            color: 'white',
+                            border: 'none',
+                            fontWeight: 700,
+                            fontSize: '1.05rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '10px',
+                            cursor: 'pointer',
+                            boxShadow: '0 4px 20px rgba(0, 48, 135, 0.45)',
+                            transition: 'opacity 0.2s'
+                        }}
+                        onMouseEnter={e => (e.currentTarget.style.opacity = '0.88')}
+                        onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+                    >
+                        {/* Icono PayPal tipo "P" */}
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M19.554 9.488c.121-.079.144.041.129.142-.49 3.303-2.168 5.089-5.012 5.089H13.15l-.738 4.676-.091.542a.392.392 0 0 1-.385.33H9.964a.313.313 0 0 1-.308-.36l.048-.297.643-4.072.041-.224a.392.392 0 0 1 .385-.331h1.216c2.494 0 4.449-.985 5.02-3.835.234-1.174.12-2.155-.455-2.66z"/>
+                            <path d="M18.605 9.01a5.398 5.398 0 0 0-.65-.144 8.22 8.22 0 0 0-1.3-.098h-3.928a.39.39 0 0 0-.386.33L11.3 14.72l-.034.217a.392.392 0 0 0 .385.45h1.52c2.845 0 4.522-1.786 5.013-5.09.136-.87.11-1.613-.58-2.287z"/>
+                            <path d="M8.15 9.098a.39.39 0 0 1 .386-.33h4.927a8.23 8.23 0 0 1 1.3.097 5.4 5.4 0 0 1 .65.145c.69.674.716 1.417.58 2.287-.491 3.304-2.168 5.09-5.013 5.09H9.46a.392.392 0 0 1-.385-.45l.034-.218 1.041-6.621z" opacity=".5"/>
+                        </svg>
+                        <Coffee size={20} />
                         Invitar a un café (PayPal)
                     </button>
 
-                    <button style={{
-                        width: '100%',
-                        padding: '16px',
-                        borderRadius: '12px',
-                        background: '#1e2028',
-                        color: 'white',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        fontWeight: 600,
-                        fontSize: '1.1rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '10px',
-                        cursor: 'pointer'
-                    }}>
-                        <Mail size={24} />
+                    {/* Email suggestion button */}
+                    <button
+                        onClick={handleSuggestion}
+                        style={{
+                            width: '100%',
+                            padding: '16px',
+                            borderRadius: '12px',
+                            background: '#1e2028',
+                            color: 'white',
+                            border: '1px solid rgba(255, 255, 255, 0.12)',
+                            fontWeight: 600,
+                            fontSize: '1.05rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '10px',
+                            cursor: 'pointer',
+                            transition: 'background 0.2s, border-color 0.2s'
+                        }}
+                        onMouseEnter={e => {
+                            e.currentTarget.style.background = '#252830';
+                            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.22)';
+                        }}
+                        onMouseLeave={e => {
+                            e.currentTarget.style.background = '#1e2028';
+                            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)';
+                        }}
+                    >
+                        <Mail size={22} />
                         Enviar una sugerencia
                     </button>
                 </div>
 
                 {/* Legal Text */}
                 <p style={{
-                    fontSize: '0.8rem',
+                    fontSize: '0.78rem',
                     lineHeight: '1.4',
-                    color: 'rgba(255, 255, 255, 0.4)',
+                    color: 'rgba(255, 255, 255, 0.35)',
                     marginBottom: '24px',
                     padding: '0 10px'
                 }}>
@@ -154,7 +200,7 @@ const HelpFeedbackModal: React.FC<HelpFeedbackModalProps> = ({ isOpen, onClose }
                     style={{
                         background: 'none',
                         border: 'none',
-                        color: 'rgba(255, 255, 255, 0.6)',
+                        color: 'rgba(255, 255, 255, 0.5)',
                         textDecoration: 'underline',
                         fontSize: '0.9rem',
                         cursor: 'pointer'

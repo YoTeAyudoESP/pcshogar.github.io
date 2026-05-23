@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import IncomeForm from '../income/IncomeForm';
 import IncomeList from '../income/IncomeList';
 import ExpenseForm from '../expenses/ExpenseForm';
@@ -14,7 +14,7 @@ import DateSelector from '../common/DateSelector';
 import { LayoutDashboard, Settings as SettingsIcon, X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, MinusCircle, PiggyBank, ArrowLeftRight, AlertCircle } from 'lucide-react';
 
 import { useFinance } from '../../contexts/FinanceContext';
-const version = "0.11.7";
+const version = "0.11.8";
 import RemnantDecisionModal from '../settings/RemnantDecisionModal';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import EditTransactionModal from './EditTransactionModal';

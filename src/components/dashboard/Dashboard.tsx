@@ -14,7 +14,7 @@ import DateSelector from '../common/DateSelector';
 import { LayoutDashboard, Settings as SettingsIcon, X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, MinusCircle, PiggyBank, ArrowLeftRight, AlertCircle } from 'lucide-react';
 
 import { useFinance } from '../../contexts/FinanceContext';
-const version = "0.11.5";
+const version = "0.11.6";
 import RemnantDecisionModal from '../settings/RemnantDecisionModal';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import EditTransactionModal from './EditTransactionModal';

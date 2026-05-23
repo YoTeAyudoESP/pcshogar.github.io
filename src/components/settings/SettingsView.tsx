@@ -14,7 +14,8 @@ import CategoryManagementView from './CategoryManagementView';
 import AppSettingsView from './AppSettingsView';
 import { useFinance } from '../../contexts/FinanceContext';
 import { useToast } from '../../contexts/ToastContext';
-const version = "0.11.5";
+const version = "0.11.6";
+import { Browser } from '@capacitor/browser';
 import type { Account, CreditCard, RecurringExpense, SavingGoal, Loan } from '../../types/finance';
 import { 
     Wallet, 
@@ -43,6 +44,14 @@ interface SettingsViewProps {
 const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) => {
     const [activeTab, setActiveTab] = useState(initialTab);
     const { showToast } = useToast();
+    
+    const handleOpenManual = async () => {
+        try {
+            await Browser.open({ url: window.location.origin + '/manual.html' });
+        } catch (e) {
+            window.open('/manual.html', '_blank');
+        }
+    };
     const { 
         updateAccount, addAccount, 
         updateCard, addCard, 
@@ -331,21 +340,24 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
                             maxWidth: '400px' 
                         }}>
                             <div style={{ display: 'flex', gap: '0.75rem' }}>
-                                <button style={{ 
-                                    flex: 1,
-                                    background: '#D946EF', // Magenta/Pinkish
-                                    color: 'white',
-                                    border: 'none',
-                                    padding: '0.75rem',
-                                    borderRadius: '4px',
-                                    fontWeight: 700,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '0.5rem',
-                                    cursor: 'pointer',
-                                    fontSize: '0.85rem'
-                                }}>
+                                <button 
+                                    onClick={handleOpenManual}
+                                    style={{ 
+                                        flex: 1,
+                                        background: '#D946EF', // Magenta/Pinkish
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '0.75rem',
+                                        borderRadius: '4px',
+                                        fontWeight: 700,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '0.5rem',
+                                        cursor: 'pointer',
+                                        fontSize: '0.85rem'
+                                    }}
+                                >
                                     <BookOpen size={18} /> Ver Manual de Uso
                                 </button>
                                 <button style={{ 

@@ -14,8 +14,8 @@ export interface Account {
 export interface CreditCard {
     id: string;
     name: string;
-    type: 'debit' | 'credit';
-    linkedAccountId: string;
+    type: 'debit' | 'credit' | 'virtual';
+    linkedAccountId?: string;
     cutoffDay: number; // Day of month when cycle closes
     paymentDay: number; // Day of month when bill is paid
     limit: number;

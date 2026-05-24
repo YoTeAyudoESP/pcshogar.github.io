@@ -422,12 +422,17 @@ class IncomeDB {
                 const card = await cardStore.get(expense.paymentMethod.cardId);
                 if (card) {
                     if (card.type === 'debit') {
-                        targetAccountId = card.linkedAccountId;
-                        const account = await accountStore.get(targetAccountId);
-                        if (account) {
-                            account.balance -= expense.amount;
-                            await accountStore.put(account);
+                        if (card.linkedAccountId) {
+                            targetAccountId = card.linkedAccountId;
+                            const account = await accountStore.get(targetAccountId);
+                            if (account) {
+                                account.balance -= expense.amount;
+                                await accountStore.put(account);
+                            }
                         }
+                    } else if (card.type === 'virtual') {
+                        card.currentBalance -= expense.amount;
+                        await cardStore.put(card);
                     } else {
                         card.currentBalance += expense.amount;
                         await cardStore.put(card);
@@ -691,47 +696,62 @@ class IncomeDB {
 
     async transferBalanceWithTransaction(transfer: Transfer): Promise<void> {
         const db = await this.dbPromise;
-        const tx = db.transaction(['accounts', 'movements', 'transfers'], 'readwrite');
+        const tx = db.transaction(['accounts', 'cards', 'movements', 'transfers'], 'readwrite');
         const accountStore = tx.objectStore('accounts');
+        const cardStore = tx.objectStore('cards');
         const movementStore = tx.objectStore('movements');
         const transferStore = tx.objectStore('transfers');
 
         await transferStore.add(transfer);
 
         const fromAcc = await accountStore.get(transfer.fromAccountId);
+        const fromCard = !fromAcc ? await cardStore.get(transfer.fromAccountId) : null;
+
         const toAcc = await accountStore.get(transfer.toAccountId);
+        const toCard = !toAcc ? await cardStore.get(transfer.toAccountId) : null;
 
-        if (fromAcc && toAcc) {
+        const fromName = fromAcc ? fromAcc.name : (fromCard ? fromCard.name : 'Desconocido');
+        const toName = toAcc ? toAcc.name : (toCard ? toCard.name : 'Desconocido');
+
+        if (fromAcc) {
             fromAcc.balance -= transfer.amount;
-            toAcc.balance += transfer.amount;
-
             await accountStore.put(fromAcc);
-            await accountStore.put(toAcc);
-
-            // Outgoing movement
-            await movementStore.add({
-                id: `mv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}_out`,
-                accountId: transfer.fromAccountId,
-                amount: -transfer.amount,
-                type: 'transfer',
-                description: `Traspaso a ${toAcc.name}: ${transfer.notes || ''}`,
-                relatedId: transfer.id,
-                date: transfer.date,
-                updatedAt: Date.now()
-            });
-
-            // Incoming movement
-            await movementStore.add({
-                id: `mv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}_in`,
-                accountId: transfer.toAccountId,
-                amount: transfer.amount,
-                type: 'transfer',
-                description: `Traspaso desde ${fromAcc.name}: ${transfer.notes || ''}`,
-                relatedId: transfer.id,
-                date: transfer.date,
-                updatedAt: Date.now()
-            });
+        } else if (fromCard) {
+            fromCard.currentBalance -= transfer.amount;
+            await cardStore.put(fromCard);
         }
+
+        if (toAcc) {
+            toAcc.balance += transfer.amount;
+            await accountStore.put(toAcc);
+        } else if (toCard) {
+            toCard.currentBalance += transfer.amount;
+            await cardStore.put(toCard);
+        }
+
+        // Outgoing movement
+        await movementStore.add({
+            id: `mv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}_out`,
+            accountId: transfer.fromAccountId,
+            amount: -transfer.amount,
+            type: 'transfer',
+            description: `Traspaso a ${toName}: ${transfer.notes || ''}`,
+            relatedId: transfer.id,
+            date: transfer.date,
+            updatedAt: Date.now()
+        });
+
+        // Incoming movement
+        await movementStore.add({
+            id: `mv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}_in`,
+            accountId: transfer.toAccountId,
+            amount: transfer.amount,
+            type: 'transfer',
+            description: `Traspaso desde ${fromName}: ${transfer.notes || ''}`,
+            relatedId: transfer.id,
+            date: transfer.date,
+            updatedAt: Date.now()
+        });
         await tx.done;
     }
 
@@ -806,11 +826,16 @@ class IncomeDB {
                 const card = await cardStore.get(expense.paymentMethod.cardId);
                 if (card) {
                     if (card.type === 'debit') {
-                        const account = await accountStore.get(card.linkedAccountId);
-                        if (account) {
-                            account.balance += expense.amount;
-                            await accountStore.put(account);
+                        if (card.linkedAccountId) {
+                            const account = await accountStore.get(card.linkedAccountId);
+                            if (account) {
+                                account.balance += expense.amount;
+                                await accountStore.put(account);
+                            }
                         }
+                    } else if (card.type === 'virtual') {
+                        card.currentBalance += expense.amount;
+                        await cardStore.put(card);
                     } else {
                         card.currentBalance -= expense.amount;
                         await cardStore.put(card);
@@ -860,11 +885,16 @@ class IncomeDB {
                 const card = await cardStore.get(oldExpense.paymentMethod.cardId);
                 if (card) {
                     if (card.type === 'debit') {
-                        const account = await accountStore.get(card.linkedAccountId);
-                        if (account) {
-                            account.balance += oldExpense.amount;
-                            await accountStore.put(account);
+                        if (card.linkedAccountId) {
+                            const account = await accountStore.get(card.linkedAccountId);
+                            if (account) {
+                                account.balance += oldExpense.amount;
+                                await accountStore.put(account);
+                            }
                         }
+                    } else if (card.type === 'virtual') {
+                        card.currentBalance += oldExpense.amount;
+                        await cardStore.put(card);
                     } else {
                         card.currentBalance -= oldExpense.amount;
                         await cardStore.put(card);
@@ -903,12 +933,17 @@ class IncomeDB {
                 const card = await cardStore.get(updatedExpense.paymentMethod.cardId);
                 if (card) {
                     if (card.type === 'debit') {
-                        targetAccountId = card.linkedAccountId;
-                        const account = await accountStore.get(targetAccountId);
-                        if (account) {
-                            account.balance -= updatedExpense.amount;
-                            await accountStore.put(account);
+                        if (card.linkedAccountId) {
+                            targetAccountId = card.linkedAccountId;
+                            const account = await accountStore.get(targetAccountId);
+                            if (account) {
+                                account.balance -= updatedExpense.amount;
+                                await accountStore.put(account);
+                            }
                         }
+                    } else if (card.type === 'virtual') {
+                        card.currentBalance -= updatedExpense.amount;
+                        await cardStore.put(card);
                     } else {
                         card.currentBalance += updatedExpense.amount;
                         await cardStore.put(card);

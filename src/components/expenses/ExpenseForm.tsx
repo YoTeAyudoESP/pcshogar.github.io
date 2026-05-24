@@ -179,7 +179,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose }) => {
                                 <option value="pending">Pendiente</option>
                             </select>
                         </div>
-                        {paymentMethodType === 'card' && (
+                        {paymentMethodType === 'card' && selectedMethodId && cards.find(c => c.id === selectedMethodId)?.type !== 'virtual' && (
                             <div style={{ flex: 1 }}>
                                 <label style={labelStyle}>Ajuste de Liquidación</label>
                                 <select 
@@ -195,7 +195,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose }) => {
                         )}
                     </div>
 
-                    {paymentMethodType === 'card' && selectedMethodId && (
+                    {paymentMethodType === 'card' && selectedMethodId && cards.find(c => c.id === selectedMethodId)?.type !== 'virtual' && (
                         <div style={{ 
                             background: 'rgba(251, 191, 36, 0.05)', 
                             border: '1px solid rgba(251, 191, 36, 0.15)',
@@ -228,7 +228,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose }) => {
                                 <option value="">Seleccione...</option>
                                 {paymentMethodType === 'account'
                                     ? accounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name} ({formatMoney(acc.balance)})</option>)
-                                    : cards.map(c => <option key={c.id} value={c.id}>{c.name}</option>)
+                                    : cards.map(c => <option key={c.id} value={c.id}>{c.name} {c.type === 'virtual' ? `(${formatMoney(c.currentBalance)})` : ''}</option>)
                                 }
                             </select>
                         </div>

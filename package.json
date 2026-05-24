@@ -1,17 +1,35 @@
 {
   "name": "pcshogar",
   "private": true,
-  "version": "0.11.8",
-  "versionCode": 118,
-  "versionName": "0.11.8",
+  "version": "1.0.1",
+  "versionCode": 121,
+  "versionName": "1.0.1",
   "type": "module",
+  "main": "electron/main.js",
+  "build": {
+    "appId": "com.pcshogar.app",
+    "productName": "PCSHogar",
+    "icon": "public/Icono_PCSHogar.png",
+    "directories": {
+      "output": "dist_electron"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "public/icon.ico"
+    }
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "@capacitor/android": "^6.1.2",
     "@capacitor/app": "^6.0.3",
     "@capacitor/browser": "^6.0.6",
@@ -23,24 +41,7 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "recharts": "^3.6.0",
-    "uuid": "^13.0.0"
-  },
-  "main": "electron/main.js",
-  "build": {
-    "appId": "com.pcshogar.app",
-    "productName": "PCSHogar",
-    "directories": {
-      "output": "dist_electron"
-    },
-    "files": [
-      "dist/**/*",
-      "electron/**/*"
-    ],
-    "win": {
-      "target": "nsis"
-    }
-  },
-  "devDependencies": {
+    "uuid": "^13.0.0",
     "@capacitor/cli": "^6.1.2",
     "@eslint/js": "^9.39.1",
     "@types/node": "^24.10.1",

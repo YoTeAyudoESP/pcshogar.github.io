@@ -12,7 +12,7 @@ interface CardFormProps {
 const CardForm: React.FC<CardFormProps> = ({ onClose, editingCard, onCancelEdit }) => {
     const { accounts, addCard, updateCard } = useFinance();
     const [name, setName] = useState('');
-    const [type, setType] = useState<'debit' | 'credit'>('credit');
+    const [type, setType] = useState<'debit' | 'credit' | 'virtual'>('credit');
     const [linkedAccountId, setLinkedAccountId] = useState('');
     const [limit, setLimit] = useState('');
     const [cutoffDay, setCutoffDay] = useState('20');
@@ -23,8 +23,8 @@ const CardForm: React.FC<CardFormProps> = ({ onClose, editingCard, onCancelEdit 
         if (editingCard) {
             setName(editingCard.name);
             setType(editingCard.type);
-            setLinkedAccountId(editingCard.linkedAccountId);
-            setLimit(editingCard.limit.toString());
+            setLinkedAccountId(editingCard.linkedAccountId || '');
+            setLimit(editingCard.type === 'virtual' ? editingCard.currentBalance.toString() : editingCard.limit.toString());
             setCutoffDay(editingCard.cutoffDay.toString());
             setPaymentDay(editingCard.paymentDay.toString());
             setColor(editingCard.color || '#f87171');
@@ -42,30 +42,31 @@ const CardForm: React.FC<CardFormProps> = ({ onClose, editingCard, onCancelEdit 
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!name || !linkedAccountId) return;
+        if (!name || (type !== 'virtual' && !linkedAccountId)) return;
 
         if (editingCard) {
             await updateCard({
                 ...editingCard,
                 name,
                 type,
-                linkedAccountId,
-                limit: parseFloat(limit) || 0,
-                cutoffDay: parseInt(cutoffDay),
-                paymentDay: parseInt(paymentDay),
+                linkedAccountId: type === 'virtual' ? '' : linkedAccountId,
+                limit: type === 'virtual' ? 0 : (parseFloat(limit) || 0),
+                cutoffDay: type === 'virtual' ? 0 : parseInt(cutoffDay),
+                paymentDay: type === 'virtual' ? 0 : parseInt(paymentDay),
+                currentBalance: type === 'virtual' ? (parseFloat(limit) || 0) : editingCard.currentBalance,
                 color
             });
             if (onCancelEdit) onCancelEdit();
         } else {
-            // For debit cards, billing cycle days are irrelevant, setting defaults
             await addCard(
                 name,
-                linkedAccountId,
-                parseFloat(limit) || 0,
-                parseInt(cutoffDay),
-                parseInt(paymentDay),
+                type === 'virtual' ? '' : linkedAccountId,
+                type === 'virtual' ? 0 : (parseFloat(limit) || 0),
+                type === 'virtual' ? 0 : parseInt(cutoffDay),
+                type === 'virtual' ? 0 : parseInt(paymentDay),
                 type,
-                color
+                color,
+                type === 'virtual' ? (parseFloat(limit) || 0) : 0
             );
         }
 
@@ -139,22 +140,46 @@ const CardForm: React.FC<CardFormProps> = ({ onClose, editingCard, onCancelEdit 
                         transition: 'all 0.2s ease'
                     }}
                 >Débito</button>
+                <button 
+                    type="button" 
+                    onClick={() => setType('virtual')} 
+                    style={{ 
+                        flex: 1, 
+                        padding: '0.8rem', 
+                        background: type === 'virtual' ? '#10B981' : 'transparent', 
+                        border: 'none', 
+                        borderRadius: '0.5rem', 
+                        color: 'white',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease'
+                    }}
+                >Virtual</button>
             </div>
 
             <div>
                 <label style={{ display: 'block', marginBottom: '0.75rem', color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.9rem' }}>Nombre</label>
-                <input style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="ej. VISA Oro" required />
+                <input style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="ej. Tarjeta Virtual Prepago" required />
             </div>
 
-            <div>
-                <label style={{ display: 'block', marginBottom: '0.75rem', color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.9rem' }}>Cuenta Asociada</label>
-                <select style={inputStyle} value={linkedAccountId} onChange={e => setLinkedAccountId(e.target.value)} required>
-                    <option value="">Seleccionar Cuenta vinculada...</option>
-                    {accounts.map(acc => (
-                        <option key={acc.id} value={acc.id}>{acc.name}</option>
-                    ))}
-                </select>
-            </div>
+            {type !== 'virtual' && (
+                <div>
+                    <label style={{ display: 'block', marginBottom: '0.75rem', color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.9rem' }}>Cuenta Asociada</label>
+                    <select style={inputStyle} value={linkedAccountId} onChange={e => setLinkedAccountId(e.target.value)} required>
+                        <option value="">Seleccionar Cuenta vinculada...</option>
+                        {accounts.map(acc => (
+                            <option key={acc.id} value={acc.id}>{acc.name}</option>
+                        ))}
+                    </select>
+                </div>
+            )}
+
+            {type === 'virtual' && (
+                <div>
+                    <label style={{ display: 'block', marginBottom: '0.75rem', color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.9rem' }}>Saldo Inicial (€)</label>
+                    <input type="number" step="0.01" style={inputStyle} value={limit} onChange={e => setLimit(e.target.value)} placeholder="0.00" />
+                </div>
+            )}
 
             {type === 'credit' && (
                 <>
@@ -202,12 +227,12 @@ const CardForm: React.FC<CardFormProps> = ({ onClose, editingCard, onCancelEdit 
                     padding: '1.2rem',
                     borderRadius: '1rem',
                     border: 'none',
-                    background: type === 'credit' ? 'var(--color-primary)' : '#EC4899',
+                    background: type === 'credit' ? 'var(--color-primary)' : type === 'virtual' ? '#10B981' : '#EC4899',
                     color: 'white',
                     fontWeight: 700,
                     fontSize: '1.1rem',
                     cursor: 'pointer',
-                    boxShadow: `0 4px 15px ${type === 'credit' ? 'rgba(124, 58, 237, 0.4)' : 'rgba(236, 72, 153, 0.4)'}`,
+                    boxShadow: `0 4px 15px ${type === 'credit' ? 'rgba(124, 58, 237, 0.4)' : type === 'virtual' ? 'rgba(16, 185, 129, 0.4)' : 'rgba(236, 72, 153, 0.4)'}`,
                     transition: 'all 0.2s ease'
                 }}>
                     {editingCard ? 'Guardar Cambios' : 'Añadir Tarjeta'}

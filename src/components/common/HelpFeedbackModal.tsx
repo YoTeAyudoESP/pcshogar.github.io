@@ -1,5 +1,7 @@
-import React from 'react';
-import { Heart, Coffee, Mail, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Heart, Coffee, Mail, X, Download, RefreshCw } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
+import { UpdateService } from '../../services/updateService';
 
 interface HelpFeedbackModalProps {
     isOpen: boolean;
@@ -28,6 +30,40 @@ const HelpFeedbackModal: React.FC<HelpFeedbackModalProps> = ({ isOpen, onClose }
         window.open(mailtoUrl, '_system');
     };
 
+    const [downloadUrl, setDownloadUrl] = useState('https://yoteayudoesp.github.io/pcshogar.github.io/PCSHogar_v0.11.9_Debug.apk');
+    const [checking, setChecking] = useState(false);
+
+    useEffect(() => {
+        // Fetch the latest APK URL dynamically on web platform
+        if (!Capacitor.isNativePlatform()) {
+            fetch('https://yoteayudoesp.github.io/pcshogar.github.io/version.json')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.url) setDownloadUrl(data.url);
+                })
+                .catch(err => console.log('Error fetching latest download URL:', err));
+        }
+    }, []);
+
+    const handleCheckUpdate = async () => {
+        setChecking(true);
+        try {
+            const info = await UpdateService.checkUpdate();
+            if (info.hasUpdate) {
+                if (window.confirm(`Nueva versión disponible: v${info.latestVersion}.\n¿Deseas descargar e instalar la actualización ahora?`)) {
+                    window.open(info.downloadUrl, '_system');
+                }
+            } else {
+                alert(`Estás utilizando la versión más reciente (v${info.currentVersion}).`);
+            }
+        } catch (error) {
+            console.error(error);
+            alert('No se pudo comprobar la actualización. Por favor, verifica tu conexión a internet.');
+        } finally {
+            setChecking(false);
+        }
+    };
+
     return (
         <div style={{
             position: 'fixed',
@@ -38,10 +74,11 @@ const HelpFeedbackModal: React.FC<HelpFeedbackModalProps> = ({ isOpen, onClose }
             backgroundColor: 'rgba(0, 0, 0, 0.85)',
             backdropFilter: 'blur(8px)',
             display: 'flex',
-            alignItems: 'center',
+            alignItems: 'flex-start',
             justifyContent: 'center',
             zIndex: 1000,
             padding: '20px',
+            overflowY: 'auto',
             animation: 'fadeIn 0.3s ease'
         }}>
             <div className="glass-panel" style={{
@@ -53,7 +90,8 @@ const HelpFeedbackModal: React.FC<HelpFeedbackModalProps> = ({ isOpen, onClose }
                 textAlign: 'center',
                 position: 'relative',
                 boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5)',
-                border: '1px solid rgba(255, 255, 255, 0.08)'
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                margin: 'auto'
             }}>
                 {/* Close Button */}
                 <button 
@@ -180,6 +218,80 @@ const HelpFeedbackModal: React.FC<HelpFeedbackModalProps> = ({ isOpen, onClose }
                         <Mail size={22} />
                         Enviar una sugerencia
                     </button>
+
+                    {/* Dynamic update or download button */}
+                    {Capacitor.isNativePlatform() ? (
+                        <>
+                            <style dangerouslySetInnerHTML={{__html: "@keyframes spin { 100% { transform: rotate(360deg); } }" }} />
+                            <button
+                                onClick={handleCheckUpdate}
+                                disabled={checking}
+                                style={{
+                                    width: '100%',
+                                    padding: '16px',
+                                    borderRadius: '12px',
+                                    background: 'rgba(255, 255, 255, 0.05)',
+                                    color: 'white',
+                                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                                    fontWeight: 600,
+                                    fontSize: '1.05rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '10px',
+                                    cursor: checking ? 'not-allowed' : 'pointer',
+                                    opacity: checking ? 0.7 : 1,
+                                    transition: 'background 0.2s, border-color 0.2s'
+                                }}
+                                onMouseEnter={e => {
+                                    if (!checking) {
+                                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.22)';
+                                    }
+                                }}
+                                onMouseLeave={e => {
+                                    if (!checking) {
+                                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                                        e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+                                    }
+                                }}
+                            >
+                                <RefreshCw 
+                                    size={22} 
+                                    style={{ 
+                                        animation: checking ? 'spin 1.5s linear infinite' : 'none' 
+                                    }} 
+                                />
+                                {checking ? 'Comprobando...' : 'Comprobar actualizaciones'}
+                            </button>
+                        </>
+                    ) : (
+                        <a
+                            href={downloadUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                                width: '100%',
+                                padding: '16px',
+                                borderRadius: '12px',
+                                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                color: 'white',
+                                textDecoration: 'none',
+                                fontWeight: 700,
+                                fontSize: '1.05rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '10px',
+                                cursor: 'pointer',
+                                boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)',
+                                boxSizing: 'border-box'
+                            }}
+                        >
+                            <Download size={22} />
+                            Descargar App para Android (.apk)
+                        </a>
+                    )}
                 </div>
 
                 {/* Legal Text */}

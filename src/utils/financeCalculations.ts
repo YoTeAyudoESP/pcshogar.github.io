@@ -117,6 +117,7 @@ export function calculateAvailableBalanceForMonth(
     let totalMonthExpenses = 0;
     let totalAccountExpenses = 0;
     let totalCardExpenses = 0;
+    let totalCashExpenses = 0;
     let variableExpensesPaid = 0;
     let fixedExpensesDeviations = 0;
 
@@ -140,7 +141,9 @@ export function calculateAvailableBalanceForMonth(
             }
 
             const method = exp.paymentMethod || { type: 'cash' };
-            if (method.type === 'account' || method.type === 'cash') {
+            if (method.type === 'cash') {
+                totalCashExpenses += exp.amount;
+            } else if (method.type === 'account') {
                 totalAccountExpenses += exp.amount;
             } else if (method.type === 'card') {
                 const card = (cards || []).find(c => c.id === (method as any).cardId);
@@ -208,6 +211,7 @@ export function calculateAvailableBalanceForMonth(
         totalMonthExpenses,
         totalAccountExpenses,
         totalCardExpenses,
+        totalCashExpenses,
         totalMonthAllocations,
         remanente,
         pendingFixedExpenses,

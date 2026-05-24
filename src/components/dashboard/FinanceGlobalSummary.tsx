@@ -2,13 +2,17 @@ import React, { useMemo } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 
 const FinanceGlobalSummary: React.FC = () => {
-    const { accounts, savings } = useFinance();
+    const { accounts, cards, savings } = useFinance();
 
     const bankBalance = useMemo(() => {
-        return accounts
+        const accs = accounts
             .filter(a => a.type === 'bank')
             .reduce((sum, a) => sum + (a.balance || 0), 0);
-    }, [accounts]);
+        const vCards = cards
+            .filter(c => c.type === 'virtual')
+            .reduce((sum, c) => sum + (c.currentBalance || 0), 0);
+        return accs + vCards;
+    }, [accounts, cards]);
 
     const cashBalance = useMemo(() => {
         return accounts

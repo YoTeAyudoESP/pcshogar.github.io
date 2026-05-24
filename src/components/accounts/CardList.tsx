@@ -46,13 +46,13 @@ const CardList: React.FC<CardListProps> = ({ onEdit }) => {
                             padding: '1.25rem',
                             borderRadius: 'var(--radius-md)',
                             border: '1px solid rgba(255,255,255,0.05)',
-                            borderLeft: `5px solid ${card.color || (card.type === 'credit' ? 'var(--color-primary)' : '#EC4899')}`,
+                            borderLeft: `5px solid ${card.color || (card.type === 'credit' ? 'var(--color-primary)' : card.type === 'virtual' ? '#10B981' : '#EC4899')}`,
                         }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                 <div>
                                     <div style={{ fontWeight: 600, fontSize: '1.1rem' }}>{card.name}</div>
                                     <div style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-                                        {card.type === 'credit' ? 'Crédito' : 'Débito'}
+                                        {card.type === 'credit' ? 'Crédito' : card.type === 'virtual' ? 'Virtual/Monedero' : 'Débito'}
                                     </div>
                                 </div>
                                 <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -70,9 +70,15 @@ const CardList: React.FC<CardListProps> = ({ onEdit }) => {
                                     </button>
                                 </div>
                             </div>
-                            <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', marginTop: '0.75rem' }}>
-                                Vinculada a: <span style={{ color: 'rgba(255,255,255,0.8)' }}>{getAccountName(card.linkedAccountId)}</span>
-                            </div>
+                            {card.type !== 'virtual' ? (
+                                <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', marginTop: '0.75rem' }}>
+                                    Vinculada a: <span style={{ color: 'rgba(255,255,255,0.8)' }}>{getAccountName(card.linkedAccountId || '')}</span>
+                                </div>
+                            ) : (
+                                <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', marginTop: '0.75rem' }}>
+                                    Saldo disponible: <span style={{ color: '#10B981', fontWeight: 700 }}>{formatMoney(card.currentBalance)}</span>
+                                </div>
+                            )}
                             {card.type === 'credit' && (
                                 <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', marginTop: '0.25rem' }}>
                                     Cierra el {card.cutoffDay} • Paga el {card.paymentDay}

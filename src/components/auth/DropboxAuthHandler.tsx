@@ -1,6 +1,7 @@
 
 import React, { useEffect } from 'react';
 import { App } from '@capacitor/app';
+import { Capacitor } from '@capacitor/core';
 import { useAppSettings } from '../../contexts/AppSettingsContext';
 import { DropboxService } from '../../services/dropboxService';
 import { useToast } from '../../contexts/ToastContext';
@@ -40,24 +41,28 @@ const DropboxAuthHandler: React.FC = () => {
 
         // 2. Handle deep link (from external browser)
         const setupDeepLink = async () => {
-            await App.addListener('appUrlOpen', data => {
-                // The URL will be com.pcshogar.app://auth/dropbox#access_token=...
-                const url = data.url;
-                if (url.includes('access_token=')) {
-                    const hashPart = url.split('#')[1];
-                    const params = new URLSearchParams(hashPart);
-                    const token = params.get('access_token');
-                    if (token) {
-                        handleToken(token);
+            if (Capacitor.isNativePlatform()) {
+                await App.addListener('appUrlOpen', data => {
+                    // The URL will be com.pcshogar.app://auth/dropbox#access_token=...
+                    const url = data.url;
+                    if (url.includes('access_token=')) {
+                        const hashPart = url.split('#')[1];
+                        const params = new URLSearchParams(hashPart);
+                        const token = params.get('access_token');
+                        if (token) {
+                            handleToken(token);
+                        }
                     }
-                }
-            });
+                });
+            }
         };
 
         setupDeepLink();
 
         return () => {
-            App.removeAllListeners();
+            if (Capacitor.isNativePlatform()) {
+                App.removeAllListeners();
+            }
         };
     }, [updateSyncSettings, settings.sync.dropboxPath]);
 

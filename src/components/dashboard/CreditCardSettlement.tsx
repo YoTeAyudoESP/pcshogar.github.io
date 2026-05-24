@@ -121,7 +121,7 @@ const CreditCardSettlement: React.FC = () => {
                 amount,
                 settlingCard.total,
                 new Date(settleDate).getTime(),
-                settlingCard.card.linkedAccountId,
+                settlingCard.card.linkedAccountId || '',
                 settlingCard.range.start,
                 settlingCard.range.end
             );

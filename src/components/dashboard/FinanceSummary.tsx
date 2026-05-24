@@ -26,6 +26,7 @@ const FinanceSummary: React.FC = () => {
         totalMonthIncome,
         totalAccountExpenses,
         totalCardExpenses,
+        totalCashExpenses,
         remanente,
         pendingFixedExpenses
     } = useMemo(() => {
@@ -133,44 +134,73 @@ const FinanceSummary: React.FC = () => {
                 </div>
             )}
 
-            {/* Monthly Stats Row */}
+            {/* Monthly Stats Grid */}
             <div style={{ 
-                display: 'flex', 
-                flexWrap: 'wrap',
-                justifyContent: 'center', 
-                gap: isMobile ? '1.5rem' : '3rem', 
-                marginTop: '1.5rem' 
+                display: 'grid', 
+                gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+                gap: isMobile ? '1.25rem 1.5rem' : '1.5rem 3rem',
+                marginTop: '2rem',
+                maxWidth: '600px',
+                margin: '2rem auto 0 auto',
+                padding: '0 1rem'
             }}>
-                <div>
+                {/* Row 1 Left: Ingresos (Mes) */}
+                <div style={{ textAlign: isMobile ? 'center' : 'left' }}>
                     <div style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.85rem', marginBottom: '4px' }}>
                         Ingresos (Mes)
                     </div>
-                    <div style={{ color: 'white', fontWeight: 700, fontSize: '1.1rem', whiteSpace: 'nowrap' }}>
+                    <div style={{ color: '#10b981', fontWeight: 800, fontSize: '1.2rem', whiteSpace: 'nowrap' }}>
                         {formatCurrency(totalMonthIncome)}
                     </div>
                 </div>
-                <div>
-                    <div style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.85rem', marginBottom: '4px' }}>
-                        Gastos Cuentas
-                    </div>
-                    <div style={{ color: 'white', fontWeight: 700, fontSize: '1.1rem', whiteSpace: 'nowrap' }}>
-                        {formatCurrency(totalAccountExpenses)}
-                    </div>
-                </div>
-                <div>
-                    <div style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.85rem', marginBottom: '4px' }}>
-                        Gastos Tarjetas
-                    </div>
-                    <div style={{ color: '#fbbf24', fontWeight: 700, fontSize: '1.1rem', whiteSpace: 'nowrap' }}>
-                        {formatCurrency(totalCardExpenses)}
-                    </div>
-                </div>
-                <div>
+
+                {/* Row 1 Right: Fijos (Pend.) */}
+                <div style={{ textAlign: isMobile ? 'center' : 'right' }}>
                     <div style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.85rem', marginBottom: '4px' }}>
                         Fijos (Pend.)
                     </div>
-                    <div style={{ color: '#818cf8', fontWeight: 700, fontSize: '1.1rem', whiteSpace: 'nowrap' }}>
+                    <div style={{ color: '#818cf8', fontWeight: 800, fontSize: '1.2rem', whiteSpace: 'nowrap' }}>
                         {formatCurrency(pendingFixedExpenses)}
+                    </div>
+                </div>
+
+                {/* Row 2 Left: Gastos Tarjetas */}
+                <div style={{ textAlign: isMobile ? 'center' : 'left' }}>
+                    <div style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.85rem', marginBottom: '4px' }}>
+                        Gastos Tarjetas
+                    </div>
+                    <div style={{ color: '#fbbf24', fontWeight: 800, fontSize: '1.2rem', whiteSpace: 'nowrap' }}>
+                        {formatCurrency(totalCardExpenses)}
+                    </div>
+                </div>
+
+                {/* Row 2 Right: Gastos Cuentas */}
+                <div style={{ textAlign: isMobile ? 'center' : 'right' }}>
+                    <div style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.85rem', marginBottom: '4px' }}>
+                        Gastos Cuentas
+                    </div>
+                    <div style={{ color: '#38bdf8', fontWeight: 800, fontSize: '1.2rem', whiteSpace: 'nowrap' }}>
+                        {formatCurrency(totalAccountExpenses)}
+                    </div>
+                </div>
+
+                {/* Row 3 Left: Gastos Efectivo */}
+                <div style={{ textAlign: isMobile ? 'center' : 'left' }}>
+                    <div style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.85rem', marginBottom: '4px' }}>
+                        Gastos Efectivo
+                    </div>
+                    <div style={{ color: '#a855f7', fontWeight: 800, fontSize: '1.2rem', whiteSpace: 'nowrap' }}>
+                        {formatCurrency(totalCashExpenses)}
+                    </div>
+                </div>
+
+                {/* Row 3 Right: Total Gastos */}
+                <div style={{ textAlign: isMobile ? 'center' : 'right' }}>
+                    <div style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.85rem', marginBottom: '4px' }}>
+                        Total Gastos
+                    </div>
+                    <div style={{ color: '#f43f5e', fontWeight: 800, fontSize: '1.2rem', whiteSpace: 'nowrap' }}>
+                        {formatCurrency(totalCardExpenses + totalAccountExpenses + totalCashExpenses)}
                     </div>
                 </div>
             </div>

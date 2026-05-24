@@ -6,6 +6,7 @@ import { AppSettingsProvider } from './contexts/AppSettingsContext';
 import DropboxAuthHandler from './components/auth/DropboxAuthHandler';
 import DropboxStartupChecker from './components/auth/DropboxStartupChecker';
 import { ToastProvider } from './contexts/ToastContext';
+import AppUpdateChecker from './components/common/AppUpdateChecker';
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
       <AppSettingsProvider>
         <DropboxAuthHandler />
         <DropboxStartupChecker />
+        <AppUpdateChecker />
         <FinanceProvider>
           <DateSelectionProvider>
             <AppLayout>

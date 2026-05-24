@@ -46,7 +46,7 @@ interface FinanceContextType {
     updateCategory: (category: Category) => Promise<void>;
     deleteCategory: (id: string, reassignToId?: string) => Promise<void>;
     addAccount: (name: string, type: 'bank' | 'cash', initialBalance: number, color?: string) => Promise<void>;
-    addCard: (name: string, linkedAccountId: string, limit: number, cutoffDay: number, paymentDay: number, type: 'debit' | 'credit', color?: string) => Promise<void>;
+    addCard: (name: string, linkedAccountId: string, limit: number, cutoffDay: number, paymentDay: number, type: 'debit' | 'credit' | 'virtual', color?: string, initialBalance?: number) => Promise<void>;
     addExpense: (expense: Omit<Expense, 'id'>) => Promise<void>;
     addSavingGoal: (goal: Omit<SavingGoal, 'id'>) => Promise<void>;
     allocateSavings: (goalId: string, sourceAccountId: string, amount: number) => Promise<void>;
@@ -287,16 +287,16 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         await refreshFinance();
     };
 
-    const addCard = async (name: string, linkedAccountId: string, limit: number, cutoffDay: number, paymentDay: number, type: 'debit' | 'credit', color?: string) => {
+    const addCard = async (name: string, linkedAccountId: string, limit: number, cutoffDay: number, paymentDay: number, type: 'debit' | 'credit' | 'virtual', color?: string, initialBalance?: number) => {
         const newCard: CreditCard = {
             id: uuidv4(),
             name,
             type,
-            linkedAccountId,
-            limit,
-            cutoffDay,
-            paymentDay,
-            currentBalance: 0,
+            linkedAccountId: type === 'virtual' ? '' : linkedAccountId,
+            limit: type === 'virtual' ? 0 : limit,
+            cutoffDay: type === 'virtual' ? 0 : cutoffDay,
+            paymentDay: type === 'virtual' ? 0 : paymentDay,
+            currentBalance: type === 'virtual' ? (initialBalance ?? 0) : 0,
             color,
             updatedAt: Date.now()
         };

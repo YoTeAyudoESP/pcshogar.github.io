@@ -14,7 +14,7 @@ import CategoryManagementView from './CategoryManagementView';
 import AppSettingsView from './AppSettingsView';
 import { useFinance } from '../../contexts/FinanceContext';
 import { useToast } from '../../contexts/ToastContext';
-const version = "1.0.5";
+const version = "1.0.6";
 // Browser plugin removed: manual opens in-app via window.location.href
 import type { Account, CreditCard, RecurringExpense, SavingGoal, Loan } from '../../types/finance';
 import { 
@@ -86,6 +86,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
     }, [initialTab]);
 
     const [showAccountForm, setShowAccountForm] = useState(false);
+    const [showCashForm, setShowCashForm] = useState(false);
     const [showCardForm, setShowCardForm] = useState(false);
 
     // Edit states
@@ -99,7 +100,11 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
 
     const handleEditAccount = (acc: Account) => {
         setEditingAccount(acc);
-        setShowAccountForm(true);
+        if (acc.type === 'cash') {
+            setShowCashForm(true);
+        } else {
+            setShowAccountForm(true);
+        }
     };
 
     const handleEditCard = (card: CreditCard) => {
@@ -231,9 +236,44 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
                                     editingAccount={editingAccount}
                                     onCancelEdit={() => setShowAccountForm(false)}
                                     onClose={() => setShowAccountForm(false)}
+                                    defaultType="bank"
+                                    hideTypeSelector={true}
                                 />
                             ) : (
-                                <AccountList onEdit={handleEditAccount} />
+                                <AccountList onEdit={handleEditAccount} filterType="bank" />
+                            )}
+                        </div>
+
+                        {/* Cash Wallets Section */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <h3 style={{ fontSize: '1.25rem', margin: 0, opacity: 0.9 }}>Carteras de Efectivo</h3>
+                                {!showCashForm && (
+                                    <button 
+                                        onClick={() => { setEditingAccount(undefined); setShowCashForm(true); }}
+                                        style={{ 
+                                            background: '#10b981', 
+                                            color: 'white', 
+                                            border: 'none', 
+                                            padding: '0.6rem 1.2rem', 
+                                            borderRadius: '0.75rem',
+                                            fontWeight: 600,
+                                            cursor: 'pointer'
+                                        }}
+                                    >+ Nueva Cartera</button>
+                                )}
+                            </div>
+                            
+                            {showCashForm ? (
+                                <AccountForm
+                                    editingAccount={editingAccount}
+                                    onCancelEdit={() => setShowCashForm(false)}
+                                    onClose={() => setShowCashForm(false)}
+                                    defaultType="cash"
+                                    hideTypeSelector={true}
+                                />
+                            ) : (
+                                <AccountList onEdit={handleEditAccount} filterType="cash" />
                             )}
                         </div>
 

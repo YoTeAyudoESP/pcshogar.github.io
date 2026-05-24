@@ -6,9 +6,10 @@ import DeleteAccountDialog from './DeleteAccountDialog';
 
 interface AccountListProps {
     onEdit?: (account: Account) => void;
+    filterType?: 'bank' | 'cash';
 }
 
-const AccountList: React.FC<AccountListProps> = ({ onEdit }) => {
+const AccountList: React.FC<AccountListProps> = ({ onEdit, filterType }) => {
     const { accounts } = useFinance();
     const [accountToDelete, setAccountToDelete] = useState<Account | null>(null);
 
@@ -16,14 +17,16 @@ const AccountList: React.FC<AccountListProps> = ({ onEdit }) => {
         setAccountToDelete(acc);
     };
 
+    const displayAccounts = filterType ? accounts.filter(a => a.type === filterType) : accounts;
+
     return (
         <div className="glass-panel" style={{ padding: 'var(--space-md)' }}>
-            <h3 style={{ marginBottom: '1rem', color: 'var(--text-muted)' }}>Mis Cuentas</h3>
-            {accounts.length === 0 ? (
-                <p style={{ color: 'var(--text-muted)', textAlign: 'center' }}>No hay cuentas configuradas.</p>
+            <h3 style={{ marginBottom: '1rem', color: 'var(--text-muted)' }}>{filterType === 'cash' ? 'Carteras de Efectivo' : 'Mis Cuentas'}</h3>
+            {displayAccounts.length === 0 ? (
+                <p style={{ color: 'var(--text-muted)', textAlign: 'center' }}>No hay {filterType === 'cash' ? 'carteras' : 'cuentas'} configuradas.</p>
             ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    {accounts.map(acc => (
+                    {displayAccounts.map(acc => (
                         <div key={acc.id} style={{
                             background: 'rgba(25, 27, 34, 0.4)',
                             padding: '1rem 1.25rem',

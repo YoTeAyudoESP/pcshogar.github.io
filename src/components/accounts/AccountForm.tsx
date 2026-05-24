@@ -7,13 +7,15 @@ interface AccountFormProps {
     onClose?: () => void;
     editingAccount?: Account;
     onCancelEdit?: () => void;
+    defaultType?: 'bank' | 'cash';
+    hideTypeSelector?: boolean;
 }
 
-const AccountForm: React.FC<AccountFormProps> = ({ onClose, editingAccount, onCancelEdit }) => {
+const AccountForm: React.FC<AccountFormProps> = ({ onClose, editingAccount, onCancelEdit, defaultType = 'bank', hideTypeSelector = false }) => {
     const { addAccount, updateAccount } = useFinance();
     const [name, setName] = useState('');
     const [balance, setBalance] = useState('');
-    const [type, setType] = useState<'bank' | 'cash'>('bank');
+    const [type, setType] = useState<'bank' | 'cash'>(defaultType);
     const [color, setColor] = useState('#3b82f6');
 
     useEffect(() => {
@@ -25,10 +27,10 @@ const AccountForm: React.FC<AccountFormProps> = ({ onClose, editingAccount, onCa
         } else {
             setName('');
             setBalance('');
-            setType('bank');
+            setType(defaultType);
             setColor('#3b82f6');
         }
-    }, [editingAccount]);
+    }, [editingAccount, defaultType]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -80,43 +82,45 @@ const AccountForm: React.FC<AccountFormProps> = ({ onClose, editingAccount, onCa
                 color: 'white'
             }}>{editingAccount ? 'Editar Cuenta' : 'Nueva Cuenta'}</h2>
 
-            <div style={{ 
-                display: 'flex', 
-                background: 'rgba(255, 255, 255, 0.05)', 
-                borderRadius: '0.75rem', 
-                padding: '0.35rem'
-            }}>
-                <button 
-                    type="button" 
-                    onClick={() => setType('bank')} 
-                    style={{ 
-                        flex: 1, 
-                        padding: '0.8rem', 
-                        background: type === 'bank' ? 'var(--color-primary)' : 'transparent', 
-                        border: 'none', 
-                        borderRadius: '0.5rem', 
-                        color: 'white',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease'
-                    }}
-                >Banco</button>
-                <button 
-                    type="button" 
-                    onClick={() => setType('cash')} 
-                    style={{ 
-                        flex: 1, 
-                        padding: '0.8rem', 
-                        background: type === 'cash' ? 'var(--color-primary)' : 'transparent', 
-                        border: 'none', 
-                        borderRadius: '0.5rem', 
-                        color: 'white',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease'
-                    }}
-                >Efectivo</button>
-            </div>
+            {!hideTypeSelector && (
+                <div style={{ 
+                    display: 'flex', 
+                    background: 'rgba(255, 255, 255, 0.05)', 
+                    borderRadius: '0.75rem', 
+                    padding: '0.35rem'
+                }}>
+                    <button 
+                        type="button" 
+                        onClick={() => setType('bank')} 
+                        style={{ 
+                            flex: 1, 
+                            padding: '0.8rem', 
+                            background: type === 'bank' ? 'var(--color-primary)' : 'transparent', 
+                            border: 'none', 
+                            borderRadius: '0.5rem', 
+                            color: 'white',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease'
+                        }}
+                    >Banco</button>
+                    <button 
+                        type="button" 
+                        onClick={() => setType('cash')} 
+                        style={{ 
+                            flex: 1, 
+                            padding: '0.8rem', 
+                            background: type === 'cash' ? 'var(--color-primary)' : 'transparent', 
+                            border: 'none', 
+                            borderRadius: '0.5rem', 
+                            color: 'white',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease'
+                        }}
+                    >Efectivo</button>
+                </div>
+            )}
 
             <div>
                 <label style={{ display: 'block', marginBottom: '0.75rem', color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.9rem' }}>Nombre</label>

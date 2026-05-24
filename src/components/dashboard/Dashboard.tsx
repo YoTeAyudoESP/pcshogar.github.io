@@ -14,7 +14,7 @@ import DateSelector from '../common/DateSelector';
 import { LayoutDashboard, Settings as SettingsIcon, X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, MinusCircle, PiggyBank, ArrowLeftRight, AlertCircle, Mail, Heart } from 'lucide-react';
 
 import { useFinance } from '../../contexts/FinanceContext';
-const version = "1.0.3";
+const version = "1.0.4";
 import RemnantDecisionModal from '../settings/RemnantDecisionModal';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import EditTransactionModal from './EditTransactionModal';
@@ -64,7 +64,7 @@ const Dashboard: React.FC = () => {
 
         // 2. Changelog checking
         const lastVersion = localStorage.getItem('pcshogar_last_version');
-        const currentVersion = "1.0.3";
+        const currentVersion = "1.0.4";
         
         if (!lastVersion) {
             const isClean = accounts.length === 0 && cards.length === 0;
@@ -419,7 +419,7 @@ const Dashboard: React.FC = () => {
 
             {showChangelog && (
                 <div className="modal-overlay" onClick={() => {
-                    localStorage.setItem('pcshogar_last_version', '1.0.3');
+                    localStorage.setItem('pcshogar_last_version', '1.0.4');
                     setShowChangelog(false);
                 }}>
                     <div className="modal-container glass-panel" style={{ padding: '2.5rem 2rem', maxWidth: '460px', width: '95%', textAlign: 'center', position: 'relative' }} onClick={e => e.stopPropagation()}>
@@ -437,7 +437,7 @@ const Dashboard: React.FC = () => {
                             <TrendingUp size={36} color="white" />
                         </div>
                         <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem', color: 'white' }}>
-                            ¡Actualizado a la v1.0.3!
+                            ¡Actualizado a la v1.0.4!
                         </h2>
                         <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)', marginBottom: '1.5rem' }}>
                             Resumen de las mejoras y novedades
@@ -458,22 +458,16 @@ const Dashboard: React.FC = () => {
                             marginBottom: '2rem'
                         }}>
                             <div>
-                                <strong style={{ color: '#10b981' }}>🔄 Verificación del Sistema de Actualizaciones:</strong>
+                                <strong style={{ color: '#10b981' }}>💰 Corrección de Ingresos Fijos en Efectivo:</strong>
                                 <div style={{ color: 'rgba(255,255,255,0.6)', marginLeft: '1.2rem', fontSize: '0.82rem' }}>
-                                    Lanzada esta nueva versión v1.0.3 para comprobar el correcto funcionamiento del nuevo enlace directo sin redirecciones CORS.
-                                </div>
-                            </div>
-                            <div>
-                                <strong style={{ color: '#10b981' }}>ℹ️ Aclaración en Web Oficial:</strong>
-                                <div style={{ color: 'rgba(255,255,255,0.6)', marginLeft: '1.2rem', fontSize: '0.82rem' }}>
-                                    Añadida una nota en la cabecera de descargas web para clarificar que las reinstalaciones conservan todos tus datos locales intactos.
+                                    Solucionado el error al registrar un ingreso Fijo directamente como "Recibido" seleccionando "Solo efectivo". Ahora crea correctamente la transacción en el historial, actualiza el saldo disponible y repara automáticamente los datos guardados de forma incorrecta.
                                 </div>
                             </div>
                         </div>
 
                         <button 
                             onClick={() => {
-                                localStorage.setItem('pcshogar_last_version', '1.0.3');
+                                localStorage.setItem('pcshogar_last_version', '1.0.4');
                                 setShowChangelog(false);
                             }}
                             style={{

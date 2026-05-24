@@ -1,5 +1,5 @@
 {
-  "version": "1.0.3",
+  "version": "1.0.4",
   "url": "https://pcshogar.es/",
-  "releaseNotes": "Novedades v1.0.3: Prueba de actualizaciones automáticas y notas aclaratorias en la web de descargas."
+  "releaseNotes": "Novedades v1.0.4: Corrección de error al guardar ingresos fijos marcados como cobrados sin cuenta bancaria (Solo efectivo)."
 }

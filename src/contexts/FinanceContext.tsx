@@ -140,11 +140,53 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
             setTransfers(trns);
             setClosings(clss);
             setOverrides(ovrs);
-            setIncomes(incs);
+
+            // Auto-repair buggy fixed incomes saved as received
+            let activeIncomes = [...incs];
+            let didRepair = false;
+            for (const inc of incs) {
+                if (inc.type === 'fixed' && inc.status === 'received') {
+                    didRepair = true;
+                    const bMonth = inc.budgetMonth ?? new Date().getMonth();
+                    const bYear = inc.budgetYear ?? new Date().getFullYear();
+                    const period = `${bYear}-${(bMonth + 1).toString().padStart(2, '0')}`;
+                    
+                    const repairedFixed: FixedIncome = {
+                        ...inc,
+                        status: 'pending',
+                        ignoredPeriods: [...(inc.ignoredPeriods || []), period],
+                        updatedAt: Date.now()
+                    } as FixedIncome;
+                    await incomeDB.updateIncome(repairedFixed);
+                    
+                    const extraIncome: any = {
+                        id: uuidv4(),
+                        name: inc.name,
+                        amount: inc.amount,
+                        currency: inc.currency || 'EUR',
+                        createdAt: inc.createdAt || Date.now(),
+                        effectiveDate: inc.effectiveDate || inc.createdAt || Date.now(),
+                        linkedAccountId: inc.linkedAccountId || '',
+                        status: 'received',
+                        type: 'extra',
+                        budgetMonth: bMonth,
+                        budgetYear: bYear,
+                        period,
+                        fixedIncomeId: inc.id,
+                        updatedAt: Date.now()
+                    };
+                    await incomeDB.addIncomeWithTransaction(extraIncome);
+                }
+            }
+            if (didRepair) {
+                activeIncomes = await incomeDB.getAllIncomes();
+            }
+
+            setIncomes(activeIncomes);
             
             // Split incomes for convenience
-            setFixedIncomes(incs.filter((i): i is FixedIncome => i.type === 'fixed'));
-            setExtraIncomes(incs.filter(i => i.type === 'extra' || i.type === 'rollover'));
+            setFixedIncomes(activeIncomes.filter((i): i is FixedIncome => i.type === 'fixed'));
+            setExtraIncomes(activeIncomes.filter(i => i.type === 'extra' || i.type === 'rollover'));
 
             // SEEDING: If no categories exist, add default ones
             if (cats.length === 0) {
@@ -378,15 +420,45 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const addFixedIncome = async (data: Omit<FixedIncome, 'id' | 'type' | 'createdAt'>) => {
+        const fixedId = uuidv4();
+        const now = Date.now();
+        const bMonth = data.budgetMonth ?? new Date().getMonth();
+        const bYear = data.budgetYear ?? new Date().getFullYear();
+        const period = `${bYear}-${(bMonth + 1).toString().padStart(2, '0')}`;
+        
+        const isReceived = data.status === 'received';
+        
         const newIncome: FixedIncome = {
             ...data,
-            id: uuidv4(),
+            id: fixedId,
             type: 'fixed',
-            createdAt: Date.now(),
-            updatedAt: Date.now(),
-            status: data.status || 'pending'
+            createdAt: now,
+            updatedAt: now,
+            status: 'pending',
+            ignoredPeriods: isReceived ? [period] : []
         };
         await incomeDB.addIncomeWithTransaction(newIncome);
+        
+        if (isReceived) {
+            const extraIncome: any = {
+                id: uuidv4(),
+                name: data.name,
+                amount: data.amount,
+                currency: data.currency || 'EUR',
+                createdAt: now,
+                effectiveDate: data.effectiveDate || now,
+                linkedAccountId: data.linkedAccountId || '',
+                status: 'received',
+                type: 'extra',
+                budgetMonth: bMonth,
+                budgetYear: bYear,
+                period,
+                fixedIncomeId: fixedId,
+                updatedAt: now
+            };
+            await incomeDB.addIncomeWithTransaction(extraIncome);
+        }
+        
         await refreshFinance();
     };
 

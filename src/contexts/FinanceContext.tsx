@@ -59,7 +59,7 @@ interface FinanceContextType {
     addFixedIncome: (income: Omit<FixedIncome, 'id' | 'type' | 'createdAt'>) => Promise<void>;
     addExtraIncome: (income: Omit<ExtraIncome, 'id' | 'type' | 'createdAt'>) => Promise<void>;
     updateIncome: (income: Income) => Promise<void>;
-    deleteIncome: (id: string) => Promise<void>;
+    deleteIncome: (id: string, restorePending?: boolean) => Promise<void>;
     confirmFixedMovement: (type: 'income' | 'expense', fixedId: string, amount: number, date: number, accountId: string, period: string, description: string, categoryId?: string) => Promise<void>;
     addLoan: (loan: Omit<Loan, 'id'>) => Promise<void>;
     updateAccount: (account: Account) => Promise<void>;
@@ -70,7 +70,8 @@ interface FinanceContextType {
     deleteLoan: (id: string) => Promise<void>;
     deleteAccount: (id: string) => Promise<void>;
     deleteCard: (id: string) => Promise<void>;
-    deleteExpense: (id: string) => Promise<void>;
+    deleteExpense: (id: string, restorePending?: boolean) => Promise<void>;
+    discardFixedMovement: (type: 'income' | 'expense', fixedId: string, period: string) => Promise<void>;
     updateExpense: (expense: Expense) => Promise<void>;
     performTransfer: (fromAccountId: string, toAccountId: string, amount: number, notes?: string) => Promise<void>;
     setMonthOverride: (year: number, month: number, amount: number) => Promise<void>;
@@ -477,9 +478,9 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         await refreshFinance();
     };
 
-    const deleteIncome = async (id: string) => {
+    const deleteIncome = async (id: string, restorePending: boolean = true) => {
         const income = incomes.find(i => i.id === id);
-        if (income && (income as any).fixedIncomeId && income.period) {
+        if (income && (income as any).fixedIncomeId && income.period && restorePending) {
             const fixed = incomes.find(i => i.id === (income as any).fixedIncomeId) as FixedIncome;
             if (fixed) {
                 const ignoredPeriods = (fixed.ignoredPeriods || []).filter(p => p !== income.period);
@@ -489,6 +490,23 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         
         await incomeDB.recordDeletion('incomes', id);
         await incomeDB.deleteIncomeWithTransaction(id);
+        await refreshFinance();
+    };
+
+    const discardFixedMovement = async (type: 'income' | 'expense', fixedId: string, period: string) => {
+        if (type === 'income') {
+            const fixed = incomes.find(i => i.id === fixedId) as FixedIncome;
+            if (fixed) {
+                const ignoredPeriods = [...(fixed.ignoredPeriods || []), period];
+                await incomeDB.updateIncome({ ...fixed, ignoredPeriods, updatedAt: Date.now() } as any);
+            }
+        } else {
+            const rec = recurringExpenses.find(r => r.id === fixedId);
+            if (rec) {
+                const ignoredPeriods = [...(rec.ignoredPeriods || []), period];
+                await incomeDB.updateRecurringExpense({ ...rec, ignoredPeriods, updatedAt: Date.now() });
+            }
+        }
         await refreshFinance();
     };
 
@@ -614,11 +632,11 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         await refreshFinance();
     };
 
-    const deleteExpense = async (id: string) => {
+    const deleteExpense = async (id: string, restorePending: boolean = true) => {
         const expense = expenses.find(e => e.id === id);
         if (!expense) return;
 
-        if (expense.recurringExpenseId && expense.period) {
+        if (expense.recurringExpenseId && expense.period && restorePending) {
             // Restore the fixed movement to "Pending"
             const rec = recurringExpenses.find(r => r.id === expense.recurringExpenseId);
             if (rec) {
@@ -1094,6 +1112,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
             deleteCard,
             deleteExpense,
             updateExpense,
+            discardFixedMovement,
             performTransfer,
             setMonthOverride,
             deleteMonthOverride,

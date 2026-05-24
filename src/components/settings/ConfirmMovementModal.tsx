@@ -13,7 +13,7 @@ interface ConfirmMovementModalProps {
 }
 
 const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item, onClose }) => {
-    const { accounts, confirmFixedMovement } = useFinance();
+    const { accounts, confirmFixedMovement, discardFixedMovement } = useFinance();
     const { showToast } = useToast();
     const [amount, setAmount] = useState(item.amount);
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -65,6 +65,18 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
         } catch (error) {
             console.error("Error confirming movement:", error);
             showToast("Error al confirmar el movimiento.", 'error');
+        }
+    };
+
+    const handleDiscard = async () => {
+        const period = budgetPeriod;
+        try {
+            await discardFixedMovement(type, item.id, period);
+            showToast("Movimiento descartado para este mes.", "success");
+            onClose();
+        } catch (error) {
+            console.error("Error discarding movement:", error);
+            showToast("Error al descartar el movimiento.", "error");
         }
     };
 
@@ -197,41 +209,66 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
                         </p>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1rem' }}>
+                        <div style={{ display: 'flex', gap: '1rem' }}>
+                            <button 
+                                onClick={onClose}
+                                style={{
+                                    flex: 1,
+                                    background: 'rgba(255, 255, 255, 0.05)',
+                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                    padding: '1rem',
+                                    borderRadius: '1rem',
+                                    color: 'white',
+                                    fontWeight: 600,
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Cancelar
+                            </button>
+                            <button 
+                                onClick={handleConfirm}
+                                style={{
+                                    flex: 2,
+                                    background: type === 'income' ? 'var(--color-success)' : 'var(--color-primary)',
+                                    border: 'none',
+                                    padding: '1rem',
+                                    borderRadius: '1rem',
+                                    color: 'white',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '0.5rem',
+                                    boxShadow: '0 4px 15px rgba(0, 0, 0, 0.3)'
+                                }}
+                            >
+                                <Check size={20} /> Confirmar {type === 'income' ? 'Cobro' : 'Pago'}
+                            </button>
+                        </div>
                         <button 
-                            onClick={onClose}
+                            type="button"
+                            onClick={handleDiscard}
                             style={{
-                                flex: 1,
-                                background: 'rgba(255, 255, 255, 0.05)',
-                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                width: '100%',
+                                background: 'rgba(244, 63, 94, 0.12)',
+                                border: '1px solid rgba(244, 63, 94, 0.2)',
                                 padding: '1rem',
                                 borderRadius: '1rem',
-                                color: 'white',
-                                fontWeight: 600,
-                                cursor: 'pointer'
-                            }}
-                        >
-                            Cancelar
-                        </button>
-                        <button 
-                            onClick={handleConfirm}
-                            style={{
-                                flex: 2,
-                                background: type === 'income' ? 'var(--color-success)' : 'var(--color-primary)',
-                                border: 'none',
-                                padding: '1rem',
-                                borderRadius: '1rem',
-                                color: 'white',
+                                color: '#fb7185',
                                 fontWeight: 700,
                                 cursor: 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 gap: '0.5rem',
-                                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.3)'
+                                transition: 'all 0.2s'
                             }}
+                            onMouseOver={e => e.currentTarget.style.background = 'rgba(244, 63, 94, 0.22)'}
+                            onMouseOut={e => e.currentTarget.style.background = 'rgba(244, 63, 94, 0.12)'}
                         >
-                            <Check size={20} /> Confirmar {type === 'income' ? 'Cobro' : 'Pago'}
+                            Descartar este mes
                         </button>
                     </div>
                 </div>

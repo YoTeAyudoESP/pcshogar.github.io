@@ -13,6 +13,10 @@ const IncomeList: React.FC<IncomeListProps> = ({ onEdit }) => {
     const { extraIncomes, deleteIncome, accounts } = useFinance();
     const { selectedMonth, selectedYear } = useDateSelection();
     const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
+    const [deleteModal, setDeleteModal] = useState<{
+        show: boolean;
+        income: any | null;
+    }>({ show: false, income: null });
 
     const isItemInSelectedMonth = (item: any) => {
         if (item.budgetMonth !== undefined && item.budgetYear !== undefined) {
@@ -195,7 +199,7 @@ const IncomeList: React.FC<IncomeListProps> = ({ onEdit }) => {
                                                     <Pencil size={12} />
                                                 </button>
                                                 <button 
-                                                    onClick={() => { if(window.confirm('¿Seguro que quieres eliminar este ingreso?')) deleteIncome(income.id); }}
+                                                    onClick={() => setDeleteModal({ show: true, income })}
                                                     style={{ 
                                                         width: '28px', 
                                                         height: '28px', 
@@ -220,6 +224,146 @@ const IncomeList: React.FC<IncomeListProps> = ({ onEdit }) => {
                     </div>
                 );
             })}
+
+            {/* Custom Delete Confirmation Modal */}
+            {deleteModal.show && deleteModal.income && (
+                <div className="modal-overlay" onClick={() => setDeleteModal({ show: false, income: null })}>
+                    <div 
+                        className="modal-container glass-panel" 
+                        style={{ padding: '2rem', maxWidth: '400px', width: '90%', textAlign: 'center', background: '#12141c' }}
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div style={{
+                            width: '50px',
+                            height: '50px',
+                            borderRadius: '50%',
+                            background: 'rgba(244, 63, 94, 0.15)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#f43f5e',
+                            margin: '0 auto 1.5rem auto'
+                        }}>
+                            <Trash2 size={24} />
+                        </div>
+
+                        <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'white', margin: '0 0 0.75rem 0' }}>
+                            ¿Eliminar Ingreso?
+                        </h3>
+                        
+                        <div style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)', lineHeight: '1.4', margin: '0 0 1.5rem 0' }}>
+                            {deleteModal.income.fixedIncomeId ? (
+                                <div>
+                                    Este ingreso de <strong>{formatMoney(deleteModal.income.amount)}</strong> proviene del ingreso fijo <strong>"{deleteModal.income.name}"</strong>.<br/><br/>
+                                    ¿Cómo deseas proceder para este mes?
+                                </div>
+                            ) : (
+                                <div>
+                                    ¿Seguro que deseas eliminar el ingreso <strong>"{deleteModal.income.name}"</strong> por importe de <strong>{formatMoney(deleteModal.income.amount)}</strong>?
+                                </div>
+                            )}
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            {deleteModal.income.fixedIncomeId ? (
+                                <>
+                                    <button
+                                        onClick={async () => {
+                                            if (deleteModal.income) {
+                                                await deleteIncome(deleteModal.income.id, true);
+                                                setDeleteModal({ show: false, income: null });
+                                            }
+                                        }}
+                                        style={{
+                                            width: '100%',
+                                            background: 'rgba(99, 102, 241, 0.15)',
+                                            border: '1px solid rgba(99, 102, 241, 0.25)',
+                                            padding: '1rem',
+                                            borderRadius: '1rem',
+                                            color: '#818cf8',
+                                            fontWeight: 700,
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s'
+                                        }}
+                                        onMouseOver={e => e.currentTarget.style.background = 'rgba(99, 102, 241, 0.25)'}
+                                        onMouseOut={e => e.currentTarget.style.background = 'rgba(99, 102, 241, 0.15)'}
+                                    >
+                                        Volver a poner como PENDIENTE
+                                    </button>
+                                    <button
+                                        onClick={async () => {
+                                            if (deleteModal.income) {
+                                                await deleteIncome(deleteModal.income.id, false);
+                                                setDeleteModal({ show: false, income: null });
+                                            }
+                                        }}
+                                        style={{
+                                            width: '100%',
+                                            background: '#f43f5e',
+                                            border: 'none',
+                                            padding: '1rem',
+                                            borderRadius: '1rem',
+                                            color: 'white',
+                                            fontWeight: 700,
+                                            cursor: 'pointer',
+                                            boxShadow: '0 4px 15px rgba(244, 63, 94, 0.3)',
+                                            transition: 'all 0.2s'
+                                        }}
+                                        onMouseOver={e => e.currentTarget.style.background = '#e11d48'}
+                                        onMouseOut={e => e.currentTarget.style.background = '#f43f5e'}
+                                    >
+                                        DESCARTAR por completo
+                                    </button>
+                                </>
+                            ) : (
+                                <button
+                                    onClick={async () => {
+                                        if (deleteModal.income) {
+                                            await deleteIncome(deleteModal.income.id);
+                                            setDeleteModal({ show: false, income: null });
+                                        }
+                                    }}
+                                    style={{
+                                        width: '100%',
+                                        background: '#f43f5e',
+                                        border: 'none',
+                                        padding: '1rem',
+                                        borderRadius: '1rem',
+                                        color: 'white',
+                                        fontWeight: 700,
+                                        cursor: 'pointer',
+                                        boxShadow: '0 4px 15px rgba(244, 63, 94, 0.3)',
+                                        transition: 'all 0.2s'
+                                    }}
+                                    onMouseOver={e => e.currentTarget.style.background = '#e11d48'}
+                                    onMouseOut={e => e.currentTarget.style.background = '#f43f5e'}
+                                >
+                                    Eliminar ingreso
+                                </button>
+                            )}
+                            
+                            <button
+                                onClick={() => setDeleteModal({ show: false, income: null })}
+                                style={{
+                                    width: '100%',
+                                    background: 'rgba(255, 255, 255, 0.05)',
+                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                    padding: '1rem',
+                                    borderRadius: '1rem',
+                                    color: 'white',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s'
+                                }}
+                                onMouseOver={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
+                                onMouseOut={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'}
+                            >
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

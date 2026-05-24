@@ -1,5 +1,5 @@
 {
-  "version": "1.0.4",
+  "version": "1.0.5",
   "url": "https://pcshogar.es/",
-  "releaseNotes": "Novedades v1.0.4: Corrección de error al guardar ingresos fijos marcados como cobrados sin cuenta bancaria (Solo efectivo)."
+  "releaseNotes": "Novedades v1.0.5: Permite descartar movimientos fijos pendientes en el mes y elegir si restablecer a pendiente o descartar por completo al eliminar un movimiento confirmado."
 }

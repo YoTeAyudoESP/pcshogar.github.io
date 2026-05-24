@@ -14,7 +14,7 @@ import DateSelector from '../common/DateSelector';
 import { LayoutDashboard, Settings as SettingsIcon, X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, MinusCircle, PiggyBank, ArrowLeftRight, AlertCircle, Mail, Heart } from 'lucide-react';
 
 import { useFinance } from '../../contexts/FinanceContext';
-const version = "1.0.4";
+const version = "1.0.5";
 import RemnantDecisionModal from '../settings/RemnantDecisionModal';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import EditTransactionModal from './EditTransactionModal';
@@ -64,7 +64,7 @@ const Dashboard: React.FC = () => {
 
         // 2. Changelog checking
         const lastVersion = localStorage.getItem('pcshogar_last_version');
-        const currentVersion = "1.0.4";
+        const currentVersion = "1.0.5";
         
         if (!lastVersion) {
             const isClean = accounts.length === 0 && cards.length === 0;
@@ -419,7 +419,7 @@ const Dashboard: React.FC = () => {
 
             {showChangelog && (
                 <div className="modal-overlay" onClick={() => {
-                    localStorage.setItem('pcshogar_last_version', '1.0.4');
+                    localStorage.setItem('pcshogar_last_version', '1.0.5');
                     setShowChangelog(false);
                 }}>
                     <div className="modal-container glass-panel" style={{ padding: '2.5rem 2rem', maxWidth: '460px', width: '95%', textAlign: 'center', position: 'relative' }} onClick={e => e.stopPropagation()}>
@@ -437,7 +437,7 @@ const Dashboard: React.FC = () => {
                             <TrendingUp size={36} color="white" />
                         </div>
                         <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem', color: 'white' }}>
-                            ¡Actualizado a la v1.0.4!
+                            ¡Actualizado a la v1.0.5!
                         </h2>
                         <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)', marginBottom: '1.5rem' }}>
                             Resumen de las mejoras y novedades
@@ -458,16 +458,28 @@ const Dashboard: React.FC = () => {
                             marginBottom: '2rem'
                         }}>
                             <div>
-                                <strong style={{ color: '#10b981' }}>💰 Corrección de Ingresos Fijos en Efectivo:</strong>
+                                <strong style={{ color: '#10b981' }}>🗑️ Opciones de Eliminación Avanzadas:</strong>
                                 <div style={{ color: 'rgba(255,255,255,0.6)', marginLeft: '1.2rem', fontSize: '0.82rem' }}>
-                                    Solucionado el error al registrar un ingreso Fijo directamente como "Recibido" seleccionando "Solo efectivo". Ahora crea correctamente la transacción en el historial, actualiza el saldo disponible y repara automáticamente los datos guardados de forma incorrecta.
+                                    Al eliminar un ingreso o gasto que venga de una plantilla fija, ahora podrás elegir si deseas volver a ponerlo como "Pendiente" o "Descartarlo por completo" para ese mes.
+                                </div>
+                            </div>
+                            <div>
+                                <strong style={{ color: '#818cf8' }}>🛑 Descarte de Pendientes:</strong>
+                                <div style={{ color: 'rgba(255,255,255,0.6)', marginLeft: '1.2rem', fontSize: '0.82rem' }}>
+                                    Añadida la opción para "Descartar este mes" directamente desde los movimientos pendientes de confirmar, evitando que sigan proyectados en tu disponible.
+                                </div>
+                            </div>
+                            <div>
+                                <strong style={{ color: '#f43f5e' }}>✨ Modales Premium:</strong>
+                                <div style={{ color: 'rgba(255,255,255,0.6)', marginLeft: '1.2rem', fontSize: '0.82rem' }}>
+                                    Reemplazados los avisos simples del navegador por cuadros de diálogo modernos y fluidos para confirmar eliminaciones de forma segura.
                                 </div>
                             </div>
                         </div>
 
                         <button 
                             onClick={() => {
-                                localStorage.setItem('pcshogar_last_version', '1.0.4');
+                                localStorage.setItem('pcshogar_last_version', '1.0.5');
                                 setShowChangelog(false);
                             }}
                             style={{

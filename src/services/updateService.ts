@@ -26,8 +26,8 @@ export const UpdateService = {
             const downloadUrl = data.url;
             const releaseNotes = data.releaseNotes;
 
-            // Get current local version from Capacitor
-            let currentVersion = '0.11.9'; // Fallback corresponding to current build version
+            // Get current local version from Capacitor/Electron
+            let currentVersion = '1.0.1'; // Fallback corresponding to current build version
             if (Capacitor.isNativePlatform()) {
                 const info = await App.getInfo();
                 currentVersion = info.version;

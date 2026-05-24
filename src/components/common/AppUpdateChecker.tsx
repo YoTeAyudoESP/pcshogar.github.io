@@ -9,8 +9,9 @@ const AppUpdateChecker: React.FC = () => {
     const [showModal, setShowModal] = useState(false);
 
     useEffect(() => {
-        // Automatically check for updates on startup only if running natively (Android app)
-        if (Capacitor.isNativePlatform()) {
+        // Automatically check for updates on startup if running natively (Android app) or in Electron (Windows app)
+        const isElectron = !!(window as any).require;
+        if (Capacitor.isNativePlatform() || isElectron) {
             UpdateService.checkUpdate()
                 .then(info => {
                     if (info.hasUpdate) {
@@ -20,7 +21,7 @@ const AppUpdateChecker: React.FC = () => {
                 })
                 .catch(err => {
                     // Fail silently in the background when offline or on network error
-                    console.log('Update auto-check skipped (offline/error)');
+                    console.log('Update auto-check skipped (offline/error)', err);
                 });
         }
     }, []);

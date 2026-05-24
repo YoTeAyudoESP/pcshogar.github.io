@@ -14,7 +14,7 @@ import DateSelector from '../common/DateSelector';
 import { LayoutDashboard, Settings as SettingsIcon, X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, MinusCircle, PiggyBank, ArrowLeftRight, AlertCircle, Mail, Heart } from 'lucide-react';
 
 import { useFinance } from '../../contexts/FinanceContext';
-const version = "1.0.1";
+const version = "1.0.2";
 import RemnantDecisionModal from '../settings/RemnantDecisionModal';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import EditTransactionModal from './EditTransactionModal';
@@ -64,7 +64,7 @@ const Dashboard: React.FC = () => {
 
         // 2. Changelog checking
         const lastVersion = localStorage.getItem('pcshogar_last_version');
-        const currentVersion = "1.0.1";
+        const currentVersion = "1.0.2";
         
         if (!lastVersion) {
             const isClean = accounts.length === 0 && cards.length === 0;
@@ -419,7 +419,7 @@ const Dashboard: React.FC = () => {
 
             {showChangelog && (
                 <div className="modal-overlay" onClick={() => {
-                    localStorage.setItem('pcshogar_last_version', '1.0.1');
+                    localStorage.setItem('pcshogar_last_version', '1.0.2');
                     setShowChangelog(false);
                 }}>
                     <div className="modal-container glass-panel" style={{ padding: '2.5rem 2rem', maxWidth: '460px', width: '95%', textAlign: 'center', position: 'relative' }} onClick={e => e.stopPropagation()}>
@@ -437,7 +437,7 @@ const Dashboard: React.FC = () => {
                             <TrendingUp size={36} color="white" />
                         </div>
                         <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem', color: 'white' }}>
-                            ¡Actualizado a la v1.0.1!
+                            ¡Actualizado a la v1.0.2!
                         </h2>
                         <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)', marginBottom: '1.5rem' }}>
                             Resumen de las mejoras y novedades
@@ -458,34 +458,28 @@ const Dashboard: React.FC = () => {
                             marginBottom: '2rem'
                         }}>
                             <div>
-                                <strong style={{ color: '#10b981' }}>🔄 Traspaso Rápido de Saldo:</strong>
+                                <strong style={{ color: '#10b981' }}>🛡️ Compromiso de Privacidad:</strong>
                                 <div style={{ color: 'rgba(255,255,255,0.6)', marginLeft: '1.2rem', fontSize: '0.82rem' }}>
-                                    El botón "Traspaso" en el Dashboard ahora abre un modal para mover dinero directamente entre tus cuentas y tarjetas monedero sin afectar al disponible del mes.
+                                    Añadido un modal obligatorio en el primer inicio que expone de forma clara la gratuidad de la app y la ausencia de recopilación de tus datos.
                                 </div>
                             </div>
                             <div>
-                                <strong style={{ color: '#10b981' }}>💳 Tarjetas Virtuales / Monedero:</strong>
+                                <strong style={{ color: '#10b981' }}>📊 Analíticas Web de Descargas:</strong>
                                 <div style={{ color: 'rgba(255,255,255,0.6)', marginLeft: '1.2rem', fontSize: '0.82rem' }}>
-                                    Añade tarjetas monedero independientes, define su saldo inicial y realiza gastos que descuentan dinero al instante de forma directa de su propio saldo.
+                                    Implementado un sistema de medición web respetuoso con tu privacidad para conocer el número de descargas y uso de la web sin incluir rastreadores dentro de la app.
                                 </div>
                             </div>
                             <div>
-                                <strong style={{ color: '#10b981' }}>💬 Enlaces y Contacto:</strong>
+                                <strong style={{ color: '#10b981' }}>🔗 Enlaces Dinámicos:</strong>
                                 <div style={{ color: 'rgba(255,255,255,0.6)', marginLeft: '1.2rem', fontSize: '0.82rem' }}>
-                                    Arreglados y cableados los botones de sugerencias y aportaciones voluntarias (PayPal) en la sección "Acerca de" para soporte del proyecto.
-                                </div>
-                            </div>
-                            <div>
-                                <strong style={{ color: '#10b981' }}>📐 Ajustes y Pestañas:</strong>
-                                <div style={{ color: 'rgba(255,255,255,0.6)', marginLeft: '1.2rem', fontSize: '0.82rem' }}>
-                                    Intercambiada la posición de las pestañas "Ajustes saldo" y "Categorías" para una navegación más cómoda.
+                                    Optimizada la web oficial de descargas para dinamizar todos los enlaces relativos a Windows y Android según la última versión disponible.
                                 </div>
                             </div>
                         </div>
 
                         <button 
                             onClick={() => {
-                                localStorage.setItem('pcshogar_last_version', '1.0.1');
+                                localStorage.setItem('pcshogar_last_version', '1.0.2');
                                 setShowChangelog(false);
                             }}
                             style={{

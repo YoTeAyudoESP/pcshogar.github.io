@@ -1,7 +1,7 @@
 import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 
-const UPDATE_JSON_URL = 'https://yoteayudoesp.github.io/pcshogar.github.io/version.json';
+const UPDATE_JSON_URL = 'https://pcshogar.es/version.json';
 
 export interface UpdateInfo {
     hasUpdate: boolean;

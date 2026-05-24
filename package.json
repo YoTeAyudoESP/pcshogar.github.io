@@ -1,9 +1,9 @@
 {
   "name": "pcshogar",
   "private": true,
-  "version": "1.0.2",
-  "versionCode": 122,
-  "versionName": "1.0.2",
+  "version": "1.0.3",
+  "versionCode": 123,
+  "versionName": "1.0.3",
   "type": "module",
   "main": "electron/main.js",
   "build": {

@@ -372,7 +372,33 @@ const AppSettingsView: React.FC = () => {
                                         <button 
                                             onClick={() => {
                                                 const url = DropboxService.getAuthUrl();
-                                                window.location.href = url;
+                                                const isElectron = !!(window as any).require;
+                                                if (isElectron) {
+                                                    const { ipcRenderer } = (window as any).require('electron');
+                                                    showToast('Abriendo ventana de autenticación...', 'info');
+                                                    ipcRenderer.invoke('connect-dropbox', url)
+                                                        .then((token: string) => {
+                                                            DropboxService.init(token, settings.sync.dropboxPath);
+                                                            DropboxService.getUserInfo().then(user => {
+                                                                updateSyncSettings({
+                                                                    dropboxToken: token,
+                                                                    dropboxUserEmail: user.email,
+                                                                    enabled: true,
+                                                                    type: 'dropbox'
+                                                                });
+                                                                showToast(`Dropbox conectado con éxito: ${user.email}`, 'success');
+                                                            }).catch(err => {
+                                                                console.error("Error fetching dropbox user", err);
+                                                                showToast("Error al conectar con Dropbox.", 'error');
+                                                            });
+                                                        })
+                                                        .catch((err: any) => {
+                                                            console.error("Dropbox auth failed", err);
+                                                            showToast("Autenticación cancelada o fallida.", 'error');
+                                                        });
+                                                } else {
+                                                    window.location.href = url;
+                                                }
                                             }}
                                             style={{ background: '#0061FF', color: 'white', border: 'none', padding: '0.5rem 1.25rem', borderRadius: '0.5rem', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 700 }}
                                         >

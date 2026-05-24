@@ -39,6 +39,53 @@ function createWindow() {
         }
     });
 
+    // IPC: connect with Dropbox in an overlay window and intercept the token redirect
+    ipcMain.handle('connect-dropbox', async (_event, authUrl) => {
+        return new Promise((resolve, reject) => {
+            const authWindow = new BrowserWindow({
+                width: 600,
+                height: 700,
+                show: true,
+                webPreferences: {
+                    nodeIntegration: false,
+                    contextIsolation: true,
+                },
+            });
+
+            authWindow.loadURL(authUrl);
+
+            const handleCallback = (url) => {
+                if (url.includes('access_token=')) {
+                    try {
+                        const hashPart = url.split('#')[1];
+                        const params = new URLSearchParams(hashPart);
+                        const token = params.get('access_token');
+                        if (token) {
+                            resolve(token);
+                        } else {
+                            reject(new Error('No se pudo encontrar el token de acceso.'));
+                        }
+                    } catch (err) {
+                        reject(err);
+                    }
+                    authWindow.destroy();
+                }
+            };
+
+            authWindow.webContents.on('will-navigate', (_e, url) => {
+                handleCallback(url);
+            });
+
+            authWindow.webContents.on('did-redirect-navigation', (_e, url) => {
+                handleCallback(url);
+            });
+
+            authWindow.on('closed', () => {
+                reject(new Error('Ventana de autenticación cerrada por el usuario.'));
+            });
+        });
+    });
+
     if (process.env.VITE_DEV_SERVER_URL) {
         win.loadURL(process.env.VITE_DEV_SERVER_URL);
     } else {

@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useAppSettings } from '../../contexts/AppSettingsContext';
 import { DropboxService } from '../../services/dropboxService';
 import { Cloud, ArrowRight, AlertCircle } from 'lucide-react';
+import { useToast } from '../../contexts/ToastContext';
 
 const DropboxStartupChecker: React.FC = () => {
-    const { settings } = useAppSettings();
+    const { settings, updateSyncSettings } = useAppSettings();
+    const { showToast } = useToast();
     const [showModal, setShowModal] = useState(false);
 
     useEffect(() => {
@@ -39,7 +41,34 @@ const DropboxStartupChecker: React.FC = () => {
 
     const handleConnect = () => {
         const url = DropboxService.getAuthUrl();
-        window.location.href = url;
+        const isElectron = !!(window as any).require;
+        if (isElectron) {
+            const { ipcRenderer } = (window as any).require('electron');
+            showToast('Abriendo ventana de autenticación...', 'info');
+            ipcRenderer.invoke('connect-dropbox', url)
+                .then((token: string) => {
+                    DropboxService.init(token, settings.sync.dropboxPath);
+                    DropboxService.getUserInfo().then(user => {
+                        updateSyncSettings({
+                            dropboxToken: token,
+                            dropboxUserEmail: user.email,
+                            enabled: true,
+                            type: 'dropbox'
+                        });
+                        setShowModal(false);
+                        showToast(`Dropbox conectado con éxito: ${user.email}`, 'success');
+                    }).catch(err => {
+                        console.error("Error fetching dropbox user", err);
+                        showToast("Error al conectar con Dropbox.", 'error');
+                    });
+                })
+                .catch((err: any) => {
+                    console.error("Dropbox auth failed", err);
+                    showToast("Autenticación cancelada o fallida.", 'error');
+                });
+        } else {
+            window.location.href = url;
+        }
     };
 
     const handleClose = () => {

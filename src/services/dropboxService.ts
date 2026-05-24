@@ -15,9 +15,17 @@ export class DropboxService {
     static getAuthUrl() {
         // Detect if we are on a real mobile device or emulator via Capacitor
         const isMobile = window.location.origin.includes('localhost') && !window.location.port;
-        const redirectUri = isMobile 
-            ? 'com.pcshogar.app://auth/dropbox' 
-            : window.location.origin + '/auth/dropbox';
+        
+        let redirectUri = '';
+        if (isMobile) {
+            redirectUri = 'com.pcshogar.app://auth/dropbox';
+        } else if (window.location.origin.startsWith('file://')) {
+            // Electron production
+            redirectUri = 'https://yoteayudoesp.github.io/pcshogar.github.io/app/';
+        } else {
+            // Web production (https://yoteayudoesp.github.io/pcshogar.github.io/app/) or dev (http://localhost:5173/)
+            redirectUri = window.location.origin + window.location.pathname;
+        }
             
         return `https://www.dropbox.com/oauth2/authorize?client_id=${DROPBOX_CLIENT_ID}&response_type=token&redirect_uri=${encodeURIComponent(redirectUri)}`;
     }

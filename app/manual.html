@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual de Usuario - PCS Hogar</title>
+    <!-- Google Fonts se carga si hay internet, con fallback a fuentes del sistema si no -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" onerror="this.remove()">
+    <style>
+        :root {
+            --bg-main: #0b0c10;
+            --bg-panel: rgba(22, 24, 33, 0.7);
+            --bg-sidebar: rgba(15, 16, 22, 0.95);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(255, 255, 255, 0.15);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.15);
+            --secondary: #ec4899;
+            --accent-green: #10b981;
+            --accent-yellow: #f59e0b;
+            --accent-blue: #3b82f6;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Back-to-app floating button */
+        .back-btn {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.45);
+            transition: var(--transition);
+            text-decoration: none;
+        }
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(99, 102, 241, 0.6);
+        }
+        .back-btn:active {
+            transform: translateY(0);
+        }
+        @media (max-width: 768px) {
+            .back-btn {
+                bottom: 1rem;
+                right: 1rem;
+                padding: 0.65rem 1rem;
+                font-size: 0.875rem;
+            }
+        }
+
+        /* Sidebar Navigation */
+        aside {
+            width: 280px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 1.5rem;
+            backdrop-filter: blur(20px);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2.5rem;
+            padding-left: 0.5rem;
+        }
+
+        .logo-icon {
+            color: var(--primary);
+            filter: drop-shadow(0 0 8px var(--primary));
+        }
+
+        .logo-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 30%, #8b5cf6 90%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-menu {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            overflow-y: auto;
+            flex: 1;
+            padding-right: 0.25rem;
+        }
+
+        .nav-menu::-webkit-scrollbar {
+            width: 4px;
+        }
+        .nav-menu::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        .nav-item a {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: var(--transition);
+            border: 1px solid transparent;
+        }
+
+        .nav-item a:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.03);
+            border-color: var(--border-color);
+        }
+
+        .nav-item.active a {
+            color: #fff;
+            background: var(--primary-glow);
+            border-color: rgba(99, 102, 241, 0.3);
+            font-weight: 600;
+        }
+
+        .nav-section-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin: 1.5rem 0 0.5rem 0.5rem;
+            font-weight: 700;
+        }
+
+        /* Main Content */
+        main {
+            margin-left: 280px;
+            flex: 1;
+            padding: 3rem 4rem;
+            max-width: 1000px;
+        }
+
+        header {
+            margin-bottom: 4rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 2rem;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        section {
+            margin-bottom: 5rem;
+            scroll-margin-top: 2rem;
+        }
+
+        h1 {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        h2::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 1.5rem;
+            background: var(--primary);
+            border-radius: 2px;
+            box-shadow: 0 0 8px var(--primary);
+        }
+
+        h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 2rem 0 1rem 0;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        p {
+            font-size: 1rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            line-height: 1.7;
+        }
+
+        strong {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        /* UI elements matching app styling */
+        .glass-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+            transition: var(--transition);
+        }
+
+        .glass-card:hover {
+            border-color: var(--border-hover);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .alert-box {
+            background: rgba(245, 158, 11, 0.08);
+            border: 1px solid rgba(245, 158, 11, 0.25);
+            border-radius: var(--radius-md);
+            padding: 1.25rem 1.5rem;
+            margin: 1.5rem 0;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .alert-box.info {
+            background: rgba(99, 102, 241, 0.08);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+        }
+
+        .alert-box.success {
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+        }
+
+        .alert-icon {
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .alert-content p {
+            margin: 0;
+            font-size: 0.95rem;
+            color: var(--text-main);
+        }
+
+        /* Buttons representations */
+        .btn-rep {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            vertical-align: middle;
+            margin: 0 0.2rem;
+        }
+
+        .btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+        .btn-secondary { background: var(--secondary); }
+        .btn-green { background: var(--accent-green); }
+        .btn-yellow { background: var(--accent-yellow); }
+        .btn-blue { background: var(--accent-blue); }
+        .btn-gray { background: rgba(255,255,255,0.08); border: 1px solid var(--border-color); }
+        .btn-danger { background: #ef4444; }
+
+        /* Diagrams and illustrations */
+        .diagram-container {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px dashed var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 2rem;
+            margin: 2rem 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .diagram-svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* Tables styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            font-size: 0.95rem;
+        }
+
+        th, td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            font-weight: 700;
+            color: #fff;
+            background: rgba(255,255,255,0.02);
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            aside {
+                width: 100%;
+                position: relative;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                padding: 1.5rem;
+            }
+            main {
+                margin-left: 0;
+                padding: 2rem 1.5rem;
+            }
+            .logo-container {
+                margin-bottom: 1.5rem;
+            }
+            .nav-menu {
+                flex-direction: row;
+                overflow-x: auto;
+                padding-bottom: 0.5rem;
+                gap: 1rem;
+            }
+            .nav-item a {
+                white-space: nowrap;
+                padding: 0.5rem 0.75rem;
+            }
+            .nav-section-title {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Floating back button - visible at all times -->
+    <button class="back-btn" onclick="history.length > 1 ? history.back() : (window.location.href = '/')" title="Volver a PCS Hogar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+        Volver a la App
+    </button>
+
+    <!-- Sidebar Navigation -->
+    <aside>
+        <div class="logo-container">
+            <svg class="logo-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <span class="logo-title">PCS Hogar</span>
+        </div>
+        
+        <ul class="nav-menu">
+            <li class="nav-item active"><a href="#intro">Introducción</a></li>
+            
+            <li class="nav-section-title">Manual de Uso</li>
+            <li class="nav-item"><a href="#dashboard">1. Dashboard</a></li>
+            <li class="nav-item"><a href="#cuentas">2. Cuentas y Tarjetas</a></li>
+            <li class="nav-item"><a href="#huchas">3. Huchas de Ahorro</a></li>
+            <li class="nav-item"><a href="#prestamos">4. Préstamos</a></li>
+            <li class="nav-item"><a href="#ajustes">5. Ajustes y Dropbox</a></li>
+            
+            <li class="nav-section-title">Eventos Críticos</li>
+            <li class="nav-item"><a href="#cierre-mes">Cierre de Mes</a></li>
+            <li class="nav-item"><a href="#tarjetas-liq">Liquidación de Tarjetas</a></li>
+        </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main>
+        <header>
+            <h1>Manual del Usuario - PCS Hogar</h1>
+            <p class="subtitle">Guía de uso detallada para la gestión financiera de tu hogar</p>
+        </header>
+
+        <!-- INTRO -->
+        <section id="intro">
+            <h2>Introducción y Propósito</h2>
+            <div class="glass-card">
+                <p><strong>PCS Hogar</strong> es una aplicación independiente de finanzas personales diseñada específicamente para la gestión de la economía doméstica. Su propósito principal es otorgar al usuario un <strong>control financiero total</strong>, libre de la complejidad habitual de las hojas de cálculo y la publicidad intrusiva.</p>
+                <p>Nuestra filosofía es clara:</p>
+                <div class="alert-box success">
+                    <span class="alert-icon">🎁</span>
+                    <div class="alert-content">
+                        <p><strong>PCS Hogar es 100% gratuita, libre de anuncios y sin fines de lucro.</strong> No recopila tus datos personales ni los comparte con terceros. Tu base de datos es exclusivamente tuya y se almacena de forma local o en tu propio espacio personal de Dropbox.</p>
+                    </div>
+                </div>
+                <h3>¿Por qué se recomienda su uso en los hogares?</h3>
+                <p>A diferencia de los bancos, que solo te muestran lo que has gastado en el pasado, PCS Hogar te ayuda a <strong>planificar de forma realista</strong> cuánto dinero tienes *realmente disponible* para gastar este mes tras reservar los ahorros automáticos, pagar los préstamos y prever los cargos de las tarjetas de crédito.</p>
+            </div>
+
+            <div class="diagram-container">
+                <svg class="diagram-svg" width="600" height="240" viewBox="0 0 600 240" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Background Grid -->
+                    <rect width="600" height="240" rx="12" fill="rgba(255,255,255,0.02)"/>
+                    <line x1="50" y1="120" x2="550" y2="120" stroke="rgba(255,255,255,0.1)" stroke-dasharray="4 4" />
+                    
+                    <!-- Nodes -->
+                    <!-- Input Node (Ingresos) -->
+                    <rect x="30" y="80" width="110" height="80" rx="8" fill="rgba(16, 185, 129, 0.15)" stroke="#10b981" stroke-width="2"/>
+                    <text x="85" y="115" font-family="'Outfit', sans-serif" font-size="14" fill="#fff" font-weight="700" text-anchor="middle">INGRESOS</text>
+                    <text x="85" y="135" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" fill="#9ca3af" text-anchor="middle">Nóminas / Extras</text>
+                    
+                    <!-- Core Logic Node (Dinero Disponible) -->
+                    <rect x="220" y="70" width="160" height="100" rx="8" fill="rgba(99, 102, 241, 0.15)" stroke="#6366f1" stroke-width="2"/>
+                    <text x="300" y="110" font-family="'Outfit', sans-serif" font-size="14" fill="#fff" font-weight="700" text-anchor="middle">DISPONIBLE</text>
+                    <text x="300" y="130" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" fill="#9ca3af" text-anchor="middle">Presupuesto del mes</text>
+                    <text x="300" y="150" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" fill="#a5b4fc" text-anchor="middle">Cuentas - Ahorros - Préstamos</text>
+
+                    <!-- Outputs -->
+                    <!-- Huchas -->
+                    <rect x="460" y="20" width="110" height="60" rx="8" fill="rgba(245, 158, 11, 0.15)" stroke="#f59e0b" stroke-width="2"/>
+                    <text x="515" y="55" font-family="'Outfit', sans-serif" font-size="13" fill="#fff" font-weight="700" text-anchor="middle">HUCHAS</text>
+                    
+                    <!-- Gastos -->
+                    <rect x="460" y="160" width="110" height="60" rx="8" fill="rgba(236, 72, 153, 0.15)" stroke="#ec4899" stroke-width="2"/>
+                    <text x="515" y="195" font-family="'Outfit', sans-serif" font-size="13" fill="#fff" font-weight="700" text-anchor="middle">GASTOS</text>
+                    
+                    <!-- Arrows -->
+                    <!-- Green Income -> Available -->
+                    <path d="M 140 120 L 220 120" stroke="#10b981" stroke-width="2" fill="none"/>
+                    <polygon points="220,120 210,115 210,125" fill="#10b981"/>
+                    
+                    <!-- Available -> Savings (Orange) -->
+                    <path d="M 380 100 Q 420 80 460 60" stroke="#f59e0b" stroke-width="2" fill="none"/>
+                    <polygon points="460,60 449,60 454,69" fill="#f59e0b"/>
+                    
+                    <!-- Available -> Expenses (Pink) -->
+                    <path d="M 380 140 Q 420 160 460 180" stroke="#ec4899" stroke-width="2" fill="none"/>
+                    <polygon points="460,180 454,171 449,180" fill="#ec4899"/>
+                </svg>
+            </div>
+        </section>
+
+        <!-- DASHBOARD -->
+        <section id="dashboard">
+            <h2>1. Dashboard (Panel Principal)</h2>
+            <div class="glass-card">
+                <p>El <strong>Dashboard</strong> es tu centro neurálgico. Nada más abrir la aplicación, te ofrece un diagnóstico rápido del estado de tu economía doméstica para el mes seleccionado.</p>
+                
+                <h3>Sección de Resumen (Tarjetas Superiores)</h3>
+                <ul>
+                    <li><strong>Disponible</strong>: Muestra la cantidad neta que tienes libre para gastar. Se calcula sumando los saldos de tus cuentas principales y restando los gastos previstos y el dinero reservado en huchas virtuales.</li>
+                    <li><strong>Cuentas</strong>: La suma del balance de tus cuentas marcadas como efectivo o cuentas corrientes.</li>
+                    <li><strong>Huchas</strong>: El saldo total que tienes ahorrado en todas tus huchas en este momento.</li>
+                    <li><strong>Pendiente de Pago</strong>: Total de gastos previstos que todavía no han sido cobrados.</li>
+                </ul>
+
+                <h3>Historial de Movimientos Recientes</h3>
+                <p>Muestra los últimos ingresos y gastos realizados en el mes. Cada apunte contiene información de la fecha, descripción, importe y método de pago utilizado.</p>
+                <div class="alert-box info">
+                    <span class="alert-icon">💡</span>
+                    <div class="alert-content">
+                        <p><strong>Interactividad de la lista:</strong> Pulsa sobre cualquier ingreso o gasto en el Dashboard para desplegar sus detalles (cuenta origen, categoría, tipo de gasto). Al hacerlo, se mostrarán dos botones de acción rápida: <span class="btn-rep btn-yellow">Editar</span> y <span class="btn-rep btn-danger">Eliminar</span>.</p>
+                    </div>
+                </div>
+
+                <h3>Gráficas Analíticas</h3>
+                <ul>
+                    <li><strong>Evolución Anual (Ingresos vs Gastos)</strong>: Un gráfico de barras y líneas que compara el volumen mensual de entradas y salidas de dinero. Pulsa sobre cualquier barra para consultar la cifra exacta de ese mes.</li>
+                    <li><strong>Distribución por Categorías</strong>: Un gráfico circular interactivo. Pulsa en cada porción para ver qué porcentaje y cantidad exacta representa esa categoría (ej. Alimentación, Vivienda, Ocio) dentro de tus gastos mensuales.</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- CUENTAS Y TARJETAS -->
+        <section id="cuentas">
+            <h2>2. Cuentas y Tarjetas</h2>
+            <div class="glass-card">
+                <p>Esta sección se gestiona dentro de <strong>Ajustes > Cuentas y Tarjetas</strong>. Permite modelar tu infraestructura bancaria real para un control de movimientos exhaustivo.</p>
+
+                <h3>Cuentas Bancarias</h3>
+                <p>Puedes crear cuentas de tipo <strong>Banco</strong> (Cuentas corrientes) o <strong>Efectivo</strong> (Dinero físico).</p>
+                <ul>
+                    <li>Al crear una cuenta, puedes asignarle un nombre y un <strong>Saldo Inicial</strong>.</li>
+                    <li>La opción <strong>¿Cuenta Principal?</strong> determina si la cuenta se usará por defecto para calcular el Disponible del Dashboard y recibir ingresos automáticos.</li>
+                </ul>
+
+                <h3>Tarjetas de Crédito y Débito</h3>
+                <p>La aplicación gestiona tus tarjetas de dos formas:</p>
+                <ul>
+                    <li><strong>Tarjetas de Débito</strong>: Los gastos realizados con ellas se restan inmediatamente del saldo de la cuenta bancaria vinculada.</li>
+                    <li><strong>Tarjetas de Crédito</strong>: Registran un saldo acumulado e independiente durante un ciclo mensual definido.
+                        <ul>
+                            <li><strong>Día de corte</strong>: Día del mes en el que se cierra el ciclo de compras de la tarjeta.</li>
+                            <li><strong>Día de pago</strong>: Día del mes siguiente en el que el banco te cobra el recibo total acumulado en la cuenta corriente vinculada.</li>
+                            <li><strong>Consumo anual</strong>: Cada tarjeta muestra un desglose de los gastos anuales acumulados en el año actual para ver de un vistazo cuánto has usado el crédito.</li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <h3>Widget de "Liquidación y Ciclos" (Dashboard)</h3>
+                <p>Para evitar sustos al final del mes, el Dashboard muestra las tarjetas de crédito que tienen ciclos activos o importes pendientes de cobro.</p>
+                <div class="alert-box info">
+                    <span class="alert-icon">💳</span>
+                    <div class="alert-content">
+                        <p><strong>Filtro inteligente:</strong> Si una tarjeta de crédito tiene un consumo actual de 0,00€ y no tiene liquidaciones pendientes del mes anterior, se ocultará automáticamente del widget para mantener tu Dashboard limpio y sin distracciones.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- HUCHAS -->
+        <section id="huchas">
+            <h2>3. Huchas de Ahorro (Objetivos)</h2>
+            <div class="glass-card">
+                <p>Las <strong>Huchas</strong> te permiten apartar dinero virtualmente de tu disponible para fines específicos (por ejemplo: vacaciones, reparaciones del coche, o un fondo de emergencia).</p>
+
+                <h3>Creación y Configuración</h3>
+                <p>Al pulsar el botón <span class="btn-rep btn-primary">+ Nueva Hucha</span> puedes definir:</p>
+                <ul>
+                    <li><strong>Saldo Actual</strong>: El dinero inicial que ya tienes guardado para ese fin.</li>
+                    <li><strong>Meta (Opcional)</strong>: Cantidad objetivo que deseas alcanzar. La aplicación calculará automáticamente el porcentaje completado.</li>
+                    <li><strong>Ahorro mensual automático</strong>: Si configuras esta cantidad y seleccionas una cuenta origen, la aplicación restará este importe automáticamente cada mes de tu disponible para "ahorrarlo" en la hucha de forma pasiva.</li>
+                    <li><strong>Contabilizar en presupuesto</strong>: Si está marcado, el dinero en la hucha se restará del dinero disponible para evitar que te lo gastes accidentalmente.</li>
+                </ul>
+
+                <h3>Acciones en Huchas</h3>
+                <p>Al hacer clic sobre una hucha, se despliega una barra de herramientas:</p>
+                <ul>
+                    <li><span class="btn-rep btn-green">Aportar</span>: Introduce dinero manualmente a la hucha desde una de tus cuentas.</li>
+                    <li><span class="btn-rep btn-danger">Retirar</span>: Saca dinero de la hucha para devolverlo al saldo de la cuenta bancaria.</li>
+                    <li><span class="btn-rep btn-blue">Traspaso</span>: Transfiere saldo directamente entre huchas sin pasar por una cuenta bancaria corriente.</li>
+                    <li><span class="btn-rep btn-gray">Historial</span>: Visualiza todas las aportaciones, retiros y traspasos históricos de esta hucha específica.</li>
+                </ul>
+
+                <h3>Gráfica de Evolución de Huchas</h3>
+                <p>Es una gráfica de área acumulada que muestra el crecimiento de tus ahorros en el año. Gracias a la versión 0.11.5, esta gráfica utiliza <strong>cálculo inverso</strong>: calcula el histórico restando los movimientos posteriores al saldo actual, garantizando que el mes actual marque exactamente tu saldo real y los meses anteriores muestren fielmente tus balances finales mensuales.</p>
+            </div>
+        </section>
+
+        <!-- PRESTAMOS -->
+        <section id="prestamos">
+            <h2>4. Préstamos</h2>
+            <div class="glass-card">
+                <p>La sección de <strong>Préstamos</strong> te ayuda a visualizar y amortizar tus deudas (ej. hipotecas, préstamos personales, deudas familiares).</p>
+                
+                <h3>Registro de Deuda</h3>
+                <p>Al registrar un préstamo, defines la <strong>Deuda Inicial</strong>, el <strong>Saldo Restante Actual</strong> y la <strong>Cuota Mensual</strong>. Puedes vincularlo a un gasto fijo mensual para que la cuota se pague sola al cambiar de mes.</p>
+
+                <h3>Acciones Disponibles</h3>
+                <ul>
+                    <li><span class="btn-rep btn-green">Amortizar</span>: Permite registrar un pago extraordinario o mensual del préstamo, reduciendo su saldo pendiente de cobro y restando el importe de la cuenta bancaria seleccionada.</li>
+                    <li><strong>Gráfica de Progreso</strong>: Muestra visualmente la porción de deuda que ha sido pagada (en verde) frente a la que queda pendiente (en rojo).</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- AJUSTES -->
+        <section id="ajustes">
+            <h2>5. Gestión, Ajustes y Dropbox</h2>
+            <div class="glass-card">
+                <p>Esta sección engloba las herramientas avanzadas y de conectividad de la aplicación.</p>
+
+                <h3>Ingresos y Gastos Fijos (Programados)</h3>
+                <p>Ideal para elementos recurrentes de periodicidad fija (nóminas, alquileres, suscripciones a servicios de streaming, seguros anuales). Se programan indicando el día de cobro/pago. Al cambiar de mes, la aplicación te pedirá confirmación para insertarlos automáticamente en el historial.</p>
+
+                <h3>Ajustes de Saldo (Historial de Cierres)</h3>
+                <p>Aquí se listan todos los meses naturales que han sido cerrados en la aplicación.</p>
+                <ul>
+                    <li>Puedes hacer clic en el botón de la papelera (<span class="btn-rep btn-danger">Eliminar</span>) para deshacer un cierre de mes, lo que eliminará el apunte de remanente (rollover) automático generado en el mes siguiente.</li>
+                    <li>Puedes hacer clic en el botón de edición (<span class="btn-rep btn-yellow">Editar</span>) para corregir manualmente el importe de un cierre histórico sin alterar tus movimientos diarios, ideal para corregir desajustes del pasado.</li>
+                </ul>
+
+                <h3>Conectividad y Sincronización Automática (Dropbox)</h3>
+                <p>La app es autónoma pero puedes habilitar la sincronización automática en la nube mediante <strong>Dropbox</strong>.</p>
+                <ul>
+                    <li>El flujo es simple: pulsas en <strong>Vincular cuenta de Dropbox</strong>, introduces tus credenciales y autorizas la app de forma segura.</li>
+                    <li>La app creará o leerá un archivo en la ruta seleccionada (mostrada limpiamente en un panel con texto adaptable para smartphones).</li>
+                    <li>A partir de ese momento, cada vez que crees, edites o elimines una transacción en cualquier dispositivo, la aplicación sincronizará automáticamente el archivo en segundo plano.</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- EVENTOS CRÍTICOS -->
+        <section id="cierre-mes">
+            <h2>Flujo Crítico: Cierre e Inicio de Mes</h2>
+            <div class="glass-card">
+                <p>Al iniciar la aplicación por primera vez en un nuevo mes natural (ej. entras el 1 de junio habiendo finalizado mayo), la aplicación detectará el cambio de mes y mostrará el <strong>Modal de Cierre de Mes (Gestión de Remanentes)</strong> de forma prioritaria.</p>
+                
+                <h3>El Algoritmo de Remanente</h3>
+                <p>La aplicación calcula el remanente (ahorro/excedente) del mes que acaba de terminar empleando la siguiente fórmula:</p>
+                <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; font-family: monospace; font-size: 0.9rem; text-align: center; margin: 1rem 0;">
+                    Remanente = Ingresos Totales - Gastos Reales Totales
+                </div>
+
+                <h3>Opciones para el Usuario</h3>
+                <p>El modal te preguntará qué deseas hacer con esa cantidad sobrante:</p>
+                <ol>
+                    <li><strong>Traspasar como remanente al mes siguiente</strong>: Se creará un apunte especial en el mes nuevo que incrementará tu dinero disponible en esa misma cantidad.</li>
+                    <li><strong>Distribuir a huchas de ahorro</strong>: Te permite asignar un porcentaje o cantidad fija del remanente para llenar tus huchas activas.</li>
+                    <li><strong>Modificar Manualmente</strong>: Si detectas que la app calcula una cifra errónea (por ejemplo, porque olvidaste apuntar un gasto o hiciste muchas pruebas de prueba), pulsa el botón de modificación manual. Aparecerá un campo numérico que te permitirá corregir y redefinir la cantidad de remanente libremente antes de procesar el cierre.</li>
+                </ol>
+
+                <div class="alert-box info">
+                    <span class="alert-icon">⚠️</span>
+                    <div class="alert-content">
+                        <p><strong>Si hay déficit (remanente negativo):</strong> La aplicación te advertirá de que el mes ha finalizado en pérdidas y te permitirá decidir si deseas restar esa diferencia del disponible del mes siguiente (para ajustar tu presupuesto) o simplemente ignorar el déficit y empezar a cero.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TARJETAS LIQ -->
+        <section id="tarjetas-liq">
+            <h2>Flujo Crítico: Liquidación de Tarjeta de Crédito</h2>
+            <div class="glass-card">
+                <p>Las compras con tarjeta de crédito no afectan a tu cuenta bancaria de inmediato. Al llegar el día de cobro o cuando decidas liquidarla, debes realizar el flujo de liquidación:</p>
+                <ol>
+                    <li>En el Dashboard, ve al widget de <strong>Liquidación y Ciclos</strong>.</li>
+                    <li>Pulsa el botón <span class="btn-rep btn-blue">Liquidar</span> en la tarjeta correspondiente.</li>
+                    <li>Se abrirá un cuadro emergente indicando la cantidad a liquidar (el balance acumulado del ciclo que se cierra) y la cuenta bancaria vinculada donde se cargará el recibo.</li>
+                    <li>Al confirmar, se descontará automáticamente el dinero de la cuenta corriente y la tarjeta de crédito se reiniciará a 0,00€ para empezar un nuevo ciclo de compras sin deudas pendientes.</li>
+                </ol>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Highlighting active section in sidebar on scroll
+        const sections = document.querySelectorAll('section');
+        const navItems = document.querySelectorAll('.nav-item');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (pageYOffset >= (sectionTop - 150)) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                const linkHref = item.querySelector('a').getAttribute('href');
+                if (linkHref === `#${current}`) {
+                    item.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

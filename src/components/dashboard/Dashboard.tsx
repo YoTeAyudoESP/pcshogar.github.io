@@ -46,6 +46,41 @@ const Dashboard: React.FC = () => {
     }, []);
 
     useEffect(() => {
+        const handleBack = (e: Event) => {
+            if (e.defaultPrevented) return;
+
+            if (editingTx) {
+                e.preventDefault();
+                setEditingTx(null);
+            } else if (isIncomeFormOpen) {
+                e.preventDefault();
+                setIsIncomeFormOpen(false);
+            } else if (isExpenseModalOpen) {
+                e.preventDefault();
+                setIsExpenseModalOpen(false);
+            } else if (isHuchaModalOpen) {
+                e.preventDefault();
+                setIsHuchaModalOpen(false);
+            } else if (isTransferModalOpen) {
+                e.preventDefault();
+                setIsTransferModalOpen(false);
+            } else if (show30DayReminder) {
+                e.preventDefault();
+                setShow30DayReminder(false);
+            } else if (showChangelog) {
+                e.preventDefault();
+                setShowChangelog(false);
+            } else if (currentView === 'settings') {
+                e.preventDefault();
+                setCurrentView('dashboard');
+            }
+        };
+
+        window.addEventListener('app-back-pressed', handleBack);
+        return () => window.removeEventListener('app-back-pressed', handleBack);
+    }, [editingTx, isIncomeFormOpen, isExpenseModalOpen, isHuchaModalOpen, isTransferModalOpen, show30DayReminder, showChangelog, currentView]);
+
+    useEffect(() => {
         if (loading) return;
 
         // 1. Install date checking

@@ -95,6 +95,33 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
     const [editingSaving, setEditingSaving] = useState<SavingGoal | undefined>(undefined);
     const [editingLoan, setEditingLoan] = useState<Loan | undefined>(undefined);
     const [isAddingLoan, setIsAddingLoan] = useState(false);
+
+    useEffect(() => {
+        const handleBack = (e: Event) => {
+            if (e.defaultPrevented) return;
+
+            if (showAccountForm) {
+                e.preventDefault();
+                setShowAccountForm(false);
+                setEditingAccount(undefined);
+            } else if (showCashForm) {
+                e.preventDefault();
+                setShowCashForm(false);
+                setEditingAccount(undefined);
+            } else if (showCardForm) {
+                e.preventDefault();
+                setShowCardForm(false);
+                setEditingCard(undefined);
+            } else if (isAddingLoan || editingLoan) {
+                e.preventDefault();
+                setIsAddingLoan(false);
+                setEditingLoan(undefined);
+            }
+        };
+
+        window.addEventListener('app-back-pressed', handleBack);
+        return () => window.removeEventListener('app-back-pressed', handleBack);
+    }, [showAccountForm, showCashForm, showCardForm, isAddingLoan, editingLoan]);
     const [selectedImportFile, setSelectedImportFile] = useState<File | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 

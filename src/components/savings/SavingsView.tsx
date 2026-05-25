@@ -19,6 +19,26 @@ const SavingsView: React.FC = () => {
     const [addMoneyGoal, setAddMoneyGoal] = useState<SavingGoal | undefined>(undefined);
     const [historyGoal, setHistoryGoal] = useState<SavingGoal | undefined>(undefined);
 
+    React.useEffect(() => {
+        const handleBack = (e: Event) => {
+            if (e.defaultPrevented) return;
+
+            if (showTransfer) {
+                e.preventDefault();
+                setShowTransfer(false);
+            } else if (addMoneyGoal) {
+                e.preventDefault();
+                setAddMoneyGoal(undefined);
+            } else if (historyGoal) {
+                e.preventDefault();
+                setHistoryGoal(undefined);
+            }
+        };
+
+        window.addEventListener('app-back-pressed', handleBack);
+        return () => window.removeEventListener('app-back-pressed', handleBack);
+    }, [showTransfer, addMoneyGoal, historyGoal]);
+
     const handleEdit = (goal: SavingGoal) => {
         setEditingGoal(goal);
         setShowForm(true);

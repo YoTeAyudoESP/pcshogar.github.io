@@ -31,6 +31,40 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
         editingExpense?.paymentMethod?.type === 'card' ? editingExpense.paymentMethod.cardId : ''
     );
 
+    useEffect(() => {
+        const handleBack = (e: Event) => {
+            e.preventDefault();
+            const isDirty = description !== '' || amount !== '' || frequency !== 'monthly' || paymentDay !== '1';
+            if (!editingExpense && isDirty) {
+                if (window.confirm('Tienes cambios sin guardar. ¿Deseas descartarlos y volver?')) {
+                    onClose();
+                }
+            } else if (editingExpense) {
+                const isModified = description !== editingExpense.description ||
+                    amount !== (editingExpense.amount?.toString() || '') ||
+                    frequency !== editingExpense.frequency ||
+                    paymentDay !== (editingExpense.paymentDay?.toString() || '1') ||
+                    paymentMonth !== (editingExpense.paymentMonth?.toString() || '1') ||
+                    categoryId !== (editingExpense.categoryId || '') ||
+                    pmType !== (editingExpense.paymentMethod?.type || 'account') ||
+                    (pmType === 'account' && pmId !== (editingExpense.paymentMethod as any).accountId) ||
+                    (pmType === 'card' && pmId !== (editingExpense.paymentMethod as any).cardId);
+                if (isModified) {
+                    if (window.confirm('Tienes cambios sin guardar. ¿Deseas descartarlos y volver?')) {
+                        onClose();
+                    }
+                } else {
+                    onClose();
+                }
+            } else {
+                onClose();
+            }
+        };
+
+        window.addEventListener('app-back-pressed', handleBack);
+        return () => window.removeEventListener('app-back-pressed', handleBack);
+    }, [description, amount, frequency, paymentDay, paymentMonth, categoryId, pmType, pmId, editingExpense, onClose]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!description || !amount) return;

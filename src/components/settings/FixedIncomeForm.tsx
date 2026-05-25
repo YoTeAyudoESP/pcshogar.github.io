@@ -19,6 +19,37 @@ const FixedIncomeForm: React.FC<FixedIncomeFormProps> = ({ editingIncome, onClos
     const [paymentMonth, setPaymentMonth] = useState(editingIncome?.paymentMonth?.toString() || '1');
     const [accountId, setAccountId] = useState(editingIncome?.linkedAccountId || '');
 
+    useEffect(() => {
+        const handleBack = (e: Event) => {
+            e.preventDefault();
+            const isDirty = name !== '' || amount !== '' || frequency !== 'monthly' || paymentDay !== '1' || accountId !== '';
+            if (!editingIncome && isDirty) {
+                if (window.confirm('Tienes cambios sin guardar. ¿Deseas descartarlos y volver?')) {
+                    onClose();
+                }
+            } else if (editingIncome) {
+                const isModified = name !== editingIncome.name ||
+                    amount !== (editingIncome.amount?.toString() || '') ||
+                    frequency !== editingIncome.frequency ||
+                    paymentDay !== (editingIncome.paymentDay?.toString() || '1') ||
+                    paymentMonth !== (editingIncome.paymentMonth?.toString() || '1') ||
+                    accountId !== (editingIncome.linkedAccountId || '');
+                if (isModified) {
+                    if (window.confirm('Tienes cambios sin guardar. ¿Deseas descartarlos y volver?')) {
+                        onClose();
+                    }
+                } else {
+                    onClose();
+                }
+            } else {
+                onClose();
+            }
+        };
+
+        window.addEventListener('app-back-pressed', handleBack);
+        return () => window.removeEventListener('app-back-pressed', handleBack);
+    }, [name, amount, frequency, paymentDay, paymentMonth, accountId, editingIncome, onClose]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!name || !amount) return;

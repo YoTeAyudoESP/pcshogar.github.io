@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import type { RecurringExpense } from '../../types/finance';
 import type { FixedIncome } from '../../types/income';
@@ -42,6 +42,20 @@ const FixedMovementsView: React.FC<FixedMovementsViewProps> = ({ onBack }) => {
         type: 'income' | 'expense';
         item: FixedIncome | RecurringExpense | null;
     }>({ show: false, type: 'expense', item: null });
+
+    useEffect(() => {
+        const handleBack = (e: Event) => {
+            if (e.defaultPrevented) return;
+
+            if (confirmModal.show) {
+                e.preventDefault();
+                setConfirmModal({ show: false, type: 'expense', item: null });
+            }
+        };
+
+        window.addEventListener('app-back-pressed', handleBack);
+        return () => window.removeEventListener('app-back-pressed', handleBack);
+    }, [confirmModal]);
 
     const { selectedMonth, selectedYear } = useDateSelection();
     const currentMonthPeriod = `${selectedYear}-${(selectedMonth + 1).toString().padStart(2, '0')}`;

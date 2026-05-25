@@ -42,6 +42,40 @@ const PiggyBankForm: React.FC<PiggyBankFormProps> = ({ editingGoal, onCancelEdit
         }
     }, [editingGoal]);
 
+    useEffect(() => {
+        const handleBack = (e: Event) => {
+            e.preventDefault();
+            const isDirty = name !== '' || target !== '' || current !== '' || monthly !== '' || sourceAccountId !== '';
+            if (!editingGoal && isDirty) {
+                if (window.confirm('Tienes cambios sin guardar. ¿Deseas descartarlos y volver?')) {
+                    if (onClose) onClose();
+                }
+            } else if (editingGoal) {
+                const isModified = name !== editingGoal.name ||
+                    target !== (editingGoal.targetAmount?.toString() || '') ||
+                    current !== editingGoal.currentAmount.toString() ||
+                    monthly !== (editingGoal.monthlySavingAmount?.toString() || '') ||
+                    sourceAccountId !== (editingGoal.automaticSourceAccountId || '') ||
+                    color !== (editingGoal.color || '#f59e0b') ||
+                    accountInBudget !== (editingGoal.accountInBudget ?? true);
+                if (isModified) {
+                    if (window.confirm('Tienes cambios sin guardar. ¿Deseas descartarlos y volver?')) {
+                        if (onCancelEdit) onCancelEdit();
+                        else if (onClose) onClose();
+                    }
+                } else {
+                    if (onCancelEdit) onCancelEdit();
+                    else if (onClose) onClose();
+                }
+            } else {
+                if (onClose) onClose();
+            }
+        };
+
+        window.addEventListener('app-back-pressed', handleBack);
+        return () => window.removeEventListener('app-back-pressed', handleBack);
+    }, [name, target, current, monthly, sourceAccountId, color, accountInBudget, editingGoal, onCancelEdit, onClose]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!name) return;
@@ -90,29 +124,32 @@ const PiggyBankForm: React.FC<PiggyBankFormProps> = ({ editingGoal, onCancelEdit
                 <input style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="Ej. Viaje a Japón" required />
             </div>
 
-            <div style={{ display: 'flex', gap: '1rem' }}>
-                <div style={{ flex: 1.2 }}>
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
+                <div style={{ flex: '1 1 180px' }}>
                     <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Fecha de Creación</label>
-                    <input type="date" style={{ ...inputStyle, colorScheme: 'dark' }} value={createdAtDate} onChange={e => setCreatedAtDate(e.target.value)} required />
+                    <input type="date" style={{ ...inputStyle, marginBottom: 0, colorScheme: 'dark' }} value={createdAtDate} onChange={e => setCreatedAtDate(e.target.value)} required />
                 </div>
-                <div style={{ flex: 1 }}>
+                <div style={{ flex: '1 1 180px' }}>
                     <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Meta (€, opcional)</label>
-                    <input type="number" step="0.01" style={inputStyle} value={target} onChange={e => setTarget(e.target.value)} placeholder="2000" />
-                </div>
-                <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Saldo Actual (€)</label>
-                    <input type="number" step="0.01" style={inputStyle} value={current} onChange={e => setCurrent(e.target.value)} placeholder="0" />
+                    <input type="number" step="0.01" style={{ ...inputStyle, marginBottom: 0 }} value={target} onChange={e => setTarget(e.target.value)} placeholder="2000" />
                 </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '1rem' }}>
-                <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Cantidad a ahorrar cada mes (€)</label>
-                    <input type="number" step="0.01" style={inputStyle} value={monthly} onChange={e => setMonthly(e.target.value)} placeholder="0" />
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '0.5rem', marginTop: '1rem' }}>
+                <div style={{ flex: '1 1 180px' }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Saldo Actual (€)</label>
+                    <input type="number" step="0.01" style={{ ...inputStyle, marginBottom: 0 }} value={current} onChange={e => setCurrent(e.target.value)} placeholder="0" />
                 </div>
-                <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Ahorro automático desde:</label>
-                    <select style={inputStyle} value={sourceAccountId} onChange={e => setSourceAccountId(e.target.value)}>
+                <div style={{ flex: '1 1 180px' }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Ahorro mensual (€)</label>
+                    <input type="number" step="0.01" style={{ ...inputStyle, marginBottom: 0 }} value={monthly} onChange={e => setMonthly(e.target.value)} placeholder="0" />
+                </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.5rem', marginTop: '1rem' }}>
+                <div style={{ width: '100%', maxWidth: '300px' }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)', textAlign: 'center' }}>Ahorro automático desde:</label>
+                    <select style={{ ...inputStyle, marginBottom: 0 }} value={sourceAccountId} onChange={e => setSourceAccountId(e.target.value)}>
                         <option value="">(Ninguno - Manual)</option>
                         {accounts.map(acc => (
                             <option key={acc.id} value={acc.id}>{acc.name}</option>
@@ -120,7 +157,7 @@ const PiggyBankForm: React.FC<PiggyBankFormProps> = ({ editingGoal, onCancelEdit
                     </select>
                 </div>
             </div>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '-0.5rem', marginBottom: '1.5rem' }}>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '0.5rem', marginBottom: '1.5rem' }}>
                 Esta cantidad se restará automáticamente de tu disponible mensual.
             </p>
 

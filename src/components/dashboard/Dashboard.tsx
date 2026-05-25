@@ -14,7 +14,7 @@ import DateSelector from '../common/DateSelector';
 import { LayoutDashboard, Settings as SettingsIcon, X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, MinusCircle, PiggyBank, ArrowLeftRight, AlertCircle, Mail, Heart } from 'lucide-react';
 
 import { useFinance } from '../../contexts/FinanceContext';
-const version = "1.0.9";
+const version = "1.1.0";
 import RemnantDecisionModal from '../settings/RemnantDecisionModal';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import EditTransactionModal from './EditTransactionModal';
@@ -99,7 +99,7 @@ const Dashboard: React.FC = () => {
 
         // 2. Changelog checking
         const lastVersion = localStorage.getItem('pcshogar_last_version');
-        const currentVersion = "1.0.9";
+        const currentVersion = "1.1.0";
         
         if (!lastVersion) {
             const isClean = accounts.length === 0 && cards.length === 0;
@@ -452,9 +452,9 @@ const Dashboard: React.FC = () => {
                 </div>
             )}
 
-            {showChangelog && (
+             {showChangelog && (
                 <div className="modal-overlay" onClick={() => {
-                    localStorage.setItem('pcshogar_last_version', '1.0.9');
+                    localStorage.setItem('pcshogar_last_version', '1.1.0');
                     setShowChangelog(false);
                 }}>
                     <div className="modal-container glass-panel" style={{ padding: '2.5rem 2rem', maxWidth: '460px', width: '95%', textAlign: 'center', position: 'relative' }} onClick={e => e.stopPropagation()}>
@@ -472,7 +472,7 @@ const Dashboard: React.FC = () => {
                             <TrendingUp size={36} color="white" />
                         </div>
                         <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem', color: 'white' }}>
-                            ¡Actualizado a la v1.0.9!
+                            ¡Actualizado a la v1.1.0!
                         </h2>
                         <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)', marginBottom: '1.5rem' }}>
                             Resumen de las mejoras y novedades
@@ -495,7 +495,7 @@ const Dashboard: React.FC = () => {
                             <div>
                                 <strong style={{ color: '#10b981' }}>⏳ Ingresos Extras Pendientes:</strong>
                                 <div style={{ color: 'rgba(255,255,255,0.6)', marginLeft: '1.2rem', fontSize: '0.82rem' }}>
-                                    Los ingresos extras marcados como "Pendientes" ya no se suman al saldo disponible ni a la cuenta bancaria hasta que sean expresamente confirmados por ti.
+                                    Los ingresos extras pendientes ya no se suman al disponible mensual ni aparecen como apuntes en el banco seleccionado hasta ser expresamente confirmados.
                                 </div>
                             </div>
                             <div>
@@ -505,9 +505,9 @@ const Dashboard: React.FC = () => {
                                 </div>
                             </div>
                             <div>
-                                <strong style={{ color: '#3b82f6' }}>📋 Panel de Acciones Pendientes:</strong>
+                                <strong style={{ color: '#3b82f6' }}>📋 Panel de Acciones Único:</strong>
                                 <div style={{ color: 'rgba(255,255,255,0.6)', marginLeft: '1.2rem', fontSize: '0.82rem' }}>
-                                    Visualización clara de los ingresos extras pendientes dentro del widget de acciones del panel principal para una fácil confirmación y gestión.
+                                    Visualización clara y limpia de los ingresos extras pendientes únicamente en el panel de acciones pendientes para una gestión directa y sin confusiones.
                                 </div>
                             </div>
                             <div>
@@ -520,7 +520,7 @@ const Dashboard: React.FC = () => {
 
                         <button 
                             onClick={() => {
-                                localStorage.setItem('pcshogar_last_version', '1.0.9');
+                                localStorage.setItem('pcshogar_last_version', '1.1.0');
                                 setShowChangelog(false);
                             }}
                             style={{

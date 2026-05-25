@@ -14,7 +14,7 @@ import DateSelector from '../common/DateSelector';
 import { LayoutDashboard, Settings as SettingsIcon, X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, MinusCircle, PiggyBank, ArrowLeftRight, AlertCircle, Mail, Heart } from 'lucide-react';
 
 import { useFinance } from '../../contexts/FinanceContext';
-const version = "1.0.7";
+const version = "1.0.8";
 import RemnantDecisionModal from '../settings/RemnantDecisionModal';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import EditTransactionModal from './EditTransactionModal';
@@ -99,7 +99,7 @@ const Dashboard: React.FC = () => {
 
         // 2. Changelog checking
         const lastVersion = localStorage.getItem('pcshogar_last_version');
-        const currentVersion = "1.0.7";
+        const currentVersion = "1.0.8";
         
         if (!lastVersion) {
             const isClean = accounts.length === 0 && cards.length === 0;
@@ -454,7 +454,7 @@ const Dashboard: React.FC = () => {
 
             {showChangelog && (
                 <div className="modal-overlay" onClick={() => {
-                    localStorage.setItem('pcshogar_last_version', '1.0.7');
+                    localStorage.setItem('pcshogar_last_version', '1.0.8');
                     setShowChangelog(false);
                 }}>
                     <div className="modal-container glass-panel" style={{ padding: '2.5rem 2rem', maxWidth: '460px', width: '95%', textAlign: 'center', position: 'relative' }} onClick={e => e.stopPropagation()}>
@@ -472,7 +472,7 @@ const Dashboard: React.FC = () => {
                             <TrendingUp size={36} color="white" />
                         </div>
                         <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem', color: 'white' }}>
-                            ¡Actualizado a la v1.0.7!
+                            ¡Actualizado a la v1.0.8!
                         </h2>
                         <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)', marginBottom: '1.5rem' }}>
                             Resumen de las mejoras y novedades
@@ -493,34 +493,34 @@ const Dashboard: React.FC = () => {
                             marginBottom: '2rem'
                         }}>
                             <div>
-                                <strong style={{ color: '#10b981' }}>🐷 Huchas Inteligentes:</strong>
+                                <strong style={{ color: '#10b981' }}>📱 Rediseño de Huchas:</strong>
                                 <div style={{ color: 'rgba(255,255,255,0.6)', marginLeft: '1.2rem', fontSize: '0.82rem' }}>
-                                    Ahora puedes configurar la fecha de creación de una hucha para evitar impactos retroactivos y decidir si su saldo computa o no en el presupuesto disponible.
+                                    Alineación mejorada de campos para pantallas móviles. "Saldo Actual" y "Ahorro mensual" más limpios, y selector de ahorro automático centrado y legible.
                                 </div>
                             </div>
                             <div>
-                                <strong style={{ color: '#818cf8' }}>💼 Ingresos Fijos en Control:</strong>
+                                <strong style={{ color: '#818cf8' }}>🔙 Navegación de Sistema:</strong>
                                 <div style={{ color: 'rgba(255,255,255,0.6)', marginLeft: '1.2rem', fontSize: '0.82rem' }}>
-                                    Las plantillas de ingresos fijos se crean como pendientes por defecto para no engordar tu presupuesto hasta que confirmes el cobro real.
+                                    El botón de atrás nativo de Android ahora cierra modales y submenús paso a paso, y te advierte si intentas salir con cambios sin guardar en los formularios.
                                 </div>
                             </div>
                             <div>
-                                <strong style={{ color: '#3b82f6' }}>📅 Frecuencias Flexibles 1-12:</strong>
+                                <strong style={{ color: '#3b82f6' }}>🐷 Presupuesto y Fechas:</strong>
                                 <div style={{ color: 'rgba(255,255,255,0.6)', marginLeft: '1.2rem', fontSize: '0.82rem' }}>
-                                    Soporte para todas las frecuencias mensuales entre 1 y 12 meses (bimensual, cuatrimestral, semestral, etc.) y vista global en la gestión de movimientos.
+                                    Configuración de fecha de creación en huchas para evitar saldos negativos retroactivos y casilla para decidir si contabilizan en el presupuesto.
                                 </div>
                             </div>
                             <div>
-                                <strong style={{ color: '#f43f5e' }}>🤖 Integración Android:</strong>
+                                <strong style={{ color: '#f43f5e' }}>📅 Frecuencias Flexibles 1-12:</strong>
                                 <div style={{ color: 'rgba(255,255,255,0.6)', marginLeft: '1.2rem', fontSize: '0.82rem' }}>
-                                    El botón físico de atrás del sistema ahora está integrado nativamente y te solicitará confirmación antes de salir de la app.
+                                    Soporte para todas las periodicidades de cobro o pago de 1 a 12 meses, e ingresos fijos como pendientes por defecto para evitar balances inflados.
                                 </div>
                             </div>
                         </div>
 
                         <button 
                             onClick={() => {
-                                localStorage.setItem('pcshogar_last_version', '1.0.7');
+                                localStorage.setItem('pcshogar_last_version', '1.0.8');
                                 setShowChangelog(false);
                             }}
                             style={{

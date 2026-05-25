@@ -47,16 +47,9 @@ const FixedMovementsView: React.FC<FixedMovementsViewProps> = ({ onBack }) => {
     const currentMonthPeriod = `${selectedYear}-${(selectedMonth + 1).toString().padStart(2, '0')}`;
 
     const filteredFixedIncomes = incomes
-        .filter((i): i is FixedIncome => i.type === 'fixed')
-        .filter(inc => {
-            const start = inc.effectiveDate || inc.createdAt || 0;
-            return isRecurringActiveInMonth(inc.frequency, inc.paymentMonth, selectedMonth, selectedYear, start);
-        });
+        .filter((i): i is FixedIncome => i.type === 'fixed');
 
-    const filteredRecurringExpenses = recurringExpenses.filter(re => {
-        const start = re.updatedAt || 0;
-        return isRecurringActiveInMonth(re.frequency, re.paymentMonth, selectedMonth, selectedYear, start);
-    });
+    const filteredRecurringExpenses = recurringExpenses;
 
     const isProcessed = (item: FixedIncome | RecurringExpense) => {
         return item.ignoredPeriods?.includes(currentMonthPeriod) || false;
@@ -177,115 +170,137 @@ const FixedMovementsView: React.FC<FixedMovementsViewProps> = ({ onBack }) => {
             )}
 
             {/* List Section */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {(activeTab === 'expense' ? filteredRecurringExpenses : filteredFixedIncomes).map(item => {
-                    const processed = isProcessed(item);
-                    return (
-                        <div 
-                            key={item.id}
-                            className="glass-panel"
-                            style={{
-                                padding: '1.25rem',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                gap: '1rem',
-                                opacity: processed ? 0.6 : 1,
-                                position: 'relative',
-                                overflow: 'hidden'
-                            }}
-                        >
-                            {processed && (
-                                <div style={{
-                                    position: 'absolute',
-                                    top: 0,
-                                    left: 0,
-                                    width: '4px',
-                                    height: '100%',
-                                    backgroundColor: 'var(--color-success)'
-                                }} />
-                            )}
-                            
-                            <div style={{ flex: 1 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    <h4 style={{ margin: 0, fontWeight: 600 }}>{(item as any).description || (item as any).name}</h4>
-                                    {processed && (
-                                        <span style={{ 
-                                            fontSize: '0.7rem', 
-                                            background: 'rgba(16, 185, 129, 0.1)', 
-                                            color: '#10b981', 
-                                            padding: '0.1rem 0.4rem', 
-                                            borderRadius: '4px',
-                                            fontWeight: 700,
-                                            textTransform: 'uppercase'
-                                        }}>Confirmado</span>
-                                    )}
+            {!showIncomeForm && !showExpenseForm && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    {(activeTab === 'expense' ? filteredRecurringExpenses : filteredFixedIncomes).map(item => {
+                        const processed = isProcessed(item);
+                        return (
+                            <div 
+                                key={item.id}
+                                className="glass-panel"
+                                style={{
+                                    padding: '1.25rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    gap: '1rem',
+                                    opacity: processed ? 0.6 : 1,
+                                    position: 'relative',
+                                    overflow: 'hidden'
+                                }}
+                            >
+                                {processed && (
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        width: '4px',
+                                        height: '100%',
+                                        backgroundColor: 'var(--color-success)'
+                                    }} />
+                                )}
+                                
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <h4 style={{ margin: 0, fontWeight: 600 }}>{(item as any).description || (item as any).name}</h4>
+                                        {processed && (
+                                            <span style={{ 
+                                                fontSize: '0.7rem', 
+                                                background: 'rgba(16, 185, 129, 0.1)', 
+                                                color: '#10b981', 
+                                                padding: '0.1rem 0.4rem', 
+                                                borderRadius: '4px',
+                                                fontWeight: 700,
+                                                textTransform: 'uppercase'
+                                            }}>Confirmado</span>
+                                        )}
+                                    </div>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '0.25rem', opacity: 0.6, fontSize: '0.85rem' }}>
+                                        <span>{formatMoney(item.amount)}</span>
+                                        <span style={{ textTransform: 'capitalize' }}>
+                                            {item.frequency === 'monthly' ? 'Mensual' :
+                                             item.frequency === 'weekly' ? 'Semanal' :
+                                             item.frequency === 'bi-monthly' ? 'Bimensual (cada 2 meses)' :
+                                             item.frequency === 'quarterly' ? 'Trimestral (cada 3 meses)' :
+                                             item.frequency === 'four-monthly' ? 'Cuatrimestral (cada 4 meses)' :
+                                             item.frequency === 'five-monthly' ? 'Cada 5 meses' :
+                                             item.frequency === 'semi-annually' ? 'Semestral (cada 6 meses)' :
+                                             item.frequency === 'seven-monthly' ? 'Cada 7 meses' :
+                                             item.frequency === 'eight-monthly' ? 'Cada 8 meses' :
+                                             item.frequency === 'nine-monthly' ? 'Cada 9 meses' :
+                                             item.frequency === 'ten-monthly' ? 'Cada 10 meses' :
+                                             item.frequency === 'eleven-monthly' ? 'Cada 11 meses' :
+                                             item.frequency === 'yearly' ? 'Anual' : item.frequency}
+                                        </span>
+                                        {((item as any).paymentMonth !== undefined) && (
+                                            <span>
+                                                Mes: {new Date(2000, (item as any).paymentMonth - 1, 1).toLocaleString('es-ES', { month: 'long' })}
+                                            </span>
+                                        )}
+                                        <span>Día { (item as any).paymentDay || (item as any).dayOfMonth || 1 }</span>
+                                    </div>
                                 </div>
-                                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.25rem', opacity: 0.6, fontSize: '0.85rem' }}>
-                                    <span>{formatMoney(item.amount)}</span>
-                                    <span>Día { (item as any).paymentDay || (item as any).dayOfMonth }</span>
-                                </div>
-                            </div>
 
-                            <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                <button 
-                                    onClick={() => handleConfirm(activeTab, item)}
-                                    title={processed ? "Confirmar de nuevo" : "Confirmar cobro/pago"}
-                                    style={{
-                                        padding: '0.6rem',
-                                        borderRadius: '0.75rem',
-                                        border: 'none',
-                                        background: processed 
-                                            ? 'rgba(255, 255, 255, 0.05)' 
-                                            : (activeTab === 'income' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(99, 102, 241, 0.1)'),
-                                        color: processed
-                                            ? 'rgba(255, 255, 255, 0.4)'
-                                            : (activeTab === 'income' ? '#10b981' : '#818cf8'),
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    {processed ? <Plus size={18} /> : <CheckCircle2 size={18} />}
-                                </button>
-                                <button 
-                                    onClick={() => handleEdit(activeTab, item)}
-                                    title="Editar"
-                                    style={{
-                                        padding: '0.6rem',
-                                        borderRadius: '0.75rem',
-                                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                                        background: 'rgba(255, 255, 255, 0.05)',
-                                        color: 'white',
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    <Edit2 size={18} />
-                                </button>
-                                <button 
-                                    onClick={() => handleDelete(activeTab, item.id)}
-                                    title="Eliminar"
-                                    style={{
-                                        padding: '0.6rem',
-                                        borderRadius: '0.75rem',
-                                        border: '1px solid rgba(244, 63, 94, 0.2)',
-                                        background: 'rgba(244, 63, 94, 0.05)',
-                                        color: '#fb7185',
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    <Trash2 size={18} />
-                                </button>
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <button 
+                                        onClick={() => handleConfirm(activeTab, item)}
+                                        title={processed ? "Confirmar de nuevo" : "Confirmar cobro/pago"}
+                                        style={{
+                                            padding: '0.6rem',
+                                            borderRadius: '0.75rem',
+                                            border: 'none',
+                                            background: processed 
+                                                ? 'rgba(255, 255, 255, 0.05)' 
+                                                : (activeTab === 'income' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(99, 102, 241, 0.1)'),
+                                            color: processed
+                                                ? 'rgba(255, 255, 255, 0.4)'
+                                                : (activeTab === 'income' ? '#10b981' : '#818cf8'),
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        {processed ? <Plus size={18} /> : <CheckCircle2 size={18} />}
+                                    </button>
+                                    <button 
+                                        onClick={() => handleEdit(activeTab, item)}
+                                        title="Editar"
+                                        style={{
+                                            padding: '0.6rem',
+                                            borderRadius: '0.75rem',
+                                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                                            background: 'rgba(255, 255, 255, 0.05)',
+                                            color: 'white',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        <Edit2 size={18} />
+                                    </button>
+                                    <button 
+                                        onClick={() => handleDelete(activeTab, item.id)}
+                                        title="Eliminar"
+                                        style={{
+                                            padding: '0.6rem',
+                                            borderRadius: '0.75rem',
+                                            border: '1px solid rgba(244, 63, 94, 0.2)',
+                                            background: 'rgba(244, 63, 94, 0.05)',
+                                            color: '#fb7185',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        <Trash2 size={18} />
+                                    </button>
+                                </div>
                             </div>
+                        );
+                    })}
+
+                    {(activeTab === 'expense' ? filteredRecurringExpenses : filteredFixedIncomes).length === 0 && (
+                        <div style={{ textAlign: 'center', padding: '3rem', opacity: 0.5 }}>
+                            <CalendarClock size={48} style={{ margin: '0 auto 1rem auto' }} />
+                            <p>No hay {activeTab === 'income' ? 'ingresos fijos' : 'gastos fijos'} para este periodo.</p>
                         </div>
-                    );
-                })}
-
-                {(activeTab === 'expense' ? filteredRecurringExpenses : filteredFixedIncomes).length === 0 && (
-                    <div style={{ textAlign: 'center', padding: '3rem', opacity: 0.5 }}>
-                        <CalendarClock size={48} style={{ margin: '0 auto 1rem auto' }} />
-                        <p>No hay {activeTab === 'income' ? 'ingresos fijos' : 'gastos fijos'} para este periodo.</p>
-                    </div>
-                )}
-            </div>
+                    )}
+                </div>
+            )}
 
             {/* Confirmation Modal */}
             {confirmModal.show && confirmModal.item && (

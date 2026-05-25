@@ -44,7 +44,14 @@ export function isRecurringActiveInMonth(
 
     if (frequency === 'bi-monthly') return diffMonths % 2 === 0;
     if (frequency === 'quarterly') return diffMonths % 3 === 0;
+    if (frequency === 'four-monthly') return diffMonths % 4 === 0;
+    if (frequency === 'five-monthly') return diffMonths % 5 === 0;
     if (frequency === 'semi-annually') return diffMonths % 6 === 0;
+    if (frequency === 'seven-monthly') return diffMonths % 7 === 0;
+    if (frequency === 'eight-monthly') return diffMonths % 8 === 0;
+    if (frequency === 'nine-monthly') return diffMonths % 9 === 0;
+    if (frequency === 'ten-monthly') return diffMonths % 10 === 0;
+    if (frequency === 'eleven-monthly') return diffMonths % 11 === 0;
 
     return false;
 }
@@ -161,7 +168,7 @@ export function calculateAvailableBalanceForMonth(
 
     recurringExpenses.forEach(re => {
         if (!re.active) return;
-        const start = re.updatedAt || 0;
+        const start = re.createdAt || re.updatedAt || 0;
         if (start > monthEnd) return;
         const isIgnored = re.ignoredPeriods?.includes(period);
         
@@ -178,9 +185,14 @@ export function calculateAvailableBalanceForMonth(
 
     // Calculate Allocations
     let totalMonthAllocations = 0;
-    allocations.filter(alloc => isItemInMonthAndYear(alloc, month, year) && (alloc.type === 'manual' || alloc.type === 'automatic')).forEach(alloc => {
-        totalMonthAllocations += alloc.amount;
-    });
+    allocations
+        .filter(alloc => isItemInMonthAndYear(alloc, month, year) && (alloc.type === 'manual' || alloc.type === 'automatic'))
+        .forEach(alloc => {
+            const goal = savings.find(s => s.id === alloc.goalId);
+            if (!goal || goal.accountInBudget !== false) {
+                totalMonthAllocations += alloc.amount;
+            }
+        });
 
     // Remanente
     let remanente = 0;
@@ -190,9 +202,14 @@ export function calculateAvailableBalanceForMonth(
 
     // Projected Savings
     let projectedTotalSavings = 0;
-    savings.filter(s => (s.monthlySavingAmount || 0) > 0).forEach(s => {
-        projectedTotalSavings += (s.monthlySavingAmount || 0);
-    });
+    savings
+        .filter(s => (s.monthlySavingAmount || 0) > 0 && s.accountInBudget !== false)
+        .forEach(s => {
+            const start = s.createdAt || 0;
+            if (start <= monthEnd) {
+                projectedTotalSavings += (s.monthlySavingAmount || 0);
+            }
+        });
     const pendingSavings = Math.max(0, projectedTotalSavings - totalMonthAllocations);
 
     // Active Override
@@ -254,7 +271,13 @@ export function calculateAvailableBalanceForMonth(
         const allocationsAfter = allocations.filter(alloc => {
             const t = Number(alloc.updatedAt || (alloc as any).date || (alloc as any).createdAt || 0);
             return isItemInMonthAndYear(alloc, month, year) && t > overrideTime && (alloc.type === 'manual' || alloc.type === 'automatic');
-        }).reduce((sum, alloc) => sum + alloc.amount, 0);
+        }).reduce((sum, alloc) => {
+            const goal = savings.find(s => s.id === alloc.goalId);
+            if (!goal || goal.accountInBudget !== false) {
+                return sum + alloc.amount;
+            }
+            return sum;
+        }, 0);
 
         return {
             ...summary,

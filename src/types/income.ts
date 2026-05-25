@@ -1,4 +1,4 @@
-export type Frequency = 'weekly' | 'monthly' | 'bi-monthly' | 'quarterly' | 'semi-annually' | 'yearly';
+export type Frequency = 'weekly' | 'monthly' | 'bi-monthly' | 'quarterly' | 'four-monthly' | 'five-monthly' | 'semi-annually' | 'seven-monthly' | 'eight-monthly' | 'nine-monthly' | 'ten-monthly' | 'eleven-monthly' | 'yearly';
 
 export interface IncomeBase {
     id: string; // UUID

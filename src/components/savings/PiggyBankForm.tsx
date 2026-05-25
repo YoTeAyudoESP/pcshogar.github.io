@@ -18,6 +18,7 @@ const PiggyBankForm: React.FC<PiggyBankFormProps> = ({ editingGoal, onCancelEdit
     const [sourceAccountId, setSourceAccountId] = useState('');
     const [accountInBudget, setAccountInBudget] = useState(true);
     const [color, setColor] = useState('#f59e0b');
+    const [createdAtDate, setCreatedAtDate] = useState('');
 
     useEffect(() => {
         if (editingGoal) {
@@ -28,6 +29,7 @@ const PiggyBankForm: React.FC<PiggyBankFormProps> = ({ editingGoal, onCancelEdit
             setSourceAccountId(editingGoal.automaticSourceAccountId || '');
             setAccountInBudget(editingGoal.accountInBudget ?? true);
             setColor(editingGoal.color || '#f59e0b');
+            setCreatedAtDate(new Date(editingGoal.createdAt || editingGoal.updatedAt || Date.now()).toISOString().split('T')[0]);
         } else {
             setName('');
             setTarget('');
@@ -36,6 +38,7 @@ const PiggyBankForm: React.FC<PiggyBankFormProps> = ({ editingGoal, onCancelEdit
             setSourceAccountId('');
             setAccountInBudget(true);
             setColor('#f59e0b');
+            setCreatedAtDate(new Date().toISOString().split('T')[0]);
         }
     }, [editingGoal]);
 
@@ -52,6 +55,7 @@ const PiggyBankForm: React.FC<PiggyBankFormProps> = ({ editingGoal, onCancelEdit
             accountInBudget,
             color,
             currency: 'EUR' as const,
+            createdAt: createdAtDate ? new Date(createdAtDate).getTime() : Date.now(),
             updatedAt: Date.now()
         };
 
@@ -87,6 +91,10 @@ const PiggyBankForm: React.FC<PiggyBankFormProps> = ({ editingGoal, onCancelEdit
             </div>
 
             <div style={{ display: 'flex', gap: '1rem' }}>
+                <div style={{ flex: 1.2 }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Fecha de Creación</label>
+                    <input type="date" style={{ ...inputStyle, colorScheme: 'dark' }} value={createdAtDate} onChange={e => setCreatedAtDate(e.target.value)} required />
+                </div>
                 <div style={{ flex: 1 }}>
                     <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Meta (€, opcional)</label>
                     <input type="number" step="0.01" style={inputStyle} value={target} onChange={e => setTarget(e.target.value)} placeholder="2000" />

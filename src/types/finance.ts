@@ -90,13 +90,14 @@ export interface RecurringExpense {
     description: string;
     amount: number;
     currency: Currency;
-    frequency: 'weekly' | 'monthly' | 'bi-monthly' | 'quarterly' | 'semi-annually' | 'yearly';
+    frequency: 'weekly' | 'monthly' | 'bi-monthly' | 'quarterly' | 'four-monthly' | 'five-monthly' | 'semi-annually' | 'seven-monthly' | 'eight-monthly' | 'nine-monthly' | 'ten-monthly' | 'eleven-monthly' | 'yearly';
     paymentDay: number; // Day of month
     paymentMonth?: number; // For yearly/bi-monthly/quarterly/etc. (1-indexed)
     active: boolean;
     sourceAccountId?: string;
     categoryId?: string;
     paymentMethod?: PaymentMethod;
+    createdAt?: number;
     updatedAt?: number;
     ignoredPeriods?: string[]; // Array of strings like "2026-04"
 }

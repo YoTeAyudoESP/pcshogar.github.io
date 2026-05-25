@@ -32,7 +32,7 @@ const FixedIncomeForm: React.FC<FixedIncomeFormProps> = ({ editingIncome, onClos
             paymentMonth: (frequency !== 'monthly' && frequency !== 'weekly') ? parseInt(paymentMonth) : undefined,
             active: true,
             linkedAccountId: accountId || undefined,
-            status: 'received' as const,
+            status: 'pending' as const,
             type: 'fixed' as const,
             expirationDate: expirationDate ? new Date(expirationDate).getTime() : undefined,
             createdAt: editingIncome?.createdAt || Date.now()
@@ -137,9 +137,16 @@ const FixedIncomeForm: React.FC<FixedIncomeFormProps> = ({ editingIncome, onClos
                     >
                         <option value="monthly">Mensual</option>
                         <option value="weekly">Semanal</option>
-                        <option value="bi-monthly">Bimensual</option>
-                        <option value="quarterly">Trimestral</option>
-                        <option value="semi-annually">Semestral</option>
+                        <option value="bi-monthly">Bimensual (cada 2 meses)</option>
+                        <option value="quarterly">Trimestral (cada 3 meses)</option>
+                        <option value="four-monthly">Cuatrimestral (cada 4 meses)</option>
+                        <option value="five-monthly">Cada 5 meses</option>
+                        <option value="semi-annually">Semestral (cada 6 meses)</option>
+                        <option value="seven-monthly">Cada 7 meses</option>
+                        <option value="eight-monthly">Cada 8 meses</option>
+                        <option value="nine-monthly">Cada 9 meses</option>
+                        <option value="ten-monthly">Cada 10 meses</option>
+                        <option value="eleven-monthly">Cada 11 meses</option>
                         <option value="yearly">Anual</option>
                     </select>
                 </div>

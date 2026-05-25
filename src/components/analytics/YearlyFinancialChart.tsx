@@ -39,6 +39,7 @@ const YearlyFinancialChart: React.FC = () => {
             const monthlyExtraIncome = extraIncomes
                 .filter(inc => {
                     if (inc.type !== 'extra') return false;
+                    if (inc.status === 'pending') return false;
                     const d = new Date(inc.receivedDate);
                     return d.getMonth() === index && d.getFullYear() === currentYear;
                 })

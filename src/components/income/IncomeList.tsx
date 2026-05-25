@@ -175,8 +175,15 @@ const IncomeList: React.FC<IncomeListProps> = ({ onEdit }) => {
 
                                         {/* Right Section: Amount & Badge */}
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
-                                            <div style={{ fontWeight: 800, fontSize: '0.85rem', color: '#2ed573', whiteSpace: 'nowrap' }}>
-                                                +{formatMoney(income.amount)}
+                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
+                                                <div style={{ fontWeight: 800, fontSize: '0.85rem', color: income.status === 'pending' ? '#fbbf24' : '#2ed573', whiteSpace: 'nowrap' }}>
+                                                    +{formatMoney(income.amount)}
+                                                </div>
+                                                {income.status === 'pending' && (
+                                                    <span style={{ fontSize: '0.65rem', background: 'rgba(251, 191, 36, 0.15)', color: '#fbbf24', padding: '1px 6px', borderRadius: '8px', fontWeight: 700 }}>
+                                                        Pendiente
+                                                    </span>
+                                                )}
                                             </div>
                                             
                                             {/* Actions */}

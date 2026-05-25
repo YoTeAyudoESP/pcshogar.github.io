@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import { CheckCircle, Clock, ArrowUpRight, ArrowDownLeft, ChevronRight } from 'lucide-react';
-import { isRecurringActiveInMonth, formatMoney } from '../../utils/financeCalculations';
+import { isRecurringActiveInMonth, formatMoney, isItemInMonthAndYear } from '../../utils/financeCalculations';
 import ConfirmMovementModal from '../settings/ConfirmMovementModal';
 
 const PendingActionsWidget: React.FC = () => {
@@ -48,10 +48,22 @@ const PendingActionsWidget: React.FC = () => {
         return isRecurringActiveInMonth(inc.frequency, inc.paymentMonth, selectedMonth, selectedYear, start);
     });
 
+    // Calculate pending extra incomes
+    const pendingExtraIncomes = incomes.filter(inc => 
+        inc.type === 'extra' && 
+        inc.status === 'pending' && 
+        isItemInMonthAndYear(inc, selectedMonth, selectedYear)
+    );
+
     const allPending = [
         ...pendingIncomes.map(inc => ({ ...inc, actionType: 'income' as const })),
+        ...pendingExtraIncomes.map(inc => ({ ...inc, actionType: 'income' as const, isExtraPending: true })),
         ...pendingExpenses.map(exp => ({ ...exp, actionType: 'expense' as const }))
-    ].sort((a, b) => (a.paymentDay || 0) - (b.paymentDay || 0));
+    ].sort((a: any, b: any) => {
+        const dayA = a.paymentDay || (a.receivedDate ? new Date(a.receivedDate).getDate() : 0);
+        const dayB = b.paymentDay || (b.receivedDate ? new Date(b.receivedDate).getDate() : 0);
+        return dayA - dayB;
+    });
 
     if (allPending.length === 0) return null;
 
@@ -143,7 +155,7 @@ const PendingActionsWidget: React.FC = () => {
                                 {item.actionType === 'income' ? <ArrowDownLeft size={16} /> : <ArrowUpRight size={16} />}
                             </div>
                             <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>
-                                Día {item.paymentDay}
+                                Día {item.paymentDay || (item.receivedDate ? new Date(item.receivedDate).getDate() : new Date(item.createdAt).getDate())}
                             </div>
                         </div>
 

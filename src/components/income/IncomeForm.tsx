@@ -22,6 +22,9 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData }) => {
     const [amount, setAmount] = useState(initialData?.amount?.toString() || '');
     const [currency, setCurrency] = useState(initialData?.currency || 'EUR');
     const [status, setStatus] = useState<'pending' | 'received'>(initialData?.status || 'pending');
+    const [excludeFromBudget, setExcludeFromBudget] = useState(
+        initialData ? (initialData.excludeFromBudget || false) : true
+    );
 
     // Temporal
     const [budgetMonth, setBudgetMonth] = useState<number>(initialData?.budgetMonth ?? new Date().getMonth());
@@ -63,6 +66,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData }) => {
             budgetMonth,
             budgetYear,
             effectiveDate: effectiveDate ? new Date(effectiveDate).getTime() : undefined,
+            excludeFromBudget: status === 'pending' ? excludeFromBudget : false,
         };
 
         if (isEditing) {
@@ -264,10 +268,30 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData }) => {
                                 {accounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name} ({formatMoney(acc.balance)})</option>)}
                             </select>
                         </div>
-                        {status === 'received' && (
+                        {status === 'received' ? (
                             <div style={{ flex: 1 }}>
                                 <label style={labelStyle}>Fecha de Cobro Real</label>
                                 <input type="date" style={inputStyle} value={effectiveDate} onChange={e => setEffectiveDate(e.target.value)} />
+                            </div>
+                        ) : (
+                            <div style={{ flex: 1 }}>
+                                <label style={labelStyle}>¿Sumar al disponible del mes?</label>
+                                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.4rem' }}>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setExcludeFromBudget(false)} 
+                                        style={toggleButtonStyle(!excludeFromBudget, '#10b981')}
+                                    >
+                                        Sí, sumar
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setExcludeFromBudget(true)} 
+                                        style={toggleButtonStyle(excludeFromBudget, '#fbbf24')}
+                                    >
+                                        No sumar
+                                    </button>
+                                </div>
                             </div>
                         )}
                     </div>

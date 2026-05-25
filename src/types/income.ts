@@ -16,6 +16,7 @@ export interface IncomeBase {
     categoryId?: string;
     fixedIncomeId?: string;
     updatedAt?: number;
+    excludeFromBudget?: boolean;
 }
 
 export interface FixedIncome extends IncomeBase {

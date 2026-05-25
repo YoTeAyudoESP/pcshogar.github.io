@@ -61,6 +61,15 @@ interface FinanceContextType {
     updateIncome: (income: Income) => Promise<void>;
     deleteIncome: (id: string, restorePending?: boolean) => Promise<void>;
     confirmFixedMovement: (type: 'income' | 'expense', fixedId: string, amount: number, date: number, accountId: string, period: string, description: string, categoryId?: string) => Promise<void>;
+    confirmExtraIncome: (
+        incomeId: string,
+        amount: number,
+        date: number,
+        accountId: string,
+        period: string,
+        excludeFromBudget: boolean,
+        targetSavingGoalId?: string
+    ) => Promise<void>;
     addLoan: (loan: Omit<Loan, 'id'>) => Promise<void>;
     updateAccount: (account: Account) => Promise<void>;
     updateCard: (card: CreditCard) => Promise<void>;
@@ -572,6 +581,53 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                 await incomeDB.updateRecurringExpense({ ...rec, ignoredPeriods, updatedAt: Date.now() });
             }
         }
+        await refreshFinance();
+    };
+ 
+    const confirmExtraIncome = async (
+        incomeId: string,
+        amount: number,
+        date: number,
+        accountId: string,
+        period: string,
+        excludeFromBudget: boolean,
+        targetSavingGoalId?: string
+    ) => {
+        const income = incomes.find(i => i.id === incomeId);
+        if (!income) throw new Error('Ingreso no encontrado');
+
+        const [y, m] = period.split('-').map(Number);
+        const budgetMonth = m - 1;
+        const budgetYear = y;
+
+        const updatedIncome: Income = {
+            ...income,
+            amount,
+            status: 'received',
+            effectiveDate: date,
+            linkedAccountId: accountId,
+            period,
+            budgetMonth,
+            budgetYear,
+            excludeFromBudget,
+            updatedAt: Date.now()
+        } as Income;
+
+        await incomeDB.updateIncomeWithTransaction(updatedIncome);
+
+        if (targetSavingGoalId && accountId) {
+            const allocation: SavingAllocation = {
+                id: uuidv4(),
+                goalId: targetSavingGoalId,
+                sourceAccountId: accountId,
+                amount,
+                type: 'automatic',
+                date: Date.now(),
+                updatedAt: Date.now()
+            };
+            await incomeDB.allocateSavingsWithTransaction(allocation);
+        }
+
         await refreshFinance();
     };
 
@@ -1101,6 +1157,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
             deleteIncome,
             updateIncome,
             confirmFixedMovement,
+            confirmExtraIncome,
             addLoan,
             updateAccount,
             updateCard,

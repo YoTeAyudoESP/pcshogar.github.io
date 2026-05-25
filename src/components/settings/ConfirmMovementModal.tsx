@@ -8,18 +8,21 @@ import { formatMoney } from '../../utils/financeCalculations';
 
 interface ConfirmMovementModalProps {
     type: 'income' | 'expense';
-    item: FixedIncome | RecurringExpense;
+    item: any;
     onClose: () => void;
 }
 
 const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item, onClose }) => {
-    const { accounts, confirmFixedMovement, discardFixedMovement } = useFinance();
+    const { accounts, confirmFixedMovement, discardFixedMovement, savings, confirmExtraIncome } = useFinance();
     const { showToast } = useToast();
     const [amount, setAmount] = useState(item.amount);
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [budgetPeriod, setBudgetPeriod] = useState(new Date().toISOString().substring(0, 7));
     const [accountId, setAccountId] = useState('');
     const [methodType, setMethodType] = useState<'account' | 'card'>('account');
+    const [allocationTarget, setAllocationTarget] = useState<'budget' | 'exclude' | 'hucha'>('budget');
+    const [selectedSavingGoalId, setSelectedSavingGoalId] = useState('');
+    const isExtraIncomePending = type === 'income' && item.type === 'extra';
 
     useEffect(() => {
         // Find default account
@@ -51,16 +54,35 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
         const categoryId = (item as any).categoryId;
 
         try {
-            await confirmFixedMovement(
-                type,
-                item.id,
-                amount,
-                new Date(date).getTime(),
-                accountId,
-                period,
-                description,
-                categoryId
-            );
+            if (isExtraIncomePending) {
+                if (allocationTarget === 'hucha' && !selectedSavingGoalId) {
+                    showToast('Por favor, selecciona una hucha.', 'error');
+                    return;
+                }
+                const excludeFromBudget = allocationTarget !== 'budget';
+                await confirmExtraIncome(
+                    item.id,
+                    amount,
+                    new Date(date).getTime(),
+                    accountId,
+                    period,
+                    excludeFromBudget,
+                    allocationTarget === 'hucha' ? selectedSavingGoalId : undefined
+                );
+                showToast("Ingreso confirmado con éxito.", "success");
+            } else {
+                await confirmFixedMovement(
+                    type,
+                    item.id,
+                    amount,
+                    new Date(date).getTime(),
+                    accountId,
+                    period,
+                    description,
+                    categoryId
+                );
+                showToast("Movimiento confirmado con éxito.", "success");
+            }
             onClose();
         } catch (error) {
             console.error("Error confirming movement:", error);
@@ -186,6 +208,54 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
                         </select>
                     </div>
 
+                    {/* Allocation Selection for Pending Extra Income */}
+                    {isExtraIncomePending && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            <label style={{ fontSize: '0.85rem', opacity: 0.6 }}>Asignación de Presupuesto</label>
+                            <select 
+                                value={allocationTarget}
+                                onChange={(e) => setAllocationTarget(e.target.value as any)}
+                                style={{
+                                    background: 'rgba(255, 255, 255, 0.05)',
+                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                    padding: '1rem',
+                                    borderRadius: '0.75rem',
+                                    color: 'white',
+                                    width: '100%'
+                                }}
+                            >
+                                <option value="budget">Sumar al disponible del mes seleccionado</option>
+                                <option value="exclude">No sumar al disponible (Excluir del presupuesto)</option>
+                                {savings.length > 0 && <option value="hucha">Añadir a una hucha</option>}
+                            </select>
+
+                            {allocationTarget === 'hucha' && (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
+                                    <label style={{ fontSize: '0.85rem', opacity: 0.6 }}>Seleccionar Hucha</label>
+                                    <select 
+                                        value={selectedSavingGoalId}
+                                        onChange={(e) => setSelectedSavingGoalId(e.target.value)}
+                                        style={{
+                                            background: 'rgba(255, 255, 255, 0.05)',
+                                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                                            padding: '1rem',
+                                            borderRadius: '0.75rem',
+                                            color: 'white',
+                                            width: '100%'
+                                        }}
+                                    >
+                                        <option value="">Selecciona una hucha...</option>
+                                        {savings.map(goal => (
+                                            <option key={goal.id} value={goal.id}>
+                                                {goal.name} (Meta: {formatMoney(goal.targetAmount)})
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
                     {/* Period Select */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                         <label style={{ fontSize: '0.85rem', opacity: 0.6, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
@@ -247,29 +317,31 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
                                 <Check size={20} /> Confirmar {type === 'income' ? 'Cobro' : 'Pago'}
                             </button>
                         </div>
-                        <button 
-                            type="button"
-                            onClick={handleDiscard}
-                            style={{
-                                width: '100%',
-                                background: 'rgba(244, 63, 94, 0.12)',
-                                border: '1px solid rgba(244, 63, 94, 0.2)',
-                                padding: '1rem',
-                                borderRadius: '1rem',
-                                color: '#fb7185',
-                                fontWeight: 700,
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '0.5rem',
-                                transition: 'all 0.2s'
-                            }}
-                            onMouseOver={e => e.currentTarget.style.background = 'rgba(244, 63, 94, 0.22)'}
-                            onMouseOut={e => e.currentTarget.style.background = 'rgba(244, 63, 94, 0.12)'}
-                        >
-                            Descartar este mes
-                        </button>
+                        {!isExtraIncomePending && (
+                            <button 
+                                type="button"
+                                onClick={handleDiscard}
+                                style={{
+                                    width: '100%',
+                                    background: 'rgba(244, 63, 94, 0.12)',
+                                    border: '1px solid rgba(244, 63, 94, 0.2)',
+                                    padding: '1rem',
+                                    borderRadius: '1rem',
+                                    color: '#fb7185',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '0.5rem',
+                                    transition: 'all 0.2s'
+                                }}
+                                onMouseOver={e => e.currentTarget.style.background = 'rgba(244, 63, 94, 0.22)'}
+                                onMouseOut={e => e.currentTarget.style.background = 'rgba(244, 63, 94, 0.12)'}
+                            >
+                                Descartar este mes
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>

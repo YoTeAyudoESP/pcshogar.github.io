@@ -113,6 +113,7 @@ export function calculateAvailableBalanceForMonth(
     // 2. Process Extra Incomes (Actual records)
     extraIncomes.forEach(inc => {
         if (inc.type === 'rollover') return;
+        if (inc.excludeFromBudget) return;
         if (isItemInMonthAndYear(inc, month, year)) {
             extraIncomesReceived += inc.amount;
         }

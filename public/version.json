@@ -1,5 +1,5 @@
 {
-  "version": "1.0.6",
+  "version": "1.0.9",
   "url": "https://pcshogar.es/",
-  "releaseNotes": "Novedades v1.0.6: Se separa visualmente el efectivo de las cuentas bancarias para mayor claridad, y se añade un acceso directo para crear carteras de efectivo."
+  "releaseNotes": "Novedades v1.0.9: Gestión de ingresos extras pendientes (no suman a cuentas ni saldo hasta ser confirmados); selección de destino al confirmar (presupuesto del mes, excluir o huchas); visualización de etiquetas y panel de acciones pendientes."
 }

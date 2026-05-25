@@ -1,5 +1,5 @@
 {
-  "version": "1.0.5",
+  "version": "1.0.7",
   "url": "https://pcshogar.es/",
-  "releaseNotes": "Novedades v1.0.5: Permite descartar movimientos fijos pendientes en el mes y elegir si restablecer a pendiente o descartar por completo al eliminar un movimiento confirmado."
+  "releaseNotes": "Novedades v1.0.7: Permite definir fecha de inicio y exclusión de presupuesto en huchas; creación de ingresos fijos como pendientes por defecto; soporte para periodicidades de 1 a 12 meses; y confirmación de salida en Android."
 }

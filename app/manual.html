@@ -571,10 +571,11 @@
                 <h3>Creación y Configuración</h3>
                 <p>Al pulsar el botón <span class="btn-rep btn-primary">+ Nueva Hucha</span> puedes definir:</p>
                 <ul>
+                    <li><strong>Fecha de Creación</strong>: Permite establecer el día exacto en que se inicia la hucha (por defecto el día de hoy). Esto evita que la aportación mensual de la hucha afecte o genere saldos de cierre negativos de forma retroactiva en meses anteriores a su existencia.</li>
                     <li><strong>Saldo Actual</strong>: El dinero inicial que ya tienes guardado para ese fin.</li>
                     <li><strong>Meta (Opcional)</strong>: Cantidad objetivo que deseas alcanzar. La aplicación calculará automáticamente el porcentaje completado.</li>
                     <li><strong>Ahorro mensual automático</strong>: Si configuras esta cantidad y seleccionas una cuenta origen, la aplicación restará este importe automáticamente cada mes de tu disponible para "ahorrarlo" en la hucha de forma pasiva.</li>
-                    <li><strong>Contabilizar en presupuesto</strong>: Si está marcado, el dinero en la hucha se restará del dinero disponible para evitar que te lo gastes accidentalmente.</li>
+                    <li><strong>Contabilizar en presupuesto</strong>: Si está activado (por defecto), las aportaciones mensuales a esta hucha se restarán de tu disponible para gastar, permitiéndote apartar el dinero de manera segura. Si se desactiva, el saldo y las aportaciones no alterarán tu dinero disponible (útil para registrar huchas externas o hacer correcciones).</li>
                 </ul>
 
                 <h3>Acciones en Huchas</h3>
@@ -615,7 +616,15 @@
                 <p>Esta sección engloba las herramientas avanzadas y de conectividad de la aplicación.</p>
 
                 <h3>Ingresos y Gastos Fijos (Programados)</h3>
-                <p>Ideal para elementos recurrentes de periodicidad fija (nóminas, alquileres, suscripciones a servicios de streaming, seguros anuales). Se programan indicando el día de cobro/pago. Al cambiar de mes, la aplicación te pedirá confirmación para insertarlos automáticamente en el historial.</p>
+                <p>Ideal para elementos recurrentes de periodicidad fija (nóminas, alquileres, suscripciones a servicios de streaming, seguros anuales, etc.). Se programan indicando el día de cobro/pago. Al cambiar de mes, la aplicación te pedirá confirmación para insertarlos automáticamente en el historial.</p>
+                <ul>
+                    <li><strong>Periodicidades Flexibles:</strong> Soporte completo para frecuencias mensuales desde 1 hasta 12 meses (Mensual, Bimensual, Trimestral, Cuatrimestral, Cada 5 meses, Semestral, Cada 7 meses, Cada 8 meses, Cada 9 meses, Cada 10 meses, Cada 11 meses, Anual). Esto te permite programar con total exactitud gastos semestrales o ingresos de pagas extraordinarias.</li>
+                    <li><strong>Ingresos Pendientes por Defecto:</strong> Las plantillas de ingresos fijos se crean con estado "Pendiente" en lugar de marcarse automáticamente como cobradas. De esta forma, aparecerán en la sección "Pendientes de Confirmar" en tu Dashboard para que confirmes su recepción real antes de engrosar tu dinero disponible para gastar.</li>
+                    <li><strong>Gestión Global Desfiltrada:</strong> El panel de gestión de movimientos fijos muestra la totalidad de las plantillas creadas independientemente del mes consultado en la barra superior. Esto te permite editar o borrar plantillas libremente en cualquier mes. Al pulsar en añadir o editar, la lista se ocultará temporalmente para facilitar la visualización en dispositivos pequeños.</li>
+                </ul>
+                
+                <h3>Botón Físico de Atrás (Android)</h3>
+                <p>En dispositivos Android, el botón de retroceso nativo está configurado para mostrar un mensaje de confirmación antes de salir de la aplicación, evitando cierres accidentales mientras gestionas tu economía doméstica.</p>
 
                 <h3>Ajustes de Saldo (Historial de Cierres)</h3>
                 <p>Aquí se listan todos los meses naturales que han sido cerrados en la aplicación.</p>

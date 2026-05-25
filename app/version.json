@@ -1,5 +1,5 @@
 {
-  "version": "1.0.8",
+  "version": "1.0.6",
   "url": "https://pcshogar.es/",
-  "releaseNotes": "Novedades v1.0.8: Rediseño visual del formulario de Huchas adaptado a móviles; sistema de botón de volver atrás de Android mejorado para navegar por modales y advertir de cambios sin guardar."
+  "releaseNotes": "Novedades v1.0.6: Se separa visualmente el efectivo de las cuentas bancarias para mayor claridad, y se añade un acceso directo para crear carteras de efectivo."
 }

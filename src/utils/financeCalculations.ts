@@ -251,6 +251,8 @@ export function calculateAvailableBalanceForMonth(
         
         const extraIncomeAfter = extraIncomes.filter(inc => {
             if (inc.type === 'rollover') return false;
+            if (inc.status === 'pending') return false;
+            if (inc.excludeFromBudget) return false;
             const t = Number(inc.updatedAt || inc.effectiveDate || (inc as any).receivedDate || (inc as any).createdAt || 0);
             return isItemInMonthAndYear(inc, month, year) && t > overrideTime;
         }).reduce((sum, inc) => sum + inc.amount, 0);

@@ -13,7 +13,7 @@ interface ConfirmMovementModalProps {
 }
 
 const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item, onClose }) => {
-    const { accounts, confirmFixedMovement, discardFixedMovement, savings, confirmExtraIncome } = useFinance();
+    const { accounts, confirmFixedMovement, discardFixedMovement, savings, confirmExtraIncome, deleteIncome } = useFinance();
     const { showToast } = useToast();
     const [amount, setAmount] = useState(item.amount);
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -87,6 +87,17 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
         } catch (error) {
             console.error("Error confirming movement:", error);
             showToast("Error al confirmar el movimiento.", 'error');
+        }
+    };
+
+    const handleDelete = async () => {
+        try {
+            await deleteIncome(item.id);
+            showToast("Ingreso eliminado con éxito.", "success");
+            onClose();
+        } catch (error) {
+            console.error("Error deleting income:", error);
+            showToast("Error al eliminar el ingreso.", "error");
         }
     };
 
@@ -340,6 +351,32 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
                                 onMouseOut={e => e.currentTarget.style.background = 'rgba(244, 63, 94, 0.12)'}
                             >
                                 Descartar este mes
+                            </button>
+                        )}
+                        {isExtraIncomePending && (
+                            <button 
+                                type="button"
+                                onClick={handleDelete}
+                                style={{
+                                    width: '100%',
+                                    background: 'rgba(244, 63, 94, 0.12)',
+                                    border: '1px solid rgba(244, 63, 94, 0.2)',
+                                    padding: '1rem',
+                                    borderRadius: '1rem',
+                                    color: '#fb7185',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '0.5rem',
+                                    transition: 'all 0.2s',
+                                    marginTop: '0.5rem'
+                                }}
+                                onMouseOver={e => e.currentTarget.style.background = 'rgba(244, 63, 94, 0.22)'}
+                                onMouseOut={e => e.currentTarget.style.background = 'rgba(244, 63, 94, 0.12)'}
+                            >
+                                Eliminar Ingreso
                             </button>
                         )}
                     </div>

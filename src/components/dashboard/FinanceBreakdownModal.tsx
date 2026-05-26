@@ -37,7 +37,7 @@ const FinanceBreakdownModal: React.FC<FinanceBreakdownModalProps> = ({ isOpen, o
 
     // 1. Ingresos Totales
     const fijosRecibidos = extraIncomes
-        .filter(inc => inc.type === 'extra' && inc.period === currentPeriod && inc.status !== 'pending')
+        .filter(inc => inc.type === 'extra' && inc.period === currentPeriod && inc.status !== 'pending' && !inc.excludeFromBudget)
         .reduce((sum, inc) => sum + inc.amount, 0);
 
     const fijosProyectados = fixedIncomes
@@ -59,7 +59,7 @@ const FinanceBreakdownModal: React.FC<FinanceBreakdownModalProps> = ({ isOpen, o
         .reduce((sum, inc) => sum + inc.amount, 0);
 
     const extrasRecibidos = extraIncomes
-        .filter(inc => inc.type === 'extra' && !inc.period && isItemInSelectedMonth(inc) && inc.status !== 'pending')
+        .filter(inc => inc.type === 'extra' && !inc.period && isItemInSelectedMonth(inc) && inc.status !== 'pending' && !inc.excludeFromBudget)
         .reduce((sum, inc) => sum + inc.amount, 0);
 
     const remanente = extraIncomes

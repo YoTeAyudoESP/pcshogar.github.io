@@ -1,5 +1,5 @@
 {
-  "version": "1.1.0",
+  "version": "1.1.1",
   "url": "https://pcshogar.es/",
-  "releaseNotes": "Novedades v1.1.0: Corrección y optimización en el flujo de ingresos extras pendientes. Los ingresos pendientes ya no inflan el disponible mensual ni se muestran en los apuntes bancarios hasta ser confirmados; se visualizan únicamente en la zona de Pendientes de Confirmar."
+  "releaseNotes": "Novedades v1.1.1: Corrección de error en disponible mensual con ingresos pendientes/excluidos bajo Ajustes de Disponible. Añadida la opción de eliminar ingresos extras pendientes directamente en el modal de confirmación."
 }

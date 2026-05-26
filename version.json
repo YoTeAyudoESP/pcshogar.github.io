@@ -1,5 +1,5 @@
 {
-  "version": "1.1.1",
+  "version": "1.1.2",
   "url": "https://pcshogar.es/",
-  "releaseNotes": "Novedades v1.1.1: Corrección de error en disponible mensual con ingresos pendientes/excluidos bajo Ajustes de Disponible. Añadida la opción de eliminar ingresos extras pendientes directamente en el modal de confirmación."
+  "releaseNotes": "Novedades v1.1.2: Corregido el problema que provocaba que el botón físico de atrás de Android dejase de funcionar tras iniciar sesión correctamente en Dropbox."
 }

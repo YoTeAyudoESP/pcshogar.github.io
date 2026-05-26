@@ -1,5 +1,5 @@
 {
-  "version": "1.1.2",
+  "version": "1.1.3",
   "url": "https://pcshogar.es/",
-  "releaseNotes": "Novedades v1.1.2: Corregido el problema que provocaba que el botón físico de atrás de Android dejase de funcionar tras iniciar sesión correctamente en Dropbox."
+  "releaseNotes": "Novedades v1.1.3: Integrada la sincronización automática y manual en tiempo real con Google Drive, garantizando exclusión mutua con Dropbox."
 }

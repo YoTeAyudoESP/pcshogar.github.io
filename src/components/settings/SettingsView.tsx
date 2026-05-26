@@ -14,7 +14,7 @@ import CategoryManagementView from './CategoryManagementView';
 import AppSettingsView from './AppSettingsView';
 import { useFinance } from '../../contexts/FinanceContext';
 import { useToast } from '../../contexts/ToastContext';
-const version = "1.1.1";
+const version = "1.1.2";
 // Browser plugin removed: manual opens in-app via window.location.href
 import type { Account, CreditCard, RecurringExpense, SavingGoal, Loan } from '../../types/finance';
 import { 

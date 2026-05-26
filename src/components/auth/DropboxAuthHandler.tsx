@@ -40,9 +40,12 @@ const DropboxAuthHandler: React.FC = () => {
         }
 
         // 2. Handle deep link (from external browser)
+        let isMounted = true;
+        let deepLinkListener: any = null;
+
         const setupDeepLink = async () => {
             if (Capacitor.isNativePlatform()) {
-                await App.addListener('appUrlOpen', data => {
+                const listener = await App.addListener('appUrlOpen', data => {
                     // The URL will be com.pcshogar.app://auth/dropbox#access_token=...
                     const url = data.url;
                     if (url.includes('access_token=')) {
@@ -54,14 +57,20 @@ const DropboxAuthHandler: React.FC = () => {
                         }
                     }
                 });
+                if (!isMounted) {
+                    listener.remove();
+                } else {
+                    deepLinkListener = listener;
+                }
             }
         };
 
         setupDeepLink();
 
         return () => {
-            if (Capacitor.isNativePlatform()) {
-                App.removeAllListeners();
+            isMounted = false;
+            if (deepLinkListener) {
+                deepLinkListener.remove();
             }
         };
     }, [updateSyncSettings, settings.sync.dropboxPath]);

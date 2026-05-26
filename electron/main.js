@@ -39,8 +39,8 @@ function createWindow() {
         }
     });
 
-    // IPC: connect with Dropbox in an overlay window and intercept the token redirect
-    ipcMain.handle('connect-dropbox', async (_event, authUrl) => {
+    // IPC: connect with an OAuth provider in an overlay window and intercept the token redirect
+    const handleOAuth = async (_event, authUrl) => {
         return new Promise((resolve, reject) => {
             const authWindow = new BrowserWindow({
                 width: 600,
@@ -84,7 +84,10 @@ function createWindow() {
                 reject(new Error('Ventana de autenticación cerrada por el usuario.'));
             });
         });
-    });
+    };
+
+    ipcMain.handle('connect-dropbox', handleOAuth);
+    ipcMain.handle('connect-oauth', handleOAuth);
 
     if (process.env.VITE_DEV_SERVER_URL) {
         win.loadURL(process.env.VITE_DEV_SERVER_URL);

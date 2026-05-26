@@ -22,6 +22,7 @@ import { useFinance } from '../../contexts/FinanceContext';
 import { SyncService } from '../../services/syncService';
 import { incomeDB } from '../../services/db';
 import { DropboxService } from '../../services/dropboxService';
+import { GoogleDriveService } from '../../services/googleDriveService';
 import { SUPPORTED_CURRENCIES, SUPPORTED_LANGUAGES, APP_THEMES } from '../../types/finance';
 import DropboxFolderPicker from './DropboxFolderPicker';
 
@@ -282,11 +283,23 @@ const AppSettingsView: React.FC = () => {
                         {[
                             { id: 'local', icon: HardDrive, label: 'Local' },
                             { id: 'smb', icon: Server, label: 'SMB (Red)' },
-                            { id: 'dropbox', icon: Cloud, label: 'Dropbox' }
+                            { id: 'dropbox', icon: Cloud, label: 'Dropbox' },
+                            { id: 'googledrive', icon: Cloud, label: 'Google Drive' }
                         ].map(type => (
                             <button
                                 key={type.id}
-                                onClick={() => updateSyncSettings({ type: type.id as any })}
+                                onClick={() => {
+                                    const newType = type.id as any;
+                                    const extra: any = {};
+                                    if (newType === 'dropbox') {
+                                        extra.googledriveToken = undefined;
+                                        extra.googledriveUserEmail = undefined;
+                                    } else if (newType === 'googledrive') {
+                                        extra.dropboxToken = undefined;
+                                        extra.dropboxUserEmail = undefined;
+                                    }
+                                    updateSyncSettings({ type: newType, ...extra });
+                                }}
                                 style={{
                                     flex: '1 1 100px', // Allow wrapping with a base width
                                     padding: '0.8rem 0.5rem',
@@ -304,7 +317,7 @@ const AppSettingsView: React.FC = () => {
                                     fontSize: '0.85rem'
                                 }}
                             >
-                                <type.icon size={16} /> {type.label}
+                                <type.icon size={16} color={type.id === 'googledrive' && settings.sync.type === type.id ? '#34A853' : type.id === 'dropbox' && settings.sync.type === type.id ? '#0061FF' : undefined} /> {type.label}
                             </button>
                         ))}
                     </div>
@@ -516,6 +529,167 @@ const AppSettingsView: React.FC = () => {
                             {!settings.sync.dropboxToken && (
                                 <p style={{ fontSize: '0.75rem', opacity: 0.4, margin: 0, fontStyle: 'italic' }}>
                                     Al conectar Dropbox, la app podrá leer y escribir el archivo 'pcshogar_data.json' en tu cuenta para sincronizar con otros dispositivos.
+                                </p>
+                            )}
+                        </div>
+                    )}
+
+                    {settings.sync.type === 'googledrive' && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <div style={{ 
+                                padding: '1.25rem', 
+                                border: '1px solid rgba(255,255,255,0.1)', 
+                                borderRadius: '1rem',
+                                background: 'rgba(255,255,255,0.02)',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '1rem'
+                            }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                        <Cloud size={24} color="#34A853" />
+                                        <div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <p style={{ margin: 0, fontWeight: 700, fontSize: '1rem' }}>Estado de Google Drive</p>
+                                                {settings.sync.googledriveToken && (
+                                                    <span style={{ 
+                                                        background: 'rgba(16, 185, 129, 0.15)', 
+                                                        color: '#10b981', 
+                                                        fontSize: '0.65rem', 
+                                                        padding: '2px 8px', 
+                                                        borderRadius: '12px',
+                                                        fontWeight: 800,
+                                                        textTransform: 'uppercase',
+                                                        letterSpacing: '0.05em'
+                                                    }}>
+                                                        Conectado
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <p style={{ margin: 0, fontSize: '0.8rem', opacity: 0.6 }}>
+                                                {settings.sync.googledriveToken ? `${settings.sync.googledriveUserEmail || 'Usuario vinculado'}` : 'No conectado'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    {!settings.sync.googledriveToken && (
+                                        <button 
+                                            onClick={() => {
+                                                const url = GoogleDriveService.getAuthUrl('googledrive');
+                                                const isElectron = !!(window as any).require;
+                                                if (isElectron) {
+                                                    const { ipcRenderer } = (window as any).require('electron');
+                                                    showToast('Abriendo ventana de autenticación...', 'info');
+                                                    ipcRenderer.invoke('connect-dropbox', url)
+                                                        .then((token: string) => {
+                                                            GoogleDriveService.init(token, settings.sync.googledrivePath || 'pcshogar_data.json');
+                                                            GoogleDriveService.getUserInfo().then(user => {
+                                                                updateSyncSettings({
+                                                                    googledriveToken: token,
+                                                                    googledriveUserEmail: user.email,
+                                                                    enabled: true,
+                                                                    type: 'googledrive',
+                                                                    dropboxToken: undefined,
+                                                                    dropboxUserEmail: undefined
+                                                                });
+                                                                showToast(`Google Drive conectado con éxito: ${user.email}`, 'success');
+                                                            }).catch(err => {
+                                                                console.error("Error fetching google user info", err);
+                                                                showToast("Error al conectar con Google Drive.", 'error');
+                                                            });
+                                                        })
+                                                        .catch((err: any) => {
+                                                            console.error("Google Drive auth failed", err);
+                                                            showToast("Autenticación cancelada o fallida.", 'error');
+                                                        });
+                                                } else {
+                                                    window.location.href = url;
+                                                }
+                                            }}
+                                            style={{ background: '#34A853', color: 'white', border: 'none', padding: '0.5rem 1.25rem', borderRadius: '0.5rem', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 700 }}
+                                        >
+                                            Conectar Cuenta
+                                        </button>
+                                    )}
+                                </div>
+
+                                {settings.sync.googledriveToken && (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1.25rem' }}>
+                                        <div>
+                                            <label style={labelStyle}><FolderOpen size={16} /> Archivo en Google Drive</label>
+                                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                                <div style={{ 
+                                                    ...selectStyle, 
+                                                    flex: '1 1 200px', 
+                                                    display: 'flex', 
+                                                    alignItems: 'center', 
+                                                    gap: '0.5rem',
+                                                    background: 'rgba(255,255,255,0.03)',
+                                                    cursor: 'default',
+                                                    minWidth: '200px'
+                                                }}>
+                                                    <FileJson size={16} color="rgba(255,255,255,0.3)" />
+                                                    <span style={{ fontSize: '0.85rem', opacity: 0.8, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                        {settings.sync.googledrivePath || 'pcshogar_data.json'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div style={{ display: 'flex', gap: '0.75rem' }}>
+                                            <button 
+                                                onClick={async () => {
+                                                    try {
+                                                        showToast('Sincronizando con Google Drive...', 'sync');
+                                                        const timestamp = await GoogleDriveService.sync();
+                                                        updateSyncSettings({ lastSync: timestamp || Date.now() });
+                                                        await refreshFinance();
+                                                        showToast('Sincronización manual completada', 'success');
+                                                    } catch (e) {
+                                                        showToast('Error en la sincronización', 'error');
+                                                    }
+                                                }}
+                                                style={{ 
+                                                    flex: 2, 
+                                                    display: 'flex', 
+                                                    alignItems: 'center', 
+                                                    justifyContent: 'center', 
+                                                    gap: '0.6rem', 
+                                                    background: 'var(--color-primary)', 
+                                                    color: 'white', 
+                                                    border: 'none', 
+                                                    padding: '0.85rem', 
+                                                    borderRadius: '0.75rem', 
+                                                    cursor: 'pointer', 
+                                                    fontWeight: 700,
+                                                    boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)'
+                                                }}
+                                            >
+                                                <RefreshCw size={18} /> Sincronizar Ahora
+                                            </button>
+                                            <button 
+                                                onClick={() => updateSyncSettings({ googledriveToken: undefined, googledriveUserEmail: undefined })}
+                                                style={{ 
+                                                    flex: 1, 
+                                                    background: 'rgba(239, 68, 68, 0.05)', 
+                                                    color: '#ef4444', 
+                                                    border: '1px solid rgba(239, 68, 68, 0.2)', 
+                                                    padding: '0.85rem', 
+                                                    borderRadius: '0.75rem', 
+                                                    fontSize: '0.85rem', 
+                                                    cursor: 'pointer', 
+                                                    fontWeight: 600,
+                                                    transition: 'all 0.2s ease'
+                                                }}
+                                            >
+                                                Desconectar
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                            {!settings.sync.googledriveToken && (
+                                <p style={{ fontSize: '0.75rem', opacity: 0.4, margin: 0, fontStyle: 'italic' }}>
+                                    Al conectar Google Drive, la app podrá leer y escribir el archivo 'pcshogar_data.json' en tu cuenta de Google Drive para sincronizar con otros dispositivos.
                                 </p>
                             )}
                         </div>

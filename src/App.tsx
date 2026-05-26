@@ -7,7 +7,8 @@ import Dashboard from './components/dashboard/Dashboard';
 import { DateSelectionProvider } from './contexts/DateSelectionContext';
 import { AppSettingsProvider } from './contexts/AppSettingsContext';
 import DropboxAuthHandler from './components/auth/DropboxAuthHandler';
-import DropboxStartupChecker from './components/auth/DropboxStartupChecker';
+import GoogleDriveAuthHandler from './components/auth/GoogleDriveAuthHandler';
+import CloudStartupChecker from './components/auth/CloudStartupChecker';
 import { ToastProvider } from './contexts/ToastContext';
 import AppUpdateChecker from './components/common/AppUpdateChecker';
 import PrivacyDisclaimerModal from './components/common/PrivacyDisclaimerModal';
@@ -44,7 +45,8 @@ function App() {
       <PrivacyDisclaimerModal />
       <AppSettingsProvider>
         <DropboxAuthHandler />
-        <DropboxStartupChecker />
+        <GoogleDriveAuthHandler />
+        <CloudStartupChecker />
         <AppUpdateChecker />
         <FinanceProvider>
           <DateSelectionProvider>

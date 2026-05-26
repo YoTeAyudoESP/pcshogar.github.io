@@ -25,6 +25,16 @@
           }
         });
       }
+
+      // Handle OAuth redirect back to the native Capacitor app
+      const hash = window.location.hash;
+      if (hash && hash.includes('access_token=')) {
+        const params = new URLSearchParams(hash.substring(1));
+        const state = params.get('state');
+        if (state === 'googledrive-android') {
+          window.location.href = 'com.pcshogar.app://auth/googledrive' + hash;
+        }
+      }
     </script>
   </head>
   <body>

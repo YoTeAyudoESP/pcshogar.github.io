@@ -203,7 +203,7 @@ export const DEFAULT_INCOME_CATEGORIES: Category[] = [
 
 export interface SyncSettings {
     enabled: boolean;
-    type: 'local' | 'smb' | 'dropbox';
+    type: 'local' | 'smb' | 'dropbox' | 'googledrive';
     localPath?: string;
     smbConfig?: {
         server: string;
@@ -214,6 +214,9 @@ export interface SyncSettings {
     dropboxToken?: string;
     dropboxUserEmail?: string;
     dropboxPath?: string;
+    googledriveToken?: string;
+    googledriveUserEmail?: string;
+    googledrivePath?: string;
     lastSync?: number;
 }
 

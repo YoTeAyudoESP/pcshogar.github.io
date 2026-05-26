@@ -1,69 +1,103 @@
 import React, { useEffect, useState } from 'react';
 import { useAppSettings } from '../../contexts/AppSettingsContext';
 import { DropboxService } from '../../services/dropboxService';
+import { GoogleDriveService } from '../../services/googleDriveService';
 import { Cloud, ArrowRight, AlertCircle } from 'lucide-react';
 import { useToast } from '../../contexts/ToastContext';
 
-const DropboxStartupChecker: React.FC = () => {
+const CloudStartupChecker: React.FC = () => {
     const { settings, updateSyncSettings } = useAppSettings();
     const { showToast } = useToast();
     const [showModal, setShowModal] = useState(false);
 
+    const type = settings.sync.type;
+    const enabled = settings.sync.enabled;
+    const isDropbox = type === 'dropbox';
+    const isGoogle = type === 'googledrive';
+
     useEffect(() => {
         const checkConnection = async () => {
-            // Check if Dropbox sync is active and enabled
-            if (settings.sync.type === 'dropbox' && settings.sync.enabled) {
+            if (isDropbox && enabled) {
                 try {
                     if (settings.sync.dropboxToken) {
-                        // Initialize DropboxService with current token and path
                         DropboxService.init(settings.sync.dropboxToken, settings.sync.dropboxPath);
-                        // Validate connection by making a small request
                         await DropboxService.getUserInfo();
-                        // If it succeeds, connection is fine, hide modal
                         setShowModal(false);
                     } else {
-                        // Configured to sync but has no token
                         setShowModal(true);
                     }
                 } catch (error) {
                     console.error("Dropbox startup connection check failed:", error);
-                    // Connection failed (expired token, offline status, etc.)
+                    setShowModal(true);
+                }
+            } else if (isGoogle && enabled) {
+                try {
+                    if (settings.sync.googledriveToken) {
+                        GoogleDriveService.init(settings.sync.googledriveToken, settings.sync.googledrivePath || 'pcshogar_data.json');
+                        await GoogleDriveService.getUserInfo();
+                        setShowModal(false);
+                    } else {
+                        setShowModal(true);
+                    }
+                } catch (error) {
+                    console.error("Google Drive startup connection check failed:", error);
                     setShowModal(true);
                 }
             } else {
-                // If Dropbox sync is disabled or not Dropbox type, close modal
                 setShowModal(false);
             }
         };
 
         checkConnection();
-    }, [settings.sync.type, settings.sync.enabled, settings.sync.dropboxToken, settings.sync.dropboxPath]);
+    }, [type, enabled, settings.sync.dropboxToken, settings.sync.dropboxPath, settings.sync.googledriveToken, settings.sync.googledrivePath]);
 
     const handleConnect = () => {
-        const url = DropboxService.getAuthUrl();
+        const url = isDropbox ? DropboxService.getAuthUrl() : GoogleDriveService.getAuthUrl(isGoogle ? 'googledrive' : 'web');
         const isElectron = !!(window as any).require;
         if (isElectron) {
             const { ipcRenderer } = (window as any).require('electron');
             showToast('Abriendo ventana de autenticación...', 'info');
+            // We use the same 'connect-dropbox' handler in main.js since it just handles oauth redirect
             ipcRenderer.invoke('connect-dropbox', url)
                 .then((token: string) => {
-                    DropboxService.init(token, settings.sync.dropboxPath);
-                    DropboxService.getUserInfo().then(user => {
-                        updateSyncSettings({
-                            dropboxToken: token,
-                            dropboxUserEmail: user.email,
-                            enabled: true,
-                            type: 'dropbox'
+                    if (isDropbox) {
+                        DropboxService.init(token, settings.sync.dropboxPath);
+                        DropboxService.getUserInfo().then(user => {
+                            updateSyncSettings({
+                                dropboxToken: token,
+                                dropboxUserEmail: user.email,
+                                enabled: true,
+                                type: 'dropbox',
+                                googledriveToken: undefined,
+                                googledriveUserEmail: undefined
+                            });
+                            setShowModal(false);
+                            showToast(`Dropbox conectado con éxito: ${user.email}`, 'success');
+                        }).catch(err => {
+                            console.error("Error fetching dropbox user", err);
+                            showToast("Error al conectar con Dropbox.", 'error');
                         });
-                        setShowModal(false);
-                        showToast(`Dropbox conectado con éxito: ${user.email}`, 'success');
-                    }).catch(err => {
-                        console.error("Error fetching dropbox user", err);
-                        showToast("Error al conectar con Dropbox.", 'error');
-                    });
+                    } else {
+                        GoogleDriveService.init(token, settings.sync.googledrivePath || 'pcshogar_data.json');
+                        GoogleDriveService.getUserInfo().then(user => {
+                            updateSyncSettings({
+                                googledriveToken: token,
+                                googledriveUserEmail: user.email,
+                                enabled: true,
+                                type: 'googledrive',
+                                dropboxToken: undefined,
+                                dropboxUserEmail: undefined
+                            });
+                            setShowModal(false);
+                            showToast(`Google Drive conectado con éxito: ${user.email}`, 'success');
+                        }).catch(err => {
+                            console.error("Error fetching google user", err);
+                            showToast("Error al conectar con Google Drive.", 'error');
+                        });
+                    }
                 })
                 .catch((err: any) => {
-                    console.error("Dropbox auth failed", err);
+                    console.error("Cloud auth failed", err);
                     showToast("Autenticación cancelada o fallida.", 'error');
                 });
         } else {
@@ -76,6 +110,10 @@ const DropboxStartupChecker: React.FC = () => {
     };
 
     if (!showModal) return null;
+
+    const brandColor = isDropbox ? '#0061FF' : '#34A853';
+    const brandName = isDropbox ? 'Dropbox' : 'Google Drive';
+    const pulseAnim = isDropbox ? 'cloudPulseDropbox 3s infinite ease-in-out' : 'cloudPulseGoogle 3s infinite ease-in-out';
 
     return (
         <div style={overlayStyle}>
@@ -91,7 +129,7 @@ const DropboxStartupChecker: React.FC = () => {
                         transform: scale(1) translateY(0);
                     }
                 }
-                @keyframes cloudPulse {
+                @keyframes cloudPulseDropbox {
                     0% {
                         transform: scale(1);
                         filter: drop-shadow(0 0 0px rgba(0, 97, 255, 0));
@@ -105,39 +143,61 @@ const DropboxStartupChecker: React.FC = () => {
                         filter: drop-shadow(0 0 0px rgba(0, 97, 255, 0));
                     }
                 }
+                @keyframes cloudPulseGoogle {
+                    0% {
+                        transform: scale(1);
+                        filter: drop-shadow(0 0 0px rgba(52, 168, 83, 0));
+                    }
+                    50% {
+                        transform: scale(1.05);
+                        filter: drop-shadow(0 0 15px rgba(52, 168, 83, 0.4));
+                    }
+                    100% {
+                        transform: scale(1);
+                        filter: drop-shadow(0 0 0px rgba(52, 168, 83, 0));
+                    }
+                }
             `}} />
             
             <div style={modalStyle}>
-                <div style={iconContainerStyle}>
-                    <Cloud size={44} color="#0061FF" style={{ animation: 'cloudPulse 3s infinite ease-in-out' }} />
+                <div style={{
+                    ...iconContainerStyle,
+                    background: isDropbox ? 'rgba(0, 97, 255, 0.08)' : 'rgba(52, 168, 83, 0.08)',
+                    borderColor: isDropbox ? 'rgba(0, 97, 255, 0.15)' : 'rgba(52, 168, 83, 0.15)',
+                }}>
+                    <Cloud size={44} color={brandColor} style={{ animation: pulseAnim }} />
                 </div>
                 
-                <h3 style={titleStyle}>Sincronización con Dropbox</h3>
+                <h3 style={titleStyle}>Sincronización con {brandName}</h3>
                 
                 <div style={statusBadgeStyle}>
                     <AlertCircle size={14} /> Sin conexión / Token expirado
                 </div>
                 
                 <p style={textStyle}>
-                    Hemos detectado que tienes activada la sincronización en la nube, pero no se ha podido verificar la sesión. ¿Deseas volver a conectar tu cuenta de Dropbox ahora o continuar sin conexión en modo local?
+                    Hemos detectado que tienes activada la sincronización en la nube, pero no se ha podido verificar la sesión. ¿Deseas volver a conectar tu cuenta de {brandName} ahora o continuar sin conexión en modo local?
                 </p>
 
                 <div style={buttonContainerStyle}>
                     <button 
                         onClick={handleConnect}
-                        style={connectButtonStyle}
+                        style={{
+                            ...connectButtonStyle,
+                            background: brandColor,
+                            boxShadow: `0 4px 15px ${isDropbox ? 'rgba(0, 97, 255, 0.2)' : 'rgba(52, 168, 83, 0.2)'}`
+                        }}
                         onMouseEnter={e => {
                             e.currentTarget.style.transform = 'translateY(-2px)';
-                            e.currentTarget.style.boxShadow = '0 8px 25px rgba(0, 97, 255, 0.4)';
-                            e.currentTarget.style.background = '#1a75ff';
+                            e.currentTarget.style.boxShadow = `0 8px 25px ${isDropbox ? 'rgba(0, 97, 255, 0.4)' : 'rgba(52, 168, 83, 0.4)'}`;
+                            e.currentTarget.style.background = isDropbox ? '#1a75ff' : '#2d9449';
                         }}
                         onMouseLeave={e => {
                             e.currentTarget.style.transform = 'none';
-                            e.currentTarget.style.boxShadow = '0 4px 15px rgba(0, 97, 255, 0.2)';
-                            e.currentTarget.style.background = '#0061FF';
+                            e.currentTarget.style.boxShadow = `0 4px 15px ${isDropbox ? 'rgba(0, 97, 255, 0.2)' : 'rgba(52, 168, 83, 0.2)'}`;
+                            e.currentTarget.style.background = brandColor;
                         }}
                     >
-                        Conectar con Dropbox <ArrowRight size={18} />
+                        Conectar con {brandName} <ArrowRight size={18} />
                     </button>
                     
                     <button 
@@ -196,8 +256,7 @@ const modalStyle: React.CSSProperties = {
 };
 
 const iconContainerStyle: React.CSSProperties = {
-    background: 'rgba(0, 97, 255, 0.08)',
-    border: '1px solid rgba(0, 97, 255, 0.15)',
+    border: '1px solid',
     borderRadius: '24px',
     padding: '1.25rem',
     display: 'inline-flex',
@@ -245,7 +304,6 @@ const buttonContainerStyle: React.CSSProperties = {
 };
 
 const connectButtonStyle: React.CSSProperties = {
-    background: '#0061FF',
     color: '#ffffff',
     border: 'none',
     borderRadius: '16px',
@@ -258,7 +316,6 @@ const connectButtonStyle: React.CSSProperties = {
     alignItems: 'center',
     gap: '0.5rem',
     transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-    boxShadow: '0 4px 15px rgba(0, 97, 255, 0.2)',
     width: '100%',
     outline: 'none'
 };
@@ -277,4 +334,4 @@ const cancelButtonStyle: React.CSSProperties = {
     outline: 'none'
 };
 
-export default DropboxStartupChecker;
+export default CloudStartupChecker;

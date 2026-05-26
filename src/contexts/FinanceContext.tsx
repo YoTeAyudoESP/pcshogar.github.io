@@ -15,6 +15,7 @@ import { SyncService } from '../services/syncService';
 import { useAppSettings } from './AppSettingsContext';
 import { calculateAvailableBalanceForMonth } from '../utils/financeCalculations';
 import { DropboxService } from '../services/dropboxService';
+import { GoogleDriveService } from '../services/googleDriveService';
 import { useToast } from './ToastContext';
 
 // Simple fallback for uuidv4 to avoid dependency issues on some devices
@@ -306,6 +307,18 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                         console.error("Auto-sync Dropbox failed", e);
                         showToast('Error al sincronizar con Dropbox', 'error');
                     }
+                } else if (settings.sync.type === 'googledrive' && settings.sync.googledriveToken) {
+                    try {
+                        const timestamp = await GoogleDriveService.sync();
+                        if (timestamp) {
+                            updateSyncSettings({ lastSync: timestamp });
+                            await refreshFinance();
+                            showToast('Datos sincronizados con Google Drive', 'success');
+                        }
+                    } catch (e) {
+                        console.error("Auto-sync Google Drive failed", e);
+                        showToast('Error al sincronizar con Google Drive', 'error');
+                    }
                 }
             };
 
@@ -316,7 +329,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         accounts, cards, expenses, savings, allocations, 
         recurringExpenses, loans, movements, categories, 
         transfers, closings, overrides, incomes,
-        settings.sync.enabled, settings.sync.localPath, settings.sync.dropboxToken, settings.sync.type, loading, showToast, refreshFinance
+        settings.sync.enabled, settings.sync.localPath, settings.sync.dropboxToken, settings.sync.googledriveToken, settings.sync.type, loading, showToast, refreshFinance
     ]);
 
     const importData = async (data: any) => {

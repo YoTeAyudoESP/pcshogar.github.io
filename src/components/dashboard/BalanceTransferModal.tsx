@@ -91,8 +91,17 @@ const BalanceTransferModal: React.FC<BalanceTransferModalProps> = ({ onClose }) 
 
             setLoading(true);
             try {
+                // Calculate timestamp within selected month and year
+                const now = new Date();
+                let targetDay = now.getDate();
+                const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+                if (targetDay > daysInMonth) {
+                    targetDay = daysInMonth;
+                }
+                const targetDate = new Date(selectedYear, selectedMonth, targetDay, now.getHours(), now.getMinutes(), now.getSeconds()).getTime();
+
                 // Virtual saving allocation (no accountId, isVirtual = true)
-                await adjustSavings(toId, transferAmount, undefined, true);
+                await adjustSavings(toId, transferAmount, undefined, true, targetDate);
                 showToast('Ahorro asignado con éxito', 'success');
                 onClose();
             } catch (err) {

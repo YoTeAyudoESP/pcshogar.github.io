@@ -203,17 +203,44 @@ export function calculateAvailableBalanceForMonth(
         remanente += inc.amount;
     });
 
-    // Projected Savings
-    let projectedTotalSavings = 0;
+    // Calculate pending savings per hucha
+    let pendingSavings = 0;
+    
     savings
         .filter(s => (s.monthlySavingAmount || 0) > 0 && s.accountInBudget !== false)
         .forEach(s => {
             const start = s.createdAt || 0;
             if (start <= monthEnd) {
-                projectedTotalSavings += (s.monthlySavingAmount || 0);
+                // If it is linked to a fixed income, check if that fixed income is active in this month
+                let isLinkedIncomeActive = true;
+                if (s.linkedFixedIncomeId) {
+                    const linkedIncome = fixedIncomes.find(inc => inc.id === s.linkedFixedIncomeId);
+                    if (linkedIncome) {
+                        const incStart = linkedIncome.effectiveDate || linkedIncome.createdAt || 0;
+                        const incEnd = linkedIncome.expirationDate || new Date(9999, 11, 31).getTime();
+                        const isIgnored = linkedIncome.ignoredPeriods?.includes(period);
+                        if (incStart <= monthEnd && incEnd >= monthStart && !isIgnored) {
+                            isLinkedIncomeActive = isRecurringActiveInMonth(linkedIncome.frequency, linkedIncome.paymentMonth, month, year, incStart);
+                        } else {
+                            isLinkedIncomeActive = false;
+                        }
+                    } else {
+                        // If the linked income does not exist, do not project savings
+                        isLinkedIncomeActive = false;
+                    }
+                }
+
+                if (isLinkedIncomeActive) {
+                    const projectedAmount = s.monthlySavingAmount || 0;
+                    // Find actual allocations to this hucha in this month
+                    const allocationsForThisHucha = allocations
+                        .filter(alloc => alloc.goalId === s.id && isItemInMonthAndYear(alloc, month, year) && (alloc.type === 'manual' || alloc.type === 'automatic'))
+                        .reduce((sum, alloc) => sum + alloc.amount, 0);
+
+                    pendingSavings += Math.max(0, projectedAmount - allocationsForThisHucha);
+                }
             }
         });
-    const pendingSavings = Math.max(0, projectedTotalSavings - totalMonthAllocations);
 
     // Active Override
     const overrideId = `${year}-${(month + 1).toString().padStart(2, '0')}`;
@@ -241,6 +268,13 @@ export function calculateAvailableBalanceForMonth(
     };
 
     if (activeOverride) {
+        if (activeOverride.delta !== undefined) {
+            return {
+                ...summary,
+                availableToSpend: availableToSpend + activeOverride.delta
+            };
+        }
+
         const overrideTime = activeOverride.updatedAt;
         
         // Correct logic for Override (Budget-First):

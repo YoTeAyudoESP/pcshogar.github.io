@@ -158,6 +158,7 @@ export interface MonthOverride {
     amount: number; // Current balance override
     isManual: boolean;
     updatedAt: number;
+    delta?: number; // Diferencia con el cálculo automático al momento de crearse
 }
 
 export interface AccountMovement {

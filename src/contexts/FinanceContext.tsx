@@ -50,9 +50,9 @@ interface FinanceContextType {
     addCard: (name: string, linkedAccountId: string, limit: number, cutoffDay: number, paymentDay: number, type: 'debit' | 'credit' | 'virtual', color?: string, initialBalance?: number) => Promise<void>;
     addExpense: (expense: Omit<Expense, 'id'>) => Promise<void>;
     addSavingGoal: (goal: Omit<SavingGoal, 'id'>) => Promise<void>;
-    allocateSavings: (goalId: string, sourceAccountId: string, amount: number) => Promise<void>;
+    allocateSavings: (goalId: string, sourceAccountId: string, amount: number, date?: number, description?: string) => Promise<void>;
     transferSavings: (fromGoalId: string, toGoalId: string, amount: number) => Promise<void>;
-    adjustSavings: (goalId: string, amount: number, accountId?: string, isBudgetAdjustment?: boolean) => Promise<void>;
+    adjustSavings: (goalId: string, amount: number, accountId?: string, isBudgetAdjustment?: boolean, date?: number) => Promise<void>;
     deleteSavingGoal: (id: string) => Promise<void>;
     addRecurringExpense: (expense: Omit<RecurringExpense, 'id'>) => Promise<void>;
     updateRecurringExpense: (expense: RecurringExpense) => Promise<void>;
@@ -198,6 +198,36 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
             // Split incomes for convenience
             setFixedIncomes(activeIncomes.filter((i): i is FixedIncome => i.type === 'fixed'));
             setExtraIncomes(activeIncomes.filter(i => i.type === 'extra' || i.type === 'rollover'));
+
+            // Migration: calculate and save delta for historical overrides
+            let didMigration = false;
+            const updatedOvrs = [...ovrs];
+            for (let i = 0; i < updatedOvrs.length; i++) {
+                const ovr = updatedOvrs[i];
+                if (ovr.delta === undefined) {
+                    didMigration = true;
+                    const otherOverrides = updatedOvrs.filter(o => o.id !== ovr.id);
+                    const { availableToSpend: autoCalculatedAvailable } = calculateAvailableBalanceForMonth(ovr.year, ovr.month, {
+                        fixedIncomes: activeIncomes.filter((inc): inc is FixedIncome => inc.type === 'fixed'),
+                        extraIncomes: activeIncomes.filter(inc => inc.type === 'extra' || inc.type === 'rollover'),
+                        expenses: exps,
+                        allocations: alls,
+                        savings: svs,
+                        recurringExpenses: recs,
+                        overrides: otherOverrides,
+                        cards: cds
+                    });
+                    const updatedOvr = {
+                        ...ovr,
+                        delta: ovr.amount - autoCalculatedAvailable
+                    };
+                    await incomeDB.addMonthOverride(updatedOvr);
+                    updatedOvrs[i] = updatedOvr;
+                }
+            }
+            if (didMigration) {
+                setOverrides(updatedOvrs);
+            }
 
             // SEEDING: If no categories exist, add default ones
             if (cats.length === 0) {
@@ -391,15 +421,16 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         await refreshFinance();
     };
 
-    const allocateSavings = async (goalId: string, sourceAccountId: string, amount: number) => {
+    const allocateSavings = async (goalId: string, sourceAccountId: string, amount: number, date?: number, description?: string) => {
         const allocation: SavingAllocation = {
             id: uuidv4(),
             goalId,
             sourceAccountId,
             amount,
             type: 'automatic',
-            date: Date.now(),
-            updatedAt: Date.now()
+            date: date || Date.now(),
+            updatedAt: Date.now(),
+            description
         };
         await incomeDB.allocateSavingsWithTransaction(allocation);
         await refreshFinance();
@@ -410,8 +441,8 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         await refreshFinance();
     };
 
-    const adjustSavings = async (goalId: string, amount: number, accountId?: string, isBudgetAdjustment: boolean = true) => {
-        await incomeDB.adjustSavingGoalWithTransaction(goalId, amount, accountId, isBudgetAdjustment);
+    const adjustSavings = async (goalId: string, amount: number, accountId?: string, isBudgetAdjustment: boolean = true, date?: number) => {
+        await incomeDB.adjustSavingGoalWithTransaction(goalId, amount, accountId, isBudgetAdjustment, date);
         await refreshFinance();
     };
 
@@ -582,17 +613,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                 if (saveAmount > 0) {
                     const sourceAcc = goal.automaticSourceAccountId || accountId;
                     if (sourceAcc) {
-                        const allocation: SavingAllocation = {
-                            id: uuidv4(),
-                            goalId: goal.id,
-                            sourceAccountId: sourceAcc,
-                            amount: saveAmount,
-                            type: 'automatic',
-                            date: Date.now(),
-                            updatedAt: Date.now(),
-                            description: `Ahorro auto. desde cobro de: ${description}`
-                        };
-                        await incomeDB.allocateSavingsWithTransaction(allocation);
+                        await allocateSavings(goal.id, sourceAcc, saveAmount, date, `Ahorro auto. desde cobro de: ${description}`);
                     }
                 }
             }
@@ -661,7 +682,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                 sourceAccountId: accountId,
                 amount,
                 type: 'automatic',
-                date: Date.now(),
+                date,
                 updatedAt: Date.now()
             };
             await incomeDB.allocateSavingsWithTransaction(allocation);
@@ -800,13 +821,31 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
     const setMonthOverride = async (year: number, month: number, amount: number) => {
         // month is 0-indexed, but ID should use 1-indexed for YYYY-MM consistency
         const id = `${year}-${(month + 1).toString().padStart(2, '0')}`;
+        
+        // Exclude the current override (if any) to get the autoCalculated amount
+        const otherOverrides = overrides.filter(o => o.id !== id);
+        
+        const { availableToSpend: autoCalculatedAvailable } = calculateAvailableBalanceForMonth(year, month, {
+            fixedIncomes: incomes.filter((i): i is FixedIncome => i.type === 'fixed'),
+            extraIncomes: incomes.filter(i => i.type === 'extra' || i.type === 'rollover'),
+            expenses,
+            allocations,
+            savings,
+            recurringExpenses,
+            overrides: otherOverrides,
+            cards
+        });
+
+        const delta = amount - autoCalculatedAvailable;
+
         await incomeDB.addMonthOverride({
             id,
             year,
             month,
             amount,
             isManual: true,
-            updatedAt: Date.now()
+            updatedAt: Date.now(),
+            delta
         });
         await refreshFinance();
     };

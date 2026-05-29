@@ -99,17 +99,52 @@ const FinanceBreakdownModal: React.FC<FinanceBreakdownModalProps> = ({ isOpen, o
     const gastosDelMes = pagados + pendientesFijos;
 
     // 3. Ahorros y Huchas
+    // Calculate pending savings per hucha
+    let ahorroMensualPendiente = 0;
+    let ahorroMensualProyectadoTotal = 0;
+
+    savings
+        .filter(s => (s.monthlySavingAmount || 0) > 0 && s.accountInBudget !== false)
+        .forEach(s => {
+            const start = s.createdAt || 0;
+            const monthStart = new Date(selectedYear, selectedMonth, 1).getTime();
+            const monthEnd = new Date(selectedYear, selectedMonth + 1, 0).getTime();
+            if (start <= monthEnd) {
+                // Check if linked income is active
+                let isLinkedIncomeActive = true;
+                if (s.linkedFixedIncomeId) {
+                    const linkedIncome = fixedIncomes.find(inc => inc.id === s.linkedFixedIncomeId);
+                    if (linkedIncome) {
+                        const incStart = linkedIncome.effectiveDate || linkedIncome.createdAt || 0;
+                        const incEnd = linkedIncome.expirationDate || new Date(9999, 11, 31).getTime();
+                        const isIgnored = linkedIncome.ignoredPeriods?.includes(currentPeriod);
+                        if (incStart <= monthEnd && incEnd >= monthStart && !isIgnored) {
+                            isLinkedIncomeActive = isRecurringActiveInMonth(linkedIncome.frequency, linkedIncome.paymentMonth, selectedMonth, selectedYear, incStart);
+                        } else {
+                            isLinkedIncomeActive = false;
+                        }
+                    } else {
+                        isLinkedIncomeActive = false;
+                    }
+                }
+
+                if (isLinkedIncomeActive) {
+                    ahorroMensualProyectadoTotal += (s.monthlySavingAmount || 0);
+                    const allocationsForThisHucha = allocations
+                        .filter(a => a.goalId === s.id && isItemInSelectedMonth(a) && (a.type === 'manual' || a.type === 'automatic'))
+                        .reduce((sum, a) => sum + a.amount, 0);
+                    ahorroMensualPendiente += Math.max(0, (s.monthlySavingAmount || 0) - allocationsForThisHucha);
+                }
+            }
+        });
+
     const aportacionesRealizadas = allocations
         .filter(a => isItemInSelectedMonth(a) && (a.type === 'manual' || a.type === 'automatic'))
+        .filter(a => {
+            const goal = savings.find(s => s.id === a.goalId);
+            return !goal || goal.accountInBudget !== false;
+        })
         .reduce((sum, a) => sum + a.amount, 0);
-
-    // Ahorro proyectado pendiente: suma de lo que queda por ahorrar en las huchas con meta mensual
-    const ahorroMensualProyectadoTotal = savings
-        .filter(s => (s.monthlySavingAmount || 0) > 0)
-        .reduce((sum, s) => sum + (s.monthlySavingAmount || 0), 0);
-    
-    // Lo que falta por ahorrar este mes
-    const ahorroMensualPendiente = Math.max(0, ahorroMensualProyectadoTotal - aportacionesRealizadas);
 
     const ahorrosYHuchas = aportacionesRealizadas + ahorroMensualPendiente;
 

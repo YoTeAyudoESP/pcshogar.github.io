@@ -105,7 +105,16 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData }) => {
 
         // Handle savings transfer if requested
         if (status === 'received' && targetSavingGoalId && linkedAccountId) {
-            await allocateSavings(targetSavingGoalId, linkedAccountId, incomeAmount);
+            const allocationDate = type === 'fixed'
+                ? (effectiveDate ? new Date(effectiveDate).getTime() : Date.now())
+                : new Date(receivedDate).getTime();
+            await allocateSavings(
+                targetSavingGoalId, 
+                linkedAccountId, 
+                incomeAmount, 
+                allocationDate,
+                `Ahorro directo de ingreso: ${name}`
+            );
         }
 
         onClose();

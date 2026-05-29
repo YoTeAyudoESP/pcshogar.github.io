@@ -755,7 +755,7 @@ class IncomeDB {
         await tx.done;
     }
 
-    async adjustSavingGoalWithTransaction(goalId: string, amount: number, accountId?: string, isBudgetAdjustment: boolean = true): Promise<void> {
+    async adjustSavingGoalWithTransaction(goalId: string, amount: number, accountId?: string, isBudgetAdjustment: boolean = true, date?: number): Promise<void> {
         const db = await this.dbPromise;
         const tx = db.transaction(['savings', 'allocations', 'accounts', 'movements'], 'readwrite');
         const savingsStore = tx.objectStore('savings');
@@ -769,6 +769,8 @@ class IncomeDB {
         goal.currentAmount += amount;
         await savingsStore.put(goal);
 
+        const targetDate = date || Date.now();
+
         // Record history in hucha
         await allocStore.add({
             id: `adj_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
@@ -776,7 +778,7 @@ class IncomeDB {
             amount: amount,
             type: amount >= 0 ? 'manual' : 'adjustment',
             description: amount >= 0 ? 'Aportación manual' : 'Ajuste de saldo',
-            date: Date.now(),
+            date: targetDate,
             updatedAt: Date.now()
         });
 
@@ -794,7 +796,7 @@ class IncomeDB {
                     type: 'allocation',
                     description: `Ahorro en hucha: ${goal.name}`,
                     relatedId: goalId,
-                    date: Date.now(),
+                    date: targetDate,
                     updatedAt: Date.now()
                 });
             }

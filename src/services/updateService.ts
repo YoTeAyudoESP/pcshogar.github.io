@@ -17,8 +17,8 @@ export const UpdateService = {
      */
     async checkUpdate(): Promise<UpdateInfo> {
         try {
-            // Fetch version.json from GitHub Pages without caching
-            const response = await fetch(UPDATE_JSON_URL, { cache: 'no-store' });
+            // Fetch version.json from GitHub Pages without caching (with cache buster)
+            const response = await fetch(`${UPDATE_JSON_URL}?t=${Date.now()}`, { cache: 'no-store' });
             if (!response.ok) throw new Error('No se pudo obtener la información de la versión remota.');
             const data = await response.json();
             
@@ -27,7 +27,7 @@ export const UpdateService = {
             const releaseNotes = data.releaseNotes;
 
             // Get current local version from Capacitor/Electron
-            let currentVersion = '1.1.5'; // Fallback corresponding to current build version
+            let currentVersion = '1.1.9'; // Fallback corresponding to current build version
             if (Capacitor.isNativePlatform()) {
                 const info = await App.getInfo();
                 currentVersion = info.version;

@@ -113,7 +113,9 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData }) => {
                 linkedAccountId, 
                 incomeAmount, 
                 allocationDate,
-                `Ahorro directo de ingreso: ${name}`
+                `Ahorro directo de ingreso: ${name}`,
+                budgetMonth,
+                budgetYear
             );
         }
 

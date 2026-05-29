@@ -59,7 +59,7 @@ const PiggyBankAddMoneyForm: React.FC<PiggyBankAddMoneyFormProps> = ({ goal, onC
             const targetDate = new Date(selectedYear, selectedMonth, targetDay, now.getHours(), now.getMinutes(), now.getSeconds()).getTime();
 
             // Virtual adjustment (no accountId, isVirtual = true)
-            await adjustSavings(goal.id, addAmount, undefined, true, targetDate);
+            await adjustSavings(goal.id, addAmount, undefined, true, targetDate, selectedMonth, selectedYear);
             onClose();
         } catch (err) {
             setError('Error al añadir dinero');

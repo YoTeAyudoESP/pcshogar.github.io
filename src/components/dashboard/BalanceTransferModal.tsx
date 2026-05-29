@@ -101,7 +101,7 @@ const BalanceTransferModal: React.FC<BalanceTransferModalProps> = ({ onClose }) 
                 const targetDate = new Date(selectedYear, selectedMonth, targetDay, now.getHours(), now.getMinutes(), now.getSeconds()).getTime();
 
                 // Virtual saving allocation (no accountId, isVirtual = true)
-                await adjustSavings(toId, transferAmount, undefined, true, targetDate);
+                await adjustSavings(toId, transferAmount, undefined, true, targetDate, selectedMonth, selectedYear);
                 showToast('Ahorro asignado con éxito', 'success');
                 onClose();
             } catch (err) {

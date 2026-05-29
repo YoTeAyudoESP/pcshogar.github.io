@@ -1,5 +1,5 @@
 {
-    "releaseNotes": "Novedades v1.1.10: Corregido el cálculo para que las huchas vinculadas a ingresos fijos inactivos no resten ahorros del disponible mensual.",
-    "url": "https://pcshogar.es/PCSHogar_v1.1.10.apk",
-    "version": "1.1.10"
+    "releaseNotes": "Novedades v1.2.1: Corregido el cálculo del disponible mensual para restar objetivos de ahorro (huchas) independientemente de si están contabilizados en el presupuesto principal. Alineados los ahorros automáticos con sus meses presupuestarios correspondientes.",
+    "url": "https://pcshogar.es/PCSHogar_v1.2.1.apk",
+    "version": "1.2.1"
 }

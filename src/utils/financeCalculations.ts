@@ -191,10 +191,7 @@ export function calculateAvailableBalanceForMonth(
     allocations
         .filter(alloc => isItemInMonthAndYear(alloc, month, year) && (alloc.type === 'manual' || alloc.type === 'automatic'))
         .forEach(alloc => {
-            const goal = savings.find(s => s.id === alloc.goalId);
-            if (!goal || goal.accountInBudget !== false) {
-                totalMonthAllocations += alloc.amount;
-            }
+            totalMonthAllocations += alloc.amount;
         });
 
     // Remanente
@@ -207,11 +204,11 @@ export function calculateAvailableBalanceForMonth(
     let pendingSavings = 0;
     
     savings
-        .filter(s => (s.monthlySavingAmount || 0) > 0 && s.accountInBudget !== false)
+        .filter(s => (s.monthlySavingAmount || 0) > 0)
         .forEach(s => {
             const start = s.createdAt || 0;
             if (start <= monthEnd) {
-                // If it is linked to a fixed income, check if that fixed income is active in this month
+                // If it is linked to a fixed income, check if that fixed income is active or confirmed in this month
                 let isLinkedIncomeActive = true;
                 if (s.linkedFixedIncomeId) {
                     const linkedIncome = fixedIncomes.find(inc => inc.id === s.linkedFixedIncomeId);
@@ -219,11 +216,12 @@ export function calculateAvailableBalanceForMonth(
                         const incStart = linkedIncome.effectiveDate || linkedIncome.createdAt || 0;
                         const incEnd = linkedIncome.expirationDate || new Date(9999, 11, 31).getTime();
                         const isIgnored = linkedIncome.ignoredPeriods?.includes(period);
+                        let isTemplateActive = false;
                         if (incStart <= monthEnd && incEnd >= monthStart && !isIgnored) {
-                            isLinkedIncomeActive = isRecurringActiveInMonth(linkedIncome.frequency, linkedIncome.paymentMonth, month, year, incStart);
-                        } else {
-                            isLinkedIncomeActive = false;
+                            isTemplateActive = isRecurringActiveInMonth(linkedIncome.frequency, linkedIncome.paymentMonth, month, year, incStart);
                         }
+                        const isConfirmed = extraIncomes.some(ei => ei.fixedIncomeId === s.linkedFixedIncomeId && isItemInMonthAndYear(ei, month, year));
+                        isLinkedIncomeActive = isTemplateActive || isConfirmed;
                     } else {
                         // If the linked income does not exist, do not project savings
                         isLinkedIncomeActive = false;
@@ -313,11 +311,7 @@ export function calculateAvailableBalanceForMonth(
             const t = Number(alloc.updatedAt || (alloc as any).date || (alloc as any).createdAt || 0);
             return isItemInMonthAndYear(alloc, month, year) && t > overrideTime && (alloc.type === 'manual' || alloc.type === 'automatic');
         }).reduce((sum, alloc) => {
-            const goal = savings.find(s => s.id === alloc.goalId);
-            if (!goal || goal.accountInBudget !== false) {
-                return sum + alloc.amount;
-            }
-            return sum;
+            return sum + alloc.amount;
         }, 0);
 
         return {

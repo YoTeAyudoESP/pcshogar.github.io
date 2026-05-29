@@ -482,6 +482,7 @@ class IncomeDB {
     async getAllExpenses(): Promise<Expense[]> { return (await this.dbPromise).getAll('expenses'); }
     async getAllSavings(): Promise<SavingGoal[]> { return (await this.dbPromise).getAll('savings'); }
     async getAllAllocations(): Promise<SavingAllocation[]> { return (await this.dbPromise).getAll('allocations'); }
+    async updateAllocation(allocation: SavingAllocation): Promise<void> { await (await this.dbPromise).put('allocations', allocation); }
     async getAllRecurringExpenses(): Promise<RecurringExpense[]> { return (await this.dbPromise).getAll('recurring_expenses'); }
     async getAllLoans(): Promise<Loan[]> { return (await this.dbPromise).getAll('loans'); }
     async getAllMovements(): Promise<AccountMovement[]> { return (await this.dbPromise).getAll('movements'); }
@@ -755,7 +756,15 @@ class IncomeDB {
         await tx.done;
     }
 
-    async adjustSavingGoalWithTransaction(goalId: string, amount: number, accountId?: string, isBudgetAdjustment: boolean = true, date?: number): Promise<void> {
+    async adjustSavingGoalWithTransaction(
+        goalId: string, 
+        amount: number, 
+        accountId?: string, 
+        isBudgetAdjustment: boolean = true, 
+        date?: number,
+        budgetMonth?: number,
+        budgetYear?: number
+    ): Promise<void> {
         const db = await this.dbPromise;
         const tx = db.transaction(['savings', 'allocations', 'accounts', 'movements'], 'readwrite');
         const savingsStore = tx.objectStore('savings');
@@ -779,7 +788,9 @@ class IncomeDB {
             type: amount >= 0 ? 'manual' : 'adjustment',
             description: amount >= 0 ? 'Aportación manual' : 'Ajuste de saldo',
             date: targetDate,
-            updatedAt: Date.now()
+            updatedAt: Date.now(),
+            budgetMonth,
+            budgetYear
         });
 
         // If it's an adjustment that affects an account and the budget

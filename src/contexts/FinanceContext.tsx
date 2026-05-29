@@ -50,9 +50,9 @@ interface FinanceContextType {
     addCard: (name: string, linkedAccountId: string, limit: number, cutoffDay: number, paymentDay: number, type: 'debit' | 'credit' | 'virtual', color?: string, initialBalance?: number) => Promise<void>;
     addExpense: (expense: Omit<Expense, 'id'>) => Promise<void>;
     addSavingGoal: (goal: Omit<SavingGoal, 'id'>) => Promise<void>;
-    allocateSavings: (goalId: string, sourceAccountId: string, amount: number, date?: number, description?: string) => Promise<void>;
+    allocateSavings: (goalId: string, sourceAccountId: string, amount: number, date?: number, description?: string, budgetMonth?: number, budgetYear?: number) => Promise<void>;
     transferSavings: (fromGoalId: string, toGoalId: string, amount: number) => Promise<void>;
-    adjustSavings: (goalId: string, amount: number, accountId?: string, isBudgetAdjustment?: boolean, date?: number) => Promise<void>;
+    adjustSavings: (goalId: string, amount: number, accountId?: string, isBudgetAdjustment?: boolean, date?: number, budgetMonth?: number, budgetYear?: number) => Promise<void>;
     deleteSavingGoal: (id: string) => Promise<void>;
     addRecurringExpense: (expense: Omit<RecurringExpense, 'id'>) => Promise<void>;
     updateRecurringExpense: (expense: RecurringExpense) => Promise<void>;
@@ -227,6 +227,34 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
             }
             if (didMigration) {
                 setOverrides(updatedOvrs);
+            }
+
+            // Migration: Repair legacy automatic allocations lacking budgetMonth/budgetYear
+            let didAllocMigration = false;
+            const updatedAlls = [...alls];
+            for (let i = 0; i < updatedAlls.length; i++) {
+                const alloc = updatedAlls[i];
+                if (alloc.type === 'automatic' && alloc.budgetMonth === undefined) {
+                    const allocTime = alloc.date || 0;
+                    const matchingIncome = activeIncomes.find(inc => {
+                        const incTime = inc.createdAt || inc.updatedAt || 0;
+                        return Math.abs(incTime - allocTime) < 60000;
+                    });
+                    
+                    if (matchingIncome && matchingIncome.budgetMonth !== undefined && matchingIncome.budgetYear !== undefined) {
+                        didAllocMigration = true;
+                        const updatedAlloc = {
+                            ...alloc,
+                            budgetMonth: matchingIncome.budgetMonth,
+                            budgetYear: matchingIncome.budgetYear
+                        };
+                        await incomeDB.updateAllocation(updatedAlloc);
+                        updatedAlls[i] = updatedAlloc;
+                    }
+                }
+            }
+            if (didAllocMigration) {
+                setAllocations(updatedAlls);
             }
 
             // SEEDING: If no categories exist, add default ones
@@ -421,7 +449,15 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         await refreshFinance();
     };
 
-    const allocateSavings = async (goalId: string, sourceAccountId: string, amount: number, date?: number, description?: string) => {
+    const allocateSavings = async (
+        goalId: string, 
+        sourceAccountId: string, 
+        amount: number, 
+        date?: number, 
+        description?: string, 
+        budgetMonth?: number, 
+        budgetYear?: number
+    ) => {
         const allocation: SavingAllocation = {
             id: uuidv4(),
             goalId,
@@ -430,7 +466,9 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
             type: 'automatic',
             date: date || Date.now(),
             updatedAt: Date.now(),
-            description
+            description,
+            budgetMonth,
+            budgetYear
         };
         await incomeDB.allocateSavingsWithTransaction(allocation);
         await refreshFinance();
@@ -441,8 +479,16 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         await refreshFinance();
     };
 
-    const adjustSavings = async (goalId: string, amount: number, accountId?: string, isBudgetAdjustment: boolean = true, date?: number) => {
-        await incomeDB.adjustSavingGoalWithTransaction(goalId, amount, accountId, isBudgetAdjustment, date);
+    const adjustSavings = async (
+        goalId: string, 
+        amount: number, 
+        accountId?: string, 
+        isBudgetAdjustment: boolean = true, 
+        date?: number, 
+        budgetMonth?: number, 
+        budgetYear?: number
+    ) => {
+        await incomeDB.adjustSavingGoalWithTransaction(goalId, amount, accountId, isBudgetAdjustment, date, budgetMonth, budgetYear);
         await refreshFinance();
     };
 
@@ -613,7 +659,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                 if (saveAmount > 0) {
                     const sourceAcc = goal.automaticSourceAccountId || accountId;
                     if (sourceAcc) {
-                        await allocateSavings(goal.id, sourceAcc, saveAmount, date, `Ahorro auto. desde cobro de: ${description}`);
+                        await allocateSavings(goal.id, sourceAcc, saveAmount, date, `Ahorro auto. desde cobro de: ${description}`, budgetMonth, budgetYear);
                     }
                 }
             }
@@ -683,7 +729,9 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                 amount,
                 type: 'automatic',
                 date,
-                updatedAt: Date.now()
+                updatedAt: Date.now(),
+                budgetMonth,
+                budgetYear
             };
             await incomeDB.allocateSavingsWithTransaction(allocation);
         }

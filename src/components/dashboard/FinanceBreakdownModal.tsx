@@ -104,13 +104,13 @@ const FinanceBreakdownModal: React.FC<FinanceBreakdownModalProps> = ({ isOpen, o
     let ahorroMensualProyectadoTotal = 0;
 
     savings
-        .filter(s => (s.monthlySavingAmount || 0) > 0 && s.accountInBudget !== false)
+        .filter(s => (s.monthlySavingAmount || 0) > 0)
         .forEach(s => {
             const start = s.createdAt || 0;
             const monthStart = new Date(selectedYear, selectedMonth, 1).getTime();
             const monthEnd = new Date(selectedYear, selectedMonth + 1, 0).getTime();
             if (start <= monthEnd) {
-                // Check if linked income is active
+                // Check if linked income is active or confirmed
                 let isLinkedIncomeActive = true;
                 if (s.linkedFixedIncomeId) {
                     const linkedIncome = fixedIncomes.find(inc => inc.id === s.linkedFixedIncomeId);
@@ -118,11 +118,12 @@ const FinanceBreakdownModal: React.FC<FinanceBreakdownModalProps> = ({ isOpen, o
                         const incStart = linkedIncome.effectiveDate || linkedIncome.createdAt || 0;
                         const incEnd = linkedIncome.expirationDate || new Date(9999, 11, 31).getTime();
                         const isIgnored = linkedIncome.ignoredPeriods?.includes(currentPeriod);
+                        let isTemplateActive = false;
                         if (incStart <= monthEnd && incEnd >= monthStart && !isIgnored) {
-                            isLinkedIncomeActive = isRecurringActiveInMonth(linkedIncome.frequency, linkedIncome.paymentMonth, selectedMonth, selectedYear, incStart);
-                        } else {
-                            isLinkedIncomeActive = false;
+                            isTemplateActive = isRecurringActiveInMonth(linkedIncome.frequency, linkedIncome.paymentMonth, selectedMonth, selectedYear, incStart);
                         }
+                        const isConfirmed = extraIncomes.some(ei => ei.fixedIncomeId === s.linkedFixedIncomeId && ei.budgetMonth === selectedMonth && ei.budgetYear === selectedYear);
+                        isLinkedIncomeActive = isTemplateActive || isConfirmed;
                     } else {
                         isLinkedIncomeActive = false;
                     }
@@ -140,10 +141,6 @@ const FinanceBreakdownModal: React.FC<FinanceBreakdownModalProps> = ({ isOpen, o
 
     const aportacionesRealizadas = allocations
         .filter(a => isItemInSelectedMonth(a) && (a.type === 'manual' || a.type === 'automatic'))
-        .filter(a => {
-            const goal = savings.find(s => s.id === a.goalId);
-            return !goal || goal.accountInBudget !== false;
-        })
         .reduce((sum, a) => sum + a.amount, 0);
 
     const ahorrosYHuchas = aportacionesRealizadas + ahorroMensualPendiente;

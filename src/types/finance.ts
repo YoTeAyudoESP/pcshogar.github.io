@@ -83,6 +83,8 @@ export interface SavingAllocation {
     sourceAccountId?: string;
     relatedGoalId?: string; // For transfers
     updatedAt?: number;
+    budgetMonth?: number;
+    budgetYear?: number;
 }
 
 export interface RecurringExpense {

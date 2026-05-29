@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
+import { useDateSelection } from '../../contexts/DateSelectionContext';
 import { Target, History, Settings, Trash2, PlusCircle } from 'lucide-react';
 import type { SavingGoal } from '../../types/finance';
 import { formatMoney } from '../../utils/financeCalculations';
@@ -12,6 +13,7 @@ interface PiggyBankListProps {
 
 const PiggyBankList: React.FC<PiggyBankListProps> = ({ onEdit, onAddMoney, onShowHistory }) => {
     const { savings, accounts, deleteSavingGoal, adjustSavings, fixedIncomes } = useFinance();
+    const { selectedMonth, selectedYear } = useDateSelection();
     const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
 
     useEffect(() => {
@@ -32,7 +34,7 @@ const PiggyBankList: React.FC<PiggyBankListProps> = ({ onEdit, onAddMoney, onSho
                 return;
             } else {
                 if (window.confirm("¿Seguro que quieres eliminar la hucha y devolver el dinero al disponible mensual?")) {
-                    await adjustSavings(goal.id, -goal.currentAmount, undefined, true);
+                    await adjustSavings(goal.id, -goal.currentAmount, undefined, true, undefined, selectedMonth, selectedYear);
                     await deleteSavingGoal(goal.id);
                 }
                 return;

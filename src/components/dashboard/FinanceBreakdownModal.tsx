@@ -114,7 +114,7 @@ const FinanceBreakdownModal: React.FC<FinanceBreakdownModalProps> = ({ isOpen, o
                 let isLinkedIncomeActive = true;
                 if (s.linkedFixedIncomeId) {
                     const linkedIncome = fixedIncomes.find(inc => inc.id === s.linkedFixedIncomeId);
-                    if (linkedIncome) {
+                    if (linkedIncome && linkedIncome.active) {
                         const incStart = linkedIncome.effectiveDate || linkedIncome.createdAt || 0;
                         const incEnd = linkedIncome.expirationDate || new Date(9999, 11, 31).getTime();
                         const isIgnored = linkedIncome.ignoredPeriods?.includes(currentPeriod);

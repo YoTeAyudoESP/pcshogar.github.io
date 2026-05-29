@@ -14,7 +14,7 @@ import DateSelector from '../common/DateSelector';
 import { LayoutDashboard, Settings as SettingsIcon, X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, MinusCircle, PiggyBank, ArrowLeftRight, AlertCircle, Mail, Heart, RotateCcw } from 'lucide-react';
 
 import { useFinance } from '../../contexts/FinanceContext';
-const version = "1.1.9";
+const version = "1.1.10";
 import RemnantDecisionModal from '../settings/RemnantDecisionModal';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import EditTransactionModal from './EditTransactionModal';
@@ -103,7 +103,7 @@ const Dashboard: React.FC = () => {
 
         // 2. Changelog checking
         const lastVersion = localStorage.getItem('pcshogar_last_version');
-        const currentVersion = "1.1.9";
+        const currentVersion = "1.1.10";
         
         if (!lastVersion) {
             const isClean = accounts.length === 0 && cards.length === 0;
@@ -467,9 +467,9 @@ const Dashboard: React.FC = () => {
                 </div>
             )}
 
-             {showChangelog && (
+            {showChangelog && (
                 <div className="modal-overlay" onClick={() => {
-                    localStorage.setItem('pcshogar_last_version', '1.1.9');
+                    localStorage.setItem('pcshogar_last_version', '1.1.10');
                     setShowChangelog(false);
                 }}>
                     <div className="modal-container glass-panel" style={{ padding: '2.5rem 2rem', maxWidth: '460px', width: '95%', textAlign: 'center', position: 'relative' }} onClick={e => e.stopPropagation()}>
@@ -487,7 +487,7 @@ const Dashboard: React.FC = () => {
                             <TrendingUp size={36} color="white" />
                         </div>
                         <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem', color: 'white' }}>
-                            ¡Actualizado a la v1.1.9!
+                            ¡Actualizado a la v1.1.10!
                         </h2>
                         <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)', marginBottom: '1.5rem' }}>
                             Resumen de las mejoras y novedades
@@ -508,22 +508,22 @@ const Dashboard: React.FC = () => {
                             marginBottom: '2rem'
                         }}>
                             <div>
-                                <strong style={{ color: '#38bdf8' }}>📊 Ahorro Automático e Ingresos:</strong>
+                                <strong style={{ color: '#38bdf8' }}>📊 Ahorro Proyectado Robusto:</strong>
                                 <div style={{ color: 'rgba(255,255,255,0.6)', marginLeft: '1.2rem', fontSize: '0.82rem' }}>
-                                    Corregido el cálculo del disponible mensual para restar de manera consistente el importe de ahorro configurado de las huchas asociadas a ingresos fijos.
+                                    Corregido el cálculo para que las huchas vinculadas a ingresos fijos inactivos no descuenten ahorros del disponible mensual.
                                 </div>
                             </div>
                             <div>
                                 <strong style={{ color: '#10b981' }}>📅 Fechas de Aportación:</strong>
                                 <div style={{ color: 'rgba(255,255,255,0.6)', marginLeft: '1.2rem', fontSize: '0.82rem' }}>
-                                    Las aportaciones automáticas generadas al cobrar un ingreso fijo se registran ahora con la fecha efectiva de cobro en lugar del día actual del sistema.
+                                    Se mantiene el registro preciso en el mes y día efectivo de confirmación para huchas y transferencias automáticas.
                                 </div>
                             </div>
                         </div>
 
                         <button 
                             onClick={() => {
-                                localStorage.setItem('pcshogar_last_version', '1.1.9');
+                                localStorage.setItem('pcshogar_last_version', '1.1.10');
                                 setShowChangelog(false);
                             }}
                             style={{

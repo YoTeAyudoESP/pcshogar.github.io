@@ -7,22 +7,52 @@ import type { RecurringExpense, Account } from '../../types/finance';
 import { formatMoney } from '../../utils/financeCalculations';
 
 interface ConfirmMovementModalProps {
-    type: 'income' | 'expense';
+    type: 'income' | 'expense' | 'refund';
     item: any;
     onClose: () => void;
 }
 
 const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item, onClose }) => {
-    const { accounts, confirmFixedMovement, discardFixedMovement, savings, confirmExtraIncome, deleteIncome } = useFinance();
+    const { accounts, confirmFixedMovement, discardFixedMovement, savings, confirmExtraIncome, deleteIncome, incomes, updateExpense, deleteExpense } = useFinance();
     const { showToast } = useToast();
-    const [amount, setAmount] = useState(item.amount);
+
+    const currentRealPeriod = new Date().toISOString().substring(0, 7);
+    const getNextMonthPeriod = () => {
+        const d = new Date();
+        d.setMonth(d.getMonth() + 1);
+        return d.toISOString().substring(0, 7);
+    };
+    const nextMonthPeriod = getNextMonthPeriod();
+
+    const isExtraIncomePending = type === 'income' && item.type === 'extra';
+    const isDuplicateIncome = type === 'income' && !isExtraIncomePending && (incomes || []).some(inc => inc.fixedIncomeId === item.id && inc.period === currentRealPeriod);
+
+    const [amount, setAmount] = useState(type === 'refund' ? Math.abs(item.amount) : item.amount);
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-    const [budgetPeriod, setBudgetPeriod] = useState(new Date().toISOString().substring(0, 7));
+    const [budgetPeriod, setBudgetPeriod] = useState(isDuplicateIncome ? nextMonthPeriod : currentRealPeriod);
     const [accountId, setAccountId] = useState('');
     const [methodType, setMethodType] = useState<'account' | 'card'>('account');
     const [allocationTarget, setAllocationTarget] = useState<'budget' | 'exclude' | 'hucha'>('budget');
     const [selectedSavingGoalId, setSelectedSavingGoalId] = useState('');
-    const isExtraIncomePending = type === 'income' && item.type === 'extra';
+    const [duplicateOption, setDuplicateOption] = useState<'next' | 'current'>('next');
+
+    useEffect(() => {
+        if (isDuplicateIncome) {
+            setBudgetPeriod(nextMonthPeriod);
+            setDuplicateOption('next');
+        } else {
+            setBudgetPeriod(currentRealPeriod);
+        }
+    }, [isDuplicateIncome]);
+
+    const handleDuplicateOptionChange = (option: 'next' | 'current') => {
+        setDuplicateOption(option);
+        if (option === 'next') {
+            setBudgetPeriod(nextMonthPeriod);
+        } else {
+            setBudgetPeriod(currentRealPeriod);
+        }
+    };
 
     useEffect(() => {
         // Find default account
@@ -30,6 +60,19 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
             const incomeItem = item as FixedIncome;
             setAccountId(incomeItem.linkedAccountId || accounts.find(a => a.isMain)?.id || accounts[0]?.id || '');
             setMethodType('account');
+        } else if (type === 'refund') {
+            const expenseItem = item as any;
+            const pm = expenseItem.paymentMethod;
+            if (pm?.type === 'card') {
+                setAccountId(pm.cardId || '');
+                setMethodType('card');
+            } else if (pm?.type === 'account') {
+                setAccountId(pm.accountId || '');
+                setMethodType('account');
+            } else {
+                setAccountId(accounts.find(a => a.isMain)?.id || accounts[0]?.id || '');
+                setMethodType('account');
+            }
         } else {
             const expenseItem = item as RecurringExpense;
             const pm = expenseItem.paymentMethod;
@@ -54,7 +97,24 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
         const categoryId = (item as any).categoryId;
 
         try {
-            if (isExtraIncomePending) {
+            if (type === 'refund') {
+                let finalDescription = description;
+                if (!finalDescription.toLowerCase().startsWith('devolución:')) {
+                    finalDescription = `Devolución: ${finalDescription}`;
+                }
+                const updatedExpense = {
+                    ...item,
+                    amount: -Math.abs(amount),
+                    date: new Date(date).getTime(),
+                    description: finalDescription,
+                    status: 'paid' as const,
+                    paymentMethod: methodType === 'card'
+                        ? { type: 'card' as const, cardId: accountId }
+                        : { type: 'account' as const, accountId: accountId }
+                };
+                await updateExpense(updatedExpense);
+                showToast("Devolución confirmada con éxito.", "success");
+            } else if (isExtraIncomePending) {
                 if (allocationTarget === 'hucha' && !selectedSavingGoalId) {
                     showToast('Por favor, selecciona una hucha.', 'error');
                     return;
@@ -101,10 +161,21 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
         }
     };
 
+    const handleDeleteRefund = async () => {
+        try {
+            await deleteExpense(item.id);
+            showToast("Devolución eliminada con éxito.", "success");
+            onClose();
+        } catch (error) {
+            console.error("Error deleting refund:", error);
+            showToast("Error al eliminar la devolución.", "error");
+        }
+    };
+
     const handleDiscard = async () => {
         const period = budgetPeriod;
         try {
-            await discardFixedMovement(type, item.id, period);
+            await discardFixedMovement(type as any, item.id, period);
             showToast("Movimiento descartado para este mes.", "success");
             onClose();
         } catch (error) {
@@ -132,8 +203,51 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
                 </button>
 
                 <h2 style={{ margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    {type === 'income' ? 'Confirmar Ingreso' : 'Confirmar Gasto'}
+                    {type === 'income' ? 'Confirmar Ingreso' : type === 'refund' ? 'Confirmar Devolución' : 'Confirmar Gasto'}
                 </h2>
+
+                {isDuplicateIncome && (
+                    <div style={{
+                        background: 'rgba(251, 191, 36, 0.08)',
+                        border: '1px solid rgba(251, 191, 36, 0.2)',
+                        borderRadius: '12px',
+                        padding: '1rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.75rem',
+                        marginTop: '-0.5rem',
+                        marginBottom: '0.5rem'
+                    }}>
+                        <span style={{ fontSize: '0.85rem', color: '#fbbf24', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            ⚠️ Ingreso ya cobrado este mes
+                        </span>
+                        <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', margin: 0, lineHeight: 1.4 }}>
+                            Este ingreso ya fue registrado en el periodo actual ({currentRealPeriod}). ¿Cómo deseas contabilizar este cobro?
+                        </p>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', color: 'white', marginTop: '0.25rem' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                                <input 
+                                    type="radio" 
+                                    name="duplicateOption" 
+                                    checked={duplicateOption === 'next'}
+                                    onChange={() => handleDuplicateOptionChange('next')}
+                                    style={{ cursor: 'pointer', accentColor: '#fbbf24' }}
+                                />
+                                Contabilizar en el mes siguiente ({nextMonthPeriod}) - Sugerido
+                            </label>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                                <input 
+                                    type="radio" 
+                                    name="duplicateOption" 
+                                    checked={duplicateOption === 'current'}
+                                    onChange={() => handleDuplicateOptionChange('current')}
+                                    style={{ cursor: 'pointer', accentColor: '#fbbf24' }}
+                                />
+                                Ingreso extra en el mes actual ({currentRealPeriod})
+                            </label>
+                        </div>
+                    </div>
+                )}
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                     {/* Amount Input */}
@@ -207,7 +321,7 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
                                     </option>
                                 ))}
                             </optgroup>
-                            {type === 'expense' && (
+                            {(type === 'expense' || type === 'refund') && (
                                 <optgroup label="Tarjetas de Crédito">
                                     {useFinance().cards.map(card => (
                                         <option key={card.id} value={`card:${card.id}`}>
@@ -311,7 +425,7 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
                                 onClick={handleConfirm}
                                 style={{
                                     flex: 2,
-                                    background: type === 'income' ? 'var(--color-success)' : 'var(--color-primary)',
+                                    background: (type === 'income' || type === 'refund') ? 'var(--color-success)' : 'var(--color-primary)',
                                     border: 'none',
                                     padding: '1rem',
                                     borderRadius: '1rem',
@@ -325,10 +439,10 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
                                     boxShadow: '0 4px 15px rgba(0, 0, 0, 0.3)'
                                 }}
                             >
-                                <Check size={20} /> Confirmar {type === 'income' ? 'Cobro' : 'Pago'}
+                                <Check size={20} /> Confirmar {type === 'income' ? 'Cobro' : type === 'refund' ? 'Devolución' : 'Pago'}
                             </button>
                         </div>
-                        {!isExtraIncomePending && (
+                        {!isExtraIncomePending && type !== 'refund' && (
                             <button 
                                 type="button"
                                 onClick={handleDiscard}
@@ -351,6 +465,32 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
                                 onMouseOut={e => e.currentTarget.style.background = 'rgba(244, 63, 94, 0.12)'}
                             >
                                 Descartar este mes
+                            </button>
+                        )}
+                        {type === 'refund' && (
+                            <button 
+                                type="button"
+                                onClick={handleDeleteRefund}
+                                style={{
+                                    width: '100%',
+                                    background: 'rgba(244, 63, 94, 0.12)',
+                                    border: '1px solid rgba(244, 63, 94, 0.2)',
+                                    padding: '1rem',
+                                    borderRadius: '1rem',
+                                    color: '#fb7185',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '0.5rem',
+                                    transition: 'all 0.2s',
+                                    marginTop: '0.5rem'
+                                }}
+                                onMouseOver={e => e.currentTarget.style.background = 'rgba(244, 63, 94, 0.22)'}
+                                onMouseOut={e => e.currentTarget.style.background = 'rgba(244, 63, 94, 0.12)'}
+                            >
+                                Eliminar Devolución
                             </button>
                         )}
                         {isExtraIncomePending && (

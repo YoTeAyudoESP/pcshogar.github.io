@@ -50,6 +50,8 @@ const YearlyFinancialChart: React.FC = () => {
             // Calculate Expenses
             const totalExpense = expenses
                 .filter(exp => {
+                    if (exp.excludeFromBudget) return false;
+                    if (exp.amount < 0 && exp.status === 'pending') return false;
                     const d = new Date(exp.date);
                     return d.getMonth() === index && d.getFullYear() === currentYear;
                 })

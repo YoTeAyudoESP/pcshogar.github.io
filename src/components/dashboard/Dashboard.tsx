@@ -11,7 +11,7 @@ import SettingsView from '../settings/SettingsView';
 import ExpenseCategoryChart from '../analytics/ExpenseCategoryChart';
 import YearlyFinancialChart from '../analytics/YearlyFinancialChart';
 import DateSelector from '../common/DateSelector';
-import { LayoutDashboard, Settings as SettingsIcon, X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, MinusCircle, PiggyBank, ArrowLeftRight, AlertCircle, Mail, Heart } from 'lucide-react';
+import { LayoutDashboard, Settings as SettingsIcon, X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, MinusCircle, PiggyBank, ArrowLeftRight, AlertCircle, Mail, Heart, RotateCcw } from 'lucide-react';
 
 import { useFinance } from '../../contexts/FinanceContext';
 const version = "1.1.3";
@@ -29,6 +29,7 @@ const Dashboard: React.FC = () => {
     const [settingsTab, setSettingsTab] = useState<'accounts' | 'savings' | 'recurring' | 'loans' | 'balance' | 'categories' | 'app' | 'about'>('accounts');
     const [isIncomeFormOpen, setIsIncomeFormOpen] = useState(false);
     const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
+    const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
     const [isHuchaModalOpen, setIsHuchaModalOpen] = useState(false);
     const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
     const [show30DayReminder, setShow30DayReminder] = useState(false);
@@ -58,6 +59,9 @@ const Dashboard: React.FC = () => {
             } else if (isExpenseModalOpen) {
                 e.preventDefault();
                 setIsExpenseModalOpen(false);
+            } else if (isRefundModalOpen) {
+                e.preventDefault();
+                setIsRefundModalOpen(false);
             } else if (isHuchaModalOpen) {
                 e.preventDefault();
                 setIsHuchaModalOpen(false);
@@ -78,7 +82,7 @@ const Dashboard: React.FC = () => {
 
         window.addEventListener('app-back-pressed', handleBack);
         return () => window.removeEventListener('app-back-pressed', handleBack);
-    }, [editingTx, isIncomeFormOpen, isExpenseModalOpen, isHuchaModalOpen, isTransferModalOpen, show30DayReminder, showChangelog, currentView]);
+    }, [editingTx, isIncomeFormOpen, isExpenseModalOpen, isRefundModalOpen, isHuchaModalOpen, isTransferModalOpen, show30DayReminder, showChangelog, currentView]);
 
     useEffect(() => {
         if (loading) return;
@@ -264,6 +268,13 @@ const Dashboard: React.FC = () => {
                             {isMobile ? 'Ingreso' : 'Nuevo Ingreso'}
                         </button>
                         <button 
+                            onClick={() => setIsRefundModalOpen(true)}
+                            style={{ ...actionButtonStyle, background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)' }}
+                        >
+                            <RotateCcw size={20} />
+                            {isMobile ? 'Devolución' : 'Nueva Devolución'}
+                        </button>
+                        <button 
                             onClick={() => { setSettingsTab('savings'); setCurrentView('settings'); }}
                             style={{ ...actionButtonStyle, background: 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)' }}
                         >
@@ -342,6 +353,10 @@ const Dashboard: React.FC = () => {
 
             {isExpenseModalOpen && (
                 <ExpenseForm onClose={() => setIsExpenseModalOpen(false)} />
+            )}
+
+            {isRefundModalOpen && (
+                <ExpenseForm isRefund={true} onClose={() => setIsRefundModalOpen(false)} />
             )}
 
             {isIncomeFormOpen && (

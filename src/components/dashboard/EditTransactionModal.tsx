@@ -14,9 +14,14 @@ interface EditTransactionModalProps {
 const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction, type, onClose }) => {
     const { updateIncome, updateExpense, accounts, cards, categories, savings } = useFinance();
     
+    const isRefund = type === 'expense' && (transaction as Expense).amount < 0;
+
     // Common fields
     const [description, setDescription] = useState(type === 'expense' ? (transaction as Expense).description : (transaction as Income).name);
-    const [amount, setAmount] = useState(transaction.amount.toString());
+    const [amount, setAmount] = useState(() => {
+        const val = transaction.amount;
+        return isRefund ? Math.abs(val).toString() : val.toString();
+    });
     const [categoryId, setCategoryId] = useState(transaction.categoryId || '');
     const [date, setDate] = useState(() => {
         const tx = transaction as any;
@@ -75,20 +80,28 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction
                 const oldAdj = (oldExpense.paymentMethod as any).settlementAdjustment || 0;
                 const oldCardId = oldExpense.paymentMethod.type === 'card' ? oldExpense.paymentMethod.cardId : '';
                 
+                const parsedAmount = parseFloat(amount);
+                const finalAmount = isRefund ? -Math.abs(parsedAmount) : parsedAmount;
+
+                let finalDescription = description.trim();
+                if (isRefund && !finalDescription.toLowerCase().startsWith('devolución')) {
+                    finalDescription = `Devolución: ${finalDescription}`;
+                }
+
                 if (isSettled && (
                     settlementAdjustment !== oldAdj || 
                     paymentMethodType !== oldExpense.paymentMethod.type ||
                     (paymentMethodType === 'card' && selectedMethodId !== oldCardId) ||
                     new Date(date).getTime() !== oldExpense.date ||
-                    parseFloat(amount) !== oldExpense.amount
+                    finalAmount !== oldExpense.amount
                 )) {
                     isSettled = false;
                 }
 
                 const updated = {
                     ...transaction as Expense,
-                    description,
-                    amount: parseFloat(amount),
+                    description: finalDescription,
+                    amount: finalAmount,
                     date: new Date(date).getTime(),
                     categoryId,
                     paymentMethod,
@@ -150,8 +163,8 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction
                     <X size={20} />
                 </button>
 
-                <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '2rem', color: 'white' }}>
-                    Editar {type === 'expense' ? 'Gasto' : 'Ingreso'}
+                 <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '2rem', color: 'white' }}>
+                    Editar {isRefund ? 'Devolución' : type === 'expense' ? 'Gasto' : 'Ingreso'}
                 </h2>
 
                 <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -161,7 +174,7 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction
                             <input style={inputStyle} value={description} onChange={e => setDescription(e.target.value)} required />
                         </div>
                         <div style={{ flex: 1 }}>
-                            <label style={labelStyle}>Importe (€)</label>
+                            <label style={labelStyle}>{isRefund ? 'Importe Devolución (€)' : 'Importe (€)'}</label>
                             <input type="number" step="0.01" style={inputStyle} value={amount} onChange={e => setAmount(e.target.value)} required />
                         </div>
                     </div>
@@ -213,8 +226,13 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction
                                 <div style={{ flex: 1 }}>
                                     <label style={labelStyle}>Estado</label>
                                     <select style={inputStyle} value={status} onChange={e => setStatus(e.target.value as any)}>
-                                        <option value="paid">Pagado ({paymentMethodType === 'account' ? 'Banco' : paymentMethodType === 'card' ? 'Tarjeta' : 'Efectivo'})</option>
-                                        <option value="pending">Pendiente</option>
+                                        <option value="paid">
+                                            {isRefund 
+                                                ? `Recibida (${paymentMethodType === 'account' ? 'Banco' : paymentMethodType === 'card' ? 'Tarjeta' : 'Efectivo'})`
+                                                : `Pagado (${paymentMethodType === 'account' ? 'Banco' : paymentMethodType === 'card' ? 'Tarjeta' : 'Efectivo'})`
+                                            }
+                                        </option>
+                                        <option value="pending">{isRefund ? 'Pendiente de recibir' : 'Pendiente'}</option>
                                     </select>
                                 </div>
                                 {paymentMethodType === 'card' && selectedMethodId && cards.find(c => c.id === selectedMethodId)?.type !== 'virtual' && (
@@ -318,13 +336,17 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction
                         padding: '1.1rem',
                         borderRadius: '16px',
                         border: 'none',
-                        background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                        background: isRefund 
+                            ? 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)' 
+                            : 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
                         color: 'white',
                         fontWeight: 700,
                         fontSize: '1.1rem',
                         cursor: 'pointer',
                         marginTop: '1rem',
-                        boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)',
+                        boxShadow: isRefund 
+                            ? '0 4px 15px rgba(14, 165, 233, 0.3)' 
+                            : '0 4px 15px rgba(99, 102, 241, 0.3)',
                         transition: 'transform 0.1s'
                     }}>
                         Guardar Cambios

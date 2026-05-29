@@ -548,6 +548,10 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         categoryId?: string
     ) => {
         if (type === 'income') {
+            const [y, m] = period.split('-').map(Number);
+            const budgetMonth = m - 1;
+            const budgetYear = y;
+            
             const newIncome: any = {
                 id: uuidv4(),
                 name: description,
@@ -558,8 +562,8 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                 linkedAccountId: accountId,
                 status: 'received',
                 type: 'extra',
-                budgetMonth: new Date(date).getMonth(),
-                budgetYear: new Date(date).getFullYear(),
+                budgetMonth,
+                budgetYear,
                 period,
                 fixedIncomeId: fixedId
             };

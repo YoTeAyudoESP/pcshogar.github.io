@@ -12,6 +12,8 @@ const ExpenseCategoryChart: React.FC = () => {
     const data = useMemo(() => {
         // Filter current month expenses
         const monthlyExpenses = expenses.filter(e => {
+            if (e.excludeFromBudget) return false;
+            if (e.amount < 0 && e.status === 'pending') return false;
             const d = new Date(e.date);
             return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
         });

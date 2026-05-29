@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import type { Expense } from '../../types/finance';
-import { Pencil, Trash2, Minus, ChevronDown, ChevronRight } from 'lucide-react';
+import { Pencil, Trash2, Minus, Plus, ChevronDown, ChevronRight } from 'lucide-react';
 import { formatMoney } from '../../utils/financeCalculations';
 
 interface ExpenseListProps {
@@ -145,15 +145,15 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ onEdit }) => {
                                             width: '28px', 
                                             height: '28px', 
                                             borderRadius: '8px', 
-                                            background: 'rgba(244, 63, 94, 0.1)', 
+                                            background: expense.amount < 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(244, 63, 94, 0.1)', 
                                             display: 'flex', 
                                             flexShrink: 0,
                                             alignItems: 'center', 
                                             justifyContent: 'center',
-                                            color: '#f43f5e',
-                                            border: '1px solid rgba(244, 63, 94, 0.15)'
+                                            color: expense.amount < 0 ? '#10b981' : '#f43f5e',
+                                            border: expense.amount < 0 ? '1px solid rgba(16, 185, 129, 0.15)' : '1px solid rgba(244, 63, 94, 0.15)'
                                         }}>
-                                            <Minus size={10} strokeWidth={4} />
+                                            {expense.amount < 0 ? <Plus size={10} strokeWidth={4} /> : <Minus size={10} strokeWidth={4} />}
                                         </div>
                                         
                                         {/* Middle Section: Info (Vertical Stack) */}
@@ -176,8 +176,13 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ onEdit }) => {
 
                                         {/* Right Section: Amount & Actions */}
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
-                                            <div style={{ fontWeight: 800, fontSize: '0.85rem', color: 'white', whiteSpace: 'nowrap' }}>
-                                                -{formatMoney(expense.amount)}
+                                            <div style={{ 
+                                                fontWeight: 800, 
+                                                fontSize: '0.85rem', 
+                                                color: expense.amount < 0 ? '#10b981' : 'white', 
+                                                whiteSpace: 'nowrap' 
+                                            }}>
+                                                {expense.amount < 0 ? `+${formatMoney(Math.abs(expense.amount))}` : `-${formatMoney(expense.amount)}`}
                                             </div>
                                             
                                             <div style={{ display: 'flex', gap: '0.4rem' }}>

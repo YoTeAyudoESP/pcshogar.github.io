@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useFinance } from '../../../contexts/FinanceContext';
+import { useDateSelection } from '../../../contexts/DateSelectionContext';
 import { PlusCircle, AlertTriangle } from 'lucide-react';
 import type { SavingGoal } from '../../../types/finance';
-import { formatMoney } from '../../../utils/financeCalculations';
+import { formatMoney, calculateAvailableBalanceForMonth } from '../../../utils/financeCalculations';
 
 interface PiggyBankAddMoneyFormProps {
     goal: SavingGoal;
@@ -10,31 +11,46 @@ interface PiggyBankAddMoneyFormProps {
 }
 
 const PiggyBankAddMoneyForm: React.FC<PiggyBankAddMoneyFormProps> = ({ goal, onClose }) => {
-    const { accounts, adjustSavings } = useFinance();
+    const { 
+        fixedIncomes, extraIncomes, expenses, allocations, 
+        savings, recurringExpenses, overrides, cards, adjustSavings 
+    } = useFinance();
+    const { selectedMonth, selectedYear } = useDateSelection();
+    
     const [amount, setAmount] = useState('');
-    const [accountId, setAccountId] = useState('');
     const [error, setError] = useState('');
+
+    const { availableToSpend } = calculateAvailableBalanceForMonth(selectedYear, selectedMonth, {
+        fixedIncomes, extraIncomes, expenses, allocations,
+        savings, recurringExpenses, overrides, cards
+    });
+
+    const parsedAmount = parseFloat(amount);
+    const remaining = isNaN(parsedAmount) ? availableToSpend : availableToSpend - parsedAmount;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
 
-        if (!amount || !accountId) {
-            setError('Completa todos los campos');
+        if (!amount) {
+            setError('Introduce un importe');
             return;
         }
 
         const addAmount = parseFloat(amount);
-        const account = accounts.find(a => a.id === accountId);
+        if (isNaN(addAmount) || addAmount <= 0) {
+            setError('Importe no válido');
+            return;
+        }
 
-        if (!account || account.balance < addAmount) {
-            setError('Saldo insuficiente en la cuenta seleccionada');
+        if (addAmount > availableToSpend) {
+            setError(`El importe no puede ser superior al disponible actual del mes (${formatMoney(availableToSpend)})`);
             return;
         }
 
         try {
-            // Manual adjustment that DOES affect budget
-            await adjustSavings(goal.id, addAmount, accountId, true);
+            // Virtual adjustment (no accountId, isVirtual = true)
+            await adjustSavings(goal.id, addAmount, undefined, true);
             onClose();
         } catch (err) {
             setError('Error al añadir dinero');
@@ -81,20 +97,30 @@ const PiggyBankAddMoneyForm: React.FC<PiggyBankAddMoneyFormProps> = ({ goal, onC
                     </div>
                 )}
 
-                <div>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem' }}>Cuenta de Origen</label>
-                    <select style={inputStyle} value={accountId} onChange={e => setAccountId(e.target.value)} required>
-                        <option value="">Seleccionar cuenta...</option>
-                        {accounts.map(a => (
-                            <option key={a.id} value={a.id}>{a.name} ({formatMoney(a.balance)})</option>
-                        ))}
-                    </select>
+                <div style={{ marginBottom: '1rem', fontSize: '0.95rem', color: 'rgba(255,255,255,0.7)', display: 'flex', justifyContent: 'space-between' }}>
+                    <span>Disponible del mes:</span>
+                    <strong style={{ color: availableToSpend >= 0 ? '#10b981' : '#f43f5e' }}>{formatMoney(availableToSpend)}</strong>
                 </div>
 
                 <div>
                     <label style={{ display: 'block', marginBottom: '0.5rem', color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem' }}>Importe a Ahorrar (€)</label>
                     <input type="number" step="0.01" style={inputStyle} value={amount} onChange={e => setAmount(e.target.value)} placeholder="0.00" required />
                 </div>
+
+                {!isNaN(parsedAmount) && parsedAmount > 0 && (
+                    <div style={{ 
+                        marginTop: '-0.5rem', 
+                        marginBottom: '1rem', 
+                        fontSize: '0.85rem', 
+                        fontWeight: 600,
+                        color: remaining >= 0 ? '#10b981' : '#f43f5e' 
+                    }}>
+                        {remaining >= 0 
+                            ? `Disponible restante si aceptas: ${formatMoney(remaining)}` 
+                            : '¡Atención! Superas el disponible actual del mes'
+                        }
+                    </div>
+                )}
 
                 <div style={{ 
                     background: 'rgba(245, 158, 11, 0.1)', 
@@ -109,7 +135,7 @@ const PiggyBankAddMoneyForm: React.FC<PiggyBankAddMoneyFormProps> = ({ goal, onC
                 }}>
                     <AlertTriangle size={24} style={{ flexShrink: 0 }} />
                     <div>
-                        <strong>Aviso:</strong> Esta operación <strong>reducirá</strong> el disponible mensual del mes en curso.
+                        <strong>Aviso:</strong> Esta operación es puramente <strong>virtual</strong>. Reducirá el disponible mensual sin mover dinero real de tus cuentas.
                     </div>
                 </div>
 

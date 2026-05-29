@@ -74,6 +74,7 @@ const CreditCardSettlement: React.FC = () => {
                 if (!exp?.paymentMethod) return false;
                 const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === c.id;
                 if (!isCard || exp.isSettled) return false;
+                if (exp.amount < 0 && exp.status === 'pending') return false;
                 const expDate = getEffectiveSettlementDate(exp);
                 return expDate >= cycleDates.active.start && expDate <= cycleDates.active.cutoff;
             });
@@ -83,6 +84,7 @@ const CreditCardSettlement: React.FC = () => {
                 if (!exp?.paymentMethod) return false;
                 const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === c.id;
                 if (!isCard || exp.isSettled) return false;
+                if (exp.amount < 0 && exp.status === 'pending') return false;
                 const expDate = getEffectiveSettlementDate(exp);
                 return expDate >= cycleDates.pending.start && expDate <= cycleDates.pending.cutoff;
             });
@@ -153,6 +155,7 @@ const CreditCardSettlement: React.FC = () => {
                         if (!exp?.paymentMethod) return false;
                         const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === card.id;
                         if (!isCard || exp.isSettled) return false;
+                        if (exp.amount < 0 && exp.status === 'pending') return false;
                         const expDate = getEffectiveSettlementDate(exp);
                         return expDate >= cycleDates.active.start && expDate <= cycleDates.active.cutoff;
                     });
@@ -162,6 +165,7 @@ const CreditCardSettlement: React.FC = () => {
                         if (!exp?.paymentMethod) return false;
                         const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === card.id;
                         if (!isCard || exp.isSettled) return false;
+                        if (exp.amount < 0 && exp.status === 'pending') return false;
                         const expDate = getEffectiveSettlementDate(exp);
                         return expDate >= cycleDates.pending.start && expDate <= cycleDates.pending.cutoff;
                     });
@@ -171,6 +175,7 @@ const CreditCardSettlement: React.FC = () => {
                         if (!exp?.paymentMethod) return false;
                         const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === card.id;
                         if (!isCard) return false;
+                        if (exp.amount < 0 && exp.status === 'pending') return false;
                         const expDate = getEffectiveSettlementDate(exp);
                         return expDate.getFullYear() === selectedYear;
                     });

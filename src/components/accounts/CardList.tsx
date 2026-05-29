@@ -19,6 +19,8 @@ const CardList: React.FC<CardListProps> = ({ onEdit }) => {
             if (!exp?.paymentMethod) return false;
             const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === cardId;
             if (!isCard) return false;
+            if (exp.excludeFromBudget) return false;
+            if (exp.amount < 0 && exp.status === 'pending') return false;
             const expDate = new Date(exp.date);
             return expDate.getFullYear() === currentYear;
         });

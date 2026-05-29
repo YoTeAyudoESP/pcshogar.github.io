@@ -74,7 +74,7 @@ const FinanceBreakdownModal: React.FC<FinanceBreakdownModalProps> = ({ isOpen, o
 
     // 2. Gastos del Mes
     const pagados = expenses
-        .filter(e => isItemInSelectedMonth(e) && !e.linkedSavingGoalId)
+        .filter(e => isItemInSelectedMonth(e) && !e.linkedSavingGoalId && !e.excludeFromBudget && !(e.amount < 0 && e.status === 'pending'))
         .reduce((sum, e) => sum + e.amount, 0);
 
     const pendientesFijos = recurringExpenses

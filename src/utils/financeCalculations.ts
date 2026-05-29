@@ -133,6 +133,7 @@ export function calculateAvailableBalanceForMonth(
     expenses
         .filter(exp => isItemInMonthAndYear(exp, month, year))
         .filter(exp => !exp.excludeFromBudget)
+        .filter(exp => !(exp.amount < 0 && exp.status === 'pending'))
         .forEach(exp => {
             if (exp.linkedSavingGoalId) return;
             totalMonthExpenses += exp.amount;

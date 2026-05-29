@@ -14,7 +14,7 @@ const PendingActionsWidget: React.FC = () => {
     
     const [confirmModal, setConfirmModal] = useState<{
         show: boolean;
-        type: 'income' | 'expense';
+        type: 'income' | 'expense' | 'refund';
         item: any;
     }>({ show: false, type: 'expense', item: null });
 
@@ -55,14 +55,55 @@ const PendingActionsWidget: React.FC = () => {
         isItemInMonthAndYear(inc, selectedMonth, selectedYear)
     );
 
+    // Calculate pending refunds (negative expenses with status pending)
+    const today = new Date();
+    const currentRealMonth = today.getMonth();
+    const currentRealYear = today.getFullYear();
+    const isViewedMonthCurrentRealMonth = selectedMonth === currentRealMonth && selectedYear === currentRealYear;
+
+    const pendingRefunds = expenses.filter(exp => {
+        if (!(exp.amount < 0 && exp.status === 'pending')) return false;
+
+        const d = new Date(exp.date);
+        const expMonth = d.getMonth();
+        const expYear = d.getFullYear();
+
+        // Exact month match
+        if (expMonth === selectedMonth && expYear === selectedYear) {
+            return true;
+        }
+
+        // Rollover: past month and viewed month is current real month
+        const isPast = (expYear < selectedYear) || (expYear === selectedYear && expMonth < selectedMonth);
+        if (isPast && isViewedMonthCurrentRealMonth) {
+            return true;
+        }
+
+        return false;
+    });
+
+    const isRollover = (item: any) => {
+        if (item.actionType !== 'refund') return false;
+        const d = new Date(item.date);
+        return d.getMonth() !== selectedMonth || d.getFullYear() !== selectedYear;
+    };
+
     const allPending = [
         ...pendingIncomes.map(inc => ({ ...inc, actionType: 'income' as const })),
         ...pendingExtraIncomes.map(inc => ({ ...inc, actionType: 'income' as const, isExtraPending: true })),
-        ...pendingExpenses.map(exp => ({ ...exp, actionType: 'expense' as const }))
+        ...pendingExpenses.map(exp => ({ ...exp, actionType: 'expense' as const })),
+        ...pendingRefunds.map(ref => ({ ...ref, actionType: 'refund' as const }))
     ].sort((a: any, b: any) => {
-        const dayA = a.paymentDay || (a.receivedDate ? new Date(a.receivedDate).getDate() : 0);
-        const dayB = b.paymentDay || (b.receivedDate ? new Date(b.receivedDate).getDate() : 0);
-        return dayA - dayB;
+        const getDay = (item: any) => {
+            if (item.actionType === 'refund') {
+                if (isRollover(item)) {
+                    return 1; // Rollover to day 1
+                }
+                return new Date(item.date).getDate();
+            }
+            return item.paymentDay || (item.receivedDate ? new Date(item.receivedDate).getDate() : new Date(item.date || item.createdAt).getDate());
+        };
+        return getDay(a) - getDay(b);
     });
 
     if (allPending.length === 0) return null;
@@ -131,8 +172,8 @@ const PendingActionsWidget: React.FC = () => {
                         }}
                         className="hover-scale"
                     >
-                        {/* Glow effect for incomes */}
-                        {item.actionType === 'income' && (
+                        {/* Glow effect for incomes and refunds */}
+                        {(item.actionType === 'income' || item.actionType === 'refund') && (
                             <div style={{
                                 position: 'absolute',
                                 top: -20,
@@ -147,15 +188,15 @@ const PendingActionsWidget: React.FC = () => {
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.8rem' }}>
                             <div style={{
-                                background: item.actionType === 'income' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(244, 63, 94, 0.15)',
-                                color: item.actionType === 'income' ? '#10b981' : '#f43f5e',
+                                background: (item.actionType === 'income' || item.actionType === 'refund') ? 'rgba(16, 185, 129, 0.15)' : 'rgba(244, 63, 94, 0.15)',
+                                color: (item.actionType === 'income' || item.actionType === 'refund') ? '#10b981' : '#f43f5e',
                                 padding: '6px',
                                 borderRadius: '10px'
                             }}>
-                                {item.actionType === 'income' ? <ArrowDownLeft size={16} /> : <ArrowUpRight size={16} />}
+                                {(item.actionType === 'income' || item.actionType === 'refund') ? <ArrowDownLeft size={16} /> : <ArrowUpRight size={16} />}
                             </div>
                             <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>
-                                Día {item.paymentDay || (item.receivedDate ? new Date(item.receivedDate).getDate() : new Date(item.createdAt).getDate())}
+                                Día {item.actionType === 'refund' ? (isRollover(item) ? '1' : new Date(item.date).getDate()) : (item.paymentDay || (item.receivedDate ? new Date(item.receivedDate).getDate() : new Date(item.date || item.createdAt).getDate()))}
                             </div>
                         </div>
 
@@ -174,9 +215,9 @@ const PendingActionsWidget: React.FC = () => {
                         <div style={{ 
                             fontSize: '1.2rem', 
                             fontWeight: 800, 
-                            color: item.actionType === 'income' ? '#10b981' : 'white',
+                            color: (item.actionType === 'income' || item.actionType === 'refund') ? '#10b981' : 'white',
                         }}>
-                            {formatMoney(item.amount)}
+                            {item.actionType === 'refund' ? `+${formatMoney(Math.abs(item.amount))}` : formatMoney(item.amount)}
                         </div>
 
                         <div style={{ 

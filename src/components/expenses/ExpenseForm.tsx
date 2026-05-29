@@ -7,9 +7,10 @@ import type { CreditCard } from '../../types/finance';
 
 interface ExpenseFormProps {
     onClose: () => void;
+    isRefund?: boolean;
 }
 
-const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose }) => {
+const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false }) => {
     const { addExpense, accounts, cards, categories, savings } = useFinance();
     const expenseCategories = categories
         .filter(c => c.type === 'expense')
@@ -47,9 +48,17 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose }) => {
             paymentMethod = { type: 'cash' };
         }
 
+        const parsedAmount = parseFloat(amount);
+        const finalAmount = isRefund ? -Math.abs(parsedAmount) : parsedAmount;
+
+        let finalDescription = description.trim();
+        if (isRefund && !finalDescription.toLowerCase().startsWith('devolución')) {
+            finalDescription = `Devolución: ${finalDescription}`;
+        }
+
         await addExpense({
-            description,
-            amount: parseFloat(amount),
+            description: finalDescription,
+            amount: finalAmount,
             currency: 'EUR',
             date: new Date(date).getTime(),
             categoryId,
@@ -100,6 +109,10 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose }) => {
                     <X size={20} />
                 </button>
 
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'white', margin: '0 0 1.5rem 0' }}>
+                    {isRefund ? 'Nueva Devolución' : 'Nuevo Gasto'}
+                </h2>
+
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                     
                     {/* Rows */}
@@ -110,12 +123,12 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose }) => {
                                 style={inputStyle} 
                                 value={description} 
                                 onChange={e => setDescription(e.target.value)} 
-                                placeholder="Ej. Supermercado" 
+                                placeholder={isRefund ? "Ej. Amazon (Zapatillas)" : "Ej. Supermercado"} 
                                 required 
                             />
                         </div>
                         <div style={{ flex: 1 }}>
-                            <label style={labelStyle}>Importe (€)</label>
+                            <label style={labelStyle}>{isRefund ? 'Importe Devolución (€)' : 'Importe (€)'}</label>
                             <input 
                                 type="number" 
                                 step="0.01" 
@@ -157,9 +170,9 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose }) => {
                         <div style={{ flex: 1 }}>
                             <label style={labelStyle}>Método Pago</label>
                             <select style={inputStyle} value={paymentMethodType} onChange={e => {
-                                setPaymentMethodType(e.target.value as any);
-                                setSelectedMethodId('');
-                            }}>
+                                  setPaymentMethodType(e.target.value as any);
+                                  setSelectedMethodId('');
+                              }}>
                                 <option value="account">Cuenta Bancaria</option>
                                 <option value="card">Tarjeta</option>
                                 <option value="cash">Efectivo</option>
@@ -175,8 +188,13 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose }) => {
                                 value={status} 
                                 onChange={e => setStatus(e.target.value as any)}
                             >
-                                <option value="paid">Pagado ({paymentMethodType === 'account' ? 'Banco' : paymentMethodType === 'card' ? 'Tarjeta' : 'Efectivo'})</option>
-                                <option value="pending">Pendiente</option>
+                                <option value="paid">
+                                    {isRefund 
+                                        ? `Recibida (${paymentMethodType === 'account' ? 'Banco' : paymentMethodType === 'card' ? 'Tarjeta' : 'Efectivo'})`
+                                        : `Pagado (${paymentMethodType === 'account' ? 'Banco' : paymentMethodType === 'card' ? 'Tarjeta' : 'Efectivo'})`
+                                    }
+                                </option>
+                                <option value="pending">{isRefund ? 'Pendiente de recibir' : 'Pendiente'}</option>
                             </select>
                         </div>
                         {paymentMethodType === 'card' && selectedMethodId && cards.find(c => c.id === selectedMethodId)?.type !== 'virtual' && (
@@ -235,57 +253,60 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose }) => {
                     )}
 
                     {/* Hucha Financing */}
-                    <div style={{ 
-                        background: 'rgba(99, 102, 241, 0.05)', 
-                        padding: '1.5rem', 
-                        borderRadius: '12px',
-                        border: '1px solid rgba(99, 102, 241, 0.1)',
-                        marginTop: '0.5rem'
-                    }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', color: 'white', fontSize: '1.1rem', fontWeight: 600 }}>
-                            <input 
-                                type="checkbox" 
-                                style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: '#4f46e5' }}
-                                checked={isFinancedByHucha}
-                                onChange={e => setIsFinancedByHucha(e.target.checked)}
-                            />
-                            ¿Financiar con una hucha?
-                        </label>
-                        <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem', marginTop: '8px', marginLeft: '32px' }}>
-                            Si se marca, el dinero se descontará del saldo de la hucha y no afectará al disponible del mes.
-                        </p>
-                        
-                        {isFinancedByHucha && (
-                            <div style={{ marginTop: '1rem', marginLeft: '32px' }}>
-                                <label style={labelStyle}>Seleccionar Hucha</label>
-                                <select 
-                                    style={{ ...inputStyle, background: '#12141c' }} 
-                                    value={selectedHuchaId} 
-                                    onChange={e => setSelectedHuchaId(e.target.value)}
-                                    required
-                                >
-                                    <option value="">Seleccione Hucha...</option>
-                                    {savings.map(h => (
-                                        <option key={h.id} value={h.id}>{h.name} ({formatMoney(h.currentAmount)})</option>
-                                    ))}
-                                </select>
-                            </div>
-                        )}
-                    </div>
+                    {!isRefund && (
+                        <div style={{ 
+                            background: 'rgba(99, 102, 241, 0.05)', 
+                            padding: '1.5rem', 
+                            borderRadius: '12px',
+                            border: '1px solid rgba(99, 102, 241, 0.1)',
+                            marginTop: '0.5rem'
+                        }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', color: 'white', fontSize: '1.1rem', fontWeight: 600 }}>
+                                <input 
+                                    type="checkbox" 
+                                    style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: '#4f46e5' }}
+                                    checked={isFinancedByHucha}
+                                    onChange={e => setIsFinancedByHucha(e.target.checked)}
+                                />
+                                ¿Financiar con una hucha?
+                            </label>
+                            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem', marginTop: '8px', marginLeft: '32px' }}>
+                                Si se marca, el dinero se descontará del saldo de la hucha y no afectará al disponible del mes.
+                            </p>
+                            
+                            {isFinancedByHucha && (
+                                <div style={{ marginTop: '1rem', marginLeft: '32px' }}>
+                                    <label style={labelStyle}>Seleccionar Hucha</label>
+                                    <select 
+                                        style={{ ...inputStyle, background: '#12141c' }} 
+                                        value={selectedHuchaId} 
+                                        onChange={e => setSelectedHuchaId(e.target.value)}
+                                        required
+                                    >
+                                        <option value="">Seleccione Hucha...</option>
+                                        {savings.map(h => (
+                                            <option key={h.id} value={h.id}>{h.name} ({formatMoney(h.currentAmount)})</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     <button type="submit" style={{
                         marginTop: '1rem',
                         padding: '1.2rem',
                         borderRadius: '12px',
                         border: 'none',
-                        background: '#4f46e5',
+                        background: isRefund ? 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)' : '#4f46e5',
                         color: 'white',
                         fontWeight: 700,
                         fontSize: '1.1rem',
                         cursor: 'pointer',
-                        transition: 'background 0.2s'
+                        transition: 'background 0.2s',
+                        boxShadow: isRefund ? '0 4px 15px rgba(14, 165, 233, 0.3)' : 'none'
                     }}>
-                        Añadir Gasto
+                        {isRefund ? 'Añadir Devolución' : 'Añadir Gasto'}
                     </button>
                 </form>
             </div>

@@ -1,5 +1,5 @@
 {
-  "version": "1.1.8",
-  "url": "https://pcshogar.es/PCSHogar_v1.1.8.apk",
-  "releaseNotes": "Novedades v1.1.8: Corregido el cálculo del disponible mensual para restar correctamente la meta de las huchas vinculadas a ingresos fijos."
+    "releaseNotes": "Novedades v1.1.9: Corregido el cálculo de disponible mensual y fechas de aportaciones automáticas en huchas.",
+    "url": "https://pcshogar.es/PCSHogar_v1.1.9.apk",
+    "version": "1.1.9"
 }

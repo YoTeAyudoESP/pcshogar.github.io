@@ -14,7 +14,7 @@ import DateSelector from '../common/DateSelector';
 import { LayoutDashboard, Settings as SettingsIcon, X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, MinusCircle, PiggyBank, ArrowLeftRight, AlertCircle, Mail, Heart, RotateCcw } from 'lucide-react';
 
 import { useFinance } from '../../contexts/FinanceContext';
-const version = "1.1.3";
+const version = "1.1.5";
 import RemnantDecisionModal from '../settings/RemnantDecisionModal';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import EditTransactionModal from './EditTransactionModal';
@@ -103,7 +103,7 @@ const Dashboard: React.FC = () => {
 
         // 2. Changelog checking
         const lastVersion = localStorage.getItem('pcshogar_last_version');
-        const currentVersion = "1.1.3";
+        const currentVersion = "1.1.5";
         
         if (!lastVersion) {
             const isClean = accounts.length === 0 && cards.length === 0;
@@ -469,7 +469,7 @@ const Dashboard: React.FC = () => {
 
              {showChangelog && (
                 <div className="modal-overlay" onClick={() => {
-                    localStorage.setItem('pcshogar_last_version', '1.1.3');
+                    localStorage.setItem('pcshogar_last_version', '1.1.5');
                     setShowChangelog(false);
                 }}>
                     <div className="modal-container glass-panel" style={{ padding: '2.5rem 2rem', maxWidth: '460px', width: '95%', textAlign: 'center', position: 'relative' }} onClick={e => e.stopPropagation()}>
@@ -487,7 +487,7 @@ const Dashboard: React.FC = () => {
                             <TrendingUp size={36} color="white" />
                         </div>
                         <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem', color: 'white' }}>
-                            ¡Actualizado a la v1.1.3!
+                            ¡Actualizado a la v1.1.5!
                         </h2>
                         <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)', marginBottom: '1.5rem' }}>
                             Resumen de las mejoras y novedades
@@ -508,16 +508,28 @@ const Dashboard: React.FC = () => {
                             marginBottom: '2rem'
                         }}>
                             <div>
-                                <strong style={{ color: '#34A853' }}>☁️ Sincronización Google Drive:</strong>
+                                <strong style={{ color: '#38bdf8' }}>🔄 Ahorro Automático por Ingreso:</strong>
                                 <div style={{ color: 'rgba(255,255,255,0.6)', marginLeft: '1.2rem', fontSize: '0.82rem' }}>
-                                    Añadido soporte para sincronizar tus finanzas directamente con Google Drive, de forma segura y respetando la exclusión mutua con Dropbox.
+                                    Vincula tus huchas a tus plantillas de ingresos fijos (como la nómina) para ahorrar de forma automática al confirmar el cobro.
+                                </div>
+                            </div>
+                            <div>
+                                <strong style={{ color: '#10b981' }}>📊 Correcciones en Disponible:</strong>
+                                <div style={{ color: 'rgba(255,255,255,0.6)', marginLeft: '1.2rem', fontSize: '0.82rem' }}>
+                                    Solucionado el error de doble contabilización de huchas y las desviaciones de disponible causadas por devoluciones pendientes.
+                                </div>
+                            </div>
+                            <div>
+                                <strong style={{ color: '#fbbf24' }}>↩️ Devoluciones Profesionales:</strong>
+                                <div style={{ color: 'rgba(255,255,255,0.6)', marginLeft: '1.2rem', fontSize: '0.82rem' }}>
+                                    Botón dedicado de devolución desde el dashboard, con importes positivos en la lista de movimientos y rollover automático para devoluciones pendientes.
                                 </div>
                             </div>
                         </div>
 
                         <button 
                             onClick={() => {
-                                localStorage.setItem('pcshogar_last_version', '1.1.3');
+                                localStorage.setItem('pcshogar_last_version', '1.1.5');
                                 setShowChangelog(false);
                             }}
                             style={{

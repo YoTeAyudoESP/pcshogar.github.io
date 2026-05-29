@@ -1,5 +1,5 @@
 {
-  "version": "1.1.5",
-  "url": "https://pcshogar.es/PCSHogar_v1.1.5.apk",
-  "releaseNotes": "Novedades v1.1.5: Vinculación de ahorro automático a ingresos fijos, corrección de disponible con devoluciones pendientes y solución al doble cómputo de ahorro."
+  "version": "1.1.1",
+  "url": "https://pcshogar.es/",
+  "releaseNotes": "Novedades v1.1.1: Corrección de error en disponible mensual con ingresos pendientes/excluidos bajo Ajustes de Disponible. Añadida la opción de eliminar ingresos extras pendientes directamente en el modal de confirmación."
 }

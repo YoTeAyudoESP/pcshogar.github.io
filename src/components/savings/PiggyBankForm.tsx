@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import type { SavingGoal } from '../../types/finance';
 import ColorPicker from '../common/ColorPicker';
+import { formatMoney } from '../../utils/financeCalculations';
 
 interface PiggyBankFormProps {
     editingGoal?: SavingGoal;
@@ -10,12 +11,13 @@ interface PiggyBankFormProps {
 }
 
 const PiggyBankForm: React.FC<PiggyBankFormProps> = ({ editingGoal, onCancelEdit, onClose }) => {
-    const { addSavingGoal, updateSavingGoal, accounts } = useFinance();
+    const { addSavingGoal, updateSavingGoal, accounts, fixedIncomes } = useFinance();
     const [name, setName] = useState('');
     const [target, setTarget] = useState('');
     const [current, setCurrent] = useState('');
     const [monthly, setMonthly] = useState('');
     const [sourceAccountId, setSourceAccountId] = useState('');
+    const [linkedFixedIncomeId, setLinkedFixedIncomeId] = useState('');
     const [accountInBudget, setAccountInBudget] = useState(true);
     const [color, setColor] = useState('#f59e0b');
     const [createdAtDate, setCreatedAtDate] = useState('');
@@ -27,6 +29,7 @@ const PiggyBankForm: React.FC<PiggyBankFormProps> = ({ editingGoal, onCancelEdit
             setCurrent(editingGoal.currentAmount.toString());
             setMonthly(editingGoal.monthlySavingAmount?.toString() || '');
             setSourceAccountId(editingGoal.automaticSourceAccountId || '');
+            setLinkedFixedIncomeId(editingGoal.linkedFixedIncomeId || '');
             setAccountInBudget(editingGoal.accountInBudget ?? true);
             setColor(editingGoal.color || '#f59e0b');
             setCreatedAtDate(new Date(editingGoal.createdAt || editingGoal.updatedAt || Date.now()).toISOString().split('T')[0]);
@@ -36,6 +39,7 @@ const PiggyBankForm: React.FC<PiggyBankFormProps> = ({ editingGoal, onCancelEdit
             setCurrent('');
             setMonthly('');
             setSourceAccountId('');
+            setLinkedFixedIncomeId('');
             setAccountInBudget(true);
             setColor('#f59e0b');
             setCreatedAtDate(new Date().toISOString().split('T')[0]);
@@ -45,7 +49,7 @@ const PiggyBankForm: React.FC<PiggyBankFormProps> = ({ editingGoal, onCancelEdit
     useEffect(() => {
         const handleBack = (e: Event) => {
             e.preventDefault();
-            const isDirty = name !== '' || target !== '' || current !== '' || monthly !== '' || sourceAccountId !== '';
+            const isDirty = name !== '' || target !== '' || current !== '' || monthly !== '' || sourceAccountId !== '' || linkedFixedIncomeId !== '';
             if (!editingGoal && isDirty) {
                 if (window.confirm('Tienes cambios sin guardar. ¿Deseas descartarlos y volver?')) {
                     if (onClose) onClose();
@@ -56,6 +60,7 @@ const PiggyBankForm: React.FC<PiggyBankFormProps> = ({ editingGoal, onCancelEdit
                     current !== editingGoal.currentAmount.toString() ||
                     monthly !== (editingGoal.monthlySavingAmount?.toString() || '') ||
                     sourceAccountId !== (editingGoal.automaticSourceAccountId || '') ||
+                    linkedFixedIncomeId !== (editingGoal.linkedFixedIncomeId || '') ||
                     color !== (editingGoal.color || '#f59e0b') ||
                     accountInBudget !== (editingGoal.accountInBudget ?? true);
                 if (isModified) {
@@ -74,7 +79,7 @@ const PiggyBankForm: React.FC<PiggyBankFormProps> = ({ editingGoal, onCancelEdit
 
         window.addEventListener('app-back-pressed', handleBack);
         return () => window.removeEventListener('app-back-pressed', handleBack);
-    }, [name, target, current, monthly, sourceAccountId, color, accountInBudget, editingGoal, onCancelEdit, onClose]);
+    }, [name, target, current, monthly, sourceAccountId, linkedFixedIncomeId, color, accountInBudget, editingGoal, onCancelEdit, onClose]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -86,6 +91,7 @@ const PiggyBankForm: React.FC<PiggyBankFormProps> = ({ editingGoal, onCancelEdit
             currentAmount: current ? parseFloat(current) : 0,
             monthlySavingAmount: monthly ? parseFloat(monthly) : 0,
             automaticSourceAccountId: sourceAccountId || undefined,
+            linkedFixedIncomeId: linkedFixedIncomeId || undefined,
             accountInBudget,
             color,
             currency: 'EUR' as const,
@@ -146,13 +152,22 @@ const PiggyBankForm: React.FC<PiggyBankFormProps> = ({ editingGoal, onCancelEdit
                 </div>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.5rem', marginTop: '1rem' }}>
-                <div style={{ width: '100%', maxWidth: '300px' }}>
+            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '0.5rem', marginTop: '1rem' }}>
+                <div style={{ flex: '1 1 180px', maxWidth: '300px' }}>
                     <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)', textAlign: 'center' }}>Ahorro automático desde:</label>
                     <select style={{ ...inputStyle, marginBottom: 0 }} value={sourceAccountId} onChange={e => setSourceAccountId(e.target.value)}>
                         <option value="">(Ninguno - Manual)</option>
                         {accounts.map(acc => (
                             <option key={acc.id} value={acc.id}>{acc.name}</option>
+                        ))}
+                    </select>
+                </div>
+                <div style={{ flex: '1 1 180px', maxWidth: '300px' }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)', textAlign: 'center' }}>Al cobrar ingreso fijo:</label>
+                    <select style={{ ...inputStyle, marginBottom: 0 }} value={linkedFixedIncomeId} onChange={e => setLinkedFixedIncomeId(e.target.value)}>
+                        <option value="">(Ninguno - Siempre activo)</option>
+                        {fixedIncomes.filter(inc => inc.active).map(inc => (
+                            <option key={inc.id} value={inc.id}>{inc.name} ({formatMoney(inc.amount)})</option>
                         ))}
                     </select>
                 </div>

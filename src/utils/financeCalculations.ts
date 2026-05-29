@@ -222,7 +222,7 @@ export function calculateAvailableBalanceForMonth(
     // Formula: Total Received (Extra + Confirmed Fixed) + Pending Fixed - (Projected Fixed Expenses + Variable Paid + Deviations + Allocations + Projected Savings) + Remanente
     const availableToSpend = 
         (extraIncomesReceived + pendingFixedIncomes) 
-        - (totalProjectedFixedExpenses + variableExpensesPaid + fixedExpensesDeviations + totalMonthAllocations + projectedTotalSavings)
+        - (totalProjectedFixedExpenses + variableExpensesPaid + fixedExpensesDeviations + totalMonthAllocations + pendingSavings)
         + remanente;
 
     const summary = {
@@ -260,12 +260,14 @@ export function calculateAvailableBalanceForMonth(
 
         const varExpensesAfter = expenses.filter(exp => {
             if (exp.isFixed || exp.excludeFromBudget) return false;
+            if (exp.amount < 0 && exp.status === 'pending') return false;
             const t = Number(exp.updatedAt || exp.date || (exp as any).createdAt || 0);
             return isItemInMonthAndYear(exp, month, year) && t > overrideTime;
         }).reduce((sum, exp) => sum + exp.amount, 0);
 
         const fixedDeviationsAfter = expenses.filter(exp => {
             if (!exp.isFixed || exp.excludeFromBudget) return false;
+            if (exp.amount < 0 && exp.status === 'pending') return false;
             const t = Number(exp.updatedAt || exp.date || (exp as any).createdAt || 0);
             return isItemInMonthAndYear(exp, month, year) && t > overrideTime;
         }).reduce((sum, exp) => {

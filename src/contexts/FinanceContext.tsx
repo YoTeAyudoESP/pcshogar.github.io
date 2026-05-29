@@ -574,6 +574,28 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                 const ignoredPeriods = [...(fixed.ignoredPeriods || []), period];
                 await incomeDB.updateIncome({ ...fixed, ignoredPeriods });
             }
+
+            // Auto-savings allocations for linked piggy banks
+            const linkedGoals = savings.filter(s => s.linkedFixedIncomeId === fixedId);
+            for (const goal of linkedGoals) {
+                const saveAmount = goal.monthlySavingAmount || 0;
+                if (saveAmount > 0) {
+                    const sourceAcc = goal.automaticSourceAccountId || accountId;
+                    if (sourceAcc) {
+                        const allocation: SavingAllocation = {
+                            id: uuidv4(),
+                            goalId: goal.id,
+                            sourceAccountId: sourceAcc,
+                            amount: saveAmount,
+                            type: 'automatic',
+                            date: Date.now(),
+                            updatedAt: Date.now(),
+                            description: `Ahorro auto. desde cobro de: ${description}`
+                        };
+                        await incomeDB.allocateSavingsWithTransaction(allocation);
+                    }
+                }
+            }
         } else {
             const isCard = cards.some(c => c.id === accountId);
             const newExpense: Expense = {

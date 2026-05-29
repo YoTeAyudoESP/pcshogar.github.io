@@ -11,7 +11,7 @@ interface PiggyBankListProps {
 }
 
 const PiggyBankList: React.FC<PiggyBankListProps> = ({ onEdit, onAddMoney, onShowHistory }) => {
-    const { savings, accounts, deleteSavingGoal, adjustSavings } = useFinance();
+    const { savings, accounts, deleteSavingGoal, adjustSavings, fixedIncomes } = useFinance();
     const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
 
     useEffect(() => {
@@ -56,6 +56,7 @@ const PiggyBankList: React.FC<PiggyBankListProps> = ({ onEdit, onAddMoney, onSho
         <div style={{ display: 'grid', gap: isMobile ? '0.5rem' : '1rem', gridTemplateColumns: '1fr' }}>
             {savings.map(goal => {
                 const sourceAcc = accounts.find(a => a.id === goal.automaticSourceAccountId);
+                const linkedIncome = fixedIncomes?.find(i => i.id === goal.linkedFixedIncomeId);
                 
                 return (
                     <div 
@@ -95,6 +96,12 @@ const PiggyBankList: React.FC<PiggyBankListProps> = ({ onEdit, onAddMoney, onSho
                                             <div style={{ fontSize: '0.75rem', color: '#6366f1', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
                                                 <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#6366f1' }} />
                                                 Auto: {sourceAcc.name}
+                                            </div>
+                                        )}
+                                        {linkedIncome && (
+                                            <div style={{ fontSize: '0.75rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
+                                                <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#10b981' }} />
+                                                Vinc: {linkedIncome.name}
                                             </div>
                                         )}
                                     </div>

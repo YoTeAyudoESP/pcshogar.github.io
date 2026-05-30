@@ -1,6 +1,6 @@
 {
-  "version": "1.2.7",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_v1.2.7.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.2.7.exe",
-  "releaseNotes": "Novedades v1.2.7: Añadida la opción de generar informes financieros en PDF (mensuales, trimestrales y anuales) con diseño premium e independiente para impresión."
+  "version": "1.2.8",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_v1.2.8.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.2.8.exe",
+  "releaseNotes": "Novedades v1.2.8: Informes PDF mejorados con detalle completo de ingresos y gastos en segunda página, guardado en carpeta Descargas y apertura directa desde la app."
 }

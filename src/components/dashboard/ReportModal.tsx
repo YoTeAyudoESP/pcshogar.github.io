@@ -6,7 +6,6 @@ import { DEFAULT_CATEGORIES } from '../../types/finance';
 import type { Income } from '../../types/income';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
-import { Share } from '@capacitor/share';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
@@ -57,11 +56,12 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
     const [isGenerating, setIsGenerating] = useState(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-    // Post-generation "open?" dialog state
+    // Post-generation dialog state
     const [showOpenDialog, setShowOpenDialog] = useState(false);
     const [savedPdfPath, setSavedPdfPath] = useState<string | null>(null);
     const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
     const [savedFilename, setSavedFilename] = useState<string>('');
+    const [androidSaveError, setAndroidSaveError] = useState<string | null>(null);
 
     const reportRef = useRef<HTMLDivElement>(null);
 
@@ -248,22 +248,27 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
 
             } else if (isAndroidPlatform()) {
                 // ── Android (Capacitor) ────────────────────────────────────
-                const base64data = pdf.output('datauristring').split(',')[1];
-                await Filesystem.writeFile({
-                    path: filename,
-                    data: base64data,
-                    directory: Directory.Cache,
-                });
-                const { uri } = await Filesystem.getUri({
-                    path: filename,
-                    directory: Directory.Cache,
-                });
-                await Share.share({
-                    title: 'Informe Financiero PCS Hogar',
-                    url: uri,
-                    dialogTitle: 'Abrir o guardar el informe PDF',
-                });
-                onClose();
+                // Request storage permission, then write directly to Downloads folder
+                try {
+                    await Filesystem.requestPermissions();
+                    const base64data = pdf.output('datauristring').split(',')[1];
+                    await Filesystem.writeFile({
+                        path: `Download/${filename}`,
+                        data: base64data,
+                        directory: Directory.ExternalStorage,
+                    });
+                    setSavedFilename(filename);
+                    setSavedPdfPath('Downloads');
+                    setAndroidSaveError(null);
+                    setShowOpenDialog(true);
+                } catch (_saveErr) {
+                    // Android 13+ may block direct writes to Downloads — show error with info
+                    setAndroidSaveError(
+                        'Tu versión de Android no permitió guardar directamente en Descargas. ' +
+                        'El PDF se ha generado internamente. Reinstala la app y concede el permiso de almacenamiento en Ajustes.'
+                    );
+                    setShowOpenDialog(true);
+                }
 
             } else {
                 // ── Web / PWA ──────────────────────────────────────────────
@@ -354,49 +359,77 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                 {/* ── Success / Open dialog ───────────────────────────────── */}
                 {showOpenDialog && (
                     <div style={{
-                        background: 'rgba(46,213,115,0.08)', border: '1px solid rgba(46,213,115,0.3)',
+                        background: androidSaveError
+                            ? 'rgba(231,76,60,0.08)'
+                            : 'rgba(46,213,115,0.08)',
+                        border: androidSaveError
+                            ? '1px solid rgba(231,76,60,0.3)'
+                            : '1px solid rgba(46,213,115,0.3)',
                         borderRadius: '12px', padding: '1.25rem',
                         display: 'flex', flexDirection: 'column', gap: '0.75rem'
                     }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                            <CheckCircle size={22} color="#2ed573" />
-                            <span style={{ fontWeight: 700, fontSize: '1rem' }}>¡Informe generado con éxito!</span>
+                            {androidSaveError
+                                ? <AlertCircle size={22} color="#ff4757" />
+                                : <CheckCircle size={22} color="#2ed573" />
+                            }
+                            <span style={{ fontWeight: 700, fontSize: '1rem' }}>
+                                {androidSaveError ? 'No se pudo guardar en Descargas' : '¡Informe generado con éxito!'}
+                            </span>
                         </div>
-                        {savedPdfPath && (
+                        {!androidSaveError && savedPdfPath === 'Downloads' && (
+                            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
+                                <FolderOpen size={14} style={{ verticalAlign: 'middle', marginRight: '4px' }} />
+                                El PDF se ha guardado en la carpeta <strong>Descargas</strong> de tu dispositivo.
+                            </p>
+                        )}
+                        {!androidSaveError && savedPdfPath && savedPdfPath !== 'Downloads' && (
                             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
                                 <FolderOpen size={13} style={{ verticalAlign: 'middle', marginRight: '4px' }} />
                                 Guardado en: <code style={{ fontSize: '0.75rem' }}>{savedPdfPath}</code>
                             </p>
                         )}
-                        {pdfBlobUrl && (
+                        {!androidSaveError && pdfBlobUrl && (
                             <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: 0 }}>
                                 El PDF se ha descargado en tu carpeta de Descargas.
                             </p>
                         )}
-                        <p style={{ fontWeight: 600, margin: 0, fontSize: '0.92rem' }}>
-                            ¿Quieres abrirlo ahora con el visor de PDF?
-                        </p>
+                        {androidSaveError && (
+                            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: 0 }}>
+                                {androidSaveError}
+                            </p>
+                        )}
+                        {!androidSaveError && !isAndroidPlatform() && (
+                            <p style={{ fontWeight: 600, margin: 0, fontSize: '0.92rem' }}>
+                                ¿Quieres abrirlo ahora con el visor de PDF?
+                            </p>
+                        )}
                         <div style={{ display: 'flex', gap: '0.6rem' }}>
-                            <button
-                                onClick={handleOpenPdf}
-                                style={{
-                                    flex: 2, padding: '0.65rem', border: 'none', borderRadius: '8px',
-                                    background: 'linear-gradient(135deg, #2ed573, #17a84d)',
-                                    color: 'white', fontWeight: 700, cursor: 'pointer',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem'
-                                }}
-                            >
-                                <ExternalLink size={16} /> Sí, abrir PDF
-                            </button>
+                            {/* Show 'open' button only for Windows and Web (not Android direct save) */}
+                            {!androidSaveError && !isAndroidPlatform() && (
+                                <button
+                                    onClick={handleOpenPdf}
+                                    style={{
+                                        flex: 2, padding: '0.65rem', border: 'none', borderRadius: '8px',
+                                        background: 'linear-gradient(135deg, #2ed573, #17a84d)',
+                                        color: 'white', fontWeight: 700, cursor: 'pointer',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem'
+                                    }}
+                                >
+                                    <ExternalLink size={16} /> Sí, abrir PDF
+                                </button>
+                            )}
                             <button
                                 onClick={() => { setShowOpenDialog(false); onClose(); }}
                                 style={{
-                                    flex: 1, padding: '0.65rem', border: 'var(--card-border)',
+                                    flex: androidSaveError || isAndroidPlatform() ? 1 : undefined,
+                                    padding: '0.65rem', border: 'var(--card-border)',
                                     borderRadius: '8px', background: 'transparent',
-                                    color: 'var(--text-main)', fontWeight: 600, cursor: 'pointer'
+                                    color: 'var(--text-main)', fontWeight: 600, cursor: 'pointer',
+                                    minWidth: '120px'
                                 }}
                             >
-                                No, cerrar
+                                {isAndroidPlatform() && !androidSaveError ? '✅ Aceptar' : 'Cerrar'}
                             </button>
                         </div>
                     </div>

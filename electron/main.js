@@ -90,6 +90,32 @@ function createWindow() {
     ipcMain.handle('connect-dropbox', handleOAuth);
     ipcMain.handle('connect-oauth', handleOAuth);
 
+    // IPC: save a base64-encoded PDF to the user's Downloads folder
+    ipcMain.handle('save-pdf', async (_event, { base64, filename }) => {
+        try {
+            const downloadsPath = app.getPath('downloads');
+            const filePath = path.join(downloadsPath, filename);
+            const buffer = Buffer.from(base64, 'base64');
+            fs.writeFileSync(filePath, buffer);
+            return { success: true, path: filePath };
+        } catch (error) {
+            console.error('Failed to save PDF:', error);
+            return { success: false, error: String(error) };
+        }
+    });
+
+    // IPC: open a local file with the system default application
+    ipcMain.handle('open-file', async (_event, filePath) => {
+        try {
+            await shell.openPath(filePath);
+            return { success: true };
+        } catch (error) {
+            console.error('Failed to open file:', error);
+            return { success: false, error: String(error) };
+        }
+    });
+
+
     // IPC: download and run installer for updates
     ipcMain.handle('download-and-install-update', async (event, url) => {
         return new Promise((resolve, reject) => {

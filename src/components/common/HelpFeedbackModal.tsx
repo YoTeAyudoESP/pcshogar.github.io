@@ -30,8 +30,8 @@ const HelpFeedbackModal: React.FC<HelpFeedbackModalProps> = ({ isOpen, onClose }
         window.open(mailtoUrl, '_system');
     };
 
-    const [downloadUrlAndroid, setDownloadUrlAndroid] = useState('https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_v1.2.3.apk');
-    const [downloadUrlWindows, setDownloadUrlWindows] = useState('https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.2.3.exe');
+    const [downloadUrlAndroid, setDownloadUrlAndroid] = useState('https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_v1.2.4.apk');
+    const [downloadUrlWindows, setDownloadUrlWindows] = useState('https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.2.4.exe');
     const [checking, setChecking] = useState(false);
     const [downloading, setDownloading] = useState(false);
     const [progress, setProgress] = useState(0);

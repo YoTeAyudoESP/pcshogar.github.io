@@ -31,7 +31,7 @@ export const UpdateService = {
             const releaseNotes = data.releaseNotes;
 
             // Get current local version from Capacitor/Electron
-            let currentVersion = '1.2.3'; // Fallback corresponding to current build version
+            let currentVersion = '1.2.4'; // Fallback corresponding to current build version
             if (Capacitor.isNativePlatform()) {
                 const info = await App.getInfo();
                 currentVersion = info.version;

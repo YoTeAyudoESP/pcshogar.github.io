@@ -14,7 +14,7 @@ import DateSelector from '../common/DateSelector';
 import { LayoutDashboard, Settings as SettingsIcon, X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, MinusCircle, PiggyBank, ArrowLeftRight, AlertCircle, Mail, Heart, RotateCcw } from 'lucide-react';
 
 import { useFinance } from '../../contexts/FinanceContext';
-const version = "1.2.3";
+const version = "1.2.4";
 import RemnantDecisionModal from '../settings/RemnantDecisionModal';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import EditTransactionModal from './EditTransactionModal';
@@ -103,7 +103,7 @@ const Dashboard: React.FC = () => {
 
         // 2. Changelog checking
         const lastVersion = localStorage.getItem('pcshogar_last_version');
-        const currentVersion = "1.2.3";
+        const currentVersion = "1.2.4";
         
         if (!lastVersion) {
             const isClean = accounts.length === 0 && cards.length === 0;
@@ -469,7 +469,7 @@ const Dashboard: React.FC = () => {
 
             {showChangelog && (
                 <div className="modal-overlay" onClick={() => {
-                    localStorage.setItem('pcshogar_last_version', '1.2.3');
+                    localStorage.setItem('pcshogar_last_version', '1.2.4');
                     setShowChangelog(false);
                 }}>
                     <div className="modal-container glass-panel" style={{ padding: '2.5rem 2rem', maxWidth: '460px', width: '95%', textAlign: 'center', position: 'relative' }} onClick={e => e.stopPropagation()}>
@@ -487,7 +487,7 @@ const Dashboard: React.FC = () => {
                             <TrendingUp size={36} color="white" />
                         </div>
                         <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem', color: 'white' }}>
-                            ¡Actualizado a la v1.2.3!
+                            ¡Actualizado a la v1.2.4!
                         </h2>
                         <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)', marginBottom: '1.5rem' }}>
                             Resumen de las mejoras y novedades
@@ -508,28 +508,28 @@ const Dashboard: React.FC = () => {
                             marginBottom: '2rem'
                         }}>
                             <div>
+                                <strong style={{ color: '#10b981' }}>🚀 Auto-Instalador Integrado:</strong>
+                                <div style={{ color: 'rgba(255,255,255,0.6)', marginLeft: '1.2rem', fontSize: '0.82rem' }}>
+                                    Las actualizaciones en Windows ahora se descargan e instalan automáticamente en un solo clic con barra de progreso integrada.
+                                </div>
+                            </div>
+                            <div>
                                 <strong style={{ color: '#ec4899' }}>🐷 Traspaso de Huchas:</strong>
                                 <div style={{ color: 'rgba(255,255,255,0.6)', marginLeft: '1.2rem', fontSize: '0.82rem' }}>
-                                    Ahora puedes traspasar fondos acumulados en una hucha de vuelta al disponible mensual de forma virtual.
+                                    Permite traspasar fondos acumulados en una hucha de vuelta al disponible mensual de forma virtual y directa.
                                 </div>
                             </div>
                             <div>
                                 <strong style={{ color: '#38bdf8' }}>⚠️ Control de Importes:</strong>
                                 <div style={{ color: 'rgba(255,255,255,0.6)', marginLeft: '1.2rem', fontSize: '0.82rem' }}>
-                                    Añadida validación estricta para impedir transferencias virtuales por importes superiores a los saldos acumulados de las huchas o disponible.
-                                </div>
-                            </div>
-                            <div>
-                                <strong style={{ color: '#10b981' }}>🔄 Actualizaciones Multiplataforma:</strong>
-                                <div style={{ color: 'rgba(255,255,255,0.6)', marginLeft: '1.2rem', fontSize: '0.82rem' }}>
-                                    El sistema detectará y descargará automáticamente la versión de tu sistema operativo (.exe en Windows y .apk en Android).
+                                    Validaciones para impedir traspasos que excedan los fondos actuales de las huchas o el disponible.
                                 </div>
                             </div>
                         </div>
 
                         <button 
                             onClick={() => {
-                                localStorage.setItem('pcshogar_last_version', '1.2.3');
+                                localStorage.setItem('pcshogar_last_version', '1.2.4');
                                 setShowChangelog(false);
                             }}
                             style={{

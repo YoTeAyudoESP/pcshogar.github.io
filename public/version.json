@@ -1,6 +1,6 @@
 {
-  "version": "1.2.3",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_v1.2.3.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.2.3.exe",
-  "releaseNotes": "Novedades v1.2.3: Se actualizó el número de versión interna visible en la aplicación a 1.2.3 y se añadieron controles y validaciones avanzadas para impedir transferencias virtuales por importes superiores a los acumulados en las huchas."
+  "version": "1.2.4",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_v1.2.4.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.2.4.exe",
+  "releaseNotes": "Novedades v1.2.4: Integrado un auto-instalador automático para actualizaciones en Windows (Electron) con barra de progreso interactiva en tiempo real."
 }

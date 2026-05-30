@@ -1,6 +1,6 @@
 {
-  "version": "1.2.2",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_v1.2.2.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.2.2.exe",
-  "releaseNotes": "Novedades v1.2.2: Añadida la funcionalidad de retiro virtual de fondos de huchas al disponible del mes. Se corrigió el sistema de comprobación de actualizaciones para diferenciar la descarga en Windows (.exe) y Android (.apk) de forma nativa."
+  "version": "1.2.3",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_v1.2.3.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.2.3.exe",
+  "releaseNotes": "Novedades v1.2.3: Se actualizó el número de versión interna visible en la aplicación a 1.2.3 y se añadieron controles y validaciones avanzadas para impedir transferencias virtuales por importes superiores a los acumulados en las huchas."
 }

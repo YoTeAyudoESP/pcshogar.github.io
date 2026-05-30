@@ -1,69 +1,66 @@
 import React, { createContext, useContext, useState, type ReactNode } from 'react';
 
 interface DateSelectionContextType {
-    selectedMonth: number; // 0-11
+    selectedMonth: number;
     selectedYear: number;
-    setMonth: (month: number) => void;
-    setYear: (year: number) => void;
-    nextMonth: () => void;
     prevMonth: () => void;
-    nextYear: () => void;
+    nextMonth: () => void;
     prevYear: () => void;
-    currentDate: Date; // Derived date object helper
+    nextYear: () => void;
+    setSelectedMonth: (month: number) => void;
+    setSelectedYear: (year: number) => void;
 }
 
 const DateSelectionContext = createContext<DateSelectionContextType | undefined>(undefined);
 
-export const useDateSelection = () => {
-    const context = useContext(DateSelectionContext);
-    if (!context) {
-        throw new Error('useDateSelection must be used within a DateSelectionProvider');
-    }
-    return context;
-};
+export const DateSelectionProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+    const now = new Date();
+    const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
+    const [selectedYear, setSelectedYear] = useState(now.getFullYear());
 
-interface DateSelectionProviderProps {
-    children: ReactNode;
-}
-
-export const DateSelectionProvider: React.FC<DateSelectionProviderProps> = ({ children }) => {
-    const today = new Date();
-    const [selectedMonth, setSelectedMonth] = useState(today.getMonth());
-    const [selectedYear, setSelectedYear] = useState(today.getFullYear());
-
-    const setMonth = (month: number) => {
-        if (month < 0) {
-            setSelectedMonth(11);
-            setSelectedYear(prev => prev - 1);
-        } else if (month > 11) {
-            setSelectedMonth(0);
-            setSelectedYear(prev => prev + 1);
-        } else {
-            setSelectedMonth(month);
-        }
+    const prevMonth = () => {
+        setSelectedMonth(prev => {
+            if (prev === 0) {
+                setSelectedYear(y => y - 1);
+                return 11;
+            }
+            return prev - 1;
+        });
     };
 
-    const nextMonth = () => setMonth(selectedMonth + 1);
-    const prevMonth = () => setMonth(selectedMonth - 1);
+    const nextMonth = () => {
+        setSelectedMonth(prev => {
+            if (prev === 11) {
+                setSelectedYear(y => y + 1);
+                return 0;
+            }
+            return prev + 1;
+        });
+    };
 
-    const nextYear = () => setSelectedYear(prev => prev + 1);
-    const prevYear = () => setSelectedYear(prev => prev - 1);
-
-    const currentDate = new Date(selectedYear, selectedMonth, 1);
+    const prevYear = () => setSelectedYear(y => y - 1);
+    const nextYear = () => setSelectedYear(y => y + 1);
 
     return (
         <DateSelectionContext.Provider value={{
             selectedMonth,
             selectedYear,
-            setMonth,
-            setYear: setSelectedYear,
-            nextMonth,
             prevMonth,
-            nextYear,
+            nextMonth,
             prevYear,
-            currentDate
+            nextYear,
+            setSelectedMonth,
+            setSelectedYear
         }}>
             {children}
         </DateSelectionContext.Provider>
     );
+};
+
+export const useDateSelection = () => {
+    const context = useContext(DateSelectionContext);
+    if (context === undefined) {
+        throw new Error('useDateSelection must be used within a DateSelectionProvider');
+    }
+    return context;
 };

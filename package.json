@@ -1,14 +1,15 @@
 {
   "name": "pcshogar",
   "private": true,
-  "version": "1.2.6",
-  "versionCode": 155,
-  "versionName": "1.2.6",
+  "version": "1.2.7",
+  "versionCode": 156,
+  "versionName": "1.2.7",
   "type": "module",
   "main": "electron/main.js",
   "build": {
     "appId": "com.pcshogar.app",
     "productName": "PCSHogar",
+    "compression": "maximum",
     "icon": "public/Icono_PCSHogar.png",
     "directories": {
       "output": "dist_electron"
@@ -26,7 +27,11 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "electron:dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
+    "electron:build": "npm run build && electron-builder",
+    "android:build": "node scripts/update-android-version.cjs && npm run build && npx cap sync android && cd android && gradlew assembleDebug && cd .. && node scripts/move-apk.cjs",
+    "build:all": "npm run electron:build && npm run android:build"
   },
   "dependencies": {},
   "devDependencies": {
@@ -35,13 +40,20 @@
     "@capacitor/browser": "^6.0.6",
     "@capacitor/core": "^6.1.2",
     "@types/uuid": "^10.0.0",
+    "concurrently": "^9.2.1",
     "dropbox": "^10.30.0",
+    "electron-builder": "^26.0.12",
+    "html2canvas": "^1.4.1",
     "idb": "^8.0.3",
+    "jspdf": "^2.5.1",
     "lucide-react": "^0.561.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "recharts": "^3.6.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.46.4",
     "uuid": "^13.0.0",
+    "wait-on": "^9.0.3",
     "@capacitor/cli": "^6.1.2",
     "@eslint/js": "^9.39.1",
     "@types/node": "^24.10.1",
@@ -53,8 +65,6 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
-    "typescript": "~5.9.3",
-    "typescript-eslint": "^8.46.4",
     "vite": "^7.2.4"
   }
 }

@@ -11,7 +11,7 @@ import SettingsView from '../settings/SettingsView';
 import ExpenseCategoryChart from '../analytics/ExpenseCategoryChart';
 import YearlyFinancialChart from '../analytics/YearlyFinancialChart';
 import DateSelector from '../common/DateSelector';
-import { LayoutDashboard, Settings as SettingsIcon, X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, MinusCircle, PiggyBank, ArrowLeftRight, AlertCircle, Mail, Heart, RotateCcw } from 'lucide-react';
+import { LayoutDashboard, Settings as SettingsIcon, X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, MinusCircle, PiggyBank, ArrowLeftRight, AlertCircle, Mail, Heart, RotateCcw, FileText } from 'lucide-react';
 
 import { useFinance } from '../../contexts/FinanceContext';
 const version = "1.2.6";
@@ -19,6 +19,7 @@ import RemnantDecisionModal from '../settings/RemnantDecisionModal';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import EditTransactionModal from './EditTransactionModal';
 import BalanceTransferModal from './BalanceTransferModal';
+import ReportModal from './ReportModal';
 import type { Expense } from '../../types/finance';
 import type { Income } from '../../types/income';
 
@@ -32,6 +33,7 @@ const Dashboard: React.FC = () => {
     const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
     const [isHuchaModalOpen, setIsHuchaModalOpen] = useState(false);
     const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
     const [show30DayReminder, setShow30DayReminder] = useState(false);
     const [showChangelog, setShowChangelog] = useState(false);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -288,6 +290,13 @@ const Dashboard: React.FC = () => {
                             <ArrowLeftRight size={20} />
                             {isMobile ? 'Traspaso' : 'Transferencia'}
                         </button>
+                        <button 
+                            onClick={() => setIsReportModalOpen(true)}
+                            style={{ ...actionButtonStyle, background: 'linear-gradient(135deg, #a855f7 0%, #7e22ce 100%)' }}
+                        >
+                            <FileText size={20} />
+                            {isMobile ? 'Informe' : 'Informe PDF'}
+                        </button>
                     </div>
 
                     <FinanceSummary />
@@ -365,6 +374,10 @@ const Dashboard: React.FC = () => {
 
             {isTransferModalOpen && (
                 <BalanceTransferModal onClose={() => setIsTransferModalOpen(false)} />
+            )}
+
+            {isReportModalOpen && (
+                <ReportModal onClose={() => setIsReportModalOpen(false)} />
             )}
 
             {show30DayReminder && (

@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import fs from 'fs';
 import os from 'os';
+import https from 'https';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -88,6 +89,69 @@ function createWindow() {
 
     ipcMain.handle('connect-dropbox', handleOAuth);
     ipcMain.handle('connect-oauth', handleOAuth);
+
+    // IPC: download and run installer for updates
+    ipcMain.handle('download-and-install-update', async (event, url) => {
+        return new Promise((resolve, reject) => {
+            const tempPath = path.join(app.getPath('temp'), 'PCSHogar_Setup_Latest.exe');
+            
+            // Delete old file if it exists to avoid corrupt/locked installer problems
+            if (fs.existsSync(tempPath)) {
+                try {
+                    fs.unlinkSync(tempPath);
+                } catch (e) {
+                    console.error('Failed to delete old installer:', e);
+                }
+            }
+
+            const file = fs.createWriteStream(tempPath);
+            
+            const downloadFile = (downloadUrl) => {
+                https.get(downloadUrl, (response) => {
+                    if (response.statusCode === 302 || response.statusCode === 301) {
+                        downloadFile(response.headers.location);
+                        return;
+                    }
+                    
+                    if (response.statusCode !== 200) {
+                        reject(new Error(`Failed to download: Status Code ${response.statusCode}`));
+                        return;
+                    }
+                    
+                    const totalBytes = parseInt(response.headers['content-length'], 10) || 0;
+                    let downloadedBytes = 0;
+                    
+                    response.on('data', (chunk) => {
+                        downloadedBytes += chunk.length;
+                        if (totalBytes > 0) {
+                            const progress = Math.round((downloadedBytes / totalBytes) * 100);
+                            event.sender.send('download-progress', progress);
+                        }
+                    });
+                    
+                    response.pipe(file);
+                    
+                    file.on('finish', () => {
+                        file.close();
+                        shell.openPath(tempPath).then(() => {
+                            // Delay slightly before quitting to make sure installation starts cleanly
+                            setTimeout(() => {
+                                app.quit();
+                            }, 1000);
+                            resolve(true);
+                        }).catch(err => {
+                            reject(err);
+                        });
+                    });
+                }).on('error', (err) => {
+                    fs.unlink(tempPath, () => {});
+                    reject(err);
+                });
+            };
+            
+            downloadFile(url);
+        });
+    });
 
     if (process.env.VITE_DEV_SERVER_URL) {
         win.loadURL(process.env.VITE_DEV_SERVER_URL);

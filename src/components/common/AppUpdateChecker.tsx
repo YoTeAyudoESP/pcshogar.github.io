@@ -7,6 +7,8 @@ import { ArrowDownCircle } from 'lucide-react';
 const AppUpdateChecker: React.FC = () => {
     const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
     const [showModal, setShowModal] = useState(false);
+    const [downloading, setDownloading] = useState(false);
+    const [progress, setProgress] = useState(0);
 
     useEffect(() => {
         // Automatically check for updates on startup if running natively (Android app) or in Electron (Windows app)
@@ -27,7 +29,30 @@ const AppUpdateChecker: React.FC = () => {
     }, []);
 
     const handleUpdate = () => {
-        if (updateInfo) {
+        if (!updateInfo) return;
+
+        const isElectron = !!(window as any).require;
+        if (isElectron) {
+            const { ipcRenderer } = (window as any).require('electron');
+            setDownloading(true);
+            setProgress(0);
+
+            const progressListener = (_event: any, pct: number) => {
+                setProgress(pct);
+            };
+            ipcRenderer.on('download-progress', progressListener);
+
+            ipcRenderer.invoke('download-and-install-update', updateInfo.downloadUrl)
+                .catch((err: any) => {
+                    console.error('Failed to install update:', err);
+                    alert('Error al descargar la actualización de forma automática. Se abrirá la web para la descarga manual.');
+                    window.open(updateInfo.downloadUrl, '_system');
+                    setDownloading(false);
+                })
+                .finally(() => {
+                    ipcRenderer.removeListener('download-progress', progressListener);
+                });
+        } else {
             // Open the download URL in the device's native system browser
             window.open(updateInfo.downloadUrl, '_system');
         }
@@ -70,58 +95,90 @@ const AppUpdateChecker: React.FC = () => {
                     <ArrowDownCircle size={44} color="#10b981" style={{ animation: 'downloadIconPulse 3s infinite ease-in-out' }} />
                 </div>
                 
-                <h3 style={titleStyle}>Actualización Disponible</h3>
+                <h3 style={titleStyle}>
+                    {downloading ? 'Descargando Actualización...' : 'Actualización Disponible'}
+                </h3>
                 
                 <div style={badgeStyle}>
                     v{updateInfo.currentVersion} → v{updateInfo.latestVersion}
                 </div>
                 
-                <p style={textStyle}>
-                    Hay una nueva versión de la aplicación disponible en GitHub con mejoras y correcciones importantes. ¿Deseas descargarla e instalarla ahora?
-                </p>
-
-                {updateInfo.releaseNotes && (
-                    <div style={notesContainerStyle}>
-                        <strong style={{ fontSize: '0.78rem', color: '#34d399' }}>Novedades de la versión:</strong>
-                        <div style={notesTextStyle}>
-                            {updateInfo.releaseNotes}
+                {downloading ? (
+                    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center' }}>
+                        <p style={textStyle}>
+                            Descargando la nueva versión. La aplicación se cerrará e iniciará la instalación automáticamente al finalizar.
+                        </p>
+                        <div style={{
+                            width: '100%',
+                            height: '10px',
+                            background: 'rgba(255,255,255,0.1)',
+                            borderRadius: '5px',
+                            overflow: 'hidden',
+                            position: 'relative',
+                            marginTop: '0.5rem'
+                        }}>
+                            <div style={{
+                                width: `${progress}%`,
+                                height: '100%',
+                                background: 'linear-gradient(90deg, #10b981, #34d399)',
+                                transition: 'width 0.1s ease',
+                                borderRadius: '5px'
+                            }} />
                         </div>
+                        <span style={{ color: '#34d399', fontWeight: 700, fontSize: '1.2rem', marginTop: '0.2rem' }}>
+                            {progress}%
+                        </span>
                     </div>
-                )}
+                ) : (
+                    <>
+                        <p style={textStyle}>
+                            Hay una nueva versión de la aplicación disponible en GitHub con mejoras y correcciones importantes. ¿Deseas descargarla e instalarla ahora?
+                        </p>
 
-                <div style={buttonContainerStyle}>
-                    <button 
-                        onClick={handleUpdate}
-                        style={updateButtonStyle}
-                        onMouseEnter={e => {
-                            e.currentTarget.style.transform = 'translateY(-2px)';
-                            e.currentTarget.style.boxShadow = '0 8px 25px rgba(16, 185, 129, 0.4)';
-                            e.currentTarget.style.background = 'linear-gradient(135deg, #059669 0%, #047857 100%)';
-                        }}
-                        onMouseLeave={e => {
-                            e.currentTarget.style.transform = 'none';
-                            e.currentTarget.style.boxShadow = '0 4px 15px rgba(16, 185, 129, 0.2)';
-                            e.currentTarget.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
-                        }}
-                    >
-                        Descargar e Instalar
-                    </button>
-                    
-                    <button 
-                        onClick={() => setShowModal(false)}
-                        style={cancelButtonStyle}
-                        onMouseEnter={e => {
-                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
-                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
-                        }}
-                        onMouseLeave={e => {
-                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
-                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
-                        }}
-                    >
-                        Más tarde
-                    </button>
-                </div>
+                        {updateInfo.releaseNotes && (
+                            <div style={notesContainerStyle}>
+                                <strong style={{ fontSize: '0.78rem', color: '#34d399' }}>Novedades de la versión:</strong>
+                                <div style={notesTextStyle}>
+                                    {updateInfo.releaseNotes}
+                                </div>
+                            </div>
+                        )}
+
+                        <div style={buttonContainerStyle}>
+                            <button 
+                                onClick={handleUpdate}
+                                style={updateButtonStyle}
+                                onMouseEnter={e => {
+                                    e.currentTarget.style.transform = 'translateY(-2px)';
+                                    e.currentTarget.style.boxShadow = '0 8px 25px rgba(16, 185, 129, 0.4)';
+                                    e.currentTarget.style.background = 'linear-gradient(135deg, #059669 0%, #047857 100%)';
+                                }}
+                                onMouseLeave={e => {
+                                    e.currentTarget.style.transform = 'none';
+                                    e.currentTarget.style.boxShadow = '0 4px 15px rgba(16, 185, 129, 0.2)';
+                                    e.currentTarget.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+                                }}
+                            >
+                                Descargar e Instalar
+                            </button>
+                            
+                            <button 
+                                onClick={() => setShowModal(false)}
+                                style={cancelButtonStyle}
+                                onMouseEnter={e => {
+                                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+                                }}
+                                onMouseLeave={e => {
+                                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
+                                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                                }}
+                            >
+                                Más tarde
+                            </button>
+                        </div>
+                    </>
+                )}
             </div>
         </div>
     );

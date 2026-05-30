@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Heart, Coffee, Mail, X, Download, RefreshCw } from 'lucide-react';
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
 import { UpdateService } from '../../services/updateService';
+
+interface APKInstallerPlugin {
+    downloadAndInstall(options: { url: string }): Promise<void>;
+}
+
+const APKInstaller = registerPlugin<APKInstallerPlugin>('APKInstaller');
 
 interface HelpFeedbackModalProps {
     isOpen: boolean;
@@ -30,8 +36,8 @@ const HelpFeedbackModal: React.FC<HelpFeedbackModalProps> = ({ isOpen, onClose }
         window.open(mailtoUrl, '_system');
     };
 
-    const [downloadUrlAndroid, setDownloadUrlAndroid] = useState('https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_v1.2.4.apk');
-    const [downloadUrlWindows, setDownloadUrlWindows] = useState('https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.2.4.exe');
+    const [downloadUrlAndroid, setDownloadUrlAndroid] = useState('https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_v1.2.6.apk');
+    const [downloadUrlWindows, setDownloadUrlWindows] = useState('https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.2.6.exe');
     const [checking, setChecking] = useState(false);
     const [downloading, setDownloading] = useState(false);
     const [progress, setProgress] = useState(0);
@@ -79,6 +85,27 @@ const HelpFeedbackModal: React.FC<HelpFeedbackModalProps> = ({ isOpen, onClose }
                             .finally(() => {
                                 ipcRenderer.removeListener('download-progress', progressListener);
                             });
+                    } else if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android') {
+                        setDownloading(true);
+                        setProgress(0);
+
+                        let listener: any = null;
+                        try {
+                            listener = await (APKInstaller as any).addListener('downloadProgress', (data: { progress: number }) => {
+                                setProgress(data.progress);
+                            });
+
+                            await APKInstaller.downloadAndInstall({ url: info.downloadUrl });
+                        } catch (err: any) {
+                            console.error('Failed to install update on Android:', err);
+                            alert('Error al descargar la actualización de forma automática. Intentando descarga manual en el navegador...');
+                            window.open(info.downloadUrl, '_system');
+                        } finally {
+                            if (listener) {
+                                listener.remove();
+                            }
+                            setDownloading(false);
+                        }
                     } else {
                         window.open(info.downloadUrl, '_system');
                     }

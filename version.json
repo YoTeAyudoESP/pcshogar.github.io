@@ -1,6 +1,6 @@
 {
-  "version": "1.2.4",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_v1.2.4.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.2.4.exe",
-  "releaseNotes": "Novedades v1.2.4: Integrado un auto-instalador automático para actualizaciones en Windows (Electron) con barra de progreso interactiva en tiempo real."
+  "version": "1.2.6",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_v1.2.6.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.2.6.exe",
+  "releaseNotes": "Novedades v1.2.6: Añadido actualizador automático nativo en la app de Android con barra de progreso en tiempo real e instalación directa del paquete APK."
 }

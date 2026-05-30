@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { isRecurringActiveInMonth, formatMoney } from '../../utils/financeCalculations';
+import { isRecurringActiveInMonth, formatMoney, isItemInMonthAndYear } from '../../utils/financeCalculations';
 
 const YearlyFinancialChart: React.FC = () => {
     const { expenses, fixedIncomes, extraIncomes } = useFinance();
@@ -21,39 +21,51 @@ const YearlyFinancialChart: React.FC = () => {
                 return { name: monthName };
             }
 
-            // Calculate Income
-            const monthlyFixedIncome = fixedIncomes
+            const period = `${currentYear}-${(index + 1).toString().padStart(2, '0')}`;
+            const monthStart = new Date(currentYear, index, 1).getTime();
+            const monthEnd = new Date(currentYear, index + 1, 0).getTime();
+
+            // Calculate Income (Received Extra/Fixed Confirmed + Pending Fixed Templates)
+            const extraIncomesReceived = extraIncomes
                 .filter(inc => {
+                    if (inc.type === 'rollover') return false;
+                    if (inc.status === 'pending') return false;
+                    if (inc.excludeFromBudget) return false;
+                    return isItemInMonthAndYear(inc, index, currentYear);
+                })
+                .reduce((sum, inc) => sum + inc.amount, 0);
+
+            const pendingFixedIncomes = fixedIncomes
+                .filter(inc => {
+                    if (!inc.active) return false;
                     const start = inc.effectiveDate || inc.createdAt || 0;
                     const end = inc.expirationDate || new Date(9999, 11, 31).getTime();
-                    const monthStart = new Date(currentYear, index, 1).getTime();
-                    const monthEnd = new Date(currentYear, index + 1, 0).getTime();
-                    
-                    if (start <= monthEnd && end >= monthStart) {
-                        return isRecurringActiveInMonth(inc.frequency, inc.paymentMonth, index, currentYear, start);
+                    const isIgnored = inc.ignoredPeriods?.includes(period);
+
+                    if (start <= monthEnd && end >= monthStart && !isIgnored) {
+                        if (isRecurringActiveInMonth(inc.frequency, inc.paymentMonth, index, currentYear, start)) {
+                            const isConfirmed = extraIncomes.some(ei => ei.period === period && (ei as any).fixedIncomeId === inc.id);
+                            return !isConfirmed && inc.status !== 'received';
+                        }
                     }
                     return false;
                 })
                 .reduce((sum, inc) => sum + inc.amount, 0);
 
-            const monthlyExtraIncome = extraIncomes
-                .filter(inc => {
-                    if (inc.type !== 'extra') return false;
-                    if (inc.status === 'pending') return false;
-                    const d = new Date(inc.receivedDate);
-                    return d.getMonth() === index && d.getFullYear() === currentYear;
-                })
-                .reduce((sum, inc) => sum + inc.amount, 0);
-
-            const totalIncome = monthlyFixedIncome + monthlyExtraIncome;
+            const totalIncome = extraIncomesReceived + pendingFixedIncomes;
 
             // Calculate Expenses
             const totalExpense = expenses
                 .filter(exp => {
                     if (exp.excludeFromBudget) return false;
+                    if (exp.isSettlement) return false;
+                    
+                    // Defensive filter for legacy card settlements
+                    const desc = exp.description || '';
+                    if (/\[LIQUIDACION\]|Liquidación Tarjeta|Remanente Liquidación/i.test(desc)) return false;
+
                     if (exp.amount < 0 && exp.status === 'pending') return false;
-                    const d = new Date(exp.date);
-                    return d.getMonth() === index && d.getFullYear() === currentYear;
+                    return isItemInMonthAndYear(exp, index, currentYear);
                 })
                 .reduce((sum, exp) => sum + exp.amount, 0);
 

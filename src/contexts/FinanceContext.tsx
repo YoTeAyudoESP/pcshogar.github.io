@@ -142,7 +142,28 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
             
             setAccounts(accs);
             setCards(cds);
-            setExpenses(exps);
+            
+            // Migration: Repair legacy card settlements in local IndexedDB
+            let didSettlementMigration = false;
+            const repairedExps = [...exps];
+            for (let i = 0; i < repairedExps.length; i++) {
+                const exp = repairedExps[i];
+                const desc = exp.description || '';
+                const isLegacySettlement = /\[LIQUIDACION\]|Liquidación Tarjeta|Remanente Liquidación/i.test(desc);
+                if (isLegacySettlement && (!exp.excludeFromBudget || !exp.isSettlement)) {
+                    didSettlementMigration = true;
+                    const updatedExp = {
+                        ...exp,
+                        excludeFromBudget: true,
+                        isSettlement: true,
+                        updatedAt: Date.now()
+                    };
+                    await incomeDB.updateExpense(updatedExp);
+                    repairedExps[i] = updatedExp;
+                }
+            }
+            setExpenses(repairedExps);
+
             setSavings(svs);
             setAllocations(alls);
             setRecurringExpenses(recs);

@@ -210,6 +210,15 @@ class IncomeDB {
                         // Support common color property names
                         item.color = item.color || item.backgroundColor || item.brandColor || item.hexColor;
                     }
+                    if (storeName === 'expenses') {
+                        // Normalize legacy card settlements to be excluded from budget
+                        const desc = item.description || '';
+                        const isLegacySettlement = /\[LIQUIDACION\]|Liquidación Tarjeta|Remanente Liquidación/i.test(desc);
+                        if (isLegacySettlement) {
+                            item.excludeFromBudget = true;
+                            item.isSettlement = true;
+                        }
+                    }
                     if (storeName === 'recurring_expenses' || storeName === 'incomes') {
                         // Ensure required fields like ignoredPeriods exist
                         item.ignoredPeriods = item.ignoredPeriods || [];

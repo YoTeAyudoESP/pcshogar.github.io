@@ -1,6 +1,6 @@
 {
-    "releaseNotes": "Novedades v1.2.1: Corregido el cálculo del disponible mensual para restar objetivos de ahorro (huchas) independientemente de si están contabilizados en el presupuesto principal. Alineados los ahorros automáticos con sus meses presupuestarios correspondientes.",
-    "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_v1.2.1.apk",
-    "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.2.1.exe",
-    "version": "1.2.1"
+  "version": "1.2.1",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_v1.2.1.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.2.1.exe",
+  "releaseNotes": "Novedades v1.2.1: Corregido el cálculo del disponible mensual para restar objetivos de ahorro (huchas) independientemente de si están contabilizados en el presupuesto principal. Alineados los ahorros automáticos con sus meses presupuestarios correspondientes."
 }

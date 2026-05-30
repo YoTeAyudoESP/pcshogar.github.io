@@ -1,6 +1,6 @@
 {
-  "version": "1.2.5",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_v1.2.5.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.2.5.exe",
-  "releaseNotes": "Novedades v1.2.5: Corrección de duplicados en la gráfica anual para transacciones antiguas de liquidación de tarjeta y optimización en la imputación de gastos e ingresos."
+  "version": "1.2.6",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_v1.2.6.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.2.6.exe",
+  "releaseNotes": "Novedades v1.2.6: Añadido actualizador automático nativo en la app de Android con barra de progreso en tiempo real e instalación directa del paquete APK."
 }

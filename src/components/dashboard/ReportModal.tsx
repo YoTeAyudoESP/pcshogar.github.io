@@ -6,6 +6,7 @@ import { DEFAULT_CATEGORIES } from '../../types/finance';
 import type { Income } from '../../types/income';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
+import { FileOpener } from '@capacitor-community/file-opener';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
@@ -24,7 +25,7 @@ const isElectronPlatform = (): boolean =>
 
 const isAndroidPlatform = (): boolean => Capacitor.getPlatform() === 'android';
 
-// Safe base64 conversion for large ArrayBuffers (avoids stack overflow)
+// Safe base64 conversion for large ArrayBuffers
 const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
     const bytes = new Uint8Array(buffer);
     let binary = '';
@@ -34,6 +35,15 @@ const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
         binary += String.fromCharCode(...chunk);
     }
     return btoa(binary);
+};
+
+// Chunk array utility for pagination
+const chunkArray = <T,>(arr: T[], size: number): T[][] => {
+    const chunks = [];
+    for (let i = 0; i < arr.length; i += size) {
+        chunks.push(arr.slice(i, i + size));
+    }
+    return chunks;
 };
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -120,7 +130,6 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
             return exp.status === 'paid';
         });
 
-        // Exclude incomes linked to piggy banks
         const validIncomes = filteredIncomes.filter((inc: any) => !inc.linkedSavingGoalId);
 
         const totalExpenses = validExpenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
@@ -150,7 +159,6 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
             .sort((a, b) => Number(b.amount) - Number(a.amount))
             .slice(0, 10);
 
-        // Detail lists (sorted by date descending)
         const detailIncomes = [...validIncomes].sort((a: any, b: any) => {
             const dateA = a.receivedDate || a.effectiveDate || a.createdAt;
             const dateB = b.receivedDate || b.effectiveDate || b.createdAt;
@@ -199,35 +207,38 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
         try {
             await new Promise(resolve => setTimeout(resolve, 300));
 
-            const element = reportRef.current;
-            const originalStyle = element.getAttribute('style') || '';
-            element.setAttribute('style', 'display: block; width: 800px; padding: 30px; background: white; color: #333;');
+            const pages = Array.from(reportRef.current.querySelectorAll('.pdf-page')) as HTMLElement[];
+            if (pages.length === 0) {
+                throw new Error("No hay páginas para renderizar.");
+            }
 
-            const canvas = await html2canvas(element, {
-                scale: 2,
-                useCORS: true,
-                logging: false,
-                backgroundColor: '#ffffff'
-            });
-
-            element.setAttribute('style', originalStyle);
-
-            const imgData = canvas.toDataURL('image/png');
             const pdf = new jsPDF('p', 'mm', 'a4');
             const imgWidth = 210;
-            const pageHeight = 295;
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-            let heightLeft = imgHeight;
-            let position = 0;
+            const imgHeight = 297; 
 
-            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-            heightLeft -= pageHeight;
+            for (let i = 0; i < pages.length; i++) {
+                const pageEl = pages[i];
+                const originalStyle = pageEl.getAttribute('style') || '';
+                // Remove display none so it can be captured
+                pageEl.setAttribute('style', originalStyle.replace('display: none', 'display: flex'));
 
-            while (heightLeft >= 0) {
-                position = heightLeft - imgHeight;
-                pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-                heightLeft -= pageHeight;
+                const canvas = await html2canvas(pageEl, {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false,
+                    backgroundColor: '#ffffff'
+                });
+
+                // Revert style
+                pageEl.setAttribute('style', originalStyle);
+
+                const imgData = canvas.toDataURL('image/png');
+                
+                if (i > 0) {
+                    pdf.addPage();
+                }
+                
+                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
             }
 
             const filename = `PCSHogar_Informe_${getPeriodName()}.pdf`;
@@ -248,24 +259,32 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
 
             } else if (isAndroidPlatform()) {
                 // ── Android (Capacitor) ────────────────────────────────────
-                // Request storage permission, then write directly to Downloads folder
                 try {
-                    await Filesystem.requestPermissions();
                     const base64data = pdf.output('datauristring').split(',')[1];
-                    await Filesystem.writeFile({
-                        path: `Download/${filename}`,
+                    const writeResult = await Filesystem.writeFile({
+                        path: filename,
                         data: base64data,
-                        directory: Directory.ExternalStorage,
+                        directory: Directory.Cache,
                     });
+                    
                     setSavedFilename(filename);
-                    setSavedPdfPath('Downloads');
+                    setSavedPdfPath('Caché del dispositivo');
                     setAndroidSaveError(null);
                     setShowOpenDialog(true);
+
+                    // Auto-open PDF via native intent
+                    try {
+                        await FileOpener.open({
+                            filePath: writeResult.uri,
+                            contentType: 'application/pdf'
+                        });
+                    } catch (openErr) {
+                        console.error('Error opening file:', openErr);
+                    }
+
                 } catch (_saveErr) {
-                    // Android 13+ may block direct writes to Downloads — show error with info
                     setAndroidSaveError(
-                        'Tu versión de Android no permitió guardar directamente en Descargas. ' +
-                        'El PDF se ha generado internamente. Reinstala la app y concede el permiso de almacenamiento en Ajustes.'
+                        'No se pudo generar el archivo en la caché del dispositivo.'
                     );
                     setShowOpenDialog(true);
                 }
@@ -374,24 +393,19 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                                 : <CheckCircle size={22} color="#2ed573" />
                             }
                             <span style={{ fontWeight: 700, fontSize: '1rem' }}>
-                                {androidSaveError ? 'No se pudo guardar en Descargas' : '¡Informe generado con éxito!'}
+                                {androidSaveError ? 'Error guardando archivo' : '¡Informe generado con éxito!'}
                             </span>
                         </div>
-                        {!androidSaveError && savedPdfPath === 'Downloads' && (
+                        {!androidSaveError && isAndroidPlatform() && (
                             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
                                 <FolderOpen size={14} style={{ verticalAlign: 'middle', marginRight: '4px' }} />
-                                El PDF se ha guardado en la carpeta <strong>Descargas</strong> de tu dispositivo.
+                                El archivo se ha abierto en tu lector de PDFs. Desde ahí puedes compartirlo o guardarlo.
                             </p>
                         )}
-                        {!androidSaveError && savedPdfPath && savedPdfPath !== 'Downloads' && (
+                        {!androidSaveError && !isAndroidPlatform() && savedPdfPath && (
                             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
                                 <FolderOpen size={13} style={{ verticalAlign: 'middle', marginRight: '4px' }} />
                                 Guardado en: <code style={{ fontSize: '0.75rem' }}>{savedPdfPath}</code>
-                            </p>
-                        )}
-                        {!androidSaveError && pdfBlobUrl && (
-                            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: 0 }}>
-                                El PDF se ha descargado en tu carpeta de Descargas.
                             </p>
                         )}
                         {androidSaveError && (
@@ -405,7 +419,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                             </p>
                         )}
                         <div style={{ display: 'flex', gap: '0.6rem' }}>
-                            {/* Show 'open' button only for Windows and Web (not Android direct save) */}
+                            {/* Show 'open' button only for Windows and Web (Android auto-opens) */}
                             {!androidSaveError && !isAndroidPlatform() && (
                                 <button
                                     onClick={handleOpenPdf}
@@ -509,7 +523,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                             [includeCategories, setIncludeCategories, 'Desglose por categorías'],
                             [includeSavings, setIncludeSavings, 'Estado de metas de ahorro'],
                             [includeTransactions, setIncludeTransactions, 'Top 10 mayores gastos'],
-                            [includeDetail, setIncludeDetail, '📋 Detalle completo (2ª página)'],
+                            [includeDetail, setIncludeDetail, '📋 Detalle completo (siguientes páginas)'],
                         ].map(([val, setter, label]: any) => (
                             <label key={label as string} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.88rem' }}>
                                 <input type="checkbox" checked={val as boolean} onChange={e => setter(e.target.checked)} />
@@ -569,158 +583,252 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
 
                 {/* ═══════════════════════════════════════════════════════════
                     HIDDEN PDF TEMPLATE — rendered off-screen for html2canvas
+                    Every .pdf-page represents one exactly formatted A4 page
                 ════════════════════════════════════════════════════════════ */}
                 <div
                     ref={reportRef}
                     style={{
-                        display: 'none', position: 'absolute', top: -9999, left: -9999,
-                        width: '800px', fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
-                        background: '#ffffff', color: '#333333',
-                        padding: '40px', boxSizing: 'border-box'
+                        position: 'absolute', top: -9999, left: -9999,
+                        width: '800px',
                     }}
                 >
-                    {/* ── PDF Header ── */}
-                    <div style={{
-                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                        borderBottom: '3px solid #3498db', paddingBottom: '20px', marginBottom: '30px'
+                    {/* ── PDF PAGE 1: RESUMEN GENERAL ── */}
+                    <div className="pdf-page" style={{
+                        width: '800px', height: '1131px', // A4 aspect ratio
+                        fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+                        background: '#ffffff', color: '#333333',
+                        padding: '40px', boxSizing: 'border-box',
+                        display: 'none', flexDirection: 'column'
                     }}>
-                        <div>
-                            <h1 style={{ margin: 0, fontSize: '28px', color: '#2c3e50', fontWeight: 800 }}>PCS Hogar</h1>
-                            <p style={{ margin: '5px 0 0 0', fontSize: '14px', color: '#7f8c8d', fontWeight: 500 }}>
-                                Gestión de Finanzas Domésticas
-                            </p>
-                        </div>
-                        <div style={{ textAlign: 'right' }}>
-                            <div style={{
-                                background: '#3498db', color: 'white', padding: '6px 12px',
-                                borderRadius: '6px', fontSize: '12px', fontWeight: 700, display: 'inline-block'
-                            }}>
-                                INFORME FINANCIERO
+                        {/* Header Page 1 */}
+                        <div style={{
+                            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                            borderBottom: '3px solid #3498db', paddingBottom: '20px', marginBottom: '30px'
+                        }}>
+                            <div>
+                                <h1 style={{ margin: 0, fontSize: '28px', color: '#2c3e50', fontWeight: 800 }}>PCS Hogar</h1>
+                                <p style={{ margin: '5px 0 0 0', fontSize: '14px', color: '#7f8c8d', fontWeight: 500 }}>
+                                    Gestión de Finanzas Domésticas
+                                </p>
                             </div>
-                            <p style={{ margin: '8px 0 0 0', fontSize: '11px', color: '#95a5a6' }}>
-                                Generado el: {new Date().toLocaleDateString('es-ES')}
-                            </p>
+                            <div style={{ textAlign: 'right' }}>
+                                <div style={{
+                                    background: '#3498db', color: 'white', padding: '6px 12px',
+                                    borderRadius: '6px', fontSize: '12px', fontWeight: 700, display: 'inline-block'
+                                }}>
+                                    INFORME FINANCIERO
+                                </div>
+                                <p style={{ margin: '8px 0 0 0', fontSize: '11px', color: '#95a5a6' }}>
+                                    Generado el: {new Date().toLocaleDateString('es-ES')}
+                                </p>
+                            </div>
+                        </div>
+
+                        <h2 style={{ fontSize: '20px', color: '#2c3e50', marginBottom: '25px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
+                            {getPeriodTitle()}
+                        </h2>
+
+                        {/* Sections Page 1 */}
+                        {includeSummary && (
+                            <div style={{ marginBottom: '35px' }}>
+                                <h3 style={{ fontSize: '15px', color: '#3498db', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '15px', fontWeight: 700 }}>
+                                    1. Resumen de Saldos
+                                </h3>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '15px', marginBottom: '10px' }}>
+                                    <div style={{ background: '#f8f9fa', border: '1px solid #e9ecef', borderRadius: '8px', padding: '15px', textAlign: 'center' }}>
+                                        <div style={{ fontSize: '11px', color: '#7f8c8d', fontWeight: 600, textTransform: 'uppercase', marginBottom: '5px' }}>Total Ingresos</div>
+                                        <div style={{ fontSize: '20px', color: '#2ecc71', fontWeight: 700 }}>{formatCurrency(reportData.totalIncomes)}</div>
+                                        <div style={{ fontSize: '10px', color: '#bdc3c7', marginTop: '4px' }}>{reportData.incomesCount} movimientos</div>
+                                    </div>
+                                    <div style={{ background: '#f8f9fa', border: '1px solid #e9ecef', borderRadius: '8px', padding: '15px', textAlign: 'center' }}>
+                                        <div style={{ fontSize: '11px', color: '#7f8c8d', fontWeight: 600, textTransform: 'uppercase', marginBottom: '5px' }}>Total Gastos</div>
+                                        <div style={{ fontSize: '20px', color: '#e74c3c', fontWeight: 700 }}>{formatCurrency(reportData.totalExpenses)}</div>
+                                        <div style={{ fontSize: '10px', color: '#bdc3c7', marginTop: '4px' }}>{reportData.expensesCount} movimientos</div>
+                                    </div>
+                                    <div style={{
+                                        background: reportData.netSavings >= 0 ? 'rgba(46,204,113,0.08)' : 'rgba(231,76,60,0.08)',
+                                        border: reportData.netSavings >= 0 ? '1px solid rgba(46,204,113,0.2)' : '1px solid rgba(231,76,60,0.2)',
+                                        borderRadius: '8px', padding: '15px', textAlign: 'center'
+                                    }}>
+                                        <div style={{ fontSize: '11px', color: '#7f8c8d', fontWeight: 600, textTransform: 'uppercase', marginBottom: '5px' }}>Ahorro Neto</div>
+                                        <div style={{ fontSize: '20px', color: reportData.netSavings >= 0 ? '#27ae60' : '#c0392b', fontWeight: 700 }}>
+                                            {formatCurrency(reportData.netSavings)}
+                                        </div>
+                                        <div style={{ fontSize: '10px', color: '#7f8c8d', marginTop: '4px' }}>
+                                            Tasa: {reportData.totalIncomes > 0 ? ((reportData.netSavings / reportData.totalIncomes) * 100).toFixed(1) : 0}%
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {includeCategories && (
+                            <div style={{ marginBottom: '35px' }}>
+                                <h3 style={{ fontSize: '15px', color: '#3498db', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '15px', fontWeight: 700 }}>
+                                    2. Distribución de Gastos por Categoría
+                                </h3>
+                                {reportData.categorySummary.length === 0
+                                    ? <p style={{ fontSize: '13px', color: '#7f8c8d', fontStyle: 'italic' }}>No hay gastos registrados en este período.</p>
+                                    : (
+                                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                                            <thead>
+                                                <tr>
+                                                    <th style={thStyle}>Categoría</th>
+                                                    <th style={{ ...thStyle, textAlign: 'right' }}>Importe</th>
+                                                    <th style={{ ...thStyle, textAlign: 'right' }}>% sobre total</th>
+                                                    <th style={{ ...thStyle, width: '140px' }}>Barra</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {reportData.categorySummary.map((cat, idx) => (
+                                                    <tr key={idx}>
+                                                        <td style={{ ...tdStyle, display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>
+                                                            <span style={{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '50%', backgroundColor: cat.color }} />
+                                                            {cat.name}
+                                                        </td>
+                                                        <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#2c3e50' }}>{formatCurrency(cat.amount)}</td>
+                                                        <td style={{ ...tdStyle, textAlign: 'right', color: '#7f8c8d' }}>{cat.percentage.toFixed(1)}%</td>
+                                                        <td style={tdStyle}>
+                                                            <div style={{ width: '100%', height: '8px', background: '#e9ecef', borderRadius: '4px', overflow: 'hidden' }}>
+                                                                <div style={{ width: `${cat.percentage}%`, height: '100%', background: cat.color }} />
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    )
+                                }
+                            </div>
+                        )}
+
+                        {includeSavings && reportData.activeSavings.length > 0 && (
+                            <div style={{ marginBottom: '35px' }}>
+                                <h3 style={{ fontSize: '15px', color: '#3498db', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '15px', fontWeight: 700 }}>
+                                    3. Objetivos y Huchas de Ahorro
+                                </h3>
+                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                                    <thead>
+                                        <tr>
+                                            <th style={thStyle}>Meta / Hucha</th>
+                                            <th style={{ ...thStyle, textAlign: 'right' }}>Saldo Actual</th>
+                                            <th style={{ ...thStyle, textAlign: 'right' }}>Objetivo</th>
+                                            <th style={{ ...thStyle, textAlign: 'right' }}>Progreso</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {reportData.activeSavings.map((goal, idx) => {
+                                            const target = goal.targetAmount ?? 0;
+                                            const pct = target > 0 ? (goal.currentAmount / target) * 100 : 100;
+                                            return (
+                                                <tr key={idx}>
+                                                    <td style={{ ...tdStyle, fontWeight: 600 }}>{goal.name}</td>
+                                                    <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#27ae60' }}>{formatCurrency(goal.currentAmount)}</td>
+                                                    <td style={{ ...tdStyle, textAlign: 'right', color: '#7f8c8d' }}>{target > 0 ? formatCurrency(target) : 'N/A'}</td>
+                                                    <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700 }}>{target > 0 ? `${Math.min(100, pct).toFixed(0)}%` : 'Completado'}</td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+
+                        {includeTransactions && reportData.topTransactions.length > 0 && (
+                            <div style={{ marginBottom: '35px' }}>
+                                <h3 style={{ fontSize: '15px', color: '#3498db', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '15px', fontWeight: 700 }}>
+                                    4. Mayores Gastos del Período
+                                </h3>
+                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                                    <thead>
+                                        <tr>
+                                            <th style={thStyle}>Fecha</th>
+                                            <th style={thStyle}>Descripción</th>
+                                            <th style={thStyle}>Categoría</th>
+                                            <th style={{ ...thStyle, textAlign: 'right' }}>Importe</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {reportData.topTransactions.map((exp, idx) => {
+                                            const cat = categories.find(c => c.id === exp.categoryId) || DEFAULT_CATEGORIES.find(c => c.id === exp.categoryId);
+                                            return (
+                                                <tr key={idx}>
+                                                    <td style={{ ...tdStyle, color: '#7f8c8d', whiteSpace: 'nowrap' }}>{new Date(exp.date).toLocaleDateString('es-ES')}</td>
+                                                    <td style={{ ...tdStyle, fontWeight: 500 }}>{exp.description}</td>
+                                                    <td style={{ ...tdStyle, color: '#95a5a6' }}>{cat?.name || 'Otros'}</td>
+                                                    <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#e74c3c' }}>{formatCurrency(Number(exp.amount))}</td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                        
+                        <div style={{ flexGrow: 1 }}></div>
+                        <div style={{ textAlign: 'center', fontSize: '10px', color: '#bdc3c7', paddingTop: '20px', borderTop: '1px solid #eee' }}>
+                            Página 1
                         </div>
                     </div>
 
-                    <h2 style={{ fontSize: '20px', color: '#2c3e50', marginBottom: '25px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
-                        {getPeriodTitle()}
-                    </h2>
-
-                    {/* ── SECCIÓN 1: Resumen ── */}
-                    {includeSummary && (
-                        <div style={{ marginBottom: '35px' }}>
-                            <h3 style={{ fontSize: '15px', color: '#3498db', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '15px', fontWeight: 700 }}>
-                                1. Resumen de Saldos
-                            </h3>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '15px', marginBottom: '10px' }}>
-                                <div style={{ background: '#f8f9fa', border: '1px solid #e9ecef', borderRadius: '8px', padding: '15px', textAlign: 'center' }}>
-                                    <div style={{ fontSize: '11px', color: '#7f8c8d', fontWeight: 600, textTransform: 'uppercase', marginBottom: '5px' }}>Total Ingresos</div>
-                                    <div style={{ fontSize: '20px', color: '#2ecc71', fontWeight: 700 }}>{formatCurrency(reportData.totalIncomes)}</div>
-                                    <div style={{ fontSize: '10px', color: '#bdc3c7', marginTop: '4px' }}>{reportData.incomesCount} movimientos</div>
-                                </div>
-                                <div style={{ background: '#f8f9fa', border: '1px solid #e9ecef', borderRadius: '8px', padding: '15px', textAlign: 'center' }}>
-                                    <div style={{ fontSize: '11px', color: '#7f8c8d', fontWeight: 600, textTransform: 'uppercase', marginBottom: '5px' }}>Total Gastos</div>
-                                    <div style={{ fontSize: '20px', color: '#e74c3c', fontWeight: 700 }}>{formatCurrency(reportData.totalExpenses)}</div>
-                                    <div style={{ fontSize: '10px', color: '#bdc3c7', marginTop: '4px' }}>{reportData.expensesCount} movimientos</div>
-                                </div>
-                                <div style={{
-                                    background: reportData.netSavings >= 0 ? 'rgba(46,204,113,0.08)' : 'rgba(231,76,60,0.08)',
-                                    border: reportData.netSavings >= 0 ? '1px solid rgba(46,204,113,0.2)' : '1px solid rgba(231,76,60,0.2)',
-                                    borderRadius: '8px', padding: '15px', textAlign: 'center'
-                                }}>
-                                    <div style={{ fontSize: '11px', color: '#7f8c8d', fontWeight: 600, textTransform: 'uppercase', marginBottom: '5px' }}>Ahorro Neto</div>
-                                    <div style={{ fontSize: '20px', color: reportData.netSavings >= 0 ? '#27ae60' : '#c0392b', fontWeight: 700 }}>
-                                        {formatCurrency(reportData.netSavings)}
-                                    </div>
-                                    <div style={{ fontSize: '10px', color: '#7f8c8d', marginTop: '4px' }}>
-                                        Tasa: {reportData.totalIncomes > 0 ? ((reportData.netSavings / reportData.totalIncomes) * 100).toFixed(1) : 0}%
-                                    </div>
-                                </div>
+                    {/* ── PDF PAGES 2+: DETALLES DE INGRESOS (Chunks de 22 items) ── */}
+                    {includeDetail && reportData.detailIncomes.length > 0 && chunkArray(reportData.detailIncomes, 22).map((chunk, pageIndex) => (
+                        <div key={`income-page-${pageIndex}`} className="pdf-page" style={{
+                            width: '800px', height: '1131px',
+                            fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+                            background: '#ffffff', color: '#333333',
+                            padding: '40px', boxSizing: 'border-box',
+                            display: 'none', flexDirection: 'column'
+                        }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #3498db', paddingBottom: '15px', marginBottom: '25px' }}>
+                                <h3 style={{ margin: 0, fontSize: '16px', color: '#2c3e50', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 700 }}>
+                                    Detalle de Ingresos {chunkArray(reportData.detailIncomes, 22).length > 1 ? `(Parte ${pageIndex + 1})` : ''}
+                                </h3>
+                                <span style={{ fontSize: '11px', color: '#95a5a6' }}>{getPeriodName()}</span>
                             </div>
-                        </div>
-                    )}
 
-                    {/* ── SECCIÓN 2: Categorías ── */}
-                    {includeCategories && (
-                        <div style={{ marginBottom: '35px' }}>
-                            <h3 style={{ fontSize: '15px', color: '#3498db', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '15px', fontWeight: 700 }}>
-                                2. Distribución de Gastos por Categoría
-                            </h3>
-                            {reportData.categorySummary.length === 0
-                                ? <p style={{ fontSize: '13px', color: '#7f8c8d', fontStyle: 'italic' }}>No hay gastos registrados en este período.</p>
-                                : (
-                                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-                                        <thead>
-                                            <tr>
-                                                <th style={thStyle}>Categoría</th>
-                                                <th style={{ ...thStyle, textAlign: 'right' }}>Importe</th>
-                                                <th style={{ ...thStyle, textAlign: 'right' }}>% sobre total</th>
-                                                <th style={{ ...thStyle, width: '140px' }}>Barra</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {reportData.categorySummary.map((cat, idx) => (
-                                                <tr key={idx}>
-                                                    <td style={{ ...tdStyle, display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>
-                                                        <span style={{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '50%', backgroundColor: cat.color }} />
-                                                        {cat.name}
-                                                    </td>
-                                                    <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#2c3e50' }}>{formatCurrency(cat.amount)}</td>
-                                                    <td style={{ ...tdStyle, textAlign: 'right', color: '#7f8c8d' }}>{cat.percentage.toFixed(1)}%</td>
-                                                    <td style={tdStyle}>
-                                                        <div style={{ width: '100%', height: '8px', background: '#e9ecef', borderRadius: '4px', overflow: 'hidden' }}>
-                                                            <div style={{ width: `${cat.percentage}%`, height: '100%', background: cat.color }} />
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                )
-                            }
-                        </div>
-                    )}
-
-                    {/* ── SECCIÓN 3: Huchas ── */}
-                    {includeSavings && reportData.activeSavings.length > 0 && (
-                        <div style={{ marginBottom: '35px' }}>
-                            <h3 style={{ fontSize: '15px', color: '#3498db', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '15px', fontWeight: 700 }}>
-                                3. Objetivos y Huchas de Ahorro
-                            </h3>
-                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                                 <thead>
                                     <tr>
-                                        <th style={thStyle}>Meta / Hucha</th>
-                                        <th style={{ ...thStyle, textAlign: 'right' }}>Saldo Actual</th>
-                                        <th style={{ ...thStyle, textAlign: 'right' }}>Objetivo</th>
-                                        <th style={{ ...thStyle, textAlign: 'right' }}>Progreso</th>
+                                        <th style={thStyle}>Fecha</th>
+                                        <th style={thStyle}>Concepto</th>
+                                        <th style={thStyle}>Categoría</th>
+                                        <th style={{ ...thStyle, textAlign: 'right' }}>Importe</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {reportData.activeSavings.map((goal, idx) => {
-                                        const target = goal.targetAmount ?? 0;
-                                        const pct = target > 0 ? (goal.currentAmount / target) * 100 : 100;
-                                        return (
-                                            <tr key={idx}>
-                                                <td style={{ ...tdStyle, fontWeight: 600 }}>{goal.name}</td>
-                                                <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#27ae60' }}>{formatCurrency(goal.currentAmount)}</td>
-                                                <td style={{ ...tdStyle, textAlign: 'right', color: '#7f8c8d' }}>{target > 0 ? formatCurrency(target) : 'N/A'}</td>
-                                                <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700 }}>{target > 0 ? `${Math.min(100, pct).toFixed(0)}%` : 'Completado'}</td>
-                                            </tr>
-                                        );
-                                    })}
+                                    {chunk.map((inc, idx) => (
+                                        <tr key={idx}>
+                                            <td style={{ ...tdStyle, color: '#7f8c8d', width: '15%' }}>{getIncomeDate(inc)}</td>
+                                            <td style={{ ...tdStyle, fontWeight: 500 }}>{inc.name || (inc as any).description}</td>
+                                            <td style={{ ...tdStyle, color: '#95a5a6', width: '25%' }}>{inc.type === 'fixed' ? 'Ingreso Fijo' : 'Ingreso Extra'}</td>
+                                            <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#27ae60', width: '20%' }}>
+                                                {formatCurrency(Number(inc.amount))}
+                                            </td>
+                                        </tr>
+                                    ))}
                                 </tbody>
                             </table>
+                            <div style={{ flexGrow: 1 }}></div>
                         </div>
-                    )}
+                    ))}
 
-                    {/* ── SECCIÓN 4: Top 10 gastos ── */}
-                    {includeTransactions && reportData.topTransactions.length > 0 && (
-                        <div style={{ marginBottom: '35px' }}>
-                            <h3 style={{ fontSize: '15px', color: '#3498db', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '15px', fontWeight: 700 }}>
-                                4. Mayores Gastos del Período
-                            </h3>
+                    {/* ── PDF PAGES: DETALLES DE GASTOS (Chunks de 22 items) ── */}
+                    {includeDetail && reportData.detailExpenses.length > 0 && chunkArray(reportData.detailExpenses, 22).map((chunk, pageIndex) => (
+                        <div key={`expense-page-${pageIndex}`} className="pdf-page" style={{
+                            width: '800px', height: '1131px',
+                            fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+                            background: '#ffffff', color: '#333333',
+                            padding: '40px', boxSizing: 'border-box',
+                            display: 'none', flexDirection: 'column'
+                        }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #3498db', paddingBottom: '15px', marginBottom: '25px' }}>
+                                <h3 style={{ margin: 0, fontSize: '16px', color: '#2c3e50', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 700 }}>
+                                    Detalle de Gastos {chunkArray(reportData.detailExpenses, 22).length > 1 ? `(Parte ${pageIndex + 1})` : ''}
+                                </h3>
+                                <span style={{ fontSize: '11px', color: '#95a5a6' }}>{getPeriodName()}</span>
+                            </div>
+
                             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                                 <thead>
                                     <tr>
@@ -731,134 +839,25 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {reportData.topTransactions.map((exp, idx) => {
+                                    {chunk.map((exp, idx) => {
                                         const cat = categories.find(c => c.id === exp.categoryId) || DEFAULT_CATEGORIES.find(c => c.id === exp.categoryId);
                                         return (
                                             <tr key={idx}>
-                                                <td style={{ ...tdStyle, color: '#7f8c8d', whiteSpace: 'nowrap' }}>{new Date(exp.date).toLocaleDateString('es-ES')}</td>
+                                                <td style={{ ...tdStyle, color: '#7f8c8d', width: '15%' }}>{new Date(exp.date).toLocaleDateString('es-ES')}</td>
                                                 <td style={{ ...tdStyle, fontWeight: 500 }}>{exp.description}</td>
-                                                <td style={{ ...tdStyle, color: '#7f8c8d' }}>{cat ? cat.name : 'Otros'}</td>
-                                                <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#e74c3c' }}>{formatCurrency(exp.amount)}</td>
+                                                <td style={{ ...tdStyle, color: '#95a5a6', width: '25%' }}>{cat?.name || 'Otros'}</td>
+                                                <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#e74c3c', width: '20%' }}>
+                                                    {formatCurrency(Number(exp.amount))}
+                                                </td>
                                             </tr>
                                         );
                                     })}
                                 </tbody>
                             </table>
+                            <div style={{ flexGrow: 1 }}></div>
                         </div>
-                    )}
+                    ))}
 
-                    {/* ════════════════════════════════════════════════════════
-                        SECCIÓN 5 — DETALLE DE MOVIMIENTOS (segunda página)
-                    ═════════════════════════════════════════════════════════*/}
-                    {includeDetail && (
-                        <div style={{ marginTop: '70px' }}>
-                            {/* Visual page-break separator */}
-                            <div style={{
-                                borderTop: '2px dashed #bdc3c7', paddingTop: '35px', marginBottom: '30px',
-                                textAlign: 'center'
-                            }}>
-                                <span style={{
-                                    fontSize: '12px', color: '#95a5a6', fontWeight: 700,
-                                    letterSpacing: '3px', textTransform: 'uppercase'
-                                }}>
-                                    ─── Detalle Completo de Movimientos ───
-                                </span>
-                            </div>
-
-                            <h2 style={{ fontSize: '18px', color: '#2c3e50', marginBottom: '25px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
-                                {getPeriodTitle()} — Movimientos en Detalle
-                            </h2>
-
-                            {/* ── 5A: Ingresos recibidos ── */}
-                            <div style={{ marginBottom: '40px' }}>
-                                <h3 style={{ fontSize: '14px', color: '#27ae60', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '15px', fontWeight: 700 }}>
-                                    A. Ingresos Recibidos ({reportData.detailIncomes.length})
-                                </h3>
-                                {reportData.detailIncomes.length === 0
-                                    ? <p style={{ fontSize: '12px', color: '#7f8c8d', fontStyle: 'italic' }}>No hay ingresos registrados en este período.</p>
-                                    : (
-                                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
-                                            <thead>
-                                                <tr>
-                                                    <th style={{ ...thStyle, width: '110px' }}>Fecha</th>
-                                                    <th style={thStyle}>Concepto / Nombre</th>
-                                                    <th style={{ ...thStyle, textAlign: 'right', width: '120px' }}>Importe</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {reportData.detailIncomes.map((inc: any, idx) => (
-                                                    <tr key={idx} style={{ background: idx % 2 === 0 ? '#fff' : '#fafafa' }}>
-                                                        <td style={{ ...tdStyle, color: '#7f8c8d', whiteSpace: 'nowrap' }}>{getIncomeDate(inc)}</td>
-                                                        <td style={{ ...tdStyle, fontWeight: 500 }}>{inc.name || '—'}</td>
-                                                        <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#27ae60' }}>{formatCurrency(inc.amount)}</td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                            <tfoot>
-                                                <tr style={{ background: '#f0f9f4', borderTop: '2px solid #dee2e6' }}>
-                                                    <td colSpan={2} style={{ padding: '10px', fontWeight: 700, fontSize: '13px' }}>TOTAL INGRESOS</td>
-                                                    <td style={{ padding: '10px', textAlign: 'right', fontWeight: 800, fontSize: '14px', color: '#27ae60' }}>
-                                                        {formatCurrency(reportData.totalIncomes)}
-                                                    </td>
-                                                </tr>
-                                            </tfoot>
-                                        </table>
-                                    )
-                                }
-                            </div>
-
-                            {/* ── 5B: Gastos pagados ── */}
-                            <div style={{ marginBottom: '25px' }}>
-                                <h3 style={{ fontSize: '14px', color: '#e74c3c', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '15px', fontWeight: 700 }}>
-                                    B. Gastos Pagados ({reportData.detailExpenses.length})
-                                </h3>
-                                {reportData.detailExpenses.length === 0
-                                    ? <p style={{ fontSize: '12px', color: '#7f8c8d', fontStyle: 'italic' }}>No hay gastos registrados en este período.</p>
-                                    : (
-                                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
-                                            <thead>
-                                                <tr>
-                                                    <th style={{ ...thStyle, width: '90px' }}>Fecha</th>
-                                                    <th style={thStyle}>Descripción</th>
-                                                    <th style={{ ...thStyle, width: '110px' }}>Categoría</th>
-                                                    <th style={{ ...thStyle, textAlign: 'right', width: '110px' }}>Importe</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {reportData.detailExpenses.map((exp, idx) => {
-                                                    const cat = categories.find(c => c.id === exp.categoryId) || DEFAULT_CATEGORIES.find(c => c.id === exp.categoryId);
-                                                    return (
-                                                        <tr key={idx} style={{ background: idx % 2 === 0 ? '#fff' : '#fafafa' }}>
-                                                            <td style={{ ...tdStyle, color: '#7f8c8d', whiteSpace: 'nowrap', fontSize: '11px' }}>{new Date(exp.date).toLocaleDateString('es-ES')}</td>
-                                                            <td style={{ ...tdStyle, fontWeight: 500 }}>{exp.description}</td>
-                                                            <td style={{ ...tdStyle, color: '#7f8c8d' }}>{cat ? cat.name : 'Otros'}</td>
-                                                            <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#e74c3c' }}>{formatCurrency(exp.amount)}</td>
-                                                        </tr>
-                                                    );
-                                                })}
-                                            </tbody>
-                                            <tfoot>
-                                                <tr style={{ background: '#fdf2f2', borderTop: '2px solid #dee2e6' }}>
-                                                    <td colSpan={3} style={{ padding: '10px', fontWeight: 700, fontSize: '13px' }}>TOTAL GASTOS</td>
-                                                    <td style={{ padding: '10px', textAlign: 'right', fontWeight: 800, fontSize: '14px', color: '#e74c3c' }}>
-                                                        {formatCurrency(reportData.totalExpenses)}
-                                                    </td>
-                                                </tr>
-                                            </tfoot>
-                                        </table>
-                                    )
-                                }
-                            </div>
-                        </div>
-                    )}
-
-                    {/* ── PDF Footer ── */}
-                    <div style={{
-                        marginTop: '40px', borderTop: '1px solid #eee', paddingTop: '15px',
-                        textAlign: 'center', fontSize: '11px', color: '#bdc3c7'
-                    }}>
-                        Documento generado por la aplicación PCS Hogar de forma local y segura. © {new Date().getFullYear()}
-                    </div>
                 </div>
             </div>
         </div>

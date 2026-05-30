@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
-import { Target, History, Settings, Trash2, PlusCircle } from 'lucide-react';
+import { Target, History, Settings, Trash2, PlusCircle, MinusCircle } from 'lucide-react';
 import type { SavingGoal } from '../../types/finance';
 import { formatMoney } from '../../utils/financeCalculations';
 
 interface PiggyBankListProps {
     onEdit: (goal: SavingGoal) => void;
     onAddMoney: (goal: SavingGoal) => void;
+    onWithdrawMoney: (goal: SavingGoal) => void;
     onShowHistory: (goal: SavingGoal) => void;
 }
 
-const PiggyBankList: React.FC<PiggyBankListProps> = ({ onEdit, onAddMoney, onShowHistory }) => {
+const PiggyBankList: React.FC<PiggyBankListProps> = ({ onEdit, onAddMoney, onWithdrawMoney, onShowHistory }) => {
     const { savings, accounts, deleteSavingGoal, adjustSavings, fixedIncomes } = useFinance();
     const { selectedMonth, selectedYear } = useDateSelection();
     const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
@@ -142,10 +143,17 @@ const PiggyBankList: React.FC<PiggyBankListProps> = ({ onEdit, onAddMoney, onSho
                             <div style={{ display: 'flex', gap: isMobile ? '8px' : '12px', color: 'rgba(255,255,255,0.6)', marginLeft: 'auto' }}>
                                 <button 
                                     onClick={() => onAddMoney(goal)}
-                                    title="Añadir dinero"
+                                    title="Añadir dinero (Ahorrar)"
                                     style={{ background: 'none', border: 'none', color: '#10b981', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}
                                 >
                                     <PlusCircle size={isMobile ? 20 : 22} />
+                                </button>
+                                <button 
+                                    onClick={() => onWithdrawMoney(goal)}
+                                    title="Retirar dinero"
+                                    style={{ background: 'none', border: 'none', color: '#f43f5e', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center' }}
+                                >
+                                    <MinusCircle size={isMobile ? 20 : 22} />
                                 </button>
                                 <button 
                                     onClick={() => onShowHistory(goal)}

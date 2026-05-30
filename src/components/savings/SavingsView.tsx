@@ -5,6 +5,7 @@ import PiggyBankForm from './PiggyBankForm';
 import PiggyBankChart from './PiggyBankChart';
 import PiggyBankTransferForm from './modals/PiggyBankTransferForm';
 import PiggyBankAddMoneyForm from './modals/PiggyBankAddMoneyForm';
+import PiggyBankWithdrawMoneyForm from './modals/PiggyBankWithdrawMoneyForm';
 import PiggyBankHistoryModal from './modals/PiggyBankHistoryModal';
 import { useFinance } from '../../contexts/FinanceContext';
 import type { SavingGoal } from '../../types/finance';
@@ -17,6 +18,7 @@ const SavingsView: React.FC = () => {
     // Modals
     const [showTransfer, setShowTransfer] = useState(false);
     const [addMoneyGoal, setAddMoneyGoal] = useState<SavingGoal | undefined>(undefined);
+    const [withdrawMoneyGoal, setWithdrawMoneyGoal] = useState<SavingGoal | undefined>(undefined);
     const [historyGoal, setHistoryGoal] = useState<SavingGoal | undefined>(undefined);
 
     React.useEffect(() => {
@@ -29,6 +31,9 @@ const SavingsView: React.FC = () => {
             } else if (addMoneyGoal) {
                 e.preventDefault();
                 setAddMoneyGoal(undefined);
+            } else if (withdrawMoneyGoal) {
+                e.preventDefault();
+                setWithdrawMoneyGoal(undefined);
             } else if (historyGoal) {
                 e.preventDefault();
                 setHistoryGoal(undefined);
@@ -37,7 +42,7 @@ const SavingsView: React.FC = () => {
 
         window.addEventListener('app-back-pressed', handleBack);
         return () => window.removeEventListener('app-back-pressed', handleBack);
-    }, [showTransfer, addMoneyGoal, historyGoal]);
+    }, [showTransfer, addMoneyGoal, withdrawMoneyGoal, historyGoal]);
 
     const handleEdit = (goal: SavingGoal) => {
         setEditingGoal(goal);
@@ -103,6 +108,7 @@ const SavingsView: React.FC = () => {
                 <PiggyBankList 
                     onEdit={handleEdit} 
                     onAddMoney={setAddMoneyGoal}
+                    onWithdrawMoney={setWithdrawMoneyGoal}
                     onShowHistory={setHistoryGoal}
                 />
             </div>
@@ -134,6 +140,13 @@ const SavingsView: React.FC = () => {
                 <PiggyBankAddMoneyForm 
                     goal={addMoneyGoal}
                     onClose={() => setAddMoneyGoal(undefined)}
+                />
+            )}
+
+            {withdrawMoneyGoal && (
+                <PiggyBankWithdrawMoneyForm 
+                    goal={withdrawMoneyGoal}
+                    onClose={() => setWithdrawMoneyGoal(undefined)}
                 />
             )}
 

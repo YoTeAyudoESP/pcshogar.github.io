@@ -18,7 +18,7 @@ const BalanceTransferModal: React.FC<BalanceTransferModalProps> = ({ onClose }) 
     const { selectedMonth, selectedYear } = useDateSelection();
     const { showToast } = useToast();
 
-    const [activeTab, setActiveTab] = useState<'accounts' | 'savings'>('accounts');
+    const [activeTab, setActiveTab] = useState<'accounts' | 'savings' | 'withdraw'>('accounts');
 
     // Exclude debit/credit cards and only get bank accounts (bank, cash) and virtual cards
     const transferAccounts = accounts.filter(a => a.type === 'bank' || a.type === 'cash');
@@ -45,6 +45,14 @@ const BalanceTransferModal: React.FC<BalanceTransferModalProps> = ({ onClose }) 
 
     const parsedAmount = parseFloat(amount);
     const remaining = isNaN(parsedAmount) ? availableToSpend : availableToSpend - parsedAmount;
+
+    const selectedSourceAccount = transferItems.find(item => item.id === fromId);
+    const selectedWithdrawGoal = savings.find(goal => goal.id === fromId);
+
+    const isSubmitDisabled = loading || 
+        (activeTab === 'accounts' && (!fromId || !toId || isNaN(parsedAmount) || parsedAmount <= 0 || (selectedSourceAccount && parsedAmount > selectedSourceAccount.balance))) ||
+        (activeTab === 'savings' && (!toId || isNaN(parsedAmount) || parsedAmount <= 0 || parsedAmount > availableToSpend)) ||
+        (activeTab === 'withdraw' && (!fromId || isNaN(parsedAmount) || parsedAmount <= 0 || (selectedWithdrawGoal && parsedAmount > selectedWithdrawGoal.currentAmount)));
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -75,7 +83,7 @@ const BalanceTransferModal: React.FC<BalanceTransferModalProps> = ({ onClose }) 
             } finally {
                 setLoading(false);
             }
-        } else {
+        } else if (activeTab === 'savings') {
             if (!toId || !amount) return;
 
             const transferAmount = parseFloat(amount);
@@ -107,6 +115,43 @@ const BalanceTransferModal: React.FC<BalanceTransferModalProps> = ({ onClose }) 
             } catch (err) {
                 console.error(err);
                 showToast('Error al realizar el ahorro', 'error');
+            } finally {
+                setLoading(false);
+            }
+        } else {
+            // Withdraw flow
+            if (!fromId || !amount) return;
+
+            const transferAmount = parseFloat(amount);
+            if (isNaN(transferAmount) || transferAmount <= 0) {
+                showToast('El importe debe ser un número positivo', 'error');
+                return;
+            }
+
+            const selectedGoal = savings.find(goal => goal.id === fromId);
+            if (!selectedGoal || selectedGoal.currentAmount < transferAmount) {
+                showToast('La hucha seleccionada no tiene suficiente saldo acumulado', 'error');
+                return;
+            }
+
+            setLoading(true);
+            try {
+                // Calculate timestamp within selected month and year
+                const now = new Date();
+                let targetDay = now.getDate();
+                const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+                if (targetDay > daysInMonth) {
+                    targetDay = daysInMonth;
+                }
+                const targetDate = new Date(selectedYear, selectedMonth, targetDay, now.getHours(), now.getMinutes(), now.getSeconds()).getTime();
+
+                // Virtual saving withdrawal (negative amount, no accountId, isVirtual = true)
+                await adjustSavings(fromId, -transferAmount, undefined, true, targetDate, selectedMonth, selectedYear);
+                showToast('Ahorro retirado con éxito', 'success');
+                onClose();
+            } catch (err) {
+                console.error(err);
+                showToast('Error al retirar el ahorro', 'error');
             } finally {
                 setLoading(false);
             }
@@ -183,6 +228,7 @@ const BalanceTransferModal: React.FC<BalanceTransferModalProps> = ({ onClose }) 
                         type="button"
                         onClick={() => {
                             setActiveTab('accounts');
+                            setFromId('');
                             setToId('');
                             setAmount('');
                         }}
@@ -205,6 +251,7 @@ const BalanceTransferModal: React.FC<BalanceTransferModalProps> = ({ onClose }) 
                         type="button"
                         onClick={() => {
                             setActiveTab('savings');
+                            setFromId('');
                             setToId('');
                             setAmount('');
                         }}
@@ -221,12 +268,35 @@ const BalanceTransferModal: React.FC<BalanceTransferModalProps> = ({ onClose }) 
                             transition: 'all 0.2s'
                         }}
                     >
-                        Ahorro en Huchas
+                        A Hucha
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setActiveTab('withdraw');
+                            setFromId('');
+                            setToId('');
+                            setAmount('');
+                        }}
+                        style={{
+                            flex: 1,
+                            padding: '0.65rem',
+                            borderRadius: '8px',
+                            border: 'none',
+                            background: activeTab === 'withdraw' ? '#6366f1' : 'transparent',
+                            color: 'white',
+                            fontWeight: 700,
+                            fontSize: '0.85rem',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        A Disponible
                     </button>
                 </div>
 
                 {/* Top Summary Panel */}
-                {activeTab === 'accounts' ? (
+                {activeTab === 'accounts' && (
                     <div style={{
                         background: 'rgba(25, 27, 34, 0.6)',
                         padding: '1.25rem',
@@ -250,7 +320,8 @@ const BalanceTransferModal: React.FC<BalanceTransferModalProps> = ({ onClose }) 
                             Cuentas bancarias y tarjetas monedero (Huchas y crédito excluidos)
                         </div>
                     </div>
-                ) : (
+                )}
+                {activeTab === 'savings' && (
                     <div style={{
                         background: 'rgba(25, 27, 34, 0.6)',
                         padding: '1.25rem',
@@ -272,6 +343,31 @@ const BalanceTransferModal: React.FC<BalanceTransferModalProps> = ({ onClose }) 
                             lineHeight: '1.4'
                         }}>
                             Asignación virtual desde tu disponible mensual actual
+                        </div>
+                    </div>
+                )}
+                {activeTab === 'withdraw' && (
+                    <div style={{
+                        background: 'rgba(25, 27, 34, 0.6)',
+                        padding: '1.25rem',
+                        borderRadius: '16px',
+                        border: '1px solid rgba(255,255,255,0.05)',
+                        marginBottom: '1.5rem',
+                        textAlign: 'center'
+                    }}>
+                        <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', marginBottom: '0.25rem' }}>
+                            Disponible del Mes Actual
+                        </div>
+                        <div style={{ fontSize: '2rem', fontWeight: 900, color: availableToSpend >= 0 ? '#10b981' : '#f43f5e' }}>
+                            {formatMoney(availableToSpend)}
+                        </div>
+                        <div style={{ 
+                            fontSize: '0.75rem', 
+                            color: 'rgba(255,255,255,0.4)', 
+                            marginTop: '0.5rem',
+                            lineHeight: '1.4'
+                        }}>
+                            Liberar fondos virtuales de vuelta al disponible de este mes
                         </div>
                     </div>
                 )}
@@ -343,7 +439,7 @@ const BalanceTransferModal: React.FC<BalanceTransferModalProps> = ({ onClose }) 
 
                 {/* Form */}
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                    {activeTab === 'accounts' ? (
+                    {activeTab === 'accounts' && (
                         <>
                             <div>
                                 <label style={labelStyle}>Origen</label>
@@ -386,13 +482,32 @@ const BalanceTransferModal: React.FC<BalanceTransferModalProps> = ({ onClose }) 
                                 </select>
                             </div>
                         </>
-                    ) : (
+                    )}
+                    {activeTab === 'savings' && (
                         <div>
                             <label style={labelStyle}>Seleccionar Hucha Destino</label>
                             <select 
                                 style={inputStyle} 
                                 value={toId} 
                                 onChange={e => setToId(e.target.value)}
+                                required
+                            >
+                                <option value="">Seleccione hucha...</option>
+                                {savings.map(goal => (
+                                    <option key={goal.id} value={goal.id}>
+                                        {goal.name} ({formatMoney(goal.currentAmount)})
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+                    {activeTab === 'withdraw' && (
+                        <div>
+                            <label style={labelStyle}>Seleccionar Hucha Origen</label>
+                            <select 
+                                style={inputStyle} 
+                                value={fromId} 
+                                onChange={e => setFromId(e.target.value)}
                                 required
                             >
                                 <option value="">Seleccione hucha...</option>
@@ -418,6 +533,20 @@ const BalanceTransferModal: React.FC<BalanceTransferModalProps> = ({ onClose }) 
                         />
                     </div>
 
+                    {activeTab === 'accounts' && !isNaN(parsedAmount) && parsedAmount > 0 && (
+                        <div style={{ 
+                            marginTop: '-0.75rem', 
+                            fontSize: '0.85rem', 
+                            fontWeight: 600,
+                            color: selectedSourceAccount && parsedAmount <= selectedSourceAccount.balance ? '#38bdf8' : '#f43f5e' 
+                        }}>
+                            {selectedSourceAccount && parsedAmount <= selectedSourceAccount.balance
+                                ? `Saldo restante en origen: ${formatMoney(selectedSourceAccount.balance - parsedAmount)}`
+                                : '¡Atención! El importe supera el saldo disponible en la cuenta de origen'
+                            }
+                        </div>
+                    )}
+
                     {activeTab === 'savings' && !isNaN(parsedAmount) && parsedAmount > 0 && (
                         <div style={{ 
                             marginTop: '-0.75rem', 
@@ -427,7 +556,21 @@ const BalanceTransferModal: React.FC<BalanceTransferModalProps> = ({ onClose }) 
                         }}>
                             {remaining >= 0 
                                 ? `Disponible restante si aceptas: ${formatMoney(remaining)}` 
-                                : '¡Atención! Superas el disponible actual del mes'
+                                : '¡Atención! El importe supera el disponible actual del mes'
+                            }
+                        </div>
+                    )}
+
+                    {activeTab === 'withdraw' && !isNaN(parsedAmount) && parsedAmount > 0 && (
+                        <div style={{ 
+                            marginTop: '-0.75rem', 
+                            fontSize: '0.85rem', 
+                            fontWeight: 600,
+                            color: selectedWithdrawGoal && parsedAmount <= selectedWithdrawGoal.currentAmount ? '#10b981' : '#f43f5e' 
+                        }}>
+                            {selectedWithdrawGoal && parsedAmount <= selectedWithdrawGoal.currentAmount
+                                ? `Disponible incrementado si aceptas: ${formatMoney(availableToSpend + parsedAmount)} (Quedarán ${formatMoney(selectedWithdrawGoal.currentAmount - parsedAmount)} en hucha)`
+                                : '¡Atención! El importe supera el saldo acumulado en la hucha seleccionada'
                             }
                         </div>
                     )}
@@ -461,7 +604,7 @@ const BalanceTransferModal: React.FC<BalanceTransferModalProps> = ({ onClose }) 
                                 </span>
                             </div>
                         </>
-                    ) : (
+                    ) : activeTab === 'savings' ? (
                         /* Information Banner Savings */
                         <div style={{
                             background: 'rgba(245, 158, 11, 0.05)',
@@ -477,30 +620,54 @@ const BalanceTransferModal: React.FC<BalanceTransferModalProps> = ({ onClose }) 
                                 Esta asignación es virtual. Reducirá tu disponible mensual del mes seleccionado, pero no moverá dinero real de tus cuentas.
                             </span>
                         </div>
+                    ) : (
+                        /* Information Banner Withdraw */
+                        <div style={{
+                            background: 'rgba(16, 185, 129, 0.05)',
+                            border: '1px solid rgba(16, 185, 129, 0.15)',
+                            borderRadius: '10px',
+                            padding: '0.75rem',
+                            display: 'flex',
+                            gap: '0.5rem',
+                            alignItems: 'flex-start'
+                        }}>
+                            <Info size={16} style={{ color: '#10b981', marginTop: '2px', flexShrink: 0 }} />
+                            <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.6)', lineHeight: '1.4' }}>
+                                Esta operación es virtual. Devolverá el ahorro acumulado al disponible mensual para poder gastarlo. No moverá dinero real de tus cuentas.
+                            </span>
+                        </div>
                     )}
 
                     <button 
                         type="submit" 
-                        disabled={loading}
+                        disabled={isSubmitDisabled}
                         style={{
                             padding: '1.1rem',
                             borderRadius: '14px',
                             border: 'none',
-                            background: activeTab === 'accounts' 
-                                ? 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)'
-                                : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                            color: 'white',
+                            background: isSubmitDisabled
+                                ? 'rgba(255, 255, 255, 0.05)'
+                                : activeTab === 'accounts' 
+                                    ? 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)'
+                                    : activeTab === 'savings'
+                                        ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+                                        : 'linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)',
+                            color: isSubmitDisabled ? 'rgba(255, 255, 255, 0.2)' : 'white',
                             fontWeight: 700,
                             fontSize: '1.1rem',
-                            cursor: 'pointer',
+                            cursor: isSubmitDisabled ? 'not-allowed' : 'pointer',
                             marginTop: '0.5rem',
-                            boxShadow: activeTab === 'accounts'
-                                ? '0 4px 15px rgba(99, 102, 241, 0.3)'
-                                : '0 4px 15px rgba(16, 185, 129, 0.3)',
-                            opacity: loading ? 0.7 : 1
+                            boxShadow: isSubmitDisabled
+                                ? 'none'
+                                : activeTab === 'accounts'
+                                    ? '0 4px 15px rgba(99, 102, 241, 0.3)'
+                                    : activeTab === 'savings'
+                                        ? '0 4px 15px rgba(16, 185, 129, 0.3)'
+                                        : '0 4px 15px rgba(236, 72, 153, 0.3)',
+                            opacity: isSubmitDisabled ? 0.5 : 1
                         }}
                     >
-                        {loading ? 'Procesando...' : activeTab === 'accounts' ? 'Confirmar Traspaso' : 'Confirmar Ahorro'}
+                        {loading ? 'Procesando...' : activeTab === 'accounts' ? 'Confirmar Traspaso' : activeTab === 'savings' ? 'Confirmar Ahorro' : 'Confirmar Retirada'}
                     </button>
                 </form>
 

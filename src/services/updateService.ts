@@ -23,11 +23,15 @@ export const UpdateService = {
             const data = await response.json();
             
             const latestVersion = data.version;
-            const downloadUrl = data.url;
+            const isElectron = typeof window !== 'undefined' && (
+                !!(window as any).require || 
+                navigator.userAgent.toLowerCase().indexOf(' electron/') > -1
+            );
+            const downloadUrl = isElectron ? (data.windowsUrl || data.url) : data.url;
             const releaseNotes = data.releaseNotes;
 
             // Get current local version from Capacitor/Electron
-            let currentVersion = '1.2.1'; // Fallback corresponding to current build version
+            let currentVersion = '1.2.3'; // Fallback corresponding to current build version
             if (Capacitor.isNativePlatform()) {
                 const info = await App.getInfo();
                 currentVersion = info.version;

@@ -30,20 +30,25 @@ const HelpFeedbackModal: React.FC<HelpFeedbackModalProps> = ({ isOpen, onClose }
         window.open(mailtoUrl, '_system');
     };
 
-    const [downloadUrl, setDownloadUrl] = useState('https://yoteayudoesp.github.io/pcshogar.github.io/PCSHogar_v0.11.9_Debug.apk');
+    const [downloadUrlAndroid, setDownloadUrlAndroid] = useState('https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_v1.2.3.apk');
+    const [downloadUrlWindows, setDownloadUrlWindows] = useState('https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.2.3.exe');
     const [checking, setChecking] = useState(false);
 
+    const isElectron = typeof window !== 'undefined' && !!(window as any).require;
+    const isApp = Capacitor.isNativePlatform() || isElectron;
+
     useEffect(() => {
-        // Fetch the latest APK URL dynamically on web platform
-        if (!Capacitor.isNativePlatform()) {
-            fetch('https://yoteayudoesp.github.io/pcshogar.github.io/version.json')
+        // Fetch the latest URLs dynamically on web platform
+        if (!isApp) {
+            fetch('https://pcshogar.es/version.json')
                 .then(res => res.json())
                 .then(data => {
-                    if (data.url) setDownloadUrl(data.url);
+                    if (data.url) setDownloadUrlAndroid(data.url);
+                    if (data.windowsUrl) setDownloadUrlWindows(data.windowsUrl);
                 })
-                .catch(err => console.log('Error fetching latest download URL:', err));
+                .catch(err => console.log('Error fetching latest download URLs:', err));
         }
-    }, []);
+    }, [isApp]);
 
     const handleCheckUpdate = async () => {
         setChecking(true);
@@ -220,7 +225,7 @@ const HelpFeedbackModal: React.FC<HelpFeedbackModalProps> = ({ isOpen, onClose }
                     </button>
 
                     {/* Dynamic update or download button */}
-                    {Capacitor.isNativePlatform() ? (
+                    {isApp ? (
                         <>
                             <style dangerouslySetInnerHTML={{__html: "@keyframes spin { 100% { transform: rotate(360deg); } }" }} />
                             <button
@@ -266,31 +271,58 @@ const HelpFeedbackModal: React.FC<HelpFeedbackModalProps> = ({ isOpen, onClose }
                             </button>
                         </>
                     ) : (
-                        <a
-                            href={downloadUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{
-                                width: '100%',
-                                padding: '16px',
-                                borderRadius: '12px',
-                                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                                color: 'white',
-                                textDecoration: 'none',
-                                fontWeight: 700,
-                                fontSize: '1.05rem',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '10px',
-                                cursor: 'pointer',
-                                boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)',
-                                boxSizing: 'border-box'
-                            }}
-                        >
-                            <Download size={22} />
-                            Descargar App para Android (.apk)
-                        </a>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+                            <a
+                                href={downloadUrlAndroid}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                    width: '100%',
+                                    padding: '16px',
+                                    borderRadius: '12px',
+                                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                    color: 'white',
+                                    textDecoration: 'none',
+                                    fontWeight: 700,
+                                    fontSize: '1.05rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '10px',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)',
+                                    boxSizing: 'border-box'
+                                }}
+                            >
+                                <Download size={22} />
+                                Descargar para Android (.apk)
+                            </a>
+                            <a
+                                href={downloadUrlWindows}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                    width: '100%',
+                                    padding: '16px',
+                                    borderRadius: '12px',
+                                    background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                                    color: 'white',
+                                    textDecoration: 'none',
+                                    fontWeight: 700,
+                                    fontSize: '1.05rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '10px',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)',
+                                    boxSizing: 'border-box'
+                                }}
+                            >
+                                <Download size={22} />
+                                Descargar para Windows (.exe)
+                            </a>
+                        </div>
                     )}
                 </div>
 

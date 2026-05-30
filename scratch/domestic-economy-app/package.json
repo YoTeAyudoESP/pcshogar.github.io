@@ -1,0 +1,94 @@
+{
+  "name": "pcshogar",
+  "private": true,
+  "productName": "PCS Hogar",
+  "appId": "com.yta.pcshogar",
+  "version": "0.4.9",
+  "description": "Aplicación de gestión de finanzas PCS Hogar",
+  "author": "YTA",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "electron:dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
+    "electron:build": "npm run build && electron-builder",
+    "android:build": "node scripts/update-android-version.cjs && npm run build && npx cap sync android && cd android && gradlew assembleDebug && cd .. && node scripts/move-apk.cjs",
+    "build:all": "npm run electron:build && npm run android:build"
+  },
+  "build": {
+    "appId": "com.pcshogar.app",
+    "productName": "PCS Hogar",
+    "directories": {
+      "output": "dist_electron"
+    },
+    "win": {
+      "icon": "public/logo.png",
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "allowElevation": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "PCS Hogar",
+      "include": "build/installer.nsh",
+      "deleteAppDataOnUninstall": false,
+      "artifactName": "PCSHogar_Setup_v${version}.${ext}"
+    },
+    "protocols": [
+      {
+        "name": "PCS Hogar Protocol",
+        "schemes": [
+          "pcshogar"
+        ]
+      }
+    ],
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ]
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/app": "^8.0.0",
+    "@capacitor/browser": "^8.0.0",
+    "@capacitor/cli": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/filesystem": "^8.0.0",
+    "@capawesome/capacitor-file-picker": "^8.0.0",
+    "@types/uuid": "^10.0.0",
+    "idb": "^8.0.3",
+    "lucide-react": "^0.561.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "recharts": "^3.6.0",
+    "smb2": "^0.2.11",
+    "uuid": "^13.0.0"
+  },
+  "main": "electron/main.cjs",
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "concurrently": "^9.2.1",
+    "electron": "^39.2.7",
+    "electron-builder": "^26.0.12",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.46.4",
+    "vite": "^7.2.4",
+    "wait-on": "^9.0.3"
+  }
+}

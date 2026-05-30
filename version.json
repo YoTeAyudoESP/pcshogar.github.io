@@ -1,6 +1,6 @@
 {
-  "version": "1.2.9",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_v1.2.9.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.2.9.exe",
-  "releaseNotes": "Novedades v1.2.9: Informes PDF mejorados con detalle completo de ingresos y gastos en segunda página, guardado en carpeta Descargas y apertura directa desde la app."
+  "version": "1.3.0",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_v1.3.0.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.3.0.exe",
+  "releaseNotes": "Novedades v1.3.0: Informes PDF mejorados con detalle completo de ingresos y gastos en segunda página, guardado en carpeta Descargas y apertura directa desde la app."
 }

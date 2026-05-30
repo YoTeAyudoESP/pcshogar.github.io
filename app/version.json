@@ -1,6 +1,6 @@
 {
-  "version": "1.2.6",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_v1.2.6.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.2.6.exe",
-  "releaseNotes": "Novedades v1.2.6: Añadido actualizador automático nativo en la app de Android con barra de progreso en tiempo real e instalación directa del paquete APK."
+  "version": "1.2.7",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_v1.2.7.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.2.7.exe",
+  "releaseNotes": "Novedades v1.2.7: Añadida la opción de generar informes financieros en PDF (mensuales, trimestrales y anuales) con diseño premium e independiente para impresión."
 }

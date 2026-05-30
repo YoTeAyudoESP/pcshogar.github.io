@@ -1,0 +1,17 @@
+{
+  "name": "PCS Hogar by YTA",
+  "short_name": "PCSHogar",
+  "description": "Gestión financiera personal y familiar premium",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#3b82f6",
+  "icons": [
+    {
+      "src": "vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

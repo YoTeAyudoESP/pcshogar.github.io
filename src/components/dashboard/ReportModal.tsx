@@ -262,35 +262,54 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                 // ✨ Android (Capacitor) ✨
                 try {
                     const base64data = await convertBlobToBase64(blob);
-                    
-                    // We save to Documents folder so the user can easily find it
-                    const writeResult = await Filesystem.writeFile({
-                        path: filename,
-                        data: base64data,
-                        directory: Directory.Documents,
-                    });
-                    
+
+                    // Try to save to Downloads folder first (Android 9 and below)
+                    let savedUri = '';
+                    let savedPath = '';
+                    try {
+                        const writeResult = await Filesystem.writeFile({
+                            path: `Download/${filename}`,
+                            data: base64data,
+                            directory: Directory.ExternalStorage,
+                        });
+                        savedUri = writeResult.uri;
+                        savedPath = `Descargas/${filename}`;
+                    } catch (_externalErr) {
+                        // Fallback: save to app-private Documents folder (works on all Android versions)
+                        const writeResult = await Filesystem.writeFile({
+                            path: filename,
+                            data: base64data,
+                            directory: Directory.Documents,
+                        });
+                        savedUri = writeResult.uri;
+                        savedPath = `Documentos/${filename}`;
+                    }
+
                     setSavedFilename(filename);
-                    setSavedPdfPath('Carpeta Documentos');
+                    setSavedPdfPath(savedPath);
                     setAndroidSaveError(null);
                     setShowOpenDialog(true);
 
-                    // Auto-open PDF via native intent
+                    // Try to open the PDF with the system viewer (stays inside app flow)
                     try {
                         await FileOpener.open({
-                            filePath: writeResult.uri,
-                            contentType: 'application/pdf'
+                            filePath: savedUri,
+                            contentType: 'application/pdf',
+                            openWithDefault: true,
                         });
                     } catch (openErr) {
-                        console.error('Error opening file:', openErr);
+                        // Opening failed but file is saved — user will see the path
+                        console.warn('FileOpener failed, PDF is still saved at:', savedPath, openErr);
                     }
 
                 } catch (_saveErr) {
                     setAndroidSaveError(
-                        'No se pudo generar el archivo en la carpeta Documentos.'
+                        'No se pudo guardar el PDF. Inténtalo de nuevo.'
                     );
                     setShowOpenDialog(true);
                 }
+
+
 
             } else {
                 // ── Web / PWA ──────────────────────────────────────────────
@@ -401,9 +420,10 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                         {!androidSaveError && isAndroidPlatform() && (
                             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
                                 <FolderOpen size={14} style={{ verticalAlign: 'middle', marginRight: '4px' }} />
-                                El archivo se ha abierto en tu lector de PDFs. Desde ahí puedes compartirlo o guardarlo.
+                                PDF guardado en: <code style={{ fontSize: '0.78rem', color: 'var(--text-main)' }}>{savedPdfPath}</code>
                             </p>
                         )}
+
                         {!androidSaveError && !isAndroidPlatform() && savedPdfPath && (
                             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
                                 <FolderOpen size={13} style={{ verticalAlign: 'middle', marginRight: '4px' }} />
@@ -773,8 +793,8 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                         </div>
                     </div>
 
-                    {/* ── PDF PAGES 2+: DETALLES DE INGRESOS (Chunks de 22 items) ── */}
-                    {includeDetail && reportData.detailIncomes.length > 0 && chunkArray(reportData.detailIncomes, 22).map((chunk, pageIndex) => (
+                    {/* ── PDF PAGES 2+: DETALLES DE INGRESOS (Chunks de 16 items) ── */}
+                    {includeDetail && reportData.detailIncomes.length > 0 && chunkArray(reportData.detailIncomes, 16).map((chunk, pageIndex) => (
                         <div key={`income-page-${pageIndex}`} className="pdf-page" style={{
                             width: '800px', height: '1131px',
                             fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
@@ -784,7 +804,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                         }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #3498db', paddingBottom: '15px', marginBottom: '25px' }}>
                                 <h3 style={{ margin: 0, fontSize: '16px', color: '#2c3e50', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 700 }}>
-                                    Detalle de Ingresos {chunkArray(reportData.detailIncomes, 22).length > 1 ? `(Parte ${pageIndex + 1})` : ''}
+                                    Detalle de Ingresos {chunkArray(reportData.detailIncomes, 16).length > 1 ? `(Parte ${pageIndex + 1})` : ''}
                                 </h3>
                                 <span style={{ fontSize: '11px', color: '#95a5a6' }}>{getPeriodName()}</span>
                             </div>
@@ -815,8 +835,8 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                         </div>
                     ))}
 
-                    {/* ── PDF PAGES: DETALLES DE GASTOS (Chunks de 22 items) ── */}
-                    {includeDetail && reportData.detailExpenses.length > 0 && chunkArray(reportData.detailExpenses, 22).map((chunk, pageIndex) => (
+                    {/* ── PDF PAGES: DETALLES DE GASTOS (Chunks de 16 items) ── */}
+                    {includeDetail && reportData.detailExpenses.length > 0 && chunkArray(reportData.detailExpenses, 16).map((chunk, pageIndex) => (
                         <div key={`expense-page-${pageIndex}`} className="pdf-page" style={{
                             width: '800px', height: '1131px',
                             fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
@@ -826,7 +846,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                         }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #3498db', paddingBottom: '15px', marginBottom: '25px' }}>
                                 <h3 style={{ margin: 0, fontSize: '16px', color: '#2c3e50', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 700 }}>
-                                    Detalle de Gastos {chunkArray(reportData.detailExpenses, 22).length > 1 ? `(Parte ${pageIndex + 1})` : ''}
+                                    Detalle de Gastos {chunkArray(reportData.detailExpenses, 16).length > 1 ? `(Parte ${pageIndex + 1})` : ''}
                                 </h3>
                                 <span style={{ fontSize: '11px', color: '#95a5a6' }}>{getPeriodName()}</span>
                             </div>

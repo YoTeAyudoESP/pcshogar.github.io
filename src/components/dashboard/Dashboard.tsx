@@ -14,7 +14,7 @@ import DateSelector from '../common/DateSelector';
 import { LayoutDashboard, Settings as SettingsIcon, X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, MinusCircle, PiggyBank, ArrowLeftRight, AlertCircle, Mail, Heart, RotateCcw, FileText } from 'lucide-react';
 
 import { useFinance } from '../../contexts/FinanceContext';
-const version = "1.3.2";
+const version = "1.3.4";
 import RemnantDecisionModal from '../settings/RemnantDecisionModal';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import EditTransactionModal from './EditTransactionModal';
@@ -521,15 +521,15 @@ const Dashboard: React.FC = () => {
                             marginBottom: '2rem'
                          }}>
                             <div>
-                                <strong style={{ color: '#10b981' }}>📊 Precisión en Gráficas:</strong>
+                                <strong style={{ color: '#10b981' }}>🔄 Actualización automática Windows:</strong>
                                 <div style={{ color: 'rgba(255,255,255,0.6)', marginLeft: '1.2rem', fontSize: '0.82rem' }}>
-                                    Las sumas de la gráfica anual de evolución ahora cuadran exactamente con tu disponible en el mes en curso.
+                                    Solucionado definitivamente el aviso de actualización constante al abrir la app en Windows.
                                 </div>
                             </div>
                             <div>
-                                <strong style={{ color: '#ec4899' }}>📄 Exportación PDF Optimizada:</strong>
+                                <strong style={{ color: '#ec4899' }}>📄 PDF en Android mejorado:</strong>
                                 <div style={{ color: 'rgba(255,255,255,0.6)', marginLeft: '1.2rem', fontSize: '0.82rem' }}>
-                                    Solucionado el error de memoria (Out of Memory) en Android al exportar informes con gran volumen de datos.
+                                    El PDF ya no minimiza la app. Se guarda en Descargas o Documentos y se te indica la ruta exacta donde encontrarlo.
                                 </div>
                             </div>
                         </div>

@@ -1,6 +1,6 @@
 {
-  "version": "1.3.2",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.3.2.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.3.2.exe",
-  "releaseNotes": "Novedades v1.3.2: Ahora los informes PDF en Android se guardan correctamente en la carpeta Documentos para un fácil acceso y visualización."
+  "version": "1.3.3",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.3.3.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.3.3.exe",
+  "releaseNotes": "Novedades v1.3.3:\n- Solucionado el problema del aviso de actualización constante en Windows.\n- Arreglados los cortes de página en los informes PDF en Windows.\n- El PDF en Android ahora ofrece un menú nativo para guardarlo en Drive o Documentos fácilmente."
 }

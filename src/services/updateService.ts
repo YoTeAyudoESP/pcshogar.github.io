@@ -31,10 +31,19 @@ export const UpdateService = {
             const releaseNotes = data.releaseNotes;
 
             // Get current local version from Capacitor/Electron
-            let currentVersion = '1.3.0'; // Fallback corresponding to current build version
+            let currentVersion = '0.0.0'; // Safe fallback: never triggers a false update
             if (Capacitor.isNativePlatform()) {
                 const info = await App.getInfo();
                 currentVersion = info.version;
+            } else if (isElectron) {
+                // Read the real installed version from the Electron main process
+                const { ipcRenderer } = (window as any).require('electron');
+                try {
+                    currentVersion = await ipcRenderer.invoke('get-app-version');
+                } catch (e) {
+                    console.warn('Could not read app version from Electron, using package fallback', e);
+                    currentVersion = '1.3.4'; // fallback to current build version
+                }
             }
 
             // Compare versions using semver

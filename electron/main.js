@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell, ipcMain } from 'electron';
+import { app, BrowserWindow, shell, ipcMain, session } from 'electron';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import fs from 'fs';
@@ -9,6 +9,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 function createWindow() {
+    // Clear the cache to prevent service worker update loops
+    session.defaultSession.clearStorageData({
+        storages: ['serviceworkers', 'caches']
+    }).catch(err => console.error('Failed to clear session cache:', err));
+
     const win = new BrowserWindow({
         width: 1200,
         height: 800,
@@ -17,6 +22,11 @@ function createWindow() {
             nodeIntegration: true,
             contextIsolation: false,
         },
+    });
+
+    // IPC: expose the real installed app version to the renderer
+    ipcMain.handle('get-app-version', () => {
+        return app.getVersion();
     });
 
     // IPC: open a URL in the system default browser

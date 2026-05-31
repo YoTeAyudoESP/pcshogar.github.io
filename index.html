@@ -1,45 +1,184 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="./logo.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PCSHogar</title>
-    <script>
-      // Force unregister any legacy service worker from the old site to clear cache
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-          if (registrations.length > 0) {
-            for (let registration of registrations) {
-              registration.unregister().then(function(boolean) {
-                if (boolean) {
-                  console.log('SW desregistrado con éxito.');
-                  const reloaded = sessionStorage.getItem('sw_reloaded');
-                  if (!reloaded) {
-                    sessionStorage.setItem('sw_reloaded', '1');
-                    window.location.reload();
-                  }
-                }
-              });
-            }
-          }
-        });
-      }
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="PCSHogar - Gestor gratuito de economía doméstica para Android, Windows y Web. Controla tus gastos, ahorra con huchas virtuales y planifica tus finanzas.">
+    <title>PCSHogar - Gestor Inteligente de Economía Doméstica</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="app-icon.png">
 
-      // Handle OAuth redirect back to the native Capacitor app
-      const hash = window.location.hash;
-      if (hash && hash.includes('access_token=')) {
-        const params = new URLSearchParams(hash.substring(1));
-        const state = params.get('state');
-        if (state === 'googledrive-android') {
-          window.location.href = 'com.pcshogar.app://auth/googledrive' + hash;
+    <!-- GoatCounter Analytics (Privacy-friendly) -->
+    <script data-goatcounter="https://pcshogar.goatcounter.com/count"
+            async src="//gc.zgo.at/count.js"></script>
+</head>
+<body>
+    <div class="blob-bg"></div>
+
+    <header class="navbar">
+        <div class="logo">
+            <img src="app-icon.png" alt="Icono PCSHogar" class="nav-icon">
+            PCSHogar
+        </div>
+        <nav>
+            <a href="#features">Características</a>
+            <a href="#download" class="nav-btn">Descargar</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <h1>Tu gestor inteligente gratuito de <span class="highlight">economía doméstica</span></h1>
+            <p class="subtitle">Controla tus gastos fijos, administra tus ahorros mediante huchas virtuales y planifica tus meses financieros fácilmente. Diseñado para darte el control total de tu dinero.</p>
+
+            <div class="update-notice" style="max-width: 700px; margin: 1.5rem auto 1.5rem; background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.25); padding: 0.9rem 1.2rem; border-radius: 14px; font-size: 0.88rem; color: rgba(229, 231, 235, 0.9); display: flex; align-items: center; gap: 12px; line-height: 1.45; text-align: left; box-sizing: border-box;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                <span><strong>🔄 ¿Ya usas la app?</strong> Para actualizar a la última versión, simplemente descarga e instala el archivo de tu plataforma. Tus datos y configuraciones se conservarán intactos sin perder nada.</span>
+            </div>
+
+            <div class="download-grid" id="download">
+                <!-- Android Download Button -->
+                <a id="android-download" onclick="trackEvent('descarga-android', 'Descargar Android APK')" href="#" class="btn btn-primary android-btn" style="display: flex; align-items: center; gap: 1rem; padding: 1.2rem 1.5rem;">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0;">
+                        <path d="M12 2a5 5 0 0 0-4.9 4.13l-.8-1.4a.5.5 0 1 0-.86.5l.84 1.45A5 5 0 0 0 6 9v2h12V9a5 5 0 0 0-.28-1.68l.84-1.45a.5.5 0 1 0-.86-.5l-.8 1.4A5 5 0 0 0 12 2zm-2.5 6a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5zm5 0a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5zM5 12h14v7a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-7zm-2 1v5a1 1 0 0 0 2 0v-5a1 1 0 0 0-2 0zm16 0v5a1 1 0 0 0 2 0v-5a1 1 0 0 0-2 0z"/>
+                    </svg>
+                    <div style="text-align: left;">
+                        <span style="font-weight: 700; font-size: 1.05rem;">Descargar para Android (.apk)</span>
+                        <span id="android-version" style="display: block; font-size: 0.78rem; opacity: 0.9; margin-top: 2px;">Cargando versión...</span>
+                    </div>
+                </a>
+
+                <!-- Web App Access -->
+                <a onclick="trackEvent('acceso-web', 'Acceso Web App')" href="app/" class="btn btn-app webapp-btn" style="display: flex; align-items: center; gap: 1rem; padding: 1.2rem 1.5rem;">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+                    </svg>
+                    <div style="text-align: left;">
+                        <span style="font-weight: 700; font-size: 1.05rem;">Acceso Web App (iPhone/Safari/Mac)</span>
+                        <span style="display: block; font-size: 0.78rem; opacity: 0.8; margin-top: 2px;">Usar directamente en el navegador</span>
+                    </div>
+                </a>
+
+                <!-- Windows Installer -->
+                <a id="win-download" onclick="trackEvent('descarga-windows', 'Descargar Windows EXE')" href="#" class="btn btn-secondary win-btn" style="display: flex; align-items: center; gap: 1rem; padding: 1.2rem 1.5rem;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0;">
+                        <path d="M0 3.449L9.75 2.1v9.45H0V3.449zM0 12.45h9.75v9.45L0 20.551v-8.102zM10.95 1.95L24 0v11.55H10.95V1.95zM10.95 12.45H24v11.55l-13.05-1.95v-9.6z"/>
+                    </svg>
+                    <div style="text-align: left;">
+                        <span style="font-weight: 700; font-size: 1.05rem;">Windows (.exe)</span>
+                        <span id="win-version" style="display: block; font-size: 0.78rem; opacity: 0.8; margin-top: 2px;">Cargando versión...</span>
+                    </div>
+                </a>
+
+                <!-- Manual de Uso -->
+                <a href="app/manual.html" target="_blank" class="btn btn-outline manual-btn" style="display: flex; align-items: center; gap: 1rem; padding: 1.2rem 1.5rem;">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                    </svg>
+                    <div style="text-align: left;">
+                        <span style="font-weight: 700; font-size: 1.05rem;">Manual de Uso</span>
+                        <span style="display: block; font-size: 0.78rem; opacity: 0.8; margin-top: 2px;">Guía de usuario oficial</span>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <section id="features" class="features">
+            <h2 class="section-title">¿Por qué elegir PCS Hogar?</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">🐷</div>
+                    <h3>Huchas Virtuales</h3>
+                    <p>Crea objetivos de ahorro, asigna dinero mensual y transfiere balances. La app detecta cuando llegas a tu meta para ayudarte a redireccionar tus ahorros.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📅</div>
+                    <h3>Control Mensual Inteligente</h3>
+                    <p>Cierre de mes asistido. El rollover pasa automáticamente tus balances positivos o negativos al mes siguiente evitando pérdidas de presupuesto.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔒</div>
+                    <h3>Privacidad Total</h3>
+                    <p>Totalmente fuera de línea. TUS datos están en TU dispositivo. Sin cuentas, sin registros en la nube y sin publicidad molesta. 100% privacidad.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📋</div>
+                    <h3>Gastos Recurrentes</h3>
+                    <p>Registra ingresos y gastos que se repiten con frecuencias personalizadas, incluso detectando cuando un cobro mensual esperado no se ha materializado.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="preview">
+            <div class="app-mockup">
+                <img src="captura1.png" alt="Dashboard superior de PCS Hogar">
+                <img src="captura2.png" alt="Gráficas inferiores de PCS Hogar">
+            </div>
+        </section>
+
+        <section id="contact" class="contact">
+            <h2 class="section-title">¿Sugerencias o problemas?</h2>
+            <div class="contact-card">
+                <p>Queremos que PCS Hogar siga mejorando gracias a la comunidad. Si tienes ideas para nuevas funciones, sugerencias de mejora o has encontrado algún problema, estaremos encantados de escucharte.</p>
+                <a href="mailto:yoayudo2020@gmail.com" class="btn btn-primary" style="display: inline-flex; max-width: 400px; margin: 0 auto;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                    Escribir a yoayudo2020@gmail.com
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <p>&copy; <span id="year"></span> Proyecto PCS Hogar. Creado con cuidado para tu tranquilidad económica.</p>
+            <div class="legal-notice">
+                <p><strong>Nota importante:</strong> Esta aplicación es 100% gratuita, de código abierto y no contiene anuncios ni tiene fines comerciales ni lucrativos. El desarrollo se ha realizado con el objetivo de ayudar a la gestión financiera personal.</p>
+                <p>El uso de este software es <strong>responsabilidad exclusiva del usuario</strong>. El desarrollador no se hace responsable de posibles errores en la aplicación o del mal uso de la misma que pueda derivar en pérdidas de datos o discrepancias financieras. Si detectas cualquier error o tienes alguna sugerencia de mejora, por favor contacta a través de la sección de contacto para seguir mejorando la herramienta para todos.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        function trackEvent(name, title) {
+            if (window.goatcounter && window.goatcounter.count) {
+                window.goatcounter.count({ path: name, title: title, event: true });
+            }
         }
-      }
+
+        // Carga dinámica de versión desde version.json
+        async function updateDownloadLinks() {
+            try {
+                const response = await fetch('./version.json?t=' + Date.now());
+                if (!response.ok) throw new Error('No se pudo leer version.json');
+                const data = await response.json();
+
+                if (data.url) {
+                    const filename = data.url.substring(data.url.lastIndexOf('/') + 1);
+                    document.getElementById('android-download').href = filename;
+                }
+
+                if (data.version) {
+                    document.getElementById('android-version').textContent = 'Versión v' + data.version;
+                    document.getElementById('win-download').href = 'PCSHogar_Setup_v' + data.version + '.exe';
+                    document.getElementById('win-version').textContent = 'Descargar v' + data.version;
+                }
+            } catch (error) {
+                console.error('Error al actualizar enlaces de descarga:', error);
+                document.getElementById('android-version').textContent = 'Versión Estable';
+                document.getElementById('win-version').textContent = 'Versión Estable';
+            }
+        }
+
+        updateDownloadLinks();
     </script>
-    <script type="module" crossorigin src="./assets/index-BtN3AkHL.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-DPx1-Dye.css">
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
+</body>
 </html>

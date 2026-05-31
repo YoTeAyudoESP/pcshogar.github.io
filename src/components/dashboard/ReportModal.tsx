@@ -262,14 +262,16 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                 // ✨ Android (Capacitor) ✨
                 try {
                     const base64data = await convertBlobToBase64(blob);
+                    
+                    // We save to Documents folder so the user can easily find it
                     const writeResult = await Filesystem.writeFile({
                         path: filename,
                         data: base64data,
-                        directory: Directory.Cache,
+                        directory: Directory.Documents,
                     });
                     
                     setSavedFilename(filename);
-                    setSavedPdfPath('Caché del dispositivo');
+                    setSavedPdfPath('Carpeta Documentos');
                     setAndroidSaveError(null);
                     setShowOpenDialog(true);
 
@@ -285,7 +287,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
 
                 } catch (_saveErr) {
                     setAndroidSaveError(
-                        'No se pudo generar el archivo en la caché del dispositivo.'
+                        'No se pudo generar el archivo en la carpeta Documentos.'
                     );
                     setShowOpenDialog(true);
                 }

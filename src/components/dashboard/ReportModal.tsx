@@ -25,16 +25,17 @@ const isElectronPlatform = (): boolean =>
 
 const isAndroidPlatform = (): boolean => Capacitor.getPlatform() === 'android';
 
-// Safe base64 conversion for large ArrayBuffers
-const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
-    const bytes = new Uint8Array(buffer);
-    let binary = '';
-    const chunkSize = 8192;
-    for (let i = 0; i < bytes.length; i += chunkSize) {
-        const chunk = bytes.slice(i, Math.min(i + chunkSize, bytes.length));
-        binary += String.fromCharCode(...chunk);
-    }
-    return btoa(binary);
+// Memory-efficient base64 conversion using native FileReader
+const convertBlobToBase64 = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = reject;
+        reader.onload = () => {
+            const result = reader.result as string;
+            resolve(result.split(',')[1]); // Remove data URI prefix
+        };
+        reader.readAsDataURL(blob);
+    });
 };
 
 // Chunk array utility for pagination
@@ -243,12 +244,12 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
 
             const filename = `PCSHogar_Informe_${getPeriodName()}.pdf`;
             setSavedFilename(filename);
-            const arrayBuffer = pdf.output('arraybuffer');
+            const blob = pdf.output('blob');
 
             if (isElectronPlatform()) {
-                // ── Windows / Electron ─────────────────────────────────────
+                // ✨ Windows / Electron ✨
                 const { ipcRenderer } = (window as any).require('electron');
-                const base64 = arrayBufferToBase64(arrayBuffer);
+                const base64 = await convertBlobToBase64(blob);
                 const result = await ipcRenderer.invoke('save-pdf', { base64, filename });
                 if (result.success) {
                     setSavedPdfPath(result.path);
@@ -258,9 +259,9 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                 }
 
             } else if (isAndroidPlatform()) {
-                // ── Android (Capacitor) ────────────────────────────────────
+                // ✨ Android (Capacitor) ✨
                 try {
-                    const base64data = pdf.output('datauristring').split(',')[1];
+                    const base64data = await convertBlobToBase64(blob);
                     const writeResult = await Filesystem.writeFile({
                         path: filename,
                         data: base64data,
@@ -292,7 +293,6 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
             } else {
                 // ── Web / PWA ──────────────────────────────────────────────
                 pdf.save(filename);
-                const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
                 setPdfBlobUrl(URL.createObjectURL(blob));
                 setShowOpenDialog(true);
             }

@@ -2,10 +2,14 @@ import React, { useMemo } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { isRecurringActiveInMonth, formatMoney, isItemInMonthAndYear } from '../../utils/financeCalculations';
+import { isRecurringActiveInMonth, formatMoney, isItemInMonthAndYear, calculateAvailableBalanceForMonth } from '../../utils/financeCalculations';
 
 const YearlyFinancialChart: React.FC = () => {
-    const { expenses, fixedIncomes, extraIncomes } = useFinance();
+    const { 
+        expenses, fixedIncomes, extraIncomes, allocations, savings, 
+        recurringExpenses, overrides, cards, incomes 
+    } = useFinance();
+    
     const { selectedYear } = useDateSelection();
 
     const currentYear = selectedYear;
@@ -21,62 +25,33 @@ const YearlyFinancialChart: React.FC = () => {
                 return { name: monthName };
             }
 
-            const period = `${currentYear}-${(index + 1).toString().padStart(2, '0')}`;
-            const monthStart = new Date(currentYear, index, 1).getTime();
-            const monthEnd = new Date(currentYear, index + 1, 0).getTime();
+            const { 
+                totalMonthIncome, 
+                totalAccountExpenses, 
+                totalCardExpenses, 
+                totalCashExpenses 
+            } = calculateAvailableBalanceForMonth(currentYear, index, {
+                fixedIncomes: incomes.filter((i: any) => i.type === 'fixed') as any[],
+                extraIncomes: incomes.filter(i => i.type === 'extra' || i.type === 'rollover'),
+                expenses,
+                allocations,
+                savings,
+                recurringExpenses,
+                overrides,
+                cards
+            });
 
-            // Calculate Income (Received Extra/Fixed Confirmed + Pending Fixed Templates)
-            const extraIncomesReceived = extraIncomes
-                .filter(inc => {
-                    if (inc.type === 'rollover') return false;
-                    if (inc.status === 'pending') return false;
-                    if (inc.excludeFromBudget) return false;
-                    return isItemInMonthAndYear(inc, index, currentYear);
-                })
-                .reduce((sum, inc) => sum + inc.amount, 0);
-
-            const pendingFixedIncomes = fixedIncomes
-                .filter(inc => {
-                    if (!inc.active) return false;
-                    const start = inc.effectiveDate || inc.createdAt || 0;
-                    const end = inc.expirationDate || new Date(9999, 11, 31).getTime();
-                    const isIgnored = inc.ignoredPeriods?.includes(period);
-
-                    if (start <= monthEnd && end >= monthStart && !isIgnored) {
-                        if (isRecurringActiveInMonth(inc.frequency, inc.paymentMonth, index, currentYear, start)) {
-                            const isConfirmed = extraIncomes.some(ei => ei.period === period && (ei as any).fixedIncomeId === inc.id);
-                            return !isConfirmed && inc.status !== 'received';
-                        }
-                    }
-                    return false;
-                })
-                .reduce((sum, inc) => sum + inc.amount, 0);
-
-            const totalIncome = extraIncomesReceived + pendingFixedIncomes;
-
-            // Calculate Expenses
-            const totalExpense = expenses
-                .filter(exp => {
-                    if (exp.excludeFromBudget) return false;
-                    if (exp.isSettlement) return false;
-                    
-                    // Defensive filter for legacy card settlements
-                    const desc = exp.description || '';
-                    if (/\[LIQUIDACION\]|Liquidación Tarjeta|Remanente Liquidación/i.test(desc)) return false;
-
-                    if (exp.amount < 0 && exp.status === 'pending') return false;
-                    return isItemInMonthAndYear(exp, index, currentYear);
-                })
-                .reduce((sum, exp) => sum + exp.amount, 0);
+            // The Dashboard's exact total expense formula
+            const totalExpense = totalAccountExpenses + totalCardExpenses + totalCashExpenses;
 
             return {
                 name: monthName,
-                Ingresos: totalIncome,
+                Ingresos: totalMonthIncome,
                 Gastos: totalExpense
             };
         });
 
-    }, [expenses, fixedIncomes, extraIncomes, currentYear]);
+    }, [expenses, fixedIncomes, extraIncomes, allocations, savings, recurringExpenses, overrides, cards, incomes, currentYear]);
 
     return (
         <div className="glass-panel" style={{ padding: '2rem 1.5rem', height: '100%', background: 'rgba(25, 27, 34, 0.3)' }}>

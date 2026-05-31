@@ -14,7 +14,7 @@ import DateSelector from '../common/DateSelector';
 import { LayoutDashboard, Settings as SettingsIcon, X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, MinusCircle, PiggyBank, ArrowLeftRight, AlertCircle, Mail, Heart, RotateCcw, FileText } from 'lucide-react';
 
 import { useFinance } from '../../contexts/FinanceContext';
-const version = "1.3.0";
+const version = "1.3.1";
 import RemnantDecisionModal from '../settings/RemnantDecisionModal';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import EditTransactionModal from './EditTransactionModal';
@@ -105,7 +105,7 @@ const Dashboard: React.FC = () => {
 
         // 2. Changelog checking
         const lastVersion = localStorage.getItem('pcshogar_last_version');
-        const currentVersion = "1.2.6";
+        const currentVersion = version;
         
         if (!lastVersion) {
             const isClean = accounts.length === 0 && cards.length === 0;
@@ -482,7 +482,7 @@ const Dashboard: React.FC = () => {
 
             {showChangelog && (
                 <div className="modal-overlay" onClick={() => {
-                    localStorage.setItem('pcshogar_last_version', '1.2.6');
+                    localStorage.setItem('pcshogar_last_version', version);
                     setShowChangelog(false);
                 }}>
                     <div className="modal-container glass-panel" style={{ padding: '2.5rem 2rem', maxWidth: '460px', width: '95%', textAlign: 'center', position: 'relative' }} onClick={e => e.stopPropagation()}>
@@ -500,7 +500,7 @@ const Dashboard: React.FC = () => {
                             <TrendingUp size={36} color="white" />
                         </div>
                         <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem', color: 'white' }}>
-                            ¡Actualizado a la v1.2.6!
+                            ¡Actualizado a la v{version}!
                         </h2>
                         <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)', marginBottom: '1.5rem' }}>
                             Resumen de las mejoras y novedades
@@ -521,22 +521,22 @@ const Dashboard: React.FC = () => {
                             marginBottom: '2rem'
                          }}>
                             <div>
-                                <strong style={{ color: '#10b981' }}>🔄 Actualizador en Android:</strong>
+                                <strong style={{ color: '#10b981' }}>📊 Precisión en Gráficas:</strong>
                                 <div style={{ color: 'rgba(255,255,255,0.6)', marginLeft: '1.2rem', fontSize: '0.82rem' }}>
-                                    Añadida la barra de progreso en tiempo real y descarga/instalación automática directa de actualizaciones en Android.
+                                    Las sumas de la gráfica anual de evolución ahora cuadran exactamente con tu disponible en el mes en curso.
                                 </div>
                             </div>
                             <div>
-                                <strong style={{ color: '#ec4899' }}>📅 Cuentas e Imputaciones:</strong>
+                                <strong style={{ color: '#ec4899' }}>📄 Exportación PDF Optimizada:</strong>
                                 <div style={{ color: 'rgba(255,255,255,0.6)', marginLeft: '1.2rem', fontSize: '0.82rem' }}>
-                                    Mantiene las mejoras de imputación presupuestaria (nóminas) y exclusión de traspasos en el gráfico anual.
+                                    Solucionado el error de memoria (Out of Memory) en Android al exportar informes con gran volumen de datos.
                                 </div>
                             </div>
                         </div>
 
                         <button 
                             onClick={() => {
-                                localStorage.setItem('pcshogar_last_version', '1.2.6');
+                                localStorage.setItem('pcshogar_last_version', version);
                                 setShowChangelog(false);
                             }}
                             style={{

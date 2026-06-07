@@ -42,7 +42,7 @@ export const UpdateService = {
                     currentVersion = await ipcRenderer.invoke('get-app-version');
                 } catch (e) {
                     console.warn('Could not read app version from Electron, using package fallback', e);
-                    currentVersion = '1.3.4'; // fallback to current build version
+                    currentVersion = '1.3.5'; // fallback to current build version
                 }
             }
 

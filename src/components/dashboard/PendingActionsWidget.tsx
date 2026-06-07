@@ -45,6 +45,9 @@ const PendingActionsWidget: React.FC = () => {
         if (start > monthEnd || end < monthStart || isIgnored) return false;
         if (inc.status === 'received') return false; // Already received (though fixedIncomes usually stay 'pending' and create extra incomes)
         
+        const isConfirmed = incomes.some(ei => ei.fixedIncomeId === inc.id && ei.period === period);
+        if (isConfirmed) return false;
+
         return isRecurringActiveInMonth(inc.frequency, inc.paymentMonth, selectedMonth, selectedYear, start);
     });
 

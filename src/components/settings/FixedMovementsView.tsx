@@ -28,7 +28,8 @@ const FixedMovementsView: React.FC<FixedMovementsViewProps> = ({ onBack }) => {
         recurringExpenses, 
         incomes, 
         deleteRecurringExpense, 
-        deleteIncome 
+        deleteIncome,
+        expenses
     } = useFinance();
 
     const [activeTab, setActiveTab] = useState<'income' | 'expense'>('expense');
@@ -65,8 +66,20 @@ const FixedMovementsView: React.FC<FixedMovementsViewProps> = ({ onBack }) => {
 
     const filteredRecurringExpenses = recurringExpenses;
 
-    const isProcessed = (item: FixedIncome | RecurringExpense) => {
+    const isIgnored = (item: FixedIncome | RecurringExpense) => {
         return item.ignoredPeriods?.includes(currentMonthPeriod) || false;
+    };
+
+    const isConfirmed = (item: FixedIncome | RecurringExpense) => {
+        if ('type' in item && item.type === 'fixed') {
+            return incomes.some(inc => inc.fixedIncomeId === item.id && inc.period === currentMonthPeriod);
+        } else {
+            return expenses.some(exp => exp.recurringExpenseId === item.id && exp.period === currentMonthPeriod);
+        }
+    };
+
+    const isProcessed = (item: FixedIncome | RecurringExpense) => {
+        return isIgnored(item) || isConfirmed(item);
     };
 
     const handleDelete = (type: 'income' | 'expense', id: string) => {
@@ -203,21 +216,31 @@ const FixedMovementsView: React.FC<FixedMovementsViewProps> = ({ onBack }) => {
                                     overflow: 'hidden'
                                 }}
                             >
-                                {processed && (
+                                {isConfirmed(item) && (
                                     <div style={{
                                         position: 'absolute',
                                         top: 0,
                                         left: 0,
                                         width: '4px',
                                         height: '100%',
-                                        backgroundColor: 'var(--color-success)'
+                                        backgroundColor: 'var(--color-success, #10b981)'
+                                    }} />
+                                )}
+                                {isIgnored(item) && (
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        width: '4px',
+                                        height: '100%',
+                                        backgroundColor: '#f43f5e'
                                     }} />
                                 )}
                                 
                                 <div style={{ flex: 1 }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                         <h4 style={{ margin: 0, fontWeight: 600 }}>{(item as any).description || (item as any).name}</h4>
-                                        {processed && (
+                                        {isConfirmed(item) && (
                                             <span style={{ 
                                                 fontSize: '0.7rem', 
                                                 background: 'rgba(16, 185, 129, 0.1)', 
@@ -227,6 +250,17 @@ const FixedMovementsView: React.FC<FixedMovementsViewProps> = ({ onBack }) => {
                                                 fontWeight: 700,
                                                 textTransform: 'uppercase'
                                             }}>Confirmado</span>
+                                        )}
+                                        {isIgnored(item) && (
+                                            <span style={{ 
+                                                fontSize: '0.7rem', 
+                                                background: 'rgba(244, 63, 94, 0.1)', 
+                                                color: '#f43f5e', 
+                                                padding: '0.1rem 0.4rem', 
+                                                borderRadius: '4px',
+                                                fontWeight: 700,
+                                                textTransform: 'uppercase'
+                                            }}>Descartado</span>
                                         )}
                                     </div>
                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '0.25rem', opacity: 0.6, fontSize: '0.85rem' }}>

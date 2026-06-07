@@ -46,6 +46,9 @@ const FinanceBreakdownModal: React.FC<FinanceBreakdownModalProps> = ({ isOpen, o
             // Si ya está en ignoredPeriods para este mes, es que ya se recibió (o se ignoró)
             if (inc.ignoredPeriods?.includes(currentPeriod)) return false;
             
+            const isConfirmed = extraIncomes.some(ei => ei.fixedIncomeId === inc.id && ei.period === currentPeriod);
+            if (isConfirmed) return false;
+
             const start = inc.effectiveDate || inc.createdAt || 0;
             const end = inc.expirationDate || new Date(9999, 11, 31).getTime();
             const monthStart = new Date(selectedYear, selectedMonth, 1).getTime();

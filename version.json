@@ -1,6 +1,6 @@
 {
-  "version": "1.3.4",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.3.4.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.3.4.exe",
-  "releaseNotes": "Novedades v1.3.4:\n- Solucionado definitivamente el aviso de actualización constante en Windows.\n- PDF en Android: ahora se guarda en Descargas o Documentos y se abre con el visor sin minimizar la app.\n- Mejoras de estabilidad generales."
+  "version": "1.3.5",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.3.5.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.3.5.exe",
+  "releaseNotes": "Novedades v1.3.5:\n- Solucionado error en el cálculo del disponible al confirmar gastos e ingresos fijos.\n- Solucionado error donde el remanente positivo del mes anterior distribuido a una hucha restaba saldo al mes actual.\n- Sincronización automática de remanentes en ventana de decisión tras ajustes manuales de saldo."
 }

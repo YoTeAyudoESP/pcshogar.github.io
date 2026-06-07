@@ -772,7 +772,9 @@ class IncomeDB {
         isBudgetAdjustment: boolean = true, 
         date?: number,
         budgetMonth?: number,
-        budgetYear?: number
+        budgetYear?: number,
+        customType?: 'manual' | 'automatic' | 'transfer_in' | 'transfer_out' | 'adjustment',
+        customDescription?: string
     ): Promise<void> {
         const db = await this.dbPromise;
         const tx = db.transaction(['savings', 'allocations', 'accounts', 'movements'], 'readwrite');
@@ -794,8 +796,8 @@ class IncomeDB {
             id: `adj_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
             goalId,
             amount: amount,
-            type: isBudgetAdjustment ? 'manual' : (amount >= 0 ? 'manual' : 'adjustment'),
-            description: amount >= 0 ? 'Aportación manual' : 'Retirada de fondos',
+            type: customType || (isBudgetAdjustment ? 'manual' : (amount >= 0 ? 'manual' : 'adjustment')),
+            description: customDescription || (amount >= 0 ? 'Aportación manual' : 'Retirada de fondos'),
             date: targetDate,
             updatedAt: Date.now(),
             budgetMonth,

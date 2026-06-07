@@ -340,6 +340,35 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                     clss.push(newPendingClosing);
                     existingClosing = newPendingClosing;
                 }
+            } else if (existingClosing && existingClosing.status === 'pending') {
+                // Recalculate to see if the available balance has changed
+                const { availableToSpend } = calculateAvailableBalanceForMonth(prevYear, prevMonth, {
+                    fixedIncomes: incs.filter((i): i is FixedIncome => i.type === 'fixed'),
+                    extraIncomes: incs.filter(i => i.type === 'extra' || i.type === 'rollover'),
+                    expenses: exps,
+                    allocations: alls,
+                    savings: svs,
+                    recurringExpenses: recs,
+                    overrides: ovrs,
+                    cards: cds
+                });
+
+                if (Math.abs(existingClosing.finalBalance - availableToSpend) > 0.001) {
+                    if (Math.abs(availableToSpend) <= 0.001) {
+                        // If it's now 0, delete the pending closing
+                        await incomeDB.deleteMonthClosing(existingClosing.id);
+                        const idx = clss.findIndex(c => c.id === existingClosing!.id);
+                        if (idx !== -1) {
+                            clss.splice(idx, 1);
+                        }
+                        existingClosing = undefined;
+                    } else {
+                        // Update the final balance
+                        existingClosing.finalBalance = availableToSpend;
+                        existingClosing.closedAt = Date.now();
+                        await incomeDB.addMonthClosing(existingClosing);
+                    }
+                }
             }
 
             // If there's a pending closing, show modal
@@ -666,12 +695,6 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                 fixedIncomeId: fixedId
             };
             await incomeDB.addIncomeWithTransaction(newIncome);
-            
-            const fixed = incomes.find(i => i.id === fixedId) as FixedIncome;
-            if (fixed) {
-                const ignoredPeriods = [...(fixed.ignoredPeriods || []), period];
-                await incomeDB.updateIncome({ ...fixed, ignoredPeriods });
-            }
 
             // Auto-savings allocations for linked piggy banks
             const linkedGoals = savings.filter(s => s.linkedFixedIncomeId === fixedId);
@@ -701,12 +724,6 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                 updatedAt: Date.now()
             };
             await incomeDB.addExpenseWithTransaction(newExpense);
-            
-            const rec = recurringExpenses.find(r => r.id === fixedId);
-            if (rec) {
-                const ignoredPeriods = [...(rec.ignoredPeriods || []), period];
-                await incomeDB.updateRecurringExpense({ ...rec, ignoredPeriods, updatedAt: Date.now() });
-            }
         }
         await refreshFinance();
     };
@@ -998,9 +1015,19 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                     await incomeDB.addIncomeWithTransaction(rolloverIncome);
                 }
             } else if (dist.type === 'saving_goal' && dist.targetId) {
-                // Adjust saving goal (this doesn't affect account balance by default as it's an "available" distribution)
-                // Use isBudgetAdjustment=true to make it affect the monthly summary logic
-                await incomeDB.adjustSavingGoalWithTransaction(dist.targetId, dist.amount, undefined, true);
+                // Adjust saving goal. Set isBudgetAdjustment to false and type to 'adjustment'
+                // so it doesn't affect the current month's available balance.
+                await incomeDB.adjustSavingGoalWithTransaction(
+                    dist.targetId, 
+                    dist.amount, 
+                    undefined, 
+                    false, 
+                    Date.now(), 
+                    undefined, 
+                    undefined, 
+                    'adjustment', 
+                    `Remanente de ${new Date(closing.year, closing.month).toLocaleString('es-ES', { month: 'long' })}`
+                );
             }
         }
 
@@ -1041,8 +1068,18 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                         await incomeDB.deleteIncomeWithTransaction(rolloverInc.id);
                     }
                 } else if (dist.type === 'saving_goal' && dist.targetId) {
-                    // Reverse saving goal adjustment
-                    await incomeDB.adjustSavingGoalWithTransaction(dist.targetId, -dist.amount, undefined, true);
+                    // Reverse saving goal adjustment. Set isBudgetAdjustment to false and type to 'adjustment'
+                    await incomeDB.adjustSavingGoalWithTransaction(
+                        dist.targetId, 
+                        -dist.amount, 
+                        undefined, 
+                        false, 
+                        Date.now(), 
+                        undefined, 
+                        undefined, 
+                        'adjustment', 
+                        `Reversión remanente de ${new Date(closing.year, closing.month).toLocaleString('es-ES', { month: 'long' })}`
+                    );
                 }
             }
         }
@@ -1184,7 +1221,18 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                         await incomeDB.deleteIncomeWithTransaction(rolloverInc.id);
                     }
                 } else if (dist.type === 'saving_goal' && dist.targetId) {
-                    await incomeDB.adjustSavingGoalWithTransaction(dist.targetId, -dist.amount, undefined, true);
+                    // Revert saving goal adjustment. Set isBudgetAdjustment to false and type to 'adjustment'
+                    await incomeDB.adjustSavingGoalWithTransaction(
+                        dist.targetId, 
+                        -dist.amount, 
+                        undefined, 
+                        false, 
+                        Date.now(), 
+                        undefined, 
+                        undefined, 
+                        'adjustment', 
+                        `Reversión remanente de ${new Date(closing.year, closing.month).toLocaleString('es-ES', { month: 'long' })}`
+                    );
                 }
             }
         }

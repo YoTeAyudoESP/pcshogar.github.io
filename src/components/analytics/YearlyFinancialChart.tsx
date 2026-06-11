@@ -27,9 +27,9 @@ const YearlyFinancialChart: React.FC = () => {
 
             const { 
                 totalMonthIncome, 
-                totalAccountExpenses, 
-                totalCardExpenses, 
-                totalCashExpenses 
+                grossAccountExpenses, 
+                grossCardExpenses, 
+                grossCashExpenses 
             } = calculateAvailableBalanceForMonth(currentYear, index, {
                 fixedIncomes: incomes.filter((i: any) => i.type === 'fixed') as any[],
                 extraIncomes: incomes.filter(i => i.type === 'extra' || i.type === 'rollover'),
@@ -41,8 +41,8 @@ const YearlyFinancialChart: React.FC = () => {
                 cards
             });
 
-            // The Dashboard's exact total expense formula
-            const totalExpense = totalAccountExpenses + totalCardExpenses + totalCashExpenses;
+            // Use the gross expenses totals (including hucha-funded) for the cash-flow chart
+            const totalExpense = (grossAccountExpenses || 0) + (grossCardExpenses || 0) + (grossCashExpenses || 0);
 
             return {
                 name: monthName,

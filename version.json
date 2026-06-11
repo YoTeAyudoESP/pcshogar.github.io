@@ -1,6 +1,6 @@
 {
-  "version": "1.3.5",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.3.5.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.3.5.exe",
-  "releaseNotes": "Novedades v1.3.5:\n- Solucionado error en el cálculo del disponible al confirmar gastos e ingresos fijos.\n- Solucionado error donde el remanente positivo del mes anterior distribuido a una hucha restaba saldo al mes actual.\n- Sincronización automática de remanentes en ventana de decisión tras ajustes manuales de saldo."
+  "version": "1.3.6",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.3.6.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.3.6.exe",
+  "releaseNotes": "Novedades v1.3.6:\n- Financiación múltiple con huchas: Ahora puedes financiar cualquier gasto (fijo o variable) usando varias huchas simultáneamente con validación de saldos y autofill.\n- Corrección de disponible en Dashboard: Al financiar un gasto pagado con huchas, el importe vuelve a sumarse al disponible del mes de forma correcta.\n- Centralización de versiones offline: Ahora la versión y las novedades se cargan localmente para garantizar el funcionamiento offline."
 }

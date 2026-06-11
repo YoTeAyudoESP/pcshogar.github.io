@@ -4,6 +4,77 @@ import { UpdateService } from '../../services/updateService';
 import type { UpdateInfo } from '../../services/updateService';
 import { ArrowDownCircle } from 'lucide-react';
 
+const renderReleaseNotes = (notes: string) => {
+    if (!notes) return null;
+    const lines = notes.split('\n').filter(line => line.trim() !== '');
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', textAlign: 'left' }}>
+            {lines.map((line, idx) => {
+                let cleanLine = line.trim();
+                if (cleanLine.toLowerCase().startsWith('novedades') && cleanLine.endsWith(':')) {
+                    return (
+                        <div key={idx} style={{ 
+                            fontSize: '0.95rem', 
+                            fontWeight: 800, 
+                            color: '#10b981', 
+                            borderBottom: '1px solid rgba(16, 185, 129, 0.2)',
+                            paddingBottom: '6px',
+                            marginBottom: '0.4rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem'
+                        }}>
+                            <span style={{ fontSize: '1.1rem' }}>🎉</span> {cleanLine}
+                        </div>
+                    );
+                }
+                if (cleanLine.startsWith('-') || cleanLine.startsWith('*')) {
+                    cleanLine = cleanLine.substring(1).trim();
+                }
+                const colonIndex = cleanLine.indexOf(':');
+                let title = '';
+                let desc = cleanLine;
+                if (colonIndex > 0) {
+                    title = cleanLine.substring(0, colonIndex).trim();
+                    desc = cleanLine.substring(colonIndex + 1).trim();
+                }
+                return (
+                    <div key={idx} style={{ 
+                        display: 'flex', 
+                        gap: '0.75rem', 
+                        alignItems: 'flex-start',
+                        background: 'rgba(255, 255, 255, 0.02)',
+                        border: '1px solid rgba(255, 255, 255, 0.04)',
+                        padding: '0.75rem 1rem',
+                        borderRadius: '12px'
+                    }}>
+                        <div style={{ 
+                            background: 'rgba(16, 185, 129, 0.1)', 
+                            color: '#10b981', 
+                            borderRadius: '50%', 
+                            width: '20px', 
+                            height: '20px', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center', 
+                            flexShrink: 0,
+                            marginTop: '2px'
+                        }}>
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </div>
+                        <div style={{ flex: 1, fontSize: '0.85rem', lineHeight: '1.45', color: 'rgba(255,255,255,0.85)' }}>
+                            {title && <span style={{ fontWeight: 700, color: 'white', display: 'block', marginBottom: '2px' }}>{title}</span>}
+                            <span>{desc}</span>
+                        </div>
+                    </div>
+                );
+            })}
+        </div>
+    );
+};
+
 const AppUpdateChecker: React.FC = () => {
     const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
     const [showModal, setShowModal] = useState(false);
@@ -136,11 +207,8 @@ const AppUpdateChecker: React.FC = () => {
                         </p>
 
                         {updateInfo.releaseNotes && (
-                            <div style={notesContainerStyle}>
-                                <strong style={{ fontSize: '0.78rem', color: '#34d399' }}>Novedades de la versión:</strong>
-                                <div style={notesTextStyle}>
-                                    {updateInfo.releaseNotes}
-                                </div>
+                            <div style={{ ...notesContainerStyle, maxHeight: '200px', overflowY: 'auto' }}>
+                                {renderReleaseNotes(updateInfo.releaseNotes)}
                             </div>
                         )}
 

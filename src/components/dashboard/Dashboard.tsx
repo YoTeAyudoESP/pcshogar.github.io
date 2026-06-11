@@ -24,6 +24,77 @@ import ReportModal from './ReportModal';
 import type { Expense } from '../../types/finance';
 import type { Income } from '../../types/income';
 
+const renderReleaseNotes = (notes: string) => {
+    if (!notes) return null;
+    const lines = notes.split('\n').filter(line => line.trim() !== '');
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', textAlign: 'left' }}>
+            {lines.map((line, idx) => {
+                let cleanLine = line.trim();
+                if (cleanLine.toLowerCase().startsWith('novedades') && cleanLine.endsWith(':')) {
+                    return (
+                        <div key={idx} style={{ 
+                            fontSize: '0.95rem', 
+                            fontWeight: 800, 
+                            color: '#10b981', 
+                            borderBottom: '1px solid rgba(16, 185, 129, 0.2)',
+                            paddingBottom: '6px',
+                            marginBottom: '0.4rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem'
+                        }}>
+                            <span style={{ fontSize: '1.1rem' }}>🎉</span> {cleanLine}
+                        </div>
+                    );
+                }
+                if (cleanLine.startsWith('-') || cleanLine.startsWith('*')) {
+                    cleanLine = cleanLine.substring(1).trim();
+                }
+                const colonIndex = cleanLine.indexOf(':');
+                let title = '';
+                let desc = cleanLine;
+                if (colonIndex > 0) {
+                    title = cleanLine.substring(0, colonIndex).trim();
+                    desc = cleanLine.substring(colonIndex + 1).trim();
+                }
+                return (
+                    <div key={idx} style={{ 
+                        display: 'flex', 
+                        gap: '0.75rem', 
+                        alignItems: 'flex-start',
+                        background: 'rgba(255, 255, 255, 0.02)',
+                        border: '1px solid rgba(255, 255, 255, 0.04)',
+                        padding: '0.75rem 1rem',
+                        borderRadius: '12px'
+                    }}>
+                        <div style={{ 
+                            background: 'rgba(16, 185, 129, 0.1)', 
+                            color: '#10b981', 
+                            borderRadius: '50%', 
+                            width: '20px', 
+                            height: '20px', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center', 
+                            flexShrink: 0,
+                            marginTop: '2px'
+                        }}>
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </div>
+                        <div style={{ flex: 1, fontSize: '0.85rem', lineHeight: '1.45', color: 'rgba(255,255,255,0.85)' }}>
+                            {title && <span style={{ fontWeight: 700, color: 'white', display: 'block', marginBottom: '2px' }}>{title}</span>}
+                            <span>{desc}</span>
+                        </div>
+                    </div>
+                );
+            })}
+        </div>
+    );
+};
+
 const Dashboard: React.FC = () => {
     const { pendingClosing, setPendingClosing, closings, accounts, cards, loading } = useFinance();
 
@@ -516,10 +587,9 @@ const Dashboard: React.FC = () => {
                             fontSize: '0.88rem',
                             lineHeight: '1.6',
                             color: 'rgba(255,255,255,0.8)',
-                            marginBottom: '2rem',
-                            whiteSpace: 'pre-line'
+                            marginBottom: '2rem'
                          }}>
-                            {versionInfo.releaseNotes}
+                            {renderReleaseNotes(versionInfo.releaseNotes)}
                         </div>
 
                         <button 

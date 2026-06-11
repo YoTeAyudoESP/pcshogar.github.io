@@ -151,6 +151,34 @@ const FixedMovementsView: React.FC<FixedMovementsViewProps> = ({ onBack }) => {
                 </div>
             </div>
 
+            {/* Info Banner showing Selected Month */}
+            <div style={{
+                background: 'rgba(59, 130, 246, 0.05)',
+                border: '1px solid rgba(59, 130, 246, 0.15)',
+                borderRadius: '16px',
+                padding: '1rem 1.25rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.5rem',
+                marginTop: '-0.5rem'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <CalendarClock size={18} style={{ color: '#60a5fa' }} />
+                    <span style={{ fontSize: '0.95rem', fontWeight: 700, color: 'white' }}>
+                        Periodo Activo: <span style={{ color: '#60a5fa' }}>{(() => {
+                            const months = [
+                                'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+                            ];
+                            return `${months[selectedMonth]} de ${selectedYear}`;
+                        })()}</span>
+                    </span>
+                </div>
+                <p style={{ margin: 0, fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.5)', lineHeight: '1.45' }}>
+                    Estás visualizando, confirmando o descartando los movimientos fijos de este periodo. Si deseas cambiar de mes, por favor hazlo desde el selector de fecha del panel principal (Dashboard).
+                </p>
+            </div>
+
             {/* Form Section */}
             {showIncomeForm && (
                 <FixedIncomeForm 

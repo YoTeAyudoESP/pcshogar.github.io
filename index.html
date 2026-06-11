@@ -3,18 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="PCSHogar - Gestor gratuito de economía doméstica para Android, Windows y Web. Controla tus gastos, ahorra con huchas virtuales y planifica tus finanzas.">
     <title>PCSHogar - Gestor Inteligente de Economía Doméstica</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Estilos locales y Favicon (con versión para forzar actualización) -->
-    <link rel="stylesheet" href="style.css?v=1.0.3">
+    <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/png" href="app-icon.png">
-    
+
     <!-- GoatCounter Analytics (Privacy-friendly) -->
     <script data-goatcounter="https://pcshogar.goatcounter.com/count"
             async src="//gc.zgo.at/count.js"></script>
+
+    <!-- Limpiar service workers antiguos de la app React que estaba en la raíz -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          registrations.forEach(function(reg) {
+            reg.unregister();
+          });
+          // Limpiar todas las cachés del navegador del dominio
+          if ('caches' in window) {
+            caches.keys().then(function(names) {
+              names.forEach(function(name) { caches.delete(name); });
+            });
+          }
+        });
+      }
+    </script>
 </head>
 <body>
     <div class="blob-bg"></div>
@@ -34,14 +50,14 @@
         <section class="hero">
             <h1>Tu gestor inteligente gratuito de <span class="highlight">economía doméstica</span></h1>
             <p class="subtitle">Controla tus gastos fijos, administra tus ahorros mediante huchas virtuales y planifica tus meses financieros fácilmente. Diseñado para darte el control total de tu dinero.</p>
-            
+
             <div class="update-notice" style="max-width: 700px; margin: 1.5rem auto 1.5rem; background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.25); padding: 0.9rem 1.2rem; border-radius: 14px; font-size: 0.88rem; color: rgba(229, 231, 235, 0.9); display: flex; align-items: center; gap: 12px; line-height: 1.45; text-align: left; box-sizing: border-box;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#818cf8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                <span><strong>💡 ¿Ya usas la app?</strong> Para actualizar a la última versión, simplemente descarga e instala el archivo de tu plataforma. Tus datos y configuraciones se conservarán intactos sin perder nada.</span>
+                <span><strong>🔄 ¿Ya usas la app?</strong> Para actualizar a la última versión, simplemente descarga e instala el archivo de tu plataforma. Tus datos y configuraciones se conservarán intactos sin perder nada.</span>
             </div>
-            
+
             <div class="download-grid" id="download">
-                <!-- Android Download Button (Main highlight) -->
+                <!-- Android Download Button -->
                 <a id="android-download" onclick="trackEvent('descarga-android', 'Descargar Android APK')" href="#" class="btn btn-primary android-btn" style="display: flex; align-items: center; gap: 1rem; padding: 1.2rem 1.5rem;">
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0;">
                         <path d="M12 2a5 5 0 0 0-4.9 4.13l-.8-1.4a.5.5 0 1 0-.86.5l.84 1.45A5 5 0 0 0 6 9v2h12V9a5 5 0 0 0-.28-1.68l.84-1.45a.5.5 0 1 0-.86-.5l-.8 1.4A5 5 0 0 0 12 2zm-2.5 6a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5zm5 0a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5zM5 12h14v7a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3v-7zm-2 1v5a1 1 0 0 0 2 0v-5a1 1 0 0 0-2 0zm16 0v5a1 1 0 0 0 2 0v-5a1 1 0 0 0-2 0z"/>
@@ -52,7 +68,7 @@
                     </div>
                 </a>
 
-                <!-- Web App Access (For iOS/macOS/Browsers) -->
+                <!-- Web App Access -->
                 <a onclick="trackEvent('acceso-web', 'Acceso Web App')" href="app/" class="btn btn-app webapp-btn" style="display: flex; align-items: center; gap: 1rem; padding: 1.2rem 1.5rem;">
                     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
                         <circle cx="12" cy="12" r="10"/>
@@ -64,7 +80,7 @@
                     </div>
                 </a>
 
-                <!-- Windows Installer (Available) -->
+                <!-- Windows Installer -->
                 <a id="win-download" onclick="trackEvent('descarga-windows', 'Descargar Windows EXE')" href="#" class="btn btn-secondary win-btn" style="display: flex; align-items: center; gap: 1rem; padding: 1.2rem 1.5rem;">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0;">
                         <path d="M0 3.449L9.75 2.1v9.45H0V3.449zM0 12.45h9.75v9.45L0 20.551v-8.102zM10.95 1.95L24 0v11.55H10.95V1.95zM10.95 12.45H24v11.55l-13.05-1.95v-9.6z"/>
@@ -95,12 +111,12 @@
             <h2 class="section-title">¿Por qué elegir PCS Hogar?</h2>
             <div class="feature-grid">
                 <div class="feature-card">
-                    <div class="icon">💰</div>
+                    <div class="icon">🐷</div>
                     <h3>Huchas Virtuales</h3>
                     <p>Crea objetivos de ahorro, asigna dinero mensual y transfiere balances. La app detecta cuando llegas a tu meta para ayudarte a redireccionar tus ahorros.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="icon">🗓️</div>
+                    <div class="icon">📅</div>
                     <h3>Control Mensual Inteligente</h3>
                     <p>Cierre de mes asistido. El rollover pasa automáticamente tus balances positivos o negativos al mes siguiente evitando pérdidas de presupuesto.</p>
                 </div>
@@ -110,7 +126,7 @@
                     <p>Totalmente fuera de línea. TUS datos están en TU dispositivo. Sin cuentas, sin registros en la nube y sin publicidad molesta. 100% privacidad.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="icon">📈</div>
+                    <div class="icon">📋</div>
                     <h3>Gastos Recurrentes</h3>
                     <p>Registra ingresos y gastos que se repiten con frecuencias personalizadas, incluso detectando cuando un cobro mensual esperado no se ha materializado.</p>
                 </div>
@@ -149,49 +165,36 @@
     <script>
         document.getElementById('year').textContent = new Date().getFullYear();
 
-        // Función para enviar eventos personalizados a GoatCounter
         function trackEvent(name, title) {
             if (window.goatcounter && window.goatcounter.count) {
-                window.goatcounter.count({
-                    path: name,
-                    title: title,
-                    event: true
-                });
+                window.goatcounter.count({ path: name, title: title, event: true });
             }
         }
 
-        // Obtener la información del archivo local version.json
+        // Carga dinámica de versión desde version.json
         async function updateDownloadLinks() {
             try {
-                const response = await fetch('./version.json?t=' + Date.now(), { cache: 'no-store' });
+                const response = await fetch('./version.json?t=' + Date.now());
                 if (!response.ok) throw new Error('No se pudo leer version.json');
-                
                 const data = await response.json();
-                
+
                 if (data.url) {
-                    // Extraemos el nombre del APK para que la descarga sea relativa local
-                    // En version.json ahora guardamos la URL de la web principal para redirigir la actualización,
-                    // pero para la descarga inicial de APK extraemos el archivo o usamos un fallback.
-                    const filename = data.url.endsWith('/') ? 'PCSHogar_v' + data.version + '.apk' : data.url.substring(data.url.lastIndexOf('/') + 1);
+                    const filename = data.url.substring(data.url.lastIndexOf('/') + 1);
                     document.getElementById('android-download').href = filename;
                 }
-                
+
                 if (data.version) {
                     document.getElementById('android-version').textContent = 'Versión v' + data.version;
-                    
-                    // Dinamizar el enlace de Windows
                     document.getElementById('win-download').href = 'PCSHogar_Setup_v' + data.version + '.exe';
                     document.getElementById('win-version').textContent = 'Descargar v' + data.version;
                 }
-                
-                console.log('Enlaces de descarga actualizados dinámicamente a la versión:', data.version);
             } catch (error) {
                 console.error('Error al actualizar enlaces de descarga:', error);
                 document.getElementById('android-version').textContent = 'Versión Estable';
                 document.getElementById('win-version').textContent = 'Versión Estable';
             }
         }
-        
+
         updateDownloadLinks();
     </script>
 </body>

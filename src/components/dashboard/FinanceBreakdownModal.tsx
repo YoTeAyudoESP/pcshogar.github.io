@@ -70,15 +70,31 @@ const FinanceBreakdownModal: React.FC<FinanceBreakdownModalProps> = ({ isOpen, o
         .reduce((sum, inc) => sum + inc.amount, 0);
 
     const financiadoHuchas = expenses
-        .filter(e => isItemInSelectedMonth(e) && e.linkedSavingGoalId)
-        .reduce((sum, e) => sum + e.amount, 0);
+        .filter(e => isItemInSelectedMonth(e))
+        .reduce((sum, e) => {
+            let funded = 0;
+            if (e.savingGoalFunding && e.savingGoalFunding.length > 0) {
+                funded = e.savingGoalFunding.reduce((s, f) => s + f.amount, 0);
+            } else if (e.linkedSavingGoalId) {
+                funded = e.amount;
+            }
+            return sum + funded;
+        }, 0);
 
     const ingresosTotales = fijosRecibidos + fijosProyectados + extrasRecibidos + remanente + financiadoHuchas;
 
     // 2. Gastos del Mes
     const pagados = expenses
-        .filter(e => isItemInSelectedMonth(e) && !e.linkedSavingGoalId && !e.excludeFromBudget && !(e.amount < 0 && e.status === 'pending'))
-        .reduce((sum, e) => sum + e.amount, 0);
+        .filter(e => isItemInSelectedMonth(e) && !e.excludeFromBudget && !(e.amount < 0 && e.status === 'pending'))
+        .reduce((sum, e) => {
+            let funded = 0;
+            if (e.savingGoalFunding && e.savingGoalFunding.length > 0) {
+                funded = e.savingGoalFunding.reduce((s, f) => s + f.amount, 0);
+            } else if (e.linkedSavingGoalId) {
+                funded = e.amount;
+            }
+            return sum + (e.amount - funded);
+        }, 0);
 
     const pendientesFijos = recurringExpenses
         .filter(re => {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Heart, Coffee, Mail, X, Download, RefreshCw } from 'lucide-react';
 import { Capacitor, registerPlugin } from '@capacitor/core';
 import { UpdateService } from '../../services/updateService';
+import versionInfo from '../../../public/version.json';
 
 interface APKInstallerPlugin {
     downloadAndInstall(options: { url: string }): Promise<void>;
@@ -36,8 +37,8 @@ const HelpFeedbackModal: React.FC<HelpFeedbackModalProps> = ({ isOpen, onClose }
         window.open(mailtoUrl, '_system');
     };
 
-    const [downloadUrlAndroid, setDownloadUrlAndroid] = useState('https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_v1.2.6.apk');
-    const [downloadUrlWindows, setDownloadUrlWindows] = useState('https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.2.6.exe');
+    const [downloadUrlAndroid, setDownloadUrlAndroid] = useState(versionInfo.url);
+    const [downloadUrlWindows, setDownloadUrlWindows] = useState(versionInfo.windowsUrl);
     const [checking, setChecking] = useState(false);
     const [downloading, setDownloading] = useState(false);
     const [progress, setProgress] = useState(0);

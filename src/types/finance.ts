@@ -54,6 +54,7 @@ export interface Expense {
     relatedId?: string;
     settlementInfo?: string;
     linkedSavingGoalId?: string;
+    savingGoalFunding?: { goalId: string; amount: number }[];
 }
 
 export interface SavingGoal {

@@ -24,7 +24,8 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false }) 
     const [selectedMethodId, setSelectedMethodId] = useState('');
     const [status, setStatus] = useState<'paid' | 'pending'>('paid');
     const [isFinancedByHucha, setIsFinancedByHucha] = useState(false);
-    const [selectedHuchaId, setSelectedHuchaId] = useState('');
+    const [selectedHuchas, setSelectedHuchas] = useState<Record<string, boolean>>({});
+    const [savingGoalFunding, setSavingGoalFunding] = useState<Record<string, string>>({});
     const [settlementAdjustment, setSettlementAdjustment] = useState<number>(0);
 
     useEffect(() => {
@@ -33,9 +34,44 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false }) 
         }
     }, [expenseCategories, categoryId]);
 
+    const expenseTotal = parseFloat(amount) || 0;
+
+    const totalAllocated = Object.entries(savingGoalFunding)
+        .filter(([id]) => selectedHuchas[id])
+        .reduce((sum, [_, val]) => sum + (parseFloat(val) || 0), 0);
+
+    const hasBalanceError = savings.some(h => 
+        selectedHuchas[h.id] && (parseFloat(savingGoalFunding[h.id]) || 0) > Math.max(0, h.currentAmount)
+    );
+
+    const hasNegativeError = Object.entries(savingGoalFunding)
+        .some(([id, val]) => selectedHuchas[id] && (parseFloat(val) || 0) < 0);
+
+    const isFundingInvalid = isFinancedByHucha && (
+        totalAllocated > expenseTotal ||
+        totalAllocated <= 0 ||
+        hasBalanceError ||
+        hasNegativeError
+    );
+
+    const handleAutofill = (goalId: string, availableAmount: number) => {
+        // Calculate total allocated except this hucha
+        const otherAllocated = Object.entries(savingGoalFunding)
+            .filter(([id]) => id !== goalId && selectedHuchas[id])
+            .reduce((sum, [_, val]) => sum + (parseFloat(val) || 0), 0);
+        
+        const remaining = Math.max(0, expenseTotal - otherAllocated);
+        const toAlloc = Math.min(availableAmount, remaining);
+        
+        // Set checked to true
+        setSelectedHuchas(prev => ({ ...prev, [goalId]: true }));
+        // Update funding amount
+        setSavingGoalFunding(prev => ({ ...prev, [goalId]: toAlloc.toFixed(2) }));
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!description || !amount) return;
+        if (!description || !amount || isFundingInvalid) return;
 
         let paymentMethod: any;
         if (paymentMethodType === 'account') {
@@ -56,6 +92,12 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false }) 
             finalDescription = `Devolución: ${finalDescription}`;
         }
 
+        const fundingList = isFinancedByHucha
+            ? Object.entries(savingGoalFunding)
+                .filter(([id, val]) => selectedHuchas[id] && parseFloat(val) > 0)
+                .map(([id, val]) => ({ goalId: id, amount: parseFloat(val) }))
+            : undefined;
+
         await addExpense({
             description: finalDescription,
             amount: finalAmount,
@@ -65,7 +107,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false }) 
             paymentMethod,
             isFixed: false,
             status,
-            linkedSavingGoalId: isFinancedByHucha ? selectedHuchaId : undefined
+            savingGoalFunding: fundingList
         });
 
         onClose();
@@ -268,43 +310,155 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false }) 
                                     checked={isFinancedByHucha}
                                     onChange={e => setIsFinancedByHucha(e.target.checked)}
                                 />
-                                ¿Financiar con una hucha?
+                                ¿Financiar con huchas?
                             </label>
                             <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem', marginTop: '8px', marginLeft: '32px' }}>
-                                Si se marca, el dinero se descontará del saldo de la hucha y no afectará al disponible del mes.
+                                Si se marca, el dinero se descontará del saldo de la/s hucha/s seleccionada/s y no afectará al disponible del mes.
                             </p>
                             
                             {isFinancedByHucha && (
-                                <div style={{ marginTop: '1rem', marginLeft: '32px' }}>
-                                    <label style={labelStyle}>Seleccionar Hucha</label>
-                                    <select 
-                                        style={{ ...inputStyle, background: '#12141c' }} 
-                                        value={selectedHuchaId} 
-                                        onChange={e => setSelectedHuchaId(e.target.value)}
-                                        required
-                                    >
-                                        <option value="">Seleccione Hucha...</option>
-                                        {savings.map(h => (
-                                            <option key={h.id} value={h.id}>{h.name} ({formatMoney(h.currentAmount)})</option>
-                                        ))}
-                                    </select>
+                                <div style={{ marginTop: '1rem', marginLeft: '32px', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                    <label style={labelStyle}>Seleccionar Huchas y asignar importes</label>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '200px', overflowY: 'auto', paddingRight: '4px' }}>
+                                        {savings.length === 0 ? (
+                                            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem' }}>No tienes huchas creadas.</p>
+                                        ) : (
+                                            savings.map(h => {
+                                                const isChecked = !!selectedHuchas[h.id];
+                                                const available = Math.max(0, h.currentAmount);
+                                                return (
+                                                    <div key={h.id} style={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'space-between',
+                                                        gap: '0.75rem',
+                                                        background: isChecked ? 'rgba(99, 102, 241, 0.08)' : 'rgba(255,255,255,0.02)',
+                                                        padding: '0.5rem 0.75rem',
+                                                        borderRadius: '8px',
+                                                        border: isChecked ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid rgba(255,255,255,0.05)',
+                                                        transition: 'all 0.2s'
+                                                    }}>
+                                                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', flex: 1, margin: 0 }}>
+                                                            <input 
+                                                                type="checkbox" 
+                                                                checked={isChecked}
+                                                                onChange={e => {
+                                                                    setSelectedHuchas(prev => ({ ...prev, [h.id]: e.target.checked }));
+                                                                    if (!e.target.checked) {
+                                                                        setSavingGoalFunding(prev => ({ ...prev, [h.id]: '' }));
+                                                                    }
+                                                                }}
+                                                                style={{ accentColor: '#4f46e5', width: '16px', height: '16px' }}
+                                                            />
+                                                            <span style={{ color: 'white', fontSize: '0.9rem', fontWeight: 500 }}>{h.name}</span>
+                                                        </label>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                            <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>
+                                                                Dispon.: {formatMoney(available)}
+                                                            </span>
+                                                            {isChecked && (
+                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                                    <input 
+                                                                        type="number"
+                                                                        step="0.01"
+                                                                        placeholder="0.00"
+                                                                        value={savingGoalFunding[h.id] || ''}
+                                                                        onChange={e => setSavingGoalFunding(prev => ({ ...prev, [h.id]: e.target.value }))}
+                                                                        style={{
+                                                                            background: '#12141c',
+                                                                            border: '1px solid rgba(255,255,255,0.1)',
+                                                                            borderRadius: '4px',
+                                                                            padding: '4px 8px',
+                                                                            color: 'white',
+                                                                            width: '80px',
+                                                                            fontSize: '0.85rem',
+                                                                            outline: 'none'
+                                                                        }}
+                                                                    />
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleAutofill(h.id, available)}
+                                                                        style={{
+                                                                            background: '#4f46e5',
+                                                                            border: 'none',
+                                                                            borderRadius: '4px',
+                                                                            padding: '4px 8px',
+                                                                            color: 'white',
+                                                                            fontSize: '0.75rem',
+                                                                            cursor: 'pointer',
+                                                                            fontWeight: 600
+                                                                        }}
+                                                                    >
+                                                                        Máx
+                                                                    </button>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })
+                                        )}
+                                    </div>
+                                    {isFinancedByHucha && (
+                                        <div style={{ 
+                                            background: 'rgba(99, 102, 241, 0.08)', 
+                                            border: '1px solid rgba(99, 102, 241, 0.2)',
+                                            padding: '0.75rem 1rem',
+                                            borderRadius: '8px',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            gap: '4px',
+                                            marginTop: '0.75rem'
+                                        }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <Info size={16} style={{ color: '#818cf8' }} />
+                                                <span style={{ fontSize: '0.85rem', color: '#818cf8', fontWeight: 600 }}>
+                                                    Resumen de Financiación
+                                                </span>
+                                            </div>
+                                            <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)', marginLeft: '1.5rem' }}>
+                                                {totalAllocated > expenseTotal ? (
+                                                    <span style={{ color: '#ef4444', fontWeight: 600 }}>
+                                                        La cantidad financiada ({formatMoney(totalAllocated)}) no puede superar el total del gasto ({formatMoney(expenseTotal)}).
+                                                    </span>
+                                                ) : hasBalanceError ? (
+                                                    <span style={{ color: '#ef4444', fontWeight: 600 }}>
+                                                        Una o más asignaciones superan el saldo disponible de la hucha.
+                                                    </span>
+                                                ) : hasNegativeError ? (
+                                                    <span style={{ color: '#ef4444', fontWeight: 600 }}>
+                                                        Las cantidades asignadas no pueden ser negativas.
+                                                    </span>
+                                                ) : (
+                                                    <>
+                                                        Se financiarán <strong>{formatMoney(totalAllocated)}</strong> con huchas. 
+                                                        {expenseTotal - totalAllocated > 0 ? (
+                                                            <> El resto (<strong>{formatMoney(expenseTotal - totalAllocated)}</strong>) se descontará del disponible mensual.</>
+                                                        ) : (
+                                                            <> Se financiará el 100% del gasto con las huchas.</>
+                                                        )}
+                                                    </>
+                                                )}
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
                     )}
 
-                    <button type="submit" style={{
+                    <button type="submit" disabled={isFundingInvalid} style={{
                         marginTop: '1rem',
                         padding: '1.2rem',
                         borderRadius: '12px',
                         border: 'none',
-                        background: isRefund ? 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)' : '#4f46e5',
-                        color: 'white',
+                        background: isFundingInvalid ? '#3e3f4b' : (isRefund ? 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)' : '#4f46e5'),
+                        color: isFundingInvalid ? 'rgba(255,255,255,0.3)' : 'white',
                         fontWeight: 700,
                         fontSize: '1.1rem',
-                        cursor: 'pointer',
+                        cursor: isFundingInvalid ? 'not-allowed' : 'pointer',
                         transition: 'background 0.2s',
-                        boxShadow: isRefund ? '0 4px 15px rgba(14, 165, 233, 0.3)' : 'none'
+                        boxShadow: isFundingInvalid ? 'none' : (isRefund ? '0 4px 15px rgba(14, 165, 233, 0.3)' : 'none')
                     }}>
                         {isRefund ? 'Añadir Devolución' : 'Añadir Gasto'}
                     </button>

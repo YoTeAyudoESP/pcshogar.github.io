@@ -124,16 +124,30 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
             });
         }
 
-        // Exclude piggy-bank-funded expenses and card settlements
-        const validExpenses = filteredExpenses.filter(exp => {
-            if (exp.linkedSavingGoalId) return false;
-            if (exp.description.startsWith('[LIQUIDACION]')) return false;
-            return exp.status === 'paid';
-        });
+        // Map and deduct piggy-bank-funded portions from expenses in reports
+        const validExpenses = filteredExpenses
+            .filter(exp => {
+                if (exp.description.startsWith('[LIQUIDACION]')) return false;
+                return exp.status === 'paid';
+            })
+            .map(exp => {
+                let funded = 0;
+                if (exp.savingGoalFunding && exp.savingGoalFunding.length > 0) {
+                    funded = exp.savingGoalFunding.reduce((s, f) => s + f.amount, 0);
+                } else if (exp.linkedSavingGoalId) {
+                    funded = exp.amount;
+                }
+                return {
+                    ...exp,
+                    fundedAmount: funded,
+                    netAmount: exp.amount - funded
+                };
+            })
+            .filter(exp => exp.netAmount > 0);
 
         const validIncomes = filteredIncomes.filter((inc: any) => !inc.linkedSavingGoalId);
 
-        const totalExpenses = validExpenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
+        const totalExpenses = validExpenses.reduce((sum, exp) => sum + Number(exp.netAmount), 0);
         const totalIncomes = validIncomes.reduce((sum, inc) => sum + Number(inc.amount), 0);
         const netSavings = totalIncomes - totalExpenses;
 
@@ -141,7 +155,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
         const categoryTotals: { [key: string]: number } = {};
         validExpenses.forEach(exp => {
             const catId = exp.categoryId || 'cat_other';
-            categoryTotals[catId] = (categoryTotals[catId] || 0) + Number(exp.amount);
+            categoryTotals[catId] = (categoryTotals[catId] || 0) + Number(exp.netAmount);
         });
         const categorySummary = Object.keys(categoryTotals).map(catId => {
             const cat = categories.find(c => c.id === catId) || DEFAULT_CATEGORIES.find(c => c.id === catId);
@@ -157,7 +171,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
         const activeSavings = savings.filter(s => !s.isVirtual || s.currentAmount > 0);
 
         const topTransactions = [...validExpenses]
-            .sort((a, b) => Number(b.amount) - Number(a.amount))
+            .sort((a, b) => Number(b.netAmount) - Number(a.netAmount))
             .slice(0, 10);
 
         const detailIncomes = [...validIncomes].sort((a: any, b: any) => {
@@ -778,7 +792,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                                                     <td style={{ ...tdStyle, color: '#7f8c8d', whiteSpace: 'nowrap' }}>{new Date(exp.date).toLocaleDateString('es-ES')}</td>
                                                     <td style={{ ...tdStyle, fontWeight: 500 }}>{exp.description}</td>
                                                     <td style={{ ...tdStyle, color: '#95a5a6' }}>{cat?.name || 'Otros'}</td>
-                                                    <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#e74c3c' }}>{formatCurrency(Number(exp.amount))}</td>
+                                                    <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#e74c3c' }}>{formatCurrency(Number(exp.netAmount))}</td>
                                                 </tr>
                                             );
                                         })}
@@ -869,7 +883,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                                                 <td style={{ ...tdStyle, fontWeight: 500 }}>{exp.description}</td>
                                                 <td style={{ ...tdStyle, color: '#95a5a6', width: '25%' }}>{cat?.name || 'Otros'}</td>
                                                 <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#e74c3c', width: '20%' }}>
-                                                    {formatCurrency(Number(exp.amount))}
+                                                    {formatCurrency(Number(exp.netAmount))}
                                                 </td>
                                             </tr>
                                         );

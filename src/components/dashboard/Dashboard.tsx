@@ -14,7 +14,8 @@ import DateSelector from '../common/DateSelector';
 import { LayoutDashboard, Settings as SettingsIcon, X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, MinusCircle, PiggyBank, ArrowLeftRight, AlertCircle, Mail, Heart, RotateCcw, FileText } from 'lucide-react';
 
 import { useFinance } from '../../contexts/FinanceContext';
-const version = "1.3.5";
+import versionInfo from '../../../public/version.json';
+const version = versionInfo.version;
 import RemnantDecisionModal from '../settings/RemnantDecisionModal';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import EditTransactionModal from './EditTransactionModal';
@@ -513,25 +514,12 @@ const Dashboard: React.FC = () => {
                             borderRadius: '12px', 
                             border: '1px solid rgba(255,255,255,0.05)',
                             fontSize: '0.88rem',
-                            lineHeight: '1.5',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '0.75rem',
+                            lineHeight: '1.6',
                             color: 'rgba(255,255,255,0.8)',
-                            marginBottom: '2rem'
+                            marginBottom: '2rem',
+                            whiteSpace: 'pre-line'
                          }}>
-                            <div>
-                                <strong style={{ color: '#10b981' }}>🔄 Actualización automática Windows:</strong>
-                                <div style={{ color: 'rgba(255,255,255,0.6)', marginLeft: '1.2rem', fontSize: '0.82rem' }}>
-                                    Solucionado definitivamente el aviso de actualización constante al abrir la app en Windows.
-                                </div>
-                            </div>
-                            <div>
-                                <strong style={{ color: '#ec4899' }}>📄 PDF en Android mejorado:</strong>
-                                <div style={{ color: 'rgba(255,255,255,0.6)', marginLeft: '1.2rem', fontSize: '0.82rem' }}>
-                                    El PDF ya no minimiza la app. Se guarda en Descargas o Documentos y se te indica la ruta exacta donde encontrarlo.
-                                </div>
-                            </div>
+                            {versionInfo.releaseNotes}
                         </div>
 
                         <button 

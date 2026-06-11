@@ -462,8 +462,27 @@ class IncomeDB {
                 });
             }
 
-            // Deduct from savings goal if linked
-            if (expense.linkedSavingGoalId) {
+            // Deduct from savings goals if linked
+            if (expense.savingGoalFunding && expense.savingGoalFunding.length > 0) {
+                for (const fund of expense.savingGoalFunding) {
+                    const goal = await savingsStore.get(fund.goalId);
+                    if (goal) {
+                        goal.currentAmount -= fund.amount;
+                        await savingsStore.put(goal);
+
+                        // Record allocation
+                        await allocStore.add({
+                            id: `hucha_exp_${expense.id}_${fund.goalId}`,
+                            goalId: fund.goalId,
+                            amount: -fund.amount,
+                            type: 'adjustment',
+                            description: `Financiación de gasto: ${expense.description}`,
+                            date: expense.date,
+                            updatedAt: Date.now()
+                        });
+                    }
+                }
+            } else if (expense.linkedSavingGoalId) {
                 const goal = await savingsStore.get(expense.linkedSavingGoalId);
                 if (goal) {
                     goal.currentAmount -= expense.amount;
@@ -867,8 +886,17 @@ class IncomeDB {
                 }
             }
 
-            // Revert savings goal if linked
-            if (expense.linkedSavingGoalId) {
+            // Revert savings goals if linked
+            if (expense.savingGoalFunding && expense.savingGoalFunding.length > 0) {
+                for (const fund of expense.savingGoalFunding) {
+                    const goal = await savingsStore.get(fund.goalId);
+                    if (goal) {
+                        goal.currentAmount += fund.amount;
+                        await savingsStore.put(goal);
+                    }
+                    await allocStore.delete(`hucha_exp_${expense.id}_${fund.goalId}`);
+                }
+            } else if (expense.linkedSavingGoalId) {
                 const goal = await savingsStore.get(expense.linkedSavingGoalId);
                 if (goal) {
                     goal.currentAmount += expense.amount;
@@ -926,8 +954,17 @@ class IncomeDB {
                 }
             }
 
-            // Revert savings goal if linked
-            if (oldExpense.linkedSavingGoalId) {
+            // Revert savings goals if linked
+            if (oldExpense.savingGoalFunding && oldExpense.savingGoalFunding.length > 0) {
+                for (const fund of oldExpense.savingGoalFunding) {
+                    const goal = await savingsStore.get(fund.goalId);
+                    if (goal) {
+                        goal.currentAmount += fund.amount;
+                        await savingsStore.put(goal);
+                    }
+                    await allocStore.delete(`hucha_exp_${oldExpense.id}_${fund.goalId}`);
+                }
+            } else if (oldExpense.linkedSavingGoalId) {
                 const goal = await savingsStore.get(oldExpense.linkedSavingGoalId);
                 if (goal) {
                     goal.currentAmount += oldExpense.amount;
@@ -988,7 +1025,24 @@ class IncomeDB {
                 });
             }
 
-            if (updatedExpense.linkedSavingGoalId) {
+            if (updatedExpense.savingGoalFunding && updatedExpense.savingGoalFunding.length > 0) {
+                for (const fund of updatedExpense.savingGoalFunding) {
+                    const goal = await savingsStore.get(fund.goalId);
+                    if (goal) {
+                        goal.currentAmount -= fund.amount;
+                        await savingsStore.put(goal);
+                        await allocStore.put({
+                            id: `hucha_exp_${updatedExpense.id}_${fund.goalId}`,
+                            goalId: fund.goalId,
+                            amount: -fund.amount,
+                            type: 'adjustment',
+                            description: `Financiación de gasto: ${updatedExpense.description}`,
+                            date: updatedExpense.date,
+                            updatedAt: Date.now()
+                        });
+                    }
+                }
+            } else if (updatedExpense.linkedSavingGoalId) {
                 const goal = await savingsStore.get(updatedExpense.linkedSavingGoalId);
                 if (goal) {
                     goal.currentAmount -= updatedExpense.amount;

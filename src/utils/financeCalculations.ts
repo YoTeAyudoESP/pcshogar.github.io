@@ -135,32 +135,40 @@ export function calculateAvailableBalanceForMonth(
         .filter(exp => !exp.excludeFromBudget)
         .filter(exp => !(exp.amount < 0 && exp.status === 'pending'))
         .forEach(exp => {
-            if (exp.linkedSavingGoalId) return;
-            totalMonthExpenses += exp.amount;
+            // Calculate how much of this expense is funded by huchas
+            let fundedAmount = 0;
+            if (exp.savingGoalFunding && exp.savingGoalFunding.length > 0) {
+                fundedAmount = exp.savingGoalFunding.reduce((sum, f) => sum + f.amount, 0);
+            } else if (exp.linkedSavingGoalId) {
+                fundedAmount = exp.amount;
+            }
+
+            const netAmount = exp.amount - fundedAmount;
+            totalMonthExpenses += netAmount;
 
             if (exp.isFixed) {
                 const re = recurringExpenses.find(r => r.id === exp.recurringExpenseId);
                 if (re) {
-                    fixedExpensesDeviations += (exp.amount - re.amount);
+                    fixedExpensesDeviations += (netAmount - re.amount);
                 } else {
                     // If it's fixed but no recurring record found, treat it as a variable expense for budget purposes
-                    variableExpensesPaid += exp.amount;
+                    variableExpensesPaid += netAmount;
                 }
             } else {
-                variableExpensesPaid += exp.amount;
+                variableExpensesPaid += netAmount;
             }
 
             const method = exp.paymentMethod || { type: 'cash' };
             if (method.type === 'cash') {
-                totalCashExpenses += exp.amount;
+                totalCashExpenses += netAmount;
             } else if (method.type === 'account') {
-                totalAccountExpenses += exp.amount;
+                totalAccountExpenses += netAmount;
             } else if (method.type === 'card') {
                 const card = (cards || []).find(c => c.id === (method as any).cardId);
                 if (card && card.type === 'debit') {
-                    totalAccountExpenses += exp.amount;
+                    totalAccountExpenses += netAmount;
                 } else {
-                    totalCardExpenses += exp.amount;
+                    totalCardExpenses += netAmount;
                 }
             }
         });

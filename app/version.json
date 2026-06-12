@@ -1,6 +1,6 @@
 {
-  "version": "1.3.8",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.3.8.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.3.8.exe",
-  "releaseNotes": "Novedades v1.3.8:\n- Interfaz táctil premium para Huchas: Selector a pantalla completa adaptado para móviles, con inputs grandes y botones 'Máx' rápidos.\n- Visualización con diseño de tarjetas: El modal de novedades ahora decora los cambios como tarjetas independientes con iconos de check.\n- Banner de periodo en movimientos fijos: Añadido un aviso informativo que muestra claramente qué mes se está auditando y cómo cambiarlo.\n- Gráficas con gastos brutos: El gráfico de evolución anual en el Dashboard ahora muestra el gasto real bruto consolidado de las arcas."
+  "version": "1.3.9",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.3.9.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.3.9.exe",
+  "releaseNotes": "Novedades v1.3.9:\n- Historial acumulativo: Ahora verás los cambios de todas las versiones que te saltes al actualizar.\n- Sincronización en la nube: Corregido el saldo bancario al confirmar gastos fijos modificados en Dropbox/Drive.\n- Botón Atrás de Android: Arreglado el retroceso en huchas y ajustes para evitar desmontajes accidentales.\n- Área segura en móviles: Ajustado el encabezado de huchas para que no sea tapado por la barra de estado.\n- Textos limpios: Eliminado el término 'Superior' en los formularios de ingresos."
 }

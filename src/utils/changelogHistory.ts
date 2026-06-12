@@ -5,6 +5,11 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '1.3.10',
+    releaseNotes: `Novedades v1.3.10:
+- Ventana de Huchas mejorada: Se ha extraído la ventana superpuesta de financiación de huchas del contenedor con scroll. Ahora se posiciona de manera fija sobre toda la pantalla sin recortarse ni verse afectada por el scroll del formulario principal.`
+  },
+  {
     version: '1.3.9',
     releaseNotes: `Novedades v1.3.9:
 - Historial acumulativo: Ahora verás los cambios de todas las versiones que te saltes al actualizar.

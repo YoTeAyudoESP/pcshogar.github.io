@@ -5,13 +5,40 @@ import { FinanceProvider } from './contexts/FinanceContext';
 import AppLayout from './components/layout/AppLayout';
 import Dashboard from './components/dashboard/Dashboard';
 import { DateSelectionProvider } from './contexts/DateSelectionContext';
-import { AppSettingsProvider } from './contexts/AppSettingsContext';
+import { AppSettingsProvider, useAppSettings } from './contexts/AppSettingsContext';
 import DropboxAuthHandler from './components/auth/DropboxAuthHandler';
 import GoogleDriveAuthHandler from './components/auth/GoogleDriveAuthHandler';
 import CloudStartupChecker from './components/auth/CloudStartupChecker';
 import { ToastProvider } from './contexts/ToastContext';
 import AppUpdateChecker from './components/common/AppUpdateChecker';
 import PrivacyDisclaimerModal from './components/common/PrivacyDisclaimerModal';
+import AppLockScreen from './components/common/AppLockScreen';
+import ErrorBoundary from './components/common/ErrorBoundary';
+
+function AppContent() {
+  const { isAuthenticated } = useAppSettings();
+
+  return (
+    <>
+      <AppLockScreen />
+      {isAuthenticated && (
+        <>
+          <DropboxAuthHandler />
+          <GoogleDriveAuthHandler />
+          <CloudStartupChecker />
+          <AppUpdateChecker />
+          <FinanceProvider>
+            <DateSelectionProvider>
+              <AppLayout>
+                <Dashboard />
+              </AppLayout>
+            </DateSelectionProvider>
+          </FinanceProvider>
+        </>
+      )}
+    </>
+  );
+}
 
 function App() {
   useEffect(() => {
@@ -42,22 +69,14 @@ function App() {
 
   return (
     <ToastProvider>
-      <PrivacyDisclaimerModal />
-      <AppSettingsProvider>
-        <DropboxAuthHandler />
-        <GoogleDriveAuthHandler />
-        <CloudStartupChecker />
-        <AppUpdateChecker />
-        <FinanceProvider>
-          <DateSelectionProvider>
-            <AppLayout>
-              <Dashboard />
-            </AppLayout>
-          </DateSelectionProvider>
-        </FinanceProvider>
-      </AppSettingsProvider>
+      <ErrorBoundary>
+        <PrivacyDisclaimerModal />
+        <AppSettingsProvider>
+          <AppContent />
+        </AppSettingsProvider>
+      </ErrorBoundary>
     </ToastProvider>
   )
 }
 
-export default App
+export default App;

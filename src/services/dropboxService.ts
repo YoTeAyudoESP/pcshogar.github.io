@@ -12,6 +12,16 @@ export class DropboxService {
         if (path) this.currentPath = path;
     }
 
+    /** Returns true only if DropboxService has been initialized this session */
+    static isConnected(): boolean {
+        return this.dbx !== null;
+    }
+
+    /** Clears the in-memory Dropbox client (does NOT clear the stored token) */
+    static disconnect() {
+        this.dbx = null;
+    }
+
     static getAuthUrl() {
         // Detect if we are on a real mobile device or emulator via Capacitor
         const isMobile = window.location.origin.includes('localhost') && !window.location.port;

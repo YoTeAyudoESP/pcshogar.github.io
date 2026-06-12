@@ -14,6 +14,7 @@ import DateSelector from '../common/DateSelector';
 import { LayoutDashboard, Settings as SettingsIcon, X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, MinusCircle, PiggyBank, ArrowLeftRight, AlertCircle, Mail, Heart, RotateCcw, FileText } from 'lucide-react';
 
 import { useFinance } from '../../contexts/FinanceContext';
+import { useAppSettings } from '../../contexts/AppSettingsContext';
 import versionInfo from '../../../public/version.json';
 const version = versionInfo.version;
 import { changelogHistory, compareVersions } from '../../utils/changelogHistory';
@@ -98,6 +99,7 @@ const renderReleaseNotes = (notes: string) => {
 
 const Dashboard: React.FC = () => {
     const { pendingClosing, setPendingClosing, closings, accounts, cards, loading } = useFinance();
+    const { activeEconomy } = useAppSettings();
 
     const [currentView, setCurrentView] = useState<'dashboard' | 'settings'>('dashboard');
     const [settingsTab, setSettingsTab] = useState<'accounts' | 'savings' | 'recurring' | 'loans' | 'balance' | 'categories' | 'app' | 'about'>('accounts');
@@ -245,7 +247,7 @@ const Dashboard: React.FC = () => {
                     letterSpacing: '-0.02em',
                     margin: 0
                 }}>
-                    Economía Doméstica
+                    Economía: {activeEconomy?.name ?? 'Hogar'}
                 </h1>
                 <span style={{ 
                     fontSize: '0.85rem', 

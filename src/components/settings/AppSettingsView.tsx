@@ -15,7 +15,8 @@ import {
     X,
     HardDrive,
     Save,
-    RefreshCw
+    RefreshCw,
+    Shield
 } from 'lucide-react';
 import { useAppSettings } from '../../contexts/AppSettingsContext';
 import { useFinance } from '../../contexts/FinanceContext';
@@ -25,16 +26,41 @@ import { DropboxService } from '../../services/dropboxService';
 import { GoogleDriveService } from '../../services/googleDriveService';
 import { SUPPORTED_CURRENCIES, SUPPORTED_LANGUAGES, APP_THEMES } from '../../types/finance';
 import DropboxFolderPicker from './DropboxFolderPicker';
-
 import { useToast } from '../../contexts/ToastContext';
 
 const AppSettingsView: React.FC = () => {
-    const { settings, updateSettings, updateSyncSettings } = useAppSettings();
+    const { settings, updateSettings, updateSyncSettings, activeProfile, activeEconomy, setProfilePin } = useAppSettings();
     const { importData, refreshFinance } = useFinance();
     const { showToast } = useToast();
+    const [dropboxConnected, setDropboxConnected] = useState(() => DropboxService.isConnected());
     const [showImportWarning, setShowImportWarning] = useState(false);
     const [importFile, setImportFile] = useState<File | null>(null);
     const [showFolderPicker, setShowFolderPicker] = useState(false);
+    const [pinInput, setPinInput] = useState('');
+
+    const handleSavePin = async () => {
+        if (pinInput.length !== 4) {
+            showToast('El PIN debe tener exactamente 4 dígitos', 'error');
+            return;
+        }
+        await setProfilePin(pinInput);
+        showToast('PIN configurado con éxito', 'success');
+        setPinInput('');
+    };
+
+    const handleRemovePin = async () => {
+        if (window.confirm('¿Estás seguro de que deseas desactivar el PIN de bloqueo? Cualquiera con acceso al dispositivo podrá abrir la app.')) {
+            await setProfilePin(null);
+            showToast('PIN desactivado con éxito', 'success');
+            setPinInput('');
+        }
+    };
+
+    const isBetaEnabled = () => {
+        return window.location.origin.includes('localhost') || 
+               window.location.origin.startsWith('file://') || 
+               (window as any).require;
+    };
 
     const handleExport = async () => {
         const data = await incomeDB.exportFullData();
@@ -178,7 +204,81 @@ const AppSettingsView: React.FC = () => {
                 </div>
             </section>
 
-            {/* Zone 2: Backup & Database */}
+            {isBetaEnabled() && (
+                <section style={groupStyle}>
+                    <h3 style={zoneTitleStyle}><Shield size={20} color="var(--color-primary)" /> Seguridad y Privacidad (Beta)</h3>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', margin: '0 0 1rem 0', lineHeight: 1.4 }}>
+                        Protege el acceso a tus datos financieros locales con un código PIN de 4 dígitos. Al activarlo, se solicitará al abrir la aplicación.
+                    </p>
+                    
+                    {activeProfile?.pinHash ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#10b981', fontSize: '0.95rem', fontWeight: 600 }}>
+                                <Check size={18} />
+                                <span>Bloqueo por PIN activado</span>
+                            </div>
+                            <button
+                                onClick={handleRemovePin}
+                                style={{
+                                    background: 'rgba(244, 63, 94, 0.1)',
+                                    border: '1px solid rgba(244, 63, 94, 0.2)',
+                                    color: '#f43f5e',
+                                    padding: '10px 16px',
+                                    borderRadius: '10px',
+                                    fontSize: '0.9rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    width: 'fit-content',
+                                    transition: 'background-color 0.2s'
+                                }}
+                            >
+                                Desactivar PIN de Bloqueo
+                            </button>
+                        </div>
+                    ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            <label style={labelStyle}>Configurar nuevo PIN (4 números)</label>
+                            <div style={{ display: 'flex', gap: '12px', maxWidth: '320px' }}>
+                                <input
+                                    type="password"
+                                    maxLength={4}
+                                    placeholder="PIN"
+                                    value={pinInput}
+                                    onChange={(e) => setPinInput(e.target.value.replace(/[^0-9]/g, ''))}
+                                    style={{
+                                        background: 'rgba(255, 255, 255, 0.05)',
+                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                        borderRadius: '10px',
+                                        color: 'white',
+                                        outline: 'none',
+                                        flex: 1,
+                                        letterSpacing: '0.5em',
+                                        textAlign: 'center',
+                                        fontSize: '1.2rem',
+                                        padding: '8px'
+                                    }}
+                                />
+                                <button
+                                    onClick={handleSavePin}
+                                    style={{
+                                        background: 'var(--color-primary)',
+                                        border: 'none',
+                                        color: '#ffffff',
+                                        padding: '10px 16px',
+                                        borderRadius: '10px',
+                                        fontSize: '0.9rem',
+                                        fontWeight: 600,
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    Activar Bloqueo
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </section>
+            )}
+
             <section style={groupStyle}>
                 <h3 style={zoneTitleStyle}><Database size={20} color="#10b981" /> Bases de Datos y Seguridad</h3>
                 
@@ -361,7 +461,7 @@ const AppSettingsView: React.FC = () => {
                                         <div>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                                 <p style={{ margin: 0, fontWeight: 700, fontSize: '1rem' }}>Estado de Dropbox</p>
-                                                {settings.sync.dropboxToken && (
+                                                {dropboxConnected && (
                                                     <span style={{ 
                                                         background: 'rgba(16, 185, 129, 0.15)', 
                                                         color: '#10b981', 
@@ -377,11 +477,11 @@ const AppSettingsView: React.FC = () => {
                                                 )}
                                             </div>
                                             <p style={{ margin: 0, fontSize: '0.8rem', opacity: 0.6 }}>
-                                                {settings.sync.dropboxToken ? `${settings.sync.dropboxUserEmail || 'Usuario vinculado'}` : 'No conectado'}
+                                                {dropboxConnected ? `${settings.sync.dropboxUserEmail || 'Usuario vinculado'}` : 'No conectado'}
                                             </p>
                                         </div>
                                     </div>
-                                    {!settings.sync.dropboxToken && (
+                                    {!dropboxConnected && (
                                         <button 
                                             onClick={() => {
                                                 const url = DropboxService.getAuthUrl();
@@ -399,6 +499,7 @@ const AppSettingsView: React.FC = () => {
                                                                     enabled: true,
                                                                     type: 'dropbox'
                                                                 });
+                                                                setDropboxConnected(true);
                                                                 showToast(`Dropbox conectado con éxito: ${user.email}`, 'success');
                                                             }).catch(err => {
                                                                 console.error("Error fetching dropbox user", err);
@@ -420,7 +521,7 @@ const AppSettingsView: React.FC = () => {
                                     )}
                                 </div>
 
-                                {settings.sync.dropboxToken && (
+                                {dropboxConnected && (
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1.25rem' }}>
                                         {/* Path configuration */}
                                         <div>
@@ -498,7 +599,11 @@ const AppSettingsView: React.FC = () => {
                                                 <RefreshCw size={18} /> Sincronizar Ahora
                                             </button>
                                             <button 
-                                                onClick={() => updateSyncSettings({ dropboxToken: undefined, dropboxUserEmail: undefined })}
+                                                onClick={() => { 
+                                                    DropboxService.disconnect();
+                                                    setDropboxConnected(false);
+                                                    updateSyncSettings({ dropboxToken: undefined, dropboxUserEmail: undefined });
+                                                }}
                                                 style={{ 
                                                     flex: 1, 
                                                     background: 'rgba(239, 68, 68, 0.05)', 
@@ -519,13 +624,20 @@ const AppSettingsView: React.FC = () => {
                                 )}
                             </div>
                             
-                            {showFolderPicker && (
-                                <DropboxFolderPicker 
-                                    currentPath={settings.sync.dropboxPath || '/'}
-                                    onSelect={(path) => updateSyncSettings({ dropboxPath: path })}
-                                    onClose={() => setShowFolderPicker(false)}
-                                />
-                            )}
+                            {showFolderPicker && (() => {
+                                // Extract just the file name from the active economy's dropbox path
+                                const currentDropboxPath = activeEconomy?.sync?.dropboxPath || settings.sync.dropboxPath || '/pcshogar_data.json';
+                                const currentFileName = currentDropboxPath.split('/').pop() || 'pcshogar_data.json';
+                                const currentFolder = currentDropboxPath.substring(0, currentDropboxPath.lastIndexOf('/')) || '/';
+                                return (
+                                    <DropboxFolderPicker 
+                                        currentPath={currentFolder}
+                                        fileName={currentFileName}
+                                        onSelect={(path) => updateSyncSettings({ dropboxPath: path })}
+                                        onClose={() => setShowFolderPicker(false)}
+                                    />
+                                );
+                            })()}
                             {!settings.sync.dropboxToken && (
                                 <p style={{ fontSize: '0.75rem', opacity: 0.4, margin: 0, fontStyle: 'italic' }}>
                                     Al conectar Dropbox, la app podrá leer y escribir el archivo 'pcshogar_data.json' en tu cuenta para sincronizar con otros dispositivos.

@@ -2,6 +2,7 @@ import React, { type ReactNode, useState, useEffect } from 'react';
 import { Heart } from 'lucide-react';
 import HelpFeedbackModal from '../common/HelpFeedbackModal';
 import logo from '../../assets/logo.png';
+import EconomySelector from './EconomySelector';
 
 interface AppLayoutProps {
     children: ReactNode;
@@ -42,6 +43,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                             objectFit: 'contain'
                         }} 
                     />
+                    <EconomySelector />
                 </div>
                 <nav>
                     <button 

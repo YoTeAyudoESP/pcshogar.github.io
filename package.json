@@ -1,9 +1,9 @@
 {
   "name": "pcshogar",
   "private": true,
-  "version": "1.4.0",
-  "versionCode": 170,
-  "versionName": "1.4.0",
+  "version": "1.4.1",
+  "versionCode": 175,
+  "versionName": "1.4.1",
   "type": "module",
   "main": "electron/main.js",
   "build": {
@@ -34,7 +34,9 @@
     "build:all": "npm run electron:build && npm run android:build"
   },
   "dependencies": {
-    "@capacitor-community/file-opener": "^6.0.1"
+    "@capacitor-community/file-opener": "^6.0.1",
+    "@capacitor/filesystem": "^6.0.1",
+    "@capacitor/share": "^6.0.2"
   },
   "devDependencies": {
     "@capacitor/android": "^6.1.2",
@@ -42,8 +44,6 @@
     "@capacitor/browser": "^6.0.6",
     "@capacitor/cli": "^6.1.2",
     "@capacitor/core": "^6.1.2",
-    "@capacitor/filesystem": "^6.0.1",
-    "@capacitor/share": "^6.0.2",
     "@eslint/js": "^9.39.1",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.5",

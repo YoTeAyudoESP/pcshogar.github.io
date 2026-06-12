@@ -4,11 +4,12 @@ import { DropboxService } from '../../services/dropboxService';
 
 interface DropboxFolderPickerProps {
     currentPath: string;
+    fileName: string; // e.g. 'pcshogar_data.json' or 'pcshogar_comunidad.json'
     onSelect: (path: string) => void;
     onClose: () => void;
 }
 
-const DropboxFolderPicker: React.FC<DropboxFolderPickerProps> = ({ currentPath, onSelect, onClose }) => {
+const DropboxFolderPicker: React.FC<DropboxFolderPickerProps> = ({ currentPath, fileName, onSelect, onClose }) => {
     const [path, setPath] = useState('');
     const [folders, setFolders] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
@@ -44,8 +45,9 @@ const DropboxFolderPicker: React.FC<DropboxFolderPickerProps> = ({ currentPath, 
     };
 
     const handleSelectCurrent = () => {
-        // We select the folder and add the default filename
-        const finalPath = path === '' ? '/pcshogar_data.json' : `${path}/pcshogar_data.json`;
+        // Build the final path using the economy's own file name (never hardcoded)
+        const safeFileName = fileName || 'pcshogar_data.json';
+        const finalPath = path === '' ? `/${safeFileName}` : `${path}/${safeFileName}`;
         onSelect(finalPath);
         onClose();
     };

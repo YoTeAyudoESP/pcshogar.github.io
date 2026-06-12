@@ -1,6 +1,6 @@
 {
-  "version": "1.4.0",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.4.0.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.4.0.exe",
-  "releaseNotes": "Novedades v1.4.0:\n- Informes PDF Profesionales: Corregido el problema de corte de contenido. Ahora las secciones (Resumen de Saldos, Desglose por Categorías, Metas de Ahorro y Mayores Gastos) se organizan en páginas independientes para evitar desbordes y cortes.\n- Numeración Dinámica: Añadida numeración secuencial 'Página X de Y' en todos los informes.\n- Agrupación Inteligente: Las categorías adicionales se agrupan automáticamente bajo 'Otras categorías' en la primera página para un formato más limpio y profesional."
+  "version": "1.4.1",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_v1.4.1.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.4.1.exe",
+  "releaseNotes": "Novedades v1.4.1:\n- 🔒 PIN de seguridad: Protege tus datos locales y perfiles con un PIN de acceso opcional.\n- 🏦 Multi-economía: Crea y gestiona múltiples entornos independientes de base de datos.\n- 🔄 Sincronización por entorno: Configura enlaces de Dropbox independientes por cada base de datos.\n- 📊 Dashboard dinámico: Visualiza de forma rápida la economía activa y cambia de entorno con un click.\n- 🐛 Fix PDF Android: Corregido el cierre inesperado al generar o compartir informes en dispositivos Xiaomi, POCO y Redmi.\n- 🐛 Fixes de estabilidad: Corregido el estado de conexión a Dropbox al iniciar sin conexión y el bloqueo del teclado tras eliminar un entorno."
 }

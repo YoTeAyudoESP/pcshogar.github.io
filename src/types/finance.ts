@@ -224,11 +224,28 @@ export interface SyncSettings {
     lastSync?: number;
 }
 
+export interface Economy {
+    id: string;
+    name: string;
+    dbName: string;
+    sync: SyncSettings;
+}
+
+export interface UserProfile {
+    id: string;
+    name: string;
+    pinHash?: string; // SHA-256 or MD5 hash of PIN
+    economies: Economy[];
+    activeEconomyId: string;
+}
+
 export interface AppSettings {
     currency: string;
     language: string;
     theme: string;
     sync: SyncSettings;
+    profiles?: UserProfile[];
+    activeProfileId?: string;
 }
 
 export const SUPPORTED_CURRENCIES = [

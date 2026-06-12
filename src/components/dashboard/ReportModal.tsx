@@ -7,6 +7,7 @@ import type { Income } from '../../types/income';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
+import { FileOpener } from '@capacitor-community/file-opener';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
@@ -712,7 +713,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
             const imgWidth = 210;
             const imgHeight = 297; 
             const isAndroid = isAndroidPlatform();
-            const renderScale = isAndroid ? 1.2 : 2;
+            const renderScale = isAndroid ? 1.0 : 2;
 
             for (let i = 0; i < pages.length; i++) {
                 const pageEl = pages[i];
@@ -741,6 +742,11 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                 // Free canvas buffer memory immediately to prevent Android WebView OOM crash
                 canvas.width = 0;
                 canvas.height = 0;
+
+                // Allow Garbage Collection to release memory before processing the next page
+                if (isAndroid) {
+                    await new Promise(resolve => setTimeout(resolve, 50));
+                }
             }
 
             const filename = `PCSHogar_Informe_${getPeriodName()}.pdf`;
@@ -771,23 +777,43 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                         directory: Directory.Cache,
                     });
 
-                    // Trigger the native share sheet
-                    await Share.share({
-                        title: filename,
-                        text: 'Aquí tienes tu informe financiero en PDF de PCS Hogar.',
-                        url: writeResult.uri,
-                        dialogTitle: 'Compartir o guardar informe PDF',
-                    });
+                    // Ensure the URI has a file:// prefix for Capacitor Share compatibility
+                    let shareUrl = writeResult.uri;
+                    if (shareUrl && !shareUrl.startsWith('file://') && !shareUrl.startsWith('content://')) {
+                        shareUrl = 'file://' + shareUrl;
+                    }
 
-                    setSavedFilename(filename);
-                    setSavedPdfPath('Menú de Compartir nativo');
-                    setAndroidSaveError(null);
-                    setShowOpenDialog(true);
+                    try {
+                        // Trigger the native share sheet
+                        await Share.share({
+                            title: filename,
+                            text: 'Aquí tienes tu informe financiero en PDF de PCS Hogar.',
+                            url: shareUrl,
+                            dialogTitle: 'Compartir o guardar informe PDF',
+                        });
+
+                        setSavedFilename(filename);
+                        setSavedPdfPath('Menú de Compartir nativo');
+                        setAndroidSaveError(null);
+                        setShowOpenDialog(true);
+                    } catch (shareErr) {
+                        console.warn('Share.share failed, trying FileOpener fallback:', shareErr);
+                        // Fallback: open directly using @capacitor-community/file-opener
+                        await FileOpener.open({
+                            filePath: shareUrl,
+                            contentType: 'application/pdf'
+                        });
+
+                        setSavedFilename(filename);
+                        setSavedPdfPath('Visor de PDF del sistema');
+                        setAndroidSaveError(null);
+                        setShowOpenDialog(true);
+                    }
 
                 } catch (saveErr) {
-                    console.error('Error sharing PDF on Android:', saveErr);
+                    console.error('Error sharing or opening PDF on Android:', saveErr);
                     setAndroidSaveError(
-                        'No se pudo procesar o compartir el PDF. Inténtalo de nuevo.'
+                        'No se pudo procesar, compartir o abrir el PDF. Si el problema persiste, es posible que el dispositivo tenga poca memoria libre.'
                     );
                     setShowOpenDialog(true);
                 }

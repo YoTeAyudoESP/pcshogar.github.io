@@ -385,13 +385,12 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
             setLoading(false);
         }
     }, []);
+    const { settings, updateSyncSettings, activeEconomy } = useAppSettings();
+    const { showToast } = useToast();
 
     useEffect(() => {
         refreshFinance();
-    }, [refreshFinance]);
-
-    const { settings, updateSyncSettings } = useAppSettings();
-    const { showToast } = useToast();
+    }, [refreshFinance, activeEconomy?.id]);
 
     // Auto-sync watcher
     useEffect(() => {

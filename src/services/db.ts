@@ -75,10 +75,25 @@ const DB_NAME = 'domestic-economy-db';
 const ORG_VERSION = 7;
 
 class IncomeDB {
-    private dbPromise: Promise<IDBPDatabase<DomesticEconomyDB>>;
+    private dbPromise!: Promise<IDBPDatabase<DomesticEconomyDB>>;
+    private dbInstance: IDBPDatabase<DomesticEconomyDB> | null = null;
+    private activeDbName: string = DB_NAME;
 
     constructor() {
-        this.dbPromise = openDB<DomesticEconomyDB>(DB_NAME, ORG_VERSION, {
+        this.dbPromise = this.openActiveDB(DB_NAME);
+    }
+
+    private openActiveDB(dbName: string): Promise<IDBPDatabase<DomesticEconomyDB>> {
+        if (this.dbInstance) {
+            try {
+                this.dbInstance.close();
+            } catch (e) {
+                console.error("Error closing database instance:", e);
+            }
+            this.dbInstance = null;
+        }
+
+        return openDB<DomesticEconomyDB>(dbName, ORG_VERSION, {
             upgrade(db: IDBPDatabase<DomesticEconomyDB>, oldVersion: number, _newVersion: number | null, transaction: any) {
 
                 if (oldVersion < 1) {
@@ -159,7 +174,20 @@ class IncomeDB {
                     }
                 }
             },
+        }).then(db => {
+            this.dbInstance = db;
+            return db;
         });
+    }
+
+    async switchDatabase(newDbName: string): Promise<void> {
+        if (newDbName === this.activeDbName) {
+            await this.dbPromise;
+            return;
+        }
+        this.activeDbName = newDbName;
+        this.dbPromise = this.openActiveDB(newDbName);
+        await this.dbPromise;
     }
 
     async importFullData(data: any): Promise<void> {

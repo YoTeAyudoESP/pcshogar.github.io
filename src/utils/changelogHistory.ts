@@ -5,6 +5,11 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '1.3.12',
+    releaseNotes: `Novedades v1.3.12:
+- Corrección de cierre/cuelgue en informes PDF: Optimizada la memoria de renderizado en Android para evitar que la aplicación se minimice o cierre al generar informes con muchas transacciones (reducción de escala y liberación forzada de recursos gráficos).`
+  },
+  {
     version: '1.3.11',
     releaseNotes: `Novedades v1.3.11:
 - Informes PDF en Android: Implementada la función de compartir nativa en lugar del guardado tradicional. Ahora puedes generar informes de PDF en cualquier versión de Android y compartirlos directamente por WhatsApp, guardarlos en Google Drive, o guardarlos localmente sin necesidad de configurar permisos manuales de almacenamiento.`

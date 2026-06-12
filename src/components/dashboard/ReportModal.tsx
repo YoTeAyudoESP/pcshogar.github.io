@@ -230,6 +230,8 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
             const pdf = new jsPDF('p', 'mm', 'a4');
             const imgWidth = 210;
             const imgHeight = 297; 
+            const isAndroid = isAndroidPlatform();
+            const renderScale = isAndroid ? 1.2 : 2;
 
             for (let i = 0; i < pages.length; i++) {
                 const pageEl = pages[i];
@@ -238,7 +240,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                 pageEl.setAttribute('style', originalStyle.replace('display: none', 'display: flex'));
 
                 const canvas = await html2canvas(pageEl, {
-                    scale: 2,
+                    scale: renderScale,
                     useCORS: true,
                     logging: false,
                     backgroundColor: '#ffffff'
@@ -254,6 +256,10 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                 }
                 
                 pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+
+                // Free canvas buffer memory immediately to prevent Android WebView OOM crash
+                canvas.width = 0;
+                canvas.height = 0;
             }
 
             const filename = `PCSHogar_Informe_${getPeriodName()}.pdf`;

@@ -120,8 +120,8 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
             }
         };
 
-        window.addEventListener('app-back-pressed', handleBack);
-        return () => window.removeEventListener('app-back-pressed', handleBack);
+        document.addEventListener('app-back-pressed', handleBack);
+        return () => document.removeEventListener('app-back-pressed', handleBack);
     }, [showAccountForm, showCashForm, showCardForm, isAddingLoan, editingLoan]);
     const [selectedImportFile, setSelectedImportFile] = useState<File | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);

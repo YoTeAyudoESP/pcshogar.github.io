@@ -176,7 +176,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData }) => {
                     <div style={{ padding: '8px', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '12px', color: '#10b981' }}>
                         <PlusCircle size={24} />
                     </div>
-                    {isEditing ? 'Editar Ingreso' : 'Nuevo Ingreso Superior'}
+                    {isEditing ? 'Editar Ingreso' : 'Nuevo Ingreso'}
                 </h2>
 
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
@@ -337,7 +337,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData }) => {
                         transition: 'all 0.2s ease'
                     }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'}
                        onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
-                        {isEditing ? 'Confirmar Cambios' : 'Guardar Ingreso Superior'}
+                        {isEditing ? 'Confirmar Cambios' : 'Guardar Ingreso'}
                     </button>
                 </form>
             </div>

@@ -20,8 +20,8 @@ function App() {
     const setupListener = async () => {
       if (Capacitor.isNativePlatform()) {
         activeListener = await CapApp.addListener('backButton', () => {
-          const backEvent = new CustomEvent('app-back-pressed', { cancelable: true });
-          window.dispatchEvent(backEvent);
+          const backEvent = new CustomEvent('app-back-pressed', { bubbles: true, cancelable: true });
+          document.dispatchEvent(backEvent);
           if (!backEvent.defaultPrevented) {
             if (window.confirm('¿Deseas salir de la aplicación?')) {
               CapApp.exitApp();

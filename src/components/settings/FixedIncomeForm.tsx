@@ -46,8 +46,8 @@ const FixedIncomeForm: React.FC<FixedIncomeFormProps> = ({ editingIncome, onClos
             }
         };
 
-        window.addEventListener('app-back-pressed', handleBack);
-        return () => window.removeEventListener('app-back-pressed', handleBack);
+        document.addEventListener('app-back-pressed', handleBack);
+        return () => document.removeEventListener('app-back-pressed', handleBack);
     }, [name, amount, frequency, paymentDay, paymentMonth, accountId, editingIncome, onClose]);
 
     const handleSubmit = async (e: React.FormEvent) => {

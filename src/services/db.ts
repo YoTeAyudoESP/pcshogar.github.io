@@ -319,6 +319,7 @@ class IncomeDB {
             const oldAccount = await accountStore.get(oldIncome.linkedAccountId);
             if (oldAccount) {
                 oldAccount.balance -= oldIncome.amount;
+                oldAccount.updatedAt = Date.now();
                 await accountStore.put(oldAccount);
                 // We don't delete the movement, we just adjust the balance. 
                 // Alternatively we could find and delete the movement, but this is simpler.
@@ -330,6 +331,7 @@ class IncomeDB {
             const newAccount = await accountStore.get(updatedIncome.linkedAccountId);
             if (newAccount) {
                 newAccount.balance += updatedIncome.amount;
+                newAccount.updatedAt = Date.now();
                 await accountStore.put(newAccount);
                 
                 // Add new movement or update existing? 
@@ -362,6 +364,7 @@ class IncomeDB {
             const account = await accountStore.get(income.linkedAccountId);
             if (account) {
                 account.balance -= income.amount;
+                account.updatedAt = Date.now();
                 await accountStore.put(account);
             }
         }
@@ -383,6 +386,7 @@ class IncomeDB {
             const account = await accountStore.get(income.linkedAccountId);
             if (account) {
                 account.balance += income.amount;
+                account.updatedAt = Date.now();
                 await accountStore.put(account);
                 
                 await movementStore.add({
@@ -424,6 +428,7 @@ class IncomeDB {
                     const account = await accountStore.get(targetAccountId);
                     if (account) {
                         account.balance -= expense.amount;
+                        account.updatedAt = Date.now();
                         await accountStore.put(account);
                     }
                 }
@@ -436,14 +441,17 @@ class IncomeDB {
                             const account = await accountStore.get(targetAccountId);
                             if (account) {
                                 account.balance -= expense.amount;
+                                account.updatedAt = Date.now();
                                 await accountStore.put(account);
                             }
                         }
                     } else if (card.type === 'virtual') {
                         card.currentBalance -= expense.amount;
+                        card.updatedAt = Date.now();
                         await cardStore.put(card);
                     } else {
                         card.currentBalance += expense.amount;
+                        card.updatedAt = Date.now();
                         await cardStore.put(card);
                     }
                 }
@@ -468,6 +476,7 @@ class IncomeDB {
                     const goal = await savingsStore.get(fund.goalId);
                     if (goal) {
                         goal.currentAmount -= fund.amount;
+                        goal.updatedAt = Date.now();
                         await savingsStore.put(goal);
 
                         // Record allocation
@@ -486,6 +495,7 @@ class IncomeDB {
                 const goal = await savingsStore.get(expense.linkedSavingGoalId);
                 if (goal) {
                     goal.currentAmount -= expense.amount;
+                    goal.updatedAt = Date.now();
                     await savingsStore.put(goal);
 
                     // Record allocation
@@ -605,6 +615,8 @@ class IncomeDB {
         fromGoal.currentAmount -= amount;
         toGoal.currentAmount += amount;
 
+        fromGoal.updatedAt = Date.now();
+        toGoal.updatedAt = Date.now();
         await savingsStore.put(fromGoal);
         await savingsStore.put(toGoal);
 
@@ -646,6 +658,7 @@ class IncomeDB {
         const goal = await savingsStore.get(allocation.goalId);
         if (goal) {
             goal.currentAmount += allocation.amount;
+            goal.updatedAt = Date.now();
             await savingsStore.put(goal);
         }
 
@@ -653,6 +666,7 @@ class IncomeDB {
             const account = await accountStore.get(allocation.sourceAccountId);
             if (account) {
                 account.balance -= allocation.amount;
+                account.updatedAt = Date.now();
                 await accountStore.put(account);
             }
         }
@@ -691,6 +705,7 @@ class IncomeDB {
 
         // Update account
         account.balance -= amount;
+        account.updatedAt = Date.now();
         await accountStore.put(account);
 
         // Create expense
@@ -744,17 +759,21 @@ class IncomeDB {
 
         if (fromAcc) {
             fromAcc.balance -= transfer.amount;
+            fromAcc.updatedAt = Date.now();
             await accountStore.put(fromAcc);
         } else if (fromCard) {
             fromCard.currentBalance -= transfer.amount;
+            fromCard.updatedAt = Date.now();
             await cardStore.put(fromCard);
         }
 
         if (toAcc) {
             toAcc.balance += transfer.amount;
+            toAcc.updatedAt = Date.now();
             await accountStore.put(toAcc);
         } else if (toCard) {
             toCard.currentBalance += transfer.amount;
+            toCard.updatedAt = Date.now();
             await cardStore.put(toCard);
         }
 
@@ -806,6 +825,7 @@ class IncomeDB {
         if (!goal) throw new Error('Hucha no encontrada');
 
         goal.currentAmount += amount;
+        goal.updatedAt = Date.now();
         await savingsStore.put(goal);
 
         const targetDate = date || Date.now();
@@ -828,6 +848,7 @@ class IncomeDB {
             const account = await accountStore.get(accountId);
             if (account) {
                 account.balance -= amount; // Adding to hucha subtracts from account
+                account.updatedAt = Date.now();
                 await accountStore.put(account);
 
                 await movementStore.add({
@@ -863,6 +884,7 @@ class IncomeDB {
                 const account = await accountStore.get(expense.paymentMethod.accountId);
                 if (account) {
                     account.balance += expense.amount;
+                    account.updatedAt = Date.now();
                     await accountStore.put(account);
                 }
             } else if (expense.paymentMethod.type === 'card') {
@@ -873,14 +895,17 @@ class IncomeDB {
                             const account = await accountStore.get(card.linkedAccountId);
                             if (account) {
                                 account.balance += expense.amount;
+                                account.updatedAt = Date.now();
                                 await accountStore.put(account);
                             }
                         }
                     } else if (card.type === 'virtual') {
                         card.currentBalance += expense.amount;
+                        card.updatedAt = Date.now();
                         await cardStore.put(card);
                     } else {
                         card.currentBalance -= expense.amount;
+                        card.updatedAt = Date.now();
                         await cardStore.put(card);
                     }
                 }
@@ -892,6 +917,7 @@ class IncomeDB {
                     const goal = await savingsStore.get(fund.goalId);
                     if (goal) {
                         goal.currentAmount += fund.amount;
+                        goal.updatedAt = Date.now();
                         await savingsStore.put(goal);
                     }
                     await allocStore.delete(`hucha_exp_${expense.id}_${fund.goalId}`);
@@ -900,6 +926,7 @@ class IncomeDB {
                 const goal = await savingsStore.get(expense.linkedSavingGoalId);
                 if (goal) {
                     goal.currentAmount += expense.amount;
+                    goal.updatedAt = Date.now();
                     await savingsStore.put(goal);
                 }
                 // Also delete the specific related allocation if found
@@ -931,6 +958,7 @@ class IncomeDB {
                 const account = await accountStore.get(oldExpense.paymentMethod.accountId);
                 if (account) {
                     account.balance += oldExpense.amount;
+                    account.updatedAt = Date.now();
                     await accountStore.put(account);
                 }
             } else if (oldExpense.paymentMethod.type === 'card') {
@@ -941,14 +969,17 @@ class IncomeDB {
                             const account = await accountStore.get(card.linkedAccountId);
                             if (account) {
                                 account.balance += oldExpense.amount;
+                                account.updatedAt = Date.now();
                                 await accountStore.put(account);
                             }
                         }
                     } else if (card.type === 'virtual') {
                         card.currentBalance += oldExpense.amount;
+                        card.updatedAt = Date.now();
                         await cardStore.put(card);
                     } else {
                         card.currentBalance -= oldExpense.amount;
+                        card.updatedAt = Date.now();
                         await cardStore.put(card);
                     }
                 }
@@ -960,6 +991,7 @@ class IncomeDB {
                     const goal = await savingsStore.get(fund.goalId);
                     if (goal) {
                         goal.currentAmount += fund.amount;
+                        goal.updatedAt = Date.now();
                         await savingsStore.put(goal);
                     }
                     await allocStore.delete(`hucha_exp_${oldExpense.id}_${fund.goalId}`);
@@ -968,6 +1000,7 @@ class IncomeDB {
                 const goal = await savingsStore.get(oldExpense.linkedSavingGoalId);
                 if (goal) {
                     goal.currentAmount += oldExpense.amount;
+                    goal.updatedAt = Date.now();
                     await savingsStore.put(goal);
                 }
                 await allocStore.delete(`hucha_exp_${oldExpense.id}`);
@@ -988,6 +1021,7 @@ class IncomeDB {
                 const account = await accountStore.get(targetAccountId);
                 if (account) {
                     account.balance -= updatedExpense.amount;
+                    account.updatedAt = Date.now();
                     await accountStore.put(account);
                 }
             } else if (updatedExpense.paymentMethod.type === 'card') {
@@ -999,14 +1033,17 @@ class IncomeDB {
                             const account = await accountStore.get(targetAccountId);
                             if (account) {
                                 account.balance -= updatedExpense.amount;
+                                account.updatedAt = Date.now();
                                 await accountStore.put(account);
                             }
                         }
                     } else if (card.type === 'virtual') {
                         card.currentBalance -= updatedExpense.amount;
+                        card.updatedAt = Date.now();
                         await cardStore.put(card);
                     } else {
                         card.currentBalance += updatedExpense.amount;
+                        card.updatedAt = Date.now();
                         await cardStore.put(card);
                     }
                 }
@@ -1030,6 +1067,7 @@ class IncomeDB {
                     const goal = await savingsStore.get(fund.goalId);
                     if (goal) {
                         goal.currentAmount -= fund.amount;
+                        goal.updatedAt = Date.now();
                         await savingsStore.put(goal);
                         await allocStore.put({
                             id: `hucha_exp_${updatedExpense.id}_${fund.goalId}`,
@@ -1046,6 +1084,7 @@ class IncomeDB {
                 const goal = await savingsStore.get(updatedExpense.linkedSavingGoalId);
                 if (goal) {
                     goal.currentAmount -= updatedExpense.amount;
+                    goal.updatedAt = Date.now();
                     await savingsStore.put(goal);
                     await allocStore.put({
                         id: `hucha_exp_${updatedExpense.id}`,

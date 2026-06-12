@@ -77,8 +77,8 @@ const PiggyBankForm: React.FC<PiggyBankFormProps> = ({ editingGoal, onCancelEdit
             }
         };
 
-        window.addEventListener('app-back-pressed', handleBack);
-        return () => window.removeEventListener('app-back-pressed', handleBack);
+        document.addEventListener('app-back-pressed', handleBack);
+        return () => document.removeEventListener('app-back-pressed', handleBack);
     }, [name, target, current, monthly, sourceAccountId, linkedFixedIncomeId, color, accountInBudget, editingGoal, onCancelEdit, onClose]);
 
     const handleSubmit = async (e: React.FormEvent) => {

@@ -54,8 +54,8 @@ const FixedMovementsView: React.FC<FixedMovementsViewProps> = ({ onBack }) => {
             }
         };
 
-        window.addEventListener('app-back-pressed', handleBack);
-        return () => window.removeEventListener('app-back-pressed', handleBack);
+        document.addEventListener('app-back-pressed', handleBack);
+        return () => document.removeEventListener('app-back-pressed', handleBack);
     }, [confirmModal]);
 
     const { selectedMonth, selectedYear } = useDateSelection();

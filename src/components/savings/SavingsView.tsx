@@ -40,8 +40,8 @@ const SavingsView: React.FC = () => {
             }
         };
 
-        window.addEventListener('app-back-pressed', handleBack);
-        return () => window.removeEventListener('app-back-pressed', handleBack);
+        document.addEventListener('app-back-pressed', handleBack);
+        return () => document.removeEventListener('app-back-pressed', handleBack);
     }, [showTransfer, addMoneyGoal, withdrawMoneyGoal, historyGoal]);
 
     const handleEdit = (goal: SavingGoal) => {

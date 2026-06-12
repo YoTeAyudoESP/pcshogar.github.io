@@ -494,6 +494,8 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction
                                          display: 'flex',
                                          flexDirection: 'column',
                                          padding: '1.5rem',
+                                         paddingTop: 'calc(1.5rem + env(safe-area-inset-top, 24px))',
+                                         paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom, 16px))',
                                          color: 'white',
                                          boxSizing: 'border-box'
                                      }} onClick={e => e.stopPropagation()}>

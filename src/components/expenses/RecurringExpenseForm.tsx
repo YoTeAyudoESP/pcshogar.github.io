@@ -61,8 +61,8 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
             }
         };
 
-        window.addEventListener('app-back-pressed', handleBack);
-        return () => window.removeEventListener('app-back-pressed', handleBack);
+        document.addEventListener('app-back-pressed', handleBack);
+        return () => document.removeEventListener('app-back-pressed', handleBack);
     }, [description, amount, frequency, paymentDay, paymentMonth, categoryId, pmType, pmId, editingExpense, onClose]);
 
     const handleSubmit = async (e: React.FormEvent) => {

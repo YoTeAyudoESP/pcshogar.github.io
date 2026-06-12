@@ -16,6 +16,7 @@ import { LayoutDashboard, Settings as SettingsIcon, X, Calendar, Clock, Trending
 import { useFinance } from '../../contexts/FinanceContext';
 import versionInfo from '../../../public/version.json';
 const version = versionInfo.version;
+import { changelogHistory, compareVersions } from '../../utils/changelogHistory';
 import RemnantDecisionModal from '../settings/RemnantDecisionModal';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import EditTransactionModal from './EditTransactionModal';
@@ -108,6 +109,7 @@ const Dashboard: React.FC = () => {
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
     const [show30DayReminder, setShow30DayReminder] = useState(false);
     const [showChangelog, setShowChangelog] = useState(false);
+    const [changelogEntriesToShow, setChangelogEntriesToShow] = useState<any[]>([]);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     
     // Edit state
@@ -184,10 +186,27 @@ const Dashboard: React.FC = () => {
             if (isClean) {
                 localStorage.setItem('pcshogar_last_version', currentVersion);
             } else {
+                // If it's an existing installation but last version is unknown, show all history
+                const entries = changelogHistory.filter(entry => compareVersions(entry.version, '0.0.0') > 0);
+                if (entries.length > 0) {
+                    setChangelogEntriesToShow(entries);
+                    setShowChangelog(true);
+                }
+            }
+        } else if (compareVersions(currentVersion, lastVersion) > 0) {
+            let entries = changelogHistory.filter(entry => 
+                compareVersions(entry.version, lastVersion) > 0 && 
+                compareVersions(entry.version, currentVersion) <= 0
+            );
+            // Fallback: if current version notes aren't in history yet, inject them from version.json
+            const hasCurrentVersion = entries.some(e => e.version === currentVersion);
+            if (!hasCurrentVersion) {
+                entries = [{ version: currentVersion, releaseNotes: versionInfo.releaseNotes }, ...entries];
+            }
+            if (entries.length > 0) {
+                setChangelogEntriesToShow(entries);
                 setShowChangelog(true);
             }
-        } else if (lastVersion !== currentVersion) {
-            setShowChangelog(true);
         }
     }, [loading, accounts.length, cards.length]);
 
@@ -587,9 +606,33 @@ const Dashboard: React.FC = () => {
                             fontSize: '0.88rem',
                             lineHeight: '1.6',
                             color: 'rgba(255,255,255,0.8)',
-                            marginBottom: '2rem'
+                            marginBottom: '2rem',
+                            maxHeight: '350px',
+                            overflowY: 'auto',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '1.5rem'
                          }}>
-                            {renderReleaseNotes(versionInfo.releaseNotes)}
+                            {changelogEntriesToShow.map((entry, idx) => (
+                                <div key={entry.version} style={{
+                                    borderBottom: idx < changelogEntriesToShow.length - 1 ? '1px dashed rgba(255, 255, 255, 0.1)' : 'none',
+                                    paddingBottom: idx < changelogEntriesToShow.length - 1 ? '1.5rem' : 0
+                                }}>
+                                    <div style={{
+                                        fontSize: '0.75rem',
+                                        fontWeight: 800,
+                                        color: '#10b981',
+                                        marginBottom: '0.75rem',
+                                        display: 'inline-block',
+                                        background: 'rgba(16, 185, 129, 0.1)',
+                                        padding: '2px 8px',
+                                        borderRadius: '6px'
+                                    }}>
+                                        Versión {entry.version}
+                                    </div>
+                                    {renderReleaseNotes(entry.releaseNotes)}
+                                </div>
+                            ))}
                         </div>
 
                         <button 

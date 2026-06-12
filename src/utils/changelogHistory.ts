@@ -5,6 +5,13 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '1.4.0',
+    releaseNotes: `Novedades v1.4.0:
+- Informes PDF Profesionales: Corregido el problema de corte de contenido en los informes. Ahora las secciones (Resumen de Saldos, Desglose por Categorías, Metas de Ahorro y Mayores Gastos) se organizan en páginas independientes para evitar desbordes y cortes.
+- Numeración Dinámica: Añadida numeración secuencial 'Página X de Y' en todos los informes.
+- Agrupación Inteligente: Las categorías adicionales se agrupan automáticamente bajo 'Otras categorías' en la primera página para un formato más limpio y profesional.`
+  },
+  {
     version: '1.3.12',
     releaseNotes: `Novedades v1.3.12:
 - Corrección de cierre/cuelgue en informes PDF: Optimizada la memoria de renderizado en Android para evitar que la aplicación se minimice o cierre al generar informes con muchas transacciones (reducción de escala y liberación forzada de recursos gráficos).`

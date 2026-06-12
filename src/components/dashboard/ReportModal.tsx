@@ -47,6 +47,13 @@ const chunkArray = <T,>(arr: T[], size: number): T[][] => {
     return chunks;
 };
 
+// ── Cell styles (reusable) ───────────────────────────────────────────────
+const thStyle: React.CSSProperties = {
+    padding: '8px 10px', color: '#495057', fontWeight: 700,
+    background: '#f8f9fa', borderBottom: '2px solid #dee2e6', textAlign: 'left'
+};
+const tdStyle: React.CSSProperties = { padding: '9px 10px', borderBottom: '1px solid #e9ecef' };
+
 // ── Component ────────────────────────────────────────────────────────────────
 const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
     const { expenses, savings, categories, extraIncomes } = useFinance();
@@ -210,6 +217,387 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
         return ts ? new Date(ts).toLocaleDateString('es-ES') : '—';
     };
 
+    const displayCategories = useMemo(() => {
+        const allCats = reportData.categorySummary;
+        if (allCats.length <= 8) return allCats;
+        
+        const topCats = allCats.slice(0, 7);
+        const otherCats = allCats.slice(7);
+        const otherAmount = otherCats.reduce((sum, c) => sum + c.amount, 0);
+        const otherPercentage = otherCats.reduce((sum, c) => sum + c.percentage, 0);
+        
+        return [
+            ...topCats,
+            {
+                id: 'cat_other_grouped',
+                name: 'Otras categorías',
+                color: '#95a5a6',
+                amount: otherAmount,
+                percentage: otherPercentage
+            }
+        ];
+    }, [reportData.categorySummary]);
+
+    const pdfPages = useMemo(() => {
+        const pages = [];
+
+        // --- PAGE 1: RESUMEN GENERAL ---
+        pages.push({
+            id: 'summary-page',
+            render: (pageNum: number, totalPages: number) => (
+                <div className="pdf-page" style={{
+                    width: '800px', height: '1131px', // A4 aspect ratio
+                    fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+                    background: '#ffffff', color: '#333333',
+                    padding: '40px', boxSizing: 'border-box',
+                    display: 'none', flexDirection: 'column'
+                }}>
+                    {/* Header Page 1 */}
+                    <div style={{
+                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                        borderBottom: '3px solid #3498db', paddingBottom: '20px', marginBottom: '30px'
+                    }}>
+                        <div>
+                            <h1 style={{ margin: 0, fontSize: '28px', color: '#2c3e50', fontWeight: 800 }}>PCS Hogar</h1>
+                            <p style={{ margin: '5px 0 0 0', fontSize: '14px', color: '#7f8c8d', fontWeight: 500 }}>
+                                Gestión de Finanzas Domésticas
+                            </p>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                            <div style={{
+                                background: '#3498db', color: 'white', padding: '6px 12px',
+                                borderRadius: '6px', fontSize: '12px', fontWeight: 700, display: 'inline-block'
+                            }}>
+                                INFORME FINANCIERO
+                            </div>
+                            <p style={{ margin: '8px 0 0 0', fontSize: '11px', color: '#95a5a6' }}>
+                                Generado el: {new Date().toLocaleDateString('es-ES')}
+                            </p>
+                        </div>
+                    </div>
+
+                    <h2 style={{ fontSize: '20px', color: '#2c3e50', marginBottom: '25px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
+                        {getPeriodTitle()}
+                    </h2>
+
+                    {includeSummary && (
+                        <div style={{ marginBottom: '35px' }}>
+                            <h3 style={{ fontSize: '15px', color: '#3498db', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '15px', fontWeight: 700 }}>
+                                1. Resumen de Saldos
+                            </h3>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '15px', marginBottom: '10px' }}>
+                                <div style={{ background: '#f8f9fa', border: '1px solid #e9ecef', borderRadius: '8px', padding: '15px', textAlign: 'center' }}>
+                                    <div style={{ fontSize: '11px', color: '#7f8c8d', fontWeight: 600, textTransform: 'uppercase', marginBottom: '5px' }}>Total Ingresos</div>
+                                    <div style={{ fontSize: '20px', color: '#2ecc71', fontWeight: 700 }}>{formatCurrency(reportData.totalIncomes)}</div>
+                                    <div style={{ fontSize: '10px', color: '#bdc3c7', marginTop: '4px' }}>{reportData.incomesCount} movimientos</div>
+                                </div>
+                                <div style={{ background: '#f8f9fa', border: '1px solid #e9ecef', borderRadius: '8px', padding: '15px', textAlign: 'center' }}>
+                                    <div style={{ fontSize: '11px', color: '#7f8c8d', fontWeight: 600, textTransform: 'uppercase', marginBottom: '5px' }}>Total Gastos</div>
+                                    <div style={{ fontSize: '20px', color: '#e74c3c', fontWeight: 700 }}>{formatCurrency(reportData.totalExpenses)}</div>
+                                    <div style={{ fontSize: '10px', color: '#bdc3c7', marginTop: '4px' }}>{reportData.expensesCount} movimientos</div>
+                                </div>
+                                <div style={{
+                                    background: reportData.netSavings >= 0 ? 'rgba(46,204,113,0.08)' : 'rgba(231,76,60,0.08)',
+                                    border: reportData.netSavings >= 0 ? '1px solid rgba(46,204,113,0.2)' : '1px solid rgba(231,76,60,0.2)',
+                                    borderRadius: '8px', padding: '15px', textAlign: 'center'
+                                }}>
+                                    <div style={{ fontSize: '11px', color: '#7f8c8d', fontWeight: 600, textTransform: 'uppercase', marginBottom: '5px' }}>Ahorro Neto</div>
+                                    <div style={{ fontSize: '20px', color: reportData.netSavings >= 0 ? '#27ae60' : '#c0392b', fontWeight: 700 }}>
+                                        {formatCurrency(reportData.netSavings)}
+                                    </div>
+                                    <div style={{ fontSize: '10px', color: '#7f8c8d', marginTop: '4px' }}>
+                                        Tasa: {reportData.totalIncomes > 0 ? ((reportData.netSavings / reportData.totalIncomes) * 100).toFixed(1) : 0}%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {includeCategories && (
+                        <div style={{ marginBottom: '35px' }}>
+                            <h3 style={{ fontSize: '15px', color: '#3498db', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '15px', fontWeight: 700 }}>
+                                2. Distribución de Gastos por Categoría
+                            </h3>
+                            {displayCategories.length === 0
+                                ? <p style={{ fontSize: '13px', color: '#7f8c8d', fontStyle: 'italic' }}>No hay gastos registrados en este período.</p>
+                                : (
+                                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                                        <thead>
+                                            <tr>
+                                                <th style={thStyle}>Categoría</th>
+                                                <th style={{ ...thStyle, textAlign: 'right' }}>Importe</th>
+                                                <th style={{ ...thStyle, textAlign: 'right' }}>% sobre total</th>
+                                                <th style={{ ...thStyle, width: '140px' }}>Barra</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {displayCategories.map((cat, idx) => (
+                                                <tr key={idx}>
+                                                    <td style={{ ...tdStyle, display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>
+                                                        <span style={{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '50%', backgroundColor: cat.color }} />
+                                                        {cat.name}
+                                                    </td>
+                                                    <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#2c3e50' }}>{formatCurrency(cat.amount)}</td>
+                                                    <td style={{ ...tdStyle, textAlign: 'right', color: '#7f8c8d' }}>{cat.percentage.toFixed(1)}%</td>
+                                                    <td style={tdStyle}>
+                                                        <div style={{ width: '100%', height: '8px', background: '#e9ecef', borderRadius: '4px', overflow: 'hidden' }}>
+                                                            <div style={{ width: `${cat.percentage}%`, height: '100%', background: cat.color }} />
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                )
+                            }
+                        </div>
+                    )}
+
+                    <div style={{ flexGrow: 1 }}></div>
+                    <div style={{ textAlign: 'center', fontSize: '10px', color: '#bdc3c7', paddingTop: '20px', borderTop: '1px solid #eee' }}>
+                        Página {pageNum} de {totalPages}
+                    </div>
+                </div>
+            )
+        });
+
+        // --- PAGE 2: METAS Y HUCHAS DE AHORRO ---
+        if (includeSavings && reportData.activeSavings.length > 0) {
+            const savingsChunks = chunkArray(reportData.activeSavings, 15);
+            savingsChunks.forEach((chunk, pageIndex) => {
+                pages.push({
+                    id: `savings-page-${pageIndex}`,
+                    render: (pageNum: number, totalPages: number) => (
+                        <div className="pdf-page" style={{
+                            width: '800px', height: '1131px',
+                            fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+                            background: '#ffffff', color: '#333333',
+                            padding: '40px', boxSizing: 'border-box',
+                            display: 'none', flexDirection: 'column'
+                        }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #3498db', paddingBottom: '10px', marginBottom: '20px' }}>
+                                <span style={{ fontSize: '12px', fontWeight: 700, color: '#2c3e50' }}>PCS Hogar — Objetivos y Huchas de Ahorro</span>
+                                <span style={{ fontSize: '11px', color: '#95a5a6' }}>{getPeriodName()}</span>
+                            </div>
+
+                            <h3 style={{ fontSize: '16px', color: '#3498db', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '15px', fontWeight: 700 }}>
+                                3. Objetivos y Huchas de Ahorro {savingsChunks.length > 1 ? `(Parte ${pageIndex + 1} de ${savingsChunks.length})` : ''}
+                            </h3>
+
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                                <thead>
+                                    <tr>
+                                        <th style={thStyle}>Meta / Hucha</th>
+                                        <th style={{ ...thStyle, textAlign: 'right' }}>Saldo Actual</th>
+                                        <th style={{ ...thStyle, textAlign: 'right' }}>Objetivo</th>
+                                        <th style={{ ...thStyle, textAlign: 'right' }}>Progreso</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {chunk.map((goal, idx) => {
+                                        const target = goal.targetAmount ?? 0;
+                                        const pct = target > 0 ? (goal.currentAmount / target) * 100 : 100;
+                                        return (
+                                            <tr key={idx}>
+                                                <td style={{ ...tdStyle, fontWeight: 600 }}>{goal.name}</td>
+                                                <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#27ae60' }}>{formatCurrency(goal.currentAmount)}</td>
+                                                <td style={{ ...tdStyle, textAlign: 'right', color: '#7f8c8d' }}>{target > 0 ? formatCurrency(target) : 'N/A'}</td>
+                                                <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700 }}>{target > 0 ? `${Math.min(100, pct).toFixed(0)}%` : 'Completado'}</td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+
+                            <div style={{ flexGrow: 1 }}></div>
+                            <div style={{ textAlign: 'center', fontSize: '10px', color: '#bdc3c7', paddingTop: '20px', borderTop: '1px solid #eee' }}>
+                                Página {pageNum} de {totalPages}
+                            </div>
+                        </div>
+                    )
+                });
+            });
+        }
+
+        // --- PAGE 3: MAYORES GASTOS ---
+        if (includeTransactions && reportData.topTransactions.length > 0) {
+            pages.push({
+                id: 'top-expenses-page',
+                render: (pageNum: number, totalPages: number) => (
+                    <div className="pdf-page" style={{
+                        width: '800px', height: '1131px',
+                        fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+                        background: '#ffffff', color: '#333333',
+                        padding: '40px', boxSizing: 'border-box',
+                        display: 'none', flexDirection: 'column'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #3498db', paddingBottom: '10px', marginBottom: '20px' }}>
+                            <span style={{ fontSize: '12px', fontWeight: 700, color: '#2c3e50' }}>PCS Hogar — Mayores Gastos</span>
+                            <span style={{ fontSize: '11px', color: '#95a5a6' }}>{getPeriodName()}</span>
+                        </div>
+
+                        <h3 style={{ fontSize: '16px', color: '#3498db', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '15px', fontWeight: 700 }}>
+                            4. Mayores Gastos del Período (Top 10)
+                        </h3>
+
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                            <thead>
+                                <tr>
+                                    <th style={thStyle}>Fecha</th>
+                                    <th style={thStyle}>Descripción</th>
+                                    <th style={thStyle}>Categoría</th>
+                                    <th style={{ ...thStyle, textAlign: 'right' }}>Importe</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {reportData.topTransactions.map((exp, idx) => {
+                                    const cat = categories.find(c => c.id === exp.categoryId) || DEFAULT_CATEGORIES.find(c => c.id === exp.categoryId);
+                                    return (
+                                        <tr key={idx}>
+                                            <td style={{ ...tdStyle, color: '#7f8c8d', whiteSpace: 'nowrap' }}>{new Date(exp.date).toLocaleDateString('es-ES')}</td>
+                                            <td style={{ ...tdStyle, fontWeight: 500 }}>{exp.description}</td>
+                                            <td style={{ ...tdStyle, color: '#95a5a6' }}>{cat?.name || 'Otros'}</td>
+                                            <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#e74c3c' }}>{formatCurrency(Number(exp.netAmount))}</td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+
+                        <div style={{ flexGrow: 1 }}></div>
+                        <div style={{ textAlign: 'center', fontSize: '10px', color: '#bdc3c7', paddingTop: '20px', borderTop: '1px solid #eee' }}>
+                            Página {pageNum} de {totalPages}
+                        </div>
+                    </div>
+                )
+            });
+        }
+
+        // --- PAGES: DETALLE DE INGRESOS ---
+        if (includeDetail && reportData.detailIncomes.length > 0) {
+            const incomeChunks = chunkArray(reportData.detailIncomes, 16);
+            incomeChunks.forEach((chunk, pageIndex) => {
+                pages.push({
+                    id: `detail-incomes-page-${pageIndex}`,
+                    render: (pageNum: number, totalPages: number) => (
+                        <div className="pdf-page" style={{
+                            width: '800px', height: '1131px',
+                            fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+                            background: '#ffffff', color: '#333333',
+                            padding: '40px', boxSizing: 'border-box',
+                            display: 'none', flexDirection: 'column'
+                        }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #3498db', paddingBottom: '10px', marginBottom: '20px' }}>
+                                <span style={{ fontSize: '12px', fontWeight: 700, color: '#2c3e50' }}>PCS Hogar — Detalle de Ingresos</span>
+                                <span style={{ fontSize: '11px', color: '#95a5a6' }}>{getPeriodName()}</span>
+                            </div>
+
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                                <h3 style={{ margin: 0, fontSize: '16px', color: '#2c3e50', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 700 }}>
+                                    Detalle de Ingresos {incomeChunks.length > 1 ? `(Parte ${pageIndex + 1} de ${incomeChunks.length})` : ''}
+                                </h3>
+                            </div>
+
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                                <thead>
+                                    <tr>
+                                        <th style={thStyle}>Fecha</th>
+                                        <th style={thStyle}>Concepto</th>
+                                        <th style={thStyle}>Categoría</th>
+                                        <th style={{ ...thStyle, textAlign: 'right' }}>Importe</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {chunk.map((inc, idx) => (
+                                        <tr key={idx}>
+                                            <td style={{ ...tdStyle, color: '#7f8c8d', width: '15%' }}>{getIncomeDate(inc)}</td>
+                                            <td style={{ ...tdStyle, fontWeight: 500 }}>{inc.name || (inc as any).description}</td>
+                                            <td style={{ ...tdStyle, color: '#95a5a6', width: '25%' }}>{inc.type === 'fixed' ? 'Ingreso Fijo' : 'Ingreso Extra'}</td>
+                                            <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#27ae60', width: '20%' }}>
+                                                {formatCurrency(Number(inc.amount))}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+
+                            <div style={{ flexGrow: 1 }}></div>
+                            <div style={{ textAlign: 'center', fontSize: '10px', color: '#bdc3c7', paddingTop: '20px', borderTop: '1px solid #eee' }}>
+                                Página {pageNum} de {totalPages}
+                            </div>
+                        </div>
+                    )
+                });
+            });
+        }
+
+        // --- PAGES: DETALLE DE GASTOS ---
+        if (includeDetail && reportData.detailExpenses.length > 0) {
+            const expenseChunks = chunkArray(reportData.detailExpenses, 16);
+            expenseChunks.forEach((chunk, pageIndex) => {
+                pages.push({
+                    id: `detail-expenses-page-${pageIndex}`,
+                    render: (pageNum: number, totalPages: number) => (
+                        <div className="pdf-page" style={{
+                            width: '800px', height: '1131px',
+                            fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+                            background: '#ffffff', color: '#333333',
+                            padding: '40px', boxSizing: 'border-box',
+                            display: 'none', flexDirection: 'column'
+                        }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #3498db', paddingBottom: '10px', marginBottom: '20px' }}>
+                                <span style={{ fontSize: '12px', fontWeight: 700, color: '#2c3e50' }}>PCS Hogar — Detalle de Gastos</span>
+                                <span style={{ fontSize: '11px', color: '#95a5a6' }}>{getPeriodName()}</span>
+                            </div>
+
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                                <h3 style={{ margin: 0, fontSize: '16px', color: '#2c3e50', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 700 }}>
+                                    Detalle de Gastos {expenseChunks.length > 1 ? `(Parte ${pageIndex + 1} de ${expenseChunks.length})` : ''}
+                                </h3>
+                            </div>
+
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                                <thead>
+                                    <tr>
+                                        <th style={thStyle}>Fecha</th>
+                                        <th style={thStyle}>Descripción</th>
+                                        <th style={thStyle}>Categoría</th>
+                                        <th style={{ ...thStyle, textAlign: 'right' }}>Importe</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {chunk.map((exp, idx) => {
+                                        const cat = categories.find(c => c.id === exp.categoryId) || DEFAULT_CATEGORIES.find(c => c.id === exp.categoryId);
+                                        return (
+                                            <tr key={idx}>
+                                                <td style={{ ...tdStyle, color: '#7f8c8d', width: '15%' }}>{new Date(exp.date).toLocaleDateString('es-ES')}</td>
+                                                <td style={{ ...tdStyle, fontWeight: 500 }}>{exp.description}</td>
+                                                <td style={{ ...tdStyle, color: '#95a5a6', width: '25%' }}>{cat?.name || 'Otros'}</td>
+                                                <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#e74c3c', width: '20%' }}>
+                                                    {formatCurrency(Number(exp.netAmount))}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+
+                            <div style={{ flexGrow: 1 }}></div>
+                            <div style={{ textAlign: 'center', fontSize: '10px', color: '#bdc3c7', paddingTop: '20px', borderTop: '1px solid #eee' }}>
+                                Página {pageNum} de {totalPages}
+                            </div>
+                        </div>
+                    )
+                });
+            });
+        }
+
+        return pages;
+    }, [
+        includeSummary, includeCategories, includeSavings, includeTransactions, includeDetail,
+        reportData, displayCategories, categories, periodType, selectedYear, selectedMonth, selectedQuarter
+    ]);
+
     // ── PDF generation ───────────────────────────────────────────────────────
     const handleGeneratePdf = async () => {
         if (!reportRef.current) return;
@@ -339,12 +727,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
         onClose();
     };
 
-    // ── Cell styles (reusable) ───────────────────────────────────────────────
-    const thStyle: React.CSSProperties = {
-        padding: '8px 10px', color: '#495057', fontWeight: 700,
-        background: '#f8f9fa', borderBottom: '2px solid #dee2e6', textAlign: 'left'
-    };
-    const tdStyle: React.CSSProperties = { padding: '9px 10px', borderBottom: '1px solid #e9ecef' };
+
 
     // ── Render ───────────────────────────────────────────────────────────────
     return (
@@ -616,272 +999,11 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                         width: '800px',
                     }}
                 >
-                    {/* ── PDF PAGE 1: RESUMEN GENERAL ── */}
-                    <div className="pdf-page" style={{
-                        width: '800px', height: '1131px', // A4 aspect ratio
-                        fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
-                        background: '#ffffff', color: '#333333',
-                        padding: '40px', boxSizing: 'border-box',
-                        display: 'none', flexDirection: 'column'
-                    }}>
-                        {/* Header Page 1 */}
-                        <div style={{
-                            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                            borderBottom: '3px solid #3498db', paddingBottom: '20px', marginBottom: '30px'
-                        }}>
-                            <div>
-                                <h1 style={{ margin: 0, fontSize: '28px', color: '#2c3e50', fontWeight: 800 }}>PCS Hogar</h1>
-                                <p style={{ margin: '5px 0 0 0', fontSize: '14px', color: '#7f8c8d', fontWeight: 500 }}>
-                                    Gestión de Finanzas Domésticas
-                                </p>
-                            </div>
-                            <div style={{ textAlign: 'right' }}>
-                                <div style={{
-                                    background: '#3498db', color: 'white', padding: '6px 12px',
-                                    borderRadius: '6px', fontSize: '12px', fontWeight: 700, display: 'inline-block'
-                                }}>
-                                    INFORME FINANCIERO
-                                </div>
-                                <p style={{ margin: '8px 0 0 0', fontSize: '11px', color: '#95a5a6' }}>
-                                    Generado el: {new Date().toLocaleDateString('es-ES')}
-                                </p>
-                            </div>
-                        </div>
-
-                        <h2 style={{ fontSize: '20px', color: '#2c3e50', marginBottom: '25px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
-                            {getPeriodTitle()}
-                        </h2>
-
-                        {/* Sections Page 1 */}
-                        {includeSummary && (
-                            <div style={{ marginBottom: '35px' }}>
-                                <h3 style={{ fontSize: '15px', color: '#3498db', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '15px', fontWeight: 700 }}>
-                                    1. Resumen de Saldos
-                                </h3>
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '15px', marginBottom: '10px' }}>
-                                    <div style={{ background: '#f8f9fa', border: '1px solid #e9ecef', borderRadius: '8px', padding: '15px', textAlign: 'center' }}>
-                                        <div style={{ fontSize: '11px', color: '#7f8c8d', fontWeight: 600, textTransform: 'uppercase', marginBottom: '5px' }}>Total Ingresos</div>
-                                        <div style={{ fontSize: '20px', color: '#2ecc71', fontWeight: 700 }}>{formatCurrency(reportData.totalIncomes)}</div>
-                                        <div style={{ fontSize: '10px', color: '#bdc3c7', marginTop: '4px' }}>{reportData.incomesCount} movimientos</div>
-                                    </div>
-                                    <div style={{ background: '#f8f9fa', border: '1px solid #e9ecef', borderRadius: '8px', padding: '15px', textAlign: 'center' }}>
-                                        <div style={{ fontSize: '11px', color: '#7f8c8d', fontWeight: 600, textTransform: 'uppercase', marginBottom: '5px' }}>Total Gastos</div>
-                                        <div style={{ fontSize: '20px', color: '#e74c3c', fontWeight: 700 }}>{formatCurrency(reportData.totalExpenses)}</div>
-                                        <div style={{ fontSize: '10px', color: '#bdc3c7', marginTop: '4px' }}>{reportData.expensesCount} movimientos</div>
-                                    </div>
-                                    <div style={{
-                                        background: reportData.netSavings >= 0 ? 'rgba(46,204,113,0.08)' : 'rgba(231,76,60,0.08)',
-                                        border: reportData.netSavings >= 0 ? '1px solid rgba(46,204,113,0.2)' : '1px solid rgba(231,76,60,0.2)',
-                                        borderRadius: '8px', padding: '15px', textAlign: 'center'
-                                    }}>
-                                        <div style={{ fontSize: '11px', color: '#7f8c8d', fontWeight: 600, textTransform: 'uppercase', marginBottom: '5px' }}>Ahorro Neto</div>
-                                        <div style={{ fontSize: '20px', color: reportData.netSavings >= 0 ? '#27ae60' : '#c0392b', fontWeight: 700 }}>
-                                            {formatCurrency(reportData.netSavings)}
-                                        </div>
-                                        <div style={{ fontSize: '10px', color: '#7f8c8d', marginTop: '4px' }}>
-                                            Tasa: {reportData.totalIncomes > 0 ? ((reportData.netSavings / reportData.totalIncomes) * 100).toFixed(1) : 0}%
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {includeCategories && (
-                            <div style={{ marginBottom: '35px' }}>
-                                <h3 style={{ fontSize: '15px', color: '#3498db', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '15px', fontWeight: 700 }}>
-                                    2. Distribución de Gastos por Categoría
-                                </h3>
-                                {reportData.categorySummary.length === 0
-                                    ? <p style={{ fontSize: '13px', color: '#7f8c8d', fontStyle: 'italic' }}>No hay gastos registrados en este período.</p>
-                                    : (
-                                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-                                            <thead>
-                                                <tr>
-                                                    <th style={thStyle}>Categoría</th>
-                                                    <th style={{ ...thStyle, textAlign: 'right' }}>Importe</th>
-                                                    <th style={{ ...thStyle, textAlign: 'right' }}>% sobre total</th>
-                                                    <th style={{ ...thStyle, width: '140px' }}>Barra</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {reportData.categorySummary.map((cat, idx) => (
-                                                    <tr key={idx}>
-                                                        <td style={{ ...tdStyle, display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>
-                                                            <span style={{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '50%', backgroundColor: cat.color }} />
-                                                            {cat.name}
-                                                        </td>
-                                                        <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#2c3e50' }}>{formatCurrency(cat.amount)}</td>
-                                                        <td style={{ ...tdStyle, textAlign: 'right', color: '#7f8c8d' }}>{cat.percentage.toFixed(1)}%</td>
-                                                        <td style={tdStyle}>
-                                                            <div style={{ width: '100%', height: '8px', background: '#e9ecef', borderRadius: '4px', overflow: 'hidden' }}>
-                                                                <div style={{ width: `${cat.percentage}%`, height: '100%', background: cat.color }} />
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    )
-                                }
-                            </div>
-                        )}
-
-                        {includeSavings && reportData.activeSavings.length > 0 && (
-                            <div style={{ marginBottom: '35px' }}>
-                                <h3 style={{ fontSize: '15px', color: '#3498db', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '15px', fontWeight: 700 }}>
-                                    3. Objetivos y Huchas de Ahorro
-                                </h3>
-                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-                                    <thead>
-                                        <tr>
-                                            <th style={thStyle}>Meta / Hucha</th>
-                                            <th style={{ ...thStyle, textAlign: 'right' }}>Saldo Actual</th>
-                                            <th style={{ ...thStyle, textAlign: 'right' }}>Objetivo</th>
-                                            <th style={{ ...thStyle, textAlign: 'right' }}>Progreso</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {reportData.activeSavings.map((goal, idx) => {
-                                            const target = goal.targetAmount ?? 0;
-                                            const pct = target > 0 ? (goal.currentAmount / target) * 100 : 100;
-                                            return (
-                                                <tr key={idx}>
-                                                    <td style={{ ...tdStyle, fontWeight: 600 }}>{goal.name}</td>
-                                                    <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#27ae60' }}>{formatCurrency(goal.currentAmount)}</td>
-                                                    <td style={{ ...tdStyle, textAlign: 'right', color: '#7f8c8d' }}>{target > 0 ? formatCurrency(target) : 'N/A'}</td>
-                                                    <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700 }}>{target > 0 ? `${Math.min(100, pct).toFixed(0)}%` : 'Completado'}</td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-
-                        {includeTransactions && reportData.topTransactions.length > 0 && (
-                            <div style={{ marginBottom: '35px' }}>
-                                <h3 style={{ fontSize: '15px', color: '#3498db', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '15px', fontWeight: 700 }}>
-                                    4. Mayores Gastos del Período
-                                </h3>
-                                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
-                                    <thead>
-                                        <tr>
-                                            <th style={thStyle}>Fecha</th>
-                                            <th style={thStyle}>Descripción</th>
-                                            <th style={thStyle}>Categoría</th>
-                                            <th style={{ ...thStyle, textAlign: 'right' }}>Importe</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {reportData.topTransactions.map((exp, idx) => {
-                                            const cat = categories.find(c => c.id === exp.categoryId) || DEFAULT_CATEGORIES.find(c => c.id === exp.categoryId);
-                                            return (
-                                                <tr key={idx}>
-                                                    <td style={{ ...tdStyle, color: '#7f8c8d', whiteSpace: 'nowrap' }}>{new Date(exp.date).toLocaleDateString('es-ES')}</td>
-                                                    <td style={{ ...tdStyle, fontWeight: 500 }}>{exp.description}</td>
-                                                    <td style={{ ...tdStyle, color: '#95a5a6' }}>{cat?.name || 'Otros'}</td>
-                                                    <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#e74c3c' }}>{formatCurrency(Number(exp.netAmount))}</td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-                        
-                        <div style={{ flexGrow: 1 }}></div>
-                        <div style={{ textAlign: 'center', fontSize: '10px', color: '#bdc3c7', paddingTop: '20px', borderTop: '1px solid #eee' }}>
-                            Página 1
-                        </div>
-                    </div>
-
-                    {/* ── PDF PAGES 2+: DETALLES DE INGRESOS (Chunks de 16 items) ── */}
-                    {includeDetail && reportData.detailIncomes.length > 0 && chunkArray(reportData.detailIncomes, 16).map((chunk, pageIndex) => (
-                        <div key={`income-page-${pageIndex}`} className="pdf-page" style={{
-                            width: '800px', height: '1131px',
-                            fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
-                            background: '#ffffff', color: '#333333',
-                            padding: '40px', boxSizing: 'border-box',
-                            display: 'none', flexDirection: 'column'
-                        }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #3498db', paddingBottom: '15px', marginBottom: '25px' }}>
-                                <h3 style={{ margin: 0, fontSize: '16px', color: '#2c3e50', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 700 }}>
-                                    Detalle de Ingresos {chunkArray(reportData.detailIncomes, 16).length > 1 ? `(Parte ${pageIndex + 1})` : ''}
-                                </h3>
-                                <span style={{ fontSize: '11px', color: '#95a5a6' }}>{getPeriodName()}</span>
-                            </div>
-
-                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
-                                <thead>
-                                    <tr>
-                                        <th style={thStyle}>Fecha</th>
-                                        <th style={thStyle}>Concepto</th>
-                                        <th style={thStyle}>Categoría</th>
-                                        <th style={{ ...thStyle, textAlign: 'right' }}>Importe</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {chunk.map((inc, idx) => (
-                                        <tr key={idx}>
-                                            <td style={{ ...tdStyle, color: '#7f8c8d', width: '15%' }}>{getIncomeDate(inc)}</td>
-                                            <td style={{ ...tdStyle, fontWeight: 500 }}>{inc.name || (inc as any).description}</td>
-                                            <td style={{ ...tdStyle, color: '#95a5a6', width: '25%' }}>{inc.type === 'fixed' ? 'Ingreso Fijo' : 'Ingreso Extra'}</td>
-                                            <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#27ae60', width: '20%' }}>
-                                                {formatCurrency(Number(inc.amount))}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                            <div style={{ flexGrow: 1 }}></div>
-                        </div>
+                    {pdfPages.map((page, index) => (
+                        <React.Fragment key={page.id}>
+                            {page.render(index + 1, pdfPages.length)}
+                        </React.Fragment>
                     ))}
-
-                    {/* ── PDF PAGES: DETALLES DE GASTOS (Chunks de 16 items) ── */}
-                    {includeDetail && reportData.detailExpenses.length > 0 && chunkArray(reportData.detailExpenses, 16).map((chunk, pageIndex) => (
-                        <div key={`expense-page-${pageIndex}`} className="pdf-page" style={{
-                            width: '800px', height: '1131px',
-                            fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
-                            background: '#ffffff', color: '#333333',
-                            padding: '40px', boxSizing: 'border-box',
-                            display: 'none', flexDirection: 'column'
-                        }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #3498db', paddingBottom: '15px', marginBottom: '25px' }}>
-                                <h3 style={{ margin: 0, fontSize: '16px', color: '#2c3e50', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 700 }}>
-                                    Detalle de Gastos {chunkArray(reportData.detailExpenses, 16).length > 1 ? `(Parte ${pageIndex + 1})` : ''}
-                                </h3>
-                                <span style={{ fontSize: '11px', color: '#95a5a6' }}>{getPeriodName()}</span>
-                            </div>
-
-                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
-                                <thead>
-                                    <tr>
-                                        <th style={thStyle}>Fecha</th>
-                                        <th style={thStyle}>Descripción</th>
-                                        <th style={thStyle}>Categoría</th>
-                                        <th style={{ ...thStyle, textAlign: 'right' }}>Importe</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {chunk.map((exp, idx) => {
-                                        const cat = categories.find(c => c.id === exp.categoryId) || DEFAULT_CATEGORIES.find(c => c.id === exp.categoryId);
-                                        return (
-                                            <tr key={idx}>
-                                                <td style={{ ...tdStyle, color: '#7f8c8d', width: '15%' }}>{new Date(exp.date).toLocaleDateString('es-ES')}</td>
-                                                <td style={{ ...tdStyle, fontWeight: 500 }}>{exp.description}</td>
-                                                <td style={{ ...tdStyle, color: '#95a5a6', width: '25%' }}>{cat?.name || 'Otros'}</td>
-                                                <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#e74c3c', width: '20%' }}>
-                                                    {formatCurrency(Number(exp.netAmount))}
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                            <div style={{ flexGrow: 1 }}></div>
-                        </div>
-                    ))}
-
                 </div>
             </div>
         </div>

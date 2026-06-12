@@ -6,7 +6,7 @@ import { DEFAULT_CATEGORIES } from '../../types/finance';
 import type { Income } from '../../types/income';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
-import { FileOpener } from '@capacitor-community/file-opener';
+import { Share } from '@capacitor/share';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
@@ -273,52 +273,34 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                 }
 
             } else if (isAndroidPlatform()) {
-                // ✨ Android (Capacitor) ✨
+                // ✨ Android (Capacitor - Share Menu) ✨
                 try {
                     const base64data = await convertBlobToBase64(blob);
 
-                    // Try to save to Downloads folder first (Android 9 and below)
-                    let savedUri = '';
-                    let savedPath = '';
-                    try {
-                        const writeResult = await Filesystem.writeFile({
-                            path: `Download/${filename}`,
-                            data: base64data,
-                            directory: Directory.ExternalStorage,
-                        });
-                        savedUri = writeResult.uri;
-                        savedPath = `Descargas/${filename}`;
-                    } catch (_externalErr) {
-                        // Fallback: save to app-private Documents folder (works on all Android versions)
-                        const writeResult = await Filesystem.writeFile({
-                            path: filename,
-                            data: base64data,
-                            directory: Directory.Documents,
-                        });
-                        savedUri = writeResult.uri;
-                        savedPath = `Documentos/${filename}`;
-                    }
+                    // Save PDF to cache directory first to obtain a valid local content URI
+                    const writeResult = await Filesystem.writeFile({
+                        path: filename,
+                        data: base64data,
+                        directory: Directory.Cache,
+                    });
+
+                    // Trigger the native share sheet
+                    await Share.share({
+                        title: filename,
+                        text: 'Aquí tienes tu informe financiero en PDF de PCS Hogar.',
+                        url: writeResult.uri,
+                        dialogTitle: 'Compartir o guardar informe PDF',
+                    });
 
                     setSavedFilename(filename);
-                    setSavedPdfPath(savedPath);
+                    setSavedPdfPath('Menú de Compartir nativo');
                     setAndroidSaveError(null);
                     setShowOpenDialog(true);
 
-                    // Try to open the PDF with the system viewer (stays inside app flow)
-                    try {
-                        await FileOpener.open({
-                            filePath: savedUri,
-                            contentType: 'application/pdf',
-                            openWithDefault: true,
-                        });
-                    } catch (openErr) {
-                        // Opening failed but file is saved — user will see the path
-                        console.warn('FileOpener failed, PDF is still saved at:', savedPath, openErr);
-                    }
-
-                } catch (_saveErr) {
+                } catch (saveErr) {
+                    console.error('Error sharing PDF on Android:', saveErr);
                     setAndroidSaveError(
-                        'No se pudo guardar el PDF. Inténtalo de nuevo.'
+                        'No se pudo procesar o compartir el PDF. Inténtalo de nuevo.'
                     );
                     setShowOpenDialog(true);
                 }
@@ -434,7 +416,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                         {!androidSaveError && isAndroidPlatform() && (
                             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
                                 <FolderOpen size={14} style={{ verticalAlign: 'middle', marginRight: '4px' }} />
-                                PDF guardado en: <code style={{ fontSize: '0.78rem', color: 'var(--text-main)' }}>{savedPdfPath}</code>
+                                Estado: <code style={{ fontSize: '0.78rem', color: 'var(--text-main)' }}>{savedPdfPath}</code>
                             </p>
                         )}
 

@@ -228,7 +228,41 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose, pr
                                 <span style={{ fontSize: '14px', fontWeight: '700', color: '#ffffff' }}>Seguridad del Perfil</span>
                             </div>
 
-                            {hasPin ? (
+                            {isConfiguringPin ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <div style={{ display: 'flex', gap: '10px' }}>
+                                        <div style={{ flex: 1 }}>
+                                            <label style={pinLabelStyle}>Nuevo PIN (4 dígitos)</label>
+                                            <input
+                                                type="password"
+                                                maxLength={4}
+                                                value={pin}
+                                                onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
+                                                style={pinInputStyle}
+                                                placeholder="••••"
+                                            />
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                            <label style={pinLabelStyle}>Confirmar PIN</label>
+                                            <input
+                                                type="password"
+                                                maxLength={4}
+                                                value={confirmPin}
+                                                onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ''))}
+                                                style={pinInputStyle}
+                                                placeholder="••••"
+                                            />
+                                        </div>
+                                    </div>
+                                    <button 
+                                        type="button"
+                                        onClick={() => setIsConfiguringPin(false)}
+                                        style={{ ...cancelButtonStyle, padding: '6px', fontSize: '11px', marginTop: '4px' }}
+                                    >
+                                        Cancelar
+                                    </button>
+                                </div>
+                            ) : hasPin ? (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', color: '#34d399' }}>
                                         <Check size={14} />
@@ -258,50 +292,14 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose, pr
                                 </div>
                             ) : (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                    {!isConfiguringPin ? (
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsConfiguringPin(true)}
-                                            style={secondaryButtonStyle}
-                                        >
-                                            <Lock size={13} style={{ marginRight: '6px' }} />
-                                            Configurar PIN de Acceso
-                                        </button>
-                                    ) : (
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                            <div style={{ display: 'flex', gap: '10px' }}>
-                                                <div style={{ flex: 1 }}>
-                                                    <label style={pinLabelStyle}>Nuevo PIN (4 dígitos)</label>
-                                                    <input
-                                                        type="password"
-                                                        maxLength={4}
-                                                        value={pin}
-                                                        onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
-                                                        style={pinInputStyle}
-                                                        placeholder="••••"
-                                                    />
-                                                </div>
-                                                <div style={{ flex: 1 }}>
-                                                    <label style={pinLabelStyle}>Confirmar PIN</label>
-                                                    <input
-                                                        type="password"
-                                                        maxLength={4}
-                                                        value={confirmPin}
-                                                        onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ''))}
-                                                        style={pinInputStyle}
-                                                        placeholder="••••"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <button 
-                                                type="button"
-                                                onClick={() => setIsConfiguringPin(false)}
-                                                style={{ ...cancelButtonStyle, padding: '6px', fontSize: '11px', marginTop: '4px' }}
-                                            >
-                                                Cancelar PIN
-                                            </button>
-                                        </div>
-                                    )}
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsConfiguringPin(true)}
+                                        style={secondaryButtonStyle}
+                                    >
+                                        <Lock size={13} style={{ marginRight: '6px' }} />
+                                        Configurar PIN de Acceso
+                                    </button>
                                 </div>
                             )}
                         </div>

@@ -8,7 +8,7 @@ interface ProfileDropdownProps {
 }
 
 const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ onEditProfile }) => {
-    const { activeProfile, logout } = useAppSettings();
+    const { activeProfile, logout, settings } = useAppSettings();
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -67,20 +67,28 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ onEditProfile }) => {
                         </div>
                     </button>
 
-                    <div style={dividerStyle} />
-
-                    <button
-                        onClick={() => {
-                            setIsOpen(false);
-                            logout();
-                        }}
-                        style={{ ...menuItemStyle, color: '#f43f5e' }}
-                    >
-                        <div style={itemContentStyle}>
-                            <LogOut size={16} color="#f43f5e" />
-                            <span>Bloquear / Salir</span>
-                        </div>
-                    </button>
+                    {(() => {
+                        const hasPin = !!activeProfile.pinHash;
+                        const hasMultipleProfiles = !!(settings.profiles && settings.profiles.length > 1);
+                        const showLockOption = hasPin || hasMultipleProfiles;
+                        return showLockOption && (
+                            <>
+                                <div style={dividerStyle} />
+                                <button
+                                    onClick={() => {
+                                        setIsOpen(false);
+                                        logout();
+                                    }}
+                                    style={{ ...menuItemStyle, color: '#f43f5e' }}
+                                >
+                                    <div style={itemContentStyle}>
+                                        <LogOut size={16} color="#f43f5e" />
+                                        <span>Bloquear / Salir</span>
+                                    </div>
+                                </button>
+                            </>
+                        );
+                    })()}
                 </div>
             )}
         </div>

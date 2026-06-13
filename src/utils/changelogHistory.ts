@@ -5,6 +5,30 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '1.4.3',
+    releaseNotes: `Novedades v1.4.3:
+- 🔒 Corrección en el bloqueo de pantalla: Solucionado un problema en Android y Web donde pulsar en 'Bloquear / Salir' causaba que la pantalla se quedase en blanco y no mostrase el teclado para reintroducir el PIN.
+- 🔑 Edición de perfil mejorada: Corregido el botón 'Cambiar PIN' en los perfiles principal y secundarios, que anteriormente no mostraba los campos de entrada de PIN cuando el perfil ya tenía un PIN configurado.`
+  },
+  {
+    version: '1.4.2',
+    releaseNotes: `Novedades v1.4.2:
+- 🎨 Personalización de perfiles: Cambia tu nombre de usuario y elige entre 8 gradientes premium o sube tu propia foto de perfil.
+- 🔗 Compartición avanzada de entornos: Los usuarios ahora son propietarios de sus entornos creados y pueden elegir con quién compartirlos de forma posterior a su creación en los ajustes.
+- 🔑 Pantalla de bloqueo mejorada: Ahora muestra de forma clara el avatar y el nombre del usuario al pedir el PIN, y destaca visualmente el botón de cambio de usuario.
+- 👤 Menú de usuario superior: Sustituido el botón de bloqueo por un avatar interactivo con desplegable y accesos rápidos para editar perfil, gestionar entornos y cerrar sesión.`
+  },
+  {
+    version: '1.4.1',
+    releaseNotes: `Novedades v1.4.1:
+- 🔒 PIN de seguridad: Protege tus datos locales y perfiles con un PIN de acceso opcional.
+- 🏦 Multi-economía: Crea y gestiona múltiples entornos independientes de base de datos.
+- 🔄 Sincronización por entorno: Configura enlaces de Dropbox independientes por cada base de datos.
+- 📊 Dashboard dinámico: Visualiza de forma rápida la economía activa y cambia de entorno con un click.
+- 🐛 Fix PDF Android: Corregido el cierre inesperado al generar o compartir informes en dispositivos Xiaomi, POCO y Redmi.
+- 🐛 Fixes de estabilidad: Corregido el estado de conexión a Dropbox al iniciar sin conexión y el bloqueo del teclado tras eliminar un entorno.`
+  },
+  {
     version: '1.4.0',
     releaseNotes: `Novedades v1.4.0:
 - Informes PDF Profesionales: Corregido el problema de corte de contenido en los informes. Ahora las secciones (Resumen de Saldos, Desglose por Categorías, Metas de Ahorro y Mayores Gastos) se organizan en páginas independientes para evitar desbordes y cortes.

@@ -63,7 +63,10 @@ const AppLockScreen: React.FC = () => {
         if (pin.length === 4) {
             const verify = async () => {
                 const success = await authenticate(pin);
-                if (!success) {
+                if (success) {
+                    setPin('');
+                    setError(false);
+                } else {
                     setError(true);
                     setShake(true);
                     setPin('');
@@ -73,6 +76,19 @@ const AppLockScreen: React.FC = () => {
             verify();
         }
     }, [pin, authenticate, activeProfile, isAuthenticated]);
+
+    // Reset state when lock screen becomes active (user locks/logs out) or active profile changes
+    useEffect(() => {
+        if (!isAuthenticated) {
+            setPin('');
+            setError(false);
+            setShake(false);
+            if (activeProfile) {
+                setSelectedProfileId(activeProfile.id);
+            }
+        }
+    }, [isAuthenticated, activeProfile]);
+
 
     // Handle physical keyboard inputs
     useEffect(() => {

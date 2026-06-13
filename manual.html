@@ -672,21 +672,56 @@
         <section id="gestion-usuarios">
             <h2>7. Gestión de Perfiles y Usuarios</h2>
             <div class="glass-card">
-                <p>PCS Hogar permite crear múltiples perfiles de usuario independientes en el mismo dispositivo, ideal para familias o para separar las finanzas personales y profesionales.</p>
+                <p>PCS Hogar permite crear múltiples perfiles de usuario independientes en el mismo dispositivo, lo que resulta ideal para organizar las finanzas familiares o para separar tus gastos personales de las cuentas de tu negocio.</p>
 
                 <h3>Perfil Principal (Administrador)</h3>
-                <p>El perfil inicial con el que se inicia la app es el **Perfil Principal**. Es el único que tiene permisos para gestionar la creación, modificación y eliminación de otros perfiles de usuario.</p>
+                <p>El perfil con el que se inicializa la aplicación por primera vez se considera el <strong>Perfil Principal</strong>. Este perfil es el administrador del sistema y es el único con permisos para crear nuevos usuarios, modificar nombres o avatares de otros perfiles, o restablecer sus contraseñas PIN en caso de olvido.</p>
 
                 <h3>Creación de Perfiles Secundarios</h3>
-                <p>Si eres el usuario Principal, ve a la pestaña <strong>Gestión de Usuarios</strong> en Ajustes y pulsa <span class="btn-rep btn-primary">+ Nuevo Usuario</span>.</p>
+                <p>Si has accedido con el Perfil Principal, ve a <strong>Ajustes > Gestión de Usuarios</strong> y pulsa el botón <span class="btn-rep btn-primary">+ Nuevo Usuario</span>. Allí podrás definir:</p>
                 <ul>
-                    <li>Define el nombre del nuevo usuario.</li>
-                    <li>Configura un <strong>PIN opcional de 4 dígitos</strong> si deseas restringir el acceso a ese perfil.</li>
-                    <li><strong>Asignación de entornos (Economías):</strong> Selecciona las economías a las que este usuario secundario tendrá acceso. El usuario solo podrá ver e interactuar con los entornos compartidos.</li>
+                    <li>El nombre inicial del usuario.</li>
+                    <li>Un <strong>PIN de seguridad opcional de 4 dígitos</strong>.</li>
+                    <li>La asignación inicial de entornos económicos a los que este usuario secundario tendrá acceso.</li>
                 </ul>
 
-                <h3>Cambio de Perfil y Pantalla de Bloqueo</h3>
-                <p>Si hay más de un perfil creado en la aplicación, la pantalla de bloqueo te permitirá presionar el botón <span class="btn-rep btn-gray">Cambiar de Usuario</span>. Esto desplegará la lista de perfiles para que cada miembro acceda a su sesión correspondiente.</p>
+                <h3>🎨 Personalización de Perfiles (Avatares y Nombres)</h3>
+                <p>Cualquier usuario conectado al sistema puede editar su propio perfil pulsando en su avatar de la barra superior derecha y seleccionando <strong>"Editar mi perfil"</strong>. También el administrador puede hacerlo para cualquier cuenta secundaria en la sección de administración.</p>
+                <ul>
+                    <li><strong>Cambiar de Nombre:</strong> Permite renombrar el usuario de forma totalmente segura. Dado que la aplicación empareja las economías utilizando IDs internos e inmutables, cambiar tu nombre no romperá el acceso a ninguna base de datos ni afectará a los datos históricos.</li>
+                    <li><strong>Contraseña PIN:</strong> Permite establecer, modificar o retirar el código de acceso de 4 dígitos para tu sesión.</li>
+                    <li><strong>Avatares Personalizados:</strong> Puedes elegir entre <strong>8 gradientes de color modernos</strong> (que muestran automáticamente la inicial de tu nombre) o pulsar sobre la opción de <strong>"Subir Foto"</strong> para utilizar cualquier imagen de tu galería.
+                        <ul>
+                            <li><em>Nota sobre rendimiento:</em> Si decides subir tu propia imagen, la aplicación la redimensionará y optimizará localmente de forma transparente a un tamaño de <strong>128x128 píxeles en formato JPEG</strong>. Esto garantiza una carga instantánea y evita que el archivo de configuración sature el almacenamiento local o la sincronización en la nube.</li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <h3>🔗 Compartición Avanzada de Entornos (Post-Creación)</h3>
+                <p>Para garantizar una privacidad total, cuando un usuario crea un nuevo entorno económico (desde el selector de la izquierda en el menú <strong>"Gestionar Entornos"</strong>), es considerado el **propietario único** de esa base de datos y nadie más podrá verla.</p>
+                <p>Si deseas compartirla con otros usuarios del sistema:</p>
+                <ul>
+                    <li>Abre el panel de **Gestionar Entornos** en el selector lateral izquierdo.</li>
+                    <li>En la sección inferior **"Compartir tus Entornos"**, verás la lista de las economías de las que eres propietario.</li>
+                    <li>Simplemente marca las casillas de los usuarios secundarios creados en el sistema a los que deseas autorizar el acceso y pulsa **Guardar**.</li>
+                    <li>Al instante, esos usuarios verán aparecer la economía compartida en sus respectivos selectores laterales para empezar a trabajar de manera colaborativa.</li>
+                </ul>
+
+                <h3>👤 Menú de Perfil en la Cabecera</h3>
+                <p>El antiguo botón de bloqueo de la barra superior ha sido reemplazado por el **Avatar circular interactivo** del usuario activo.</p>
+                <p>Al hacer clic sobre él, se despliega una tarjeta de perfil flotante que muestra tu nombre, tu avatar y tu rol (Principal o Secundario). Cuenta con dos accesos directos principales:</p>
+                <ul>
+                    <li><strong>Editar mi Perfil:</strong> Abre el modal de configuración de identidad del usuario actual de manera directa.</li>
+                    <li><strong>Bloquear / Salir:</strong> Cierra tu sesión de forma segura y bloquea la pantalla, protegiendo tus datos financieros de miradas indiscretas.</li>
+                </ul>
+
+                <h3>🔑 Pantalla de Bloqueo y Selección de Perfil</h3>
+                <p>Cuando un perfil tiene activado un código PIN, al pulsar en "Bloquear/Salir" o al iniciar la app, aparecerá la pantalla de bloqueo mostrando de forma destacada el **nombre y el avatar** de la sesión que se intenta reanudar.</p>
+                <ul>
+                    <li>Introduce tu código PIN de 4 dígitos para desbloquear la sesión.</li>
+                    <li>Si deseas cambiar de cuenta, pulsa en el botón ovalado <strong>"Cambiar de Usuario"</strong> con el icono de retorno para volver al panel de selección de perfiles.</li>
+                    <li><em>Flujo de Salida sin PIN:</em> Si un perfil no tiene configurado ningún código de seguridad y pulsa en "Bloquear / Salir", el sistema entenderá que deseas cambiar de cuenta y te redirigirá directamente a la pantalla de selección de perfiles.</li>
+                </ul>
             </div>
         </section>
 

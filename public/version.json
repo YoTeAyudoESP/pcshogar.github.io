@@ -1,6 +1,6 @@
 {
   "version": "1.4.3",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_v1.4.3.apk",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.4.3.apk",
   "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.4.3.exe",
   "releaseNotes": "Novedades v1.4.3:\n- 🔒 Corrección en el bloqueo de pantalla: Solucionado un problema en Android y Web donde pulsar en 'Bloquear / Salir' causaba que la pantalla se quedase en blanco y no mostrase el teclado para reintroducir el PIN.\n- 🔑 Edición de perfil mejorada: Corregido el botón 'Cambiar PIN' en los perfiles principal y secundarios, que anteriormente no mostraba los campos de entrada de PIN cuando el perfil ya tenía un PIN configurado."
 }

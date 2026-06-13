@@ -229,14 +229,17 @@ export interface Economy {
     name: string;
     dbName: string;
     sync: SyncSettings;
+    ownerProfileId?: string;
 }
 
 export interface UserProfile {
     id: string;
     name: string;
     pinHash?: string; // SHA-256 or MD5 hash of PIN
+    biometricEnabled?: boolean; // Habilitar autenticación biométrica
     economies: Economy[];
     activeEconomyId: string;
+    avatar?: string;
 }
 
 export interface AppSettings {

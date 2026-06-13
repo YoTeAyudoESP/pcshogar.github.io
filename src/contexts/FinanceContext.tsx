@@ -495,6 +495,20 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
             updatedAt: Date.now()
         };
         await incomeDB.addSavingGoal(newGoal);
+
+        if (newGoal.currentAmount > 0) {
+            const allocation: SavingAllocation = {
+                id: `adj_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+                goalId: newGoal.id,
+                amount: newGoal.currentAmount,
+                type: 'manual',
+                description: 'Saldo inicial',
+                date: Date.now(),
+                updatedAt: Date.now()
+            };
+            await incomeDB.updateAllocation(allocation);
+        }
+
         await refreshFinance();
     };
 
@@ -797,6 +811,23 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const updateSavingGoal = async (goal: SavingGoal) => {
+        const oldGoal = savings.find(g => g.id === goal.id);
+        const oldAmount = oldGoal ? oldGoal.currentAmount : 0;
+        const diff = goal.currentAmount - oldAmount;
+
+        if (oldGoal && diff !== 0) {
+            const allocation: SavingAllocation = {
+                id: `adj_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+                goalId: goal.id,
+                amount: diff,
+                type: 'manual',
+                description: diff > 0 ? 'Ajuste manual de saldo (Incremento)' : 'Ajuste manual de saldo (Reducción)',
+                date: Date.now(),
+                updatedAt: Date.now()
+            };
+            await incomeDB.updateAllocation(allocation);
+        }
+
         await incomeDB.updateSavingGoal({ ...goal, updatedAt: Date.now() });
         await refreshFinance();
     };

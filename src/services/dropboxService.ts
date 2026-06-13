@@ -22,6 +22,19 @@ export class DropboxService {
         this.dbx = null;
     }
 
+    static async fileExists(path: string): Promise<boolean> {
+        if (!this.dbx) return false;
+        try {
+            await this.dbx.filesGetMetadata({ path });
+            return true;
+        } catch (error: any) {
+            if (error.status === 409 || error.status === 404 || (error.error && error.error.error_summary && error.error.error_summary.includes('path/not_found'))) {
+                return false;
+            }
+            throw error;
+        }
+    }
+
     static getAuthUrl() {
         // Detect if we are on a real mobile device or emulator via Capacitor
         const isMobile = window.location.origin.includes('localhost') && !window.location.port;

@@ -11,12 +11,21 @@ interface AppSettingsContextType {
     activeProfile: UserProfile | null;
     activeEconomy: Economy | null;
     isAuthenticated: boolean;
+    setIsAuthenticated: (auth: boolean) => void;
     authenticate: (pin: string) => Promise<boolean>;
     logout: () => void;
     switchEconomy: (economyId: string) => Promise<void>;
-    addEconomy: (name: string, syncType: 'local' | 'smb' | 'dropbox' | 'googledrive', syncPath: string) => Promise<void>;
+    addEconomy: (name: string, syncType: 'local' | 'smb' | 'dropbox' | 'googledrive', syncPath: string, shareWithPrincipal?: boolean) => Promise<Economy>;
     deleteEconomy: (economyId: string) => Promise<void>;
-    setProfilePin: (pin: string | null) => Promise<void>;
+    setProfilePin: (pin: string | null, profileId?: string) => Promise<void>;
+    setProfileBiometric: (enabled: boolean) => Promise<void>;
+    switchProfile: (profileId: string) => Promise<void>;
+    addProfile: (name: string, sharedEconomyIds: string[], pin?: string) => Promise<void>;
+    deleteProfile: (profileId: string) => Promise<void>;
+    updateProfileShare: (profileId: string, sharedEconomyIds: string[]) => Promise<void>;
+    updateEconomySharing: (economyId: string, sharedWithProfileIds: string[]) => Promise<void>;
+    updateProfileName: (profileId: string, newName: string) => Promise<void>;
+    updateProfileAvatar: (profileId: string, avatar: string) => Promise<void>;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -84,16 +93,36 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
 
         // Clean up legacy 64-character SHA-256 PIN hashes from the previous beta test
         let didClearLegacyPin = false;
+        let didMigrate = false;
         if (baseSettings.profiles) {
             baseSettings.profiles.forEach(p => {
                 if (p.pinHash && p.pinHash.length === 64) {
                     p.pinHash = undefined;
                     didClearLegacyPin = true;
                 }
+                
+                // Auto-migrate default avatar
+                if (!p.avatar) {
+                    p.avatar = p.id === 'prof_default' ? 'gradient:1' : 'gradient:2';
+                    didMigrate = true;
+                }
+                
+                // Auto-migrate economy owners
+                p.economies.forEach(eco => {
+                    if (!eco.ownerProfileId) {
+                        const inPrincipal = baseSettings.profiles?.find(pr => pr.id === 'prof_default')?.economies.some(e => e.id === eco.id);
+                        if (inPrincipal) {
+                            eco.ownerProfileId = 'prof_default';
+                        } else {
+                            eco.ownerProfileId = p.id;
+                        }
+                        didMigrate = true;
+                    }
+                });
             });
         }
 
-        if (didClearLegacyPin) {
+        if (didClearLegacyPin || didMigrate) {
             localStorage.setItem('pcshogar_settings', JSON.stringify(baseSettings));
         }
 
@@ -155,10 +184,14 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
 
     const updateSyncSettings = (newSync: Partial<SyncSettings>) => {
         setSettings(prev => {
+            const activeProf = prev.profiles?.find(p => p.id === prev.activeProfileId);
+            const activeEcoId = activeProf?.activeEconomyId;
+
             const updatedProfiles = prev.profiles?.map(p => {
-                if (p.id === prev.activeProfileId) {
+                const hasEco = p.economies.some(e => e.id === activeEcoId);
+                if (hasEco) {
                     const updatedEconomies = p.economies.map(e => {
-                        if (e.id === p.activeEconomyId) {
+                        if (e.id === activeEcoId) {
                             return { ...e, sync: { ...e.sync, ...newSync } };
                         }
                         return e;
@@ -189,9 +222,7 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const logout = () => {
-        if (activeProfile && activeProfile.pinHash) {
-            setIsAuthenticated(false);
-        }
+        setIsAuthenticated(false);
     };
 
     const switchEconomy = async (economyId: string): Promise<void> => {
@@ -224,14 +255,15 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
         });
     };
 
-    const addEconomy = async (name: string, syncType: 'local' | 'smb' | 'dropbox' | 'googledrive', syncPath: string): Promise<void> => {
-        if (!activeProfile) return;
+    const addEconomy = async (name: string, syncType: 'local' | 'smb' | 'dropbox' | 'googledrive', syncPath: string, shareWithPrincipal: boolean = false): Promise<Economy> => {
+        if (!activeProfile) throw new Error("No hay perfil activo");
         const newEcoId = `eco_${Date.now()}`;
         const safeName = name.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
         const newEco: Economy = {
             id: newEcoId,
             name,
             dbName: `pcshogar_eco_${safeName}_${Date.now()}`,
+            ownerProfileId: activeProfile.id,
             sync: {
                 enabled: syncType !== 'local',
                 type: syncType,
@@ -248,10 +280,14 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
                 if (p.id === prev.activeProfileId) {
                     return { ...p, economies: [...p.economies, newEco] };
                 }
+                if (shareWithPrincipal && p.id === 'prof_default') {
+                    return { ...p, economies: [...p.economies, newEco] };
+                }
                 return p;
             });
             return { ...prev, profiles: updatedProfiles };
         });
+        return newEco;
     };
 
     const deleteEconomy = async (economyId: string): Promise<void> => {
@@ -282,13 +318,14 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
         });
     };
 
-    const setProfilePin = async (pin: string | null): Promise<void> => {
-        if (!activeProfile) return;
+    const setProfilePin = async (pin: string | null, profileId?: string): Promise<void> => {
+        const targetProfileId = profileId || activeProfile?.id;
+        if (!targetProfileId) return;
         const pinHash = pin ? await hashPIN(pin) : undefined;
 
         setSettings(prev => {
             const updatedProfiles = prev.profiles?.map(p => {
-                if (p.id === prev.activeProfileId) {
+                if (p.id === targetProfileId) {
                     return { ...p, pinHash };
                 }
                 return p;
@@ -296,9 +333,219 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
             return { ...prev, profiles: updatedProfiles };
         });
 
-        if (!pin) {
+        if (!pin && targetProfileId === activeProfile?.id) {
             setIsAuthenticated(true);
         }
+    };
+
+    const setProfileBiometric = async (enabled: boolean): Promise<void> => {
+        if (!activeProfile) return;
+        setSettings(prev => {
+            const updatedProfiles = prev.profiles?.map(p => {
+                if (p.id === prev.activeProfileId) {
+                    return { ...p, biometricEnabled: enabled };
+                }
+                return p;
+            });
+            return { ...prev, profiles: updatedProfiles };
+        });
+    };
+
+    const switchProfile = async (profileId: string): Promise<void> => {
+        const profile = settings.profiles?.find(p => p.id === profileId);
+        if (!profile) return;
+
+        setSettings(prev => ({
+            ...prev,
+            activeProfileId: profileId
+        }));
+
+        const economy = profile.economies.find(e => e.id === profile.activeEconomyId) || profile.economies[0];
+        if (economy) {
+            await incomeDB.switchDatabase(economy.dbName);
+            if (economy.sync.enabled) {
+                if (economy.sync.type === 'dropbox' && economy.sync.dropboxToken) {
+                    DropboxService.init(economy.sync.dropboxToken, economy.sync.dropboxPath);
+                } else if (economy.sync.type === 'googledrive' && economy.sync.googledriveToken) {
+                    GoogleDriveService.init(economy.sync.googledriveToken, economy.sync.googledrivePath || 'pcshogar_data.json');
+                }
+            }
+        }
+
+        if (profile.pinHash) {
+            setIsAuthenticated(false);
+        } else {
+            setIsAuthenticated(true);
+        }
+    };
+
+    const addProfile = async (name: string, sharedEconomyIds: string[], pin?: string): Promise<void> => {
+        const newProfId = `prof_${Date.now()}`;
+        const pinHash = pin ? await hashPIN(pin) : undefined;
+
+        const principalProfile = settings.profiles?.find(p => p.id === 'prof_default');
+        const sharedEconomies = principalProfile?.economies.filter(e => sharedEconomyIds.includes(e.id)) || [];
+
+        const economies = [...sharedEconomies];
+        let activeEconomyId = '';
+        if (economies.length === 0) {
+            const ecoId = `eco_${Date.now()}`;
+            const safeName = name.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+            const defaultEconomy: Economy = {
+                id: ecoId,
+                name: `Hogar de ${name}`,
+                dbName: `pcshogar_eco_${safeName}_${Date.now()}`,
+                ownerProfileId: newProfId,
+                sync: {
+                    enabled: false,
+                    type: 'local',
+                    localPath: '',
+                    dropboxPath: `/pcshogar_eco_${safeName}.json`,
+                    lastSync: 0
+                }
+            };
+            economies.push(defaultEconomy);
+            activeEconomyId = ecoId;
+        } else {
+            activeEconomyId = economies[0].id;
+        }
+
+        const newProfile: UserProfile = {
+            id: newProfId,
+            name,
+            pinHash,
+            biometricEnabled: false,
+            economies,
+            activeEconomyId,
+            avatar: `gradient:${Math.floor(Math.random() * 8) + 1}`
+        };
+
+        setSettings(prev => ({
+            ...prev,
+            profiles: [...(prev.profiles || []), newProfile]
+        }));
+    };
+
+    const deleteProfile = async (profileId: string): Promise<void> => {
+        if (profileId === 'prof_default') {
+            throw new Error("No puedes eliminar el perfil Principal.");
+        }
+
+        setSettings(prev => {
+            const filtered = (prev.profiles || []).filter(p => p.id !== profileId);
+            const activeId = prev.activeProfileId === profileId ? 'prof_default' : prev.activeProfileId;
+            return {
+                ...prev,
+                profiles: filtered,
+                activeProfileId: activeId
+            };
+        });
+
+        if (settings.activeProfileId === profileId) {
+            await switchProfile('prof_default');
+        }
+    };
+
+    const updateProfileShare = async (profileId: string, sharedEconomyIds: string[]): Promise<void> => {
+        const principalProfile = settings.profiles?.find(p => p.id === 'prof_default');
+        const sharedEconomies = principalProfile?.economies.filter(e => sharedEconomyIds.includes(e.id)) || [];
+
+        setSettings(prev => {
+            const updated = prev.profiles?.map(p => {
+                if (p.id === profileId) {
+                    const ownEconomies = p.economies.filter(e => {
+                        return !principalProfile?.economies.some(pe => pe.id === e.id);
+                    });
+
+                    const mergedEconomies = [...ownEconomies, ...sharedEconomies];
+                    let activeId = p.activeEconomyId;
+                    if (!mergedEconomies.some(e => e.id === activeId)) {
+                        activeId = mergedEconomies[0]?.id || '';
+                    }
+
+                    return {
+                        ...p,
+                        economies: mergedEconomies,
+                        activeEconomyId: activeId
+                    };
+                }
+                return p;
+            });
+
+            return {
+                ...prev,
+                profiles: updated
+            };
+        });
+    };
+
+    const updateEconomySharing = async (economyId: string, sharedWithProfileIds: string[]): Promise<void> => {
+        if (!activeProfile) return;
+        const economyToShare = activeProfile.economies.find(e => e.id === economyId);
+        if (!economyToShare) return;
+
+        setSettings(prev => {
+            const updatedProfiles = prev.profiles?.map(p => {
+                if (p.id === activeProfile.id) {
+                    return p; // Propietario siempre mantiene el entorno
+                }
+
+                const wantsShare = sharedWithProfileIds.includes(p.id);
+                const hasEconomy = p.economies.some(e => e.id === economyId);
+
+                let newEconomies = [...p.economies];
+                let activeId = p.activeEconomyId;
+
+                if (wantsShare && !hasEconomy) {
+                    // Compartir: Copiar definición
+                    newEconomies.push(economyToShare);
+                } else if (!wantsShare && hasEconomy) {
+                    // Quitar compartir
+                    newEconomies = newEconomies.filter(e => e.id !== economyId);
+                    if (activeId === economyId) {
+                        activeId = newEconomies[0]?.id || '';
+                    }
+                } else if (wantsShare && hasEconomy) {
+                    // Actualizar definición existente
+                    newEconomies = newEconomies.map(e => e.id === economyId ? economyToShare : e);
+                }
+
+                return {
+                    ...p,
+                    economies: newEconomies,
+                    activeEconomyId: activeId
+                };
+            });
+
+            return {
+                ...prev,
+                profiles: updatedProfiles
+            };
+        });
+    };
+
+    const updateProfileName = async (profileId: string, newName: string): Promise<void> => {
+        setSettings(prev => {
+            const updatedProfiles = prev.profiles?.map(p => {
+                if (p.id === profileId) {
+                    return { ...p, name: newName };
+                }
+                return p;
+            });
+            return { ...prev, profiles: updatedProfiles };
+        });
+    };
+
+    const updateProfileAvatar = async (profileId: string, avatar: string): Promise<void> => {
+        setSettings(prev => {
+            const updatedProfiles = prev.profiles?.map(p => {
+                if (p.id === profileId) {
+                    return { ...p, avatar };
+                }
+                return p;
+            });
+            return { ...prev, profiles: updatedProfiles };
+        });
     };
 
     return (
@@ -309,12 +556,21 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
             activeProfile,
             activeEconomy,
             isAuthenticated,
+            setIsAuthenticated,
             authenticate,
             logout,
             switchEconomy,
             addEconomy,
             deleteEconomy,
-            setProfilePin
+            setProfilePin,
+            setProfileBiometric,
+            switchProfile,
+            addProfile,
+            deleteProfile,
+            updateProfileShare,
+            updateEconomySharing,
+            updateProfileName,
+            updateProfileAvatar
         }}>
             {children}
         </SettingsContext.Provider>

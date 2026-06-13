@@ -16,7 +16,8 @@ import {
     HardDrive,
     Save,
     RefreshCw,
-    Shield
+    Shield,
+    Fingerprint
 } from 'lucide-react';
 import { useAppSettings } from '../../contexts/AppSettingsContext';
 import { useFinance } from '../../contexts/FinanceContext';
@@ -29,7 +30,7 @@ import DropboxFolderPicker from './DropboxFolderPicker';
 import { useToast } from '../../contexts/ToastContext';
 
 const AppSettingsView: React.FC = () => {
-    const { settings, updateSettings, updateSyncSettings, activeProfile, activeEconomy, setProfilePin } = useAppSettings();
+    const { settings, updateSettings, updateSyncSettings, activeProfile, activeEconomy, setProfilePin, setProfileBiometric } = useAppSettings();
     const { importData, refreshFinance } = useFinance();
     const { showToast } = useToast();
     const [dropboxConnected, setDropboxConnected] = useState(() => DropboxService.isConnected());
@@ -234,11 +235,44 @@ const AppSettingsView: React.FC = () => {
                             >
                                 Desactivar PIN de Bloqueo
                             </button>
+
+                            {/* Biometric Auth Toggle */}
+                            <div style={{ 
+                                display: 'flex', 
+                                justifyContent: 'space-between', 
+                                alignItems: 'center',
+                                padding: '1rem', 
+                                background: 'rgba(255, 255, 255, 0.02)',
+                                border: '1px solid rgba(255, 255, 255, 0.05)',
+                                borderRadius: '12px',
+                                marginTop: '0.5rem',
+                                maxWidth: '360px'
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <Fingerprint size={20} color="var(--color-primary)" />
+                                    <div style={{ textAlign: 'left' }}>
+                                        <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>Acceso Biométrico</div>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Entrar con huella o rostro en Android</div>
+                                    </div>
+                                </div>
+                                <div style={{ 
+                                    width: '40px', height: '24px', borderRadius: '12px', 
+                                    background: activeProfile?.biometricEnabled ? 'var(--color-primary)' : 'rgba(255,255,255,0.1)',
+                                    cursor: 'pointer', position: 'relative', transition: '0.3s',
+                                    flexShrink: 0
+                                }} onClick={() => setProfileBiometric(!activeProfile?.biometricEnabled)}>
+                                    <div style={{ 
+                                        width: '18px', height: '18px', borderRadius: '50%', background: 'white',
+                                        position: 'absolute', top: '3px', left: activeProfile?.biometricEnabled ? '19px' : '3px',
+                                        transition: '0.3s'
+                                    }} />
+                                </div>
+                            </div>
                         </div>
                     ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                             <label style={labelStyle}>Configurar nuevo PIN (4 números)</label>
-                            <div style={{ display: 'flex', gap: '12px', maxWidth: '320px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                 <input
                                     type="password"
                                     maxLength={4}
@@ -251,8 +285,9 @@ const AppSettingsView: React.FC = () => {
                                         borderRadius: '10px',
                                         color: 'white',
                                         outline: 'none',
-                                        flex: 1,
-                                        letterSpacing: '0.5em',
+                                        width: '80px',
+                                        letterSpacing: '0.15em',
+                                        textIndent: '0.08em',
                                         textAlign: 'center',
                                         fontSize: '1.2rem',
                                         padding: '8px'
@@ -268,7 +303,9 @@ const AppSettingsView: React.FC = () => {
                                         borderRadius: '10px',
                                         fontSize: '0.9rem',
                                         fontWeight: 600,
-                                        cursor: 'pointer'
+                                        cursor: 'pointer',
+                                        height: '42px',
+                                        whiteSpace: 'nowrap'
                                     }}
                                 >
                                     Activar Bloqueo

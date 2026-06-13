@@ -60,6 +60,39 @@ export class GoogleDriveService {
         return null;
     }
 
+    static async fileExists(path: string): Promise<boolean> {
+        if (!this.token) return false;
+        try {
+            const q = encodeURIComponent(`name = '${path}' and trashed = false`);
+            const response = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&spaces=drive`, {
+                headers: {
+                    Authorization: `Bearer ${this.token}`
+                }
+            });
+            if (!response.ok) return false;
+            const data = await response.json();
+            return !!(data.files && data.files.length > 0);
+        } catch {
+            return false;
+        }
+    }
+
+    static async deleteFile(): Promise<void> {
+        if (!this.token) throw new Error('Google Drive not initialized');
+        const fileId = await this.getFileId();
+        if (!fileId) return;
+        
+        const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
+            method: 'DELETE',
+            headers: {
+                Authorization: `Bearer ${this.token}`
+            }
+        });
+        if (!response.ok && response.status !== 404) {
+            throw new Error('Failed to delete file from Google Drive');
+        }
+    }
+
     static async downloadData() {
         if (!this.token) throw new Error('Google Drive not initialized');
         const fileId = await this.getFileId();

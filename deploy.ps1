@@ -3,6 +3,7 @@ $version = $package.version
 Write-Output "Parsed version: $version"
 
 git checkout main
+git pull origin main
 Remove-Item -Path app\* -Recurse -Force -Exclude ".*" -ErrorAction SilentlyContinue
 Copy-Item -Path dist\* -Destination app -Recurse -Force
 Copy-Item -Path dist\version.json -Destination app\version.json -Force

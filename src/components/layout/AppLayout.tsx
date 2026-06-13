@@ -3,6 +3,9 @@ import { Heart } from 'lucide-react';
 import HelpFeedbackModal from '../common/HelpFeedbackModal';
 import logo from '../../assets/logo.png';
 import EconomySelector from './EconomySelector';
+import { useAppSettings } from '../../contexts/AppSettingsContext';
+import ProfileDropdown from './ProfileDropdown';
+import EditProfileModal from '../settings/EditProfileModal';
 
 interface AppLayoutProps {
     children: ReactNode;
@@ -11,6 +14,8 @@ interface AppLayoutProps {
 const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+    const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
+
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -45,7 +50,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                     />
                     <EconomySelector />
                 </div>
-                <nav>
+                <nav style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <ProfileDropdown onEditProfile={() => setIsEditProfileModalOpen(true)} />
                     <button 
                         onClick={() => setIsHelpModalOpen(true)}
                         style={{
@@ -81,6 +87,10 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             <HelpFeedbackModal 
                 isOpen={isHelpModalOpen} 
                 onClose={() => setIsHelpModalOpen(false)} 
+            />
+            <EditProfileModal
+                isOpen={isEditProfileModalOpen}
+                onClose={() => setIsEditProfileModalOpen(false)}
             />
         </div>
     );

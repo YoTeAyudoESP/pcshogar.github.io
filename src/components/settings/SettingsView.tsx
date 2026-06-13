@@ -12,8 +12,10 @@ import FixedMovementsView from './FixedMovementsView';
 import BalanceAdjustmentView from './BalanceAdjustmentView';
 import CategoryManagementView from './CategoryManagementView';
 import AppSettingsView from './AppSettingsView';
+import UserManagementView from './UserManagementView';
 import { useFinance } from '../../contexts/FinanceContext';
 import { useToast } from '../../contexts/ToastContext';
+import { useAppSettings } from '../../contexts/AppSettingsContext';
 import versionInfo from '../../../public/version.json';
 const version = versionInfo.version;
 // Browser plugin removed: manual opens in-app via window.location.href
@@ -34,17 +36,20 @@ import {
     Plus,
     BookOpen,
     Coffee,
-    MessageSquare
+    MessageSquare,
+    Users
 } from 'lucide-react';
 import SavingsView from '../savings/SavingsView';
 
 interface SettingsViewProps {
-    initialTab?: 'accounts' | 'savings' | 'recurring' | 'loans' | 'balance' | 'categories' | 'app' | 'about';
+    initialTab?: 'accounts' | 'savings' | 'recurring' | 'loans' | 'balance' | 'categories' | 'app' | 'about' | 'users';
 }
 
 const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) => {
-    const [activeTab, setActiveTab] = useState(initialTab);
+    const [activeTab, setActiveTab] = useState<any>(initialTab);
     const { showToast } = useToast();
+    const { activeProfile } = useAppSettings();
+    const isPrincipal = activeProfile?.id === 'prof_default';
     
     const handleOpenManual = () => {
         // In Electron: open the bundled manual in the system default browser via IPC.
@@ -191,6 +196,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
         { id: 'categories', label: 'Categorías', icon: Tag },
         { id: 'balance', label: 'Ajustes Saldo', icon: RefreshCw },
         { id: 'app', label: 'Aplicación', icon: Monitor },
+        ...(isPrincipal ? [{ id: 'users', label: 'Gestión de Usuarios', icon: Users }] : []),
         { id: 'about', label: 'Acerca de', icon: Heart },
     ] as const;
 
@@ -394,6 +400,10 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
 
                 {activeTab === 'app' && (
                     <AppSettingsView />
+                )}
+
+                {activeTab === 'users' && isPrincipal && (
+                    <UserManagementView />
                 )}
 
                 {activeTab === 'about' && (

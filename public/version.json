@@ -1,6 +1,6 @@
 {
-  "version": "1.4.1",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_v1.4.1.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.4.1.exe",
-  "releaseNotes": "Novedades v1.4.1:\n- 🔒 PIN de seguridad: Protege tus datos locales y perfiles con un PIN de acceso opcional.\n- 🏦 Multi-economía: Crea y gestiona múltiples entornos independientes de base de datos.\n- 🔄 Sincronización por entorno: Configura enlaces de Dropbox independientes por cada base de datos.\n- 📊 Dashboard dinámico: Visualiza de forma rápida la economía activa y cambia de entorno con un click.\n- 🐛 Fix PDF Android: Corregido el cierre inesperado al generar o compartir informes en dispositivos Xiaomi, POCO y Redmi.\n- 🐛 Fixes de estabilidad: Corregido el estado de conexión a Dropbox al iniciar sin conexión y el bloqueo del teclado tras eliminar un entorno."
+  "version": "1.4.2",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_v1.4.2.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.4.2.exe",
+  "releaseNotes": "Novedades v1.4.2:\n- 🎨 Personalización de perfiles: Cambia tu nombre de usuario y elige entre 8 gradientes premium o sube tu propia foto de perfil.\n- 🔗 Compartición avanzada de entornos: Los usuarios ahora son propietarios de sus entornos creados y pueden elegir con quién compartirlos de forma posterior a su creación en los ajustes.\n- 🔑 Pantalla de bloqueo mejorada: Ahora muestra de forma clara el avatar y el nombre del usuario al pedir el PIN, y destaca visualmente el botón de cambio de usuario.\n- 👤 Menú de usuario superior: Sustituido el botón de bloqueo por un avatar interactivo con desplegable y accesos rápidos para editar perfil, gestionar entornos y cerrar sesión."
 }

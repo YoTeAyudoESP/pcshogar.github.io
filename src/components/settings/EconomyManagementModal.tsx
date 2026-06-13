@@ -3,6 +3,8 @@ import { useAppSettings } from '../../contexts/AppSettingsContext';
 import { X, Plus, Trash2, Home, Building2, Briefcase, Wallet, HardDrive, Cloud, Info, FolderOpen, Check } from 'lucide-react';
 import DropboxFolderPicker from './DropboxFolderPicker';
 import { DropboxService } from '../../services/dropboxService';
+import { GoogleDriveService } from '../../services/googleDriveService';
+import { incomeDB } from '../../services/db';
 import { useToast } from '../../contexts/ToastContext';
 
 interface EconomyManagementModalProps {
@@ -11,7 +13,7 @@ interface EconomyManagementModalProps {
 }
 
 const EconomyManagementModal: React.FC<EconomyManagementModalProps> = ({ isOpen, onClose }) => {
-    const { activeProfile, activeEconomy, addEconomy, deleteEconomy, settings, updateSyncSettings } = useAppSettings();
+    const { activeProfile, activeEconomy, addEconomy, deleteEconomy, settings, updateSyncSettings, updateEconomySharing } = useAppSettings();
     const { showToast } = useToast();
     const [name, setName] = useState('');
     const [syncType, setSyncType] = useState<'local' | 'dropbox' | 'googledrive'>('local');
@@ -23,6 +25,56 @@ const EconomyManagementModal: React.FC<EconomyManagementModalProps> = ({ isOpen,
     const [dropboxConnected, setDropboxConnected] = useState(() => DropboxService.isConnected());
     // Inline delete confirmation: stores the economy id pending confirmation (avoids window.confirm focus loss)
     const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+
+    // Creation modes and checkboxes
+    const [creationMode, setCreationMode] = useState<'empty' | 'import_json' | 'link_existing'>('empty');
+    const [importJsonData, setImportJsonData] = useState<any | null>(null);
+    const [importFileName, setImportFileName] = useState<string>('');
+    const [cloudFileExists, setCloudFileExists] = useState<boolean>(false);
+    const [isCheckingCloud, setIsCheckingCloud] = useState<boolean>(false);
+    const [shareWithPrincipal, setShareWithPrincipal] = useState<boolean>(false);
+
+    // Check if the cloud file exists when path changes
+    React.useEffect(() => {
+        let active = true;
+        const checkFile = async () => {
+            if (syncType === 'local' || !syncPath) {
+                setCloudFileExists(false);
+                return;
+            }
+            if (syncType === 'dropbox' && !dropboxConnected) {
+                setCloudFileExists(false);
+                return;
+            }
+            if (syncType === 'googledrive' && !settings.sync.googledriveToken) {
+                setCloudFileExists(false);
+                return;
+            }
+
+            setIsCheckingCloud(true);
+            try {
+                let exists = false;
+                if (syncType === 'dropbox') {
+                    exists = await DropboxService.fileExists(syncPath);
+                } else if (syncType === 'googledrive') {
+                    GoogleDriveService.init(settings.sync.googledriveToken!, syncPath);
+                    exists = await GoogleDriveService.fileExists(syncPath);
+                }
+                if (active) {
+                    setCloudFileExists(exists);
+                }
+            } catch (err) {
+                console.error("Error checking cloud file:", err);
+            } finally {
+                if (active) {
+                    setIsCheckingCloud(false);
+                }
+            }
+        };
+
+        checkFile();
+        return () => { active = false; };
+    }, [syncPath, syncType, dropboxConnected, settings.sync.googledriveToken]);
 
     // Generate safe file name slug from economy name
     const toSafeName = (val: string) =>
@@ -42,6 +94,9 @@ const EconomyManagementModal: React.FC<EconomyManagementModalProps> = ({ isOpen,
         setSyncType(type);
         if (type === 'local') {
             setSyncPath('');
+            if (creationMode === 'link_existing') {
+                setCreationMode('empty');
+            }
         } else if (name) {
             setSyncPath(`/pcshogar_${toSafeName(name)}.json`);
         }
@@ -61,13 +116,53 @@ const EconomyManagementModal: React.FC<EconomyManagementModalProps> = ({ isOpen,
             setError('La ruta del archivo en la nube es obligatoria para Dropbox/Drive.');
             return;
         }
+        if (creationMode === 'import_json' && !importJsonData) {
+            setError('Por favor, selecciona un archivo JSON de copia de seguridad válido.');
+            return;
+        }
 
         try {
-            await addEconomy(name.trim(), syncType, syncType === 'local' ? '' : syncPath.trim());
+            // Overwrite existing cloud file if choosing empty mode on pre-existing path
+            if (creationMode === 'empty' && syncType !== 'local' && cloudFileExists) {
+                const emptyData = {
+                    accounts: [], cards: [], expenses: [], incomes: [], recurring_expenses: [],
+                    savings: [], allocations: [], loans: [], transfers: [],
+                    categories: [], closings: [], overrides: [], movements: [], deleted_items: []
+                };
+                if (syncType === 'dropbox') {
+                    DropboxService.init(settings.sync.dropboxToken!, syncPath);
+                    await DropboxService.uploadData(emptyData);
+                } else if (syncType === 'googledrive') {
+                    GoogleDriveService.init(settings.sync.googledriveToken!, syncPath);
+                    await GoogleDriveService.uploadData(emptyData);
+                }
+                showToast('Archivo en la nube existente sobrescrito con base de datos vacía.', 'info');
+            }
+
+            const newEco = await addEconomy(
+                name.trim(), 
+                syncType, 
+                syncType === 'local' ? '' : syncPath.trim(),
+                shareWithPrincipal
+            );
+
+            if (creationMode === 'import_json' && importJsonData) {
+                const currentDbName = activeEconomy.dbName;
+                await incomeDB.switchDatabase(newEco.dbName);
+                await incomeDB.importFullData(importJsonData);
+                await incomeDB.switchDatabase(currentDbName);
+                showToast('Datos importados correctamente al nuevo entorno.', 'success');
+            }
+
             setName('');
             setSyncPath('');
             setSyncType('local');
+            setCreationMode('empty');
+            setImportJsonData(null);
+            setImportFileName('');
+            setShareWithPrincipal(false);
             setError(null);
+            showToast('Entorno creado correctamente.', 'success');
         } catch (err: any) {
             setError(err.message || 'Error al crear la economía.');
         }
@@ -184,7 +279,7 @@ const EconomyManagementModal: React.FC<EconomyManagementModalProps> = ({ isOpen,
                                                     </div>
                                                     <div style={itemMetaStyle}>
                                                         {economy.sync.type === 'local' || (!economy.sync.dropboxPath && !economy.sync.googledrivePath) ? (
-                                                            <><HardDrive size={12} style={{ marginRight: '4px', display: 'inline' }} />Solo local (este PC)</>
+                                                            <><HardDrive size={12} style={{ marginRight: '4px', display: 'inline' }} />Solo local (este dispositivo)</>
                                                         ) : economy.sync.type === 'googledrive' ? (
                                                             <><Cloud size={12} style={{ marginRight: '4px', display: 'inline' }} />{economy.sync.googledrivePath}</>
                                                         ) : (
@@ -237,7 +332,7 @@ const EconomyManagementModal: React.FC<EconomyManagementModalProps> = ({ isOpen,
                                         style={{ ...syncOptionStyle, ...(syncType === 'local' ? syncOptionActiveStyle : {}) }}
                                     >
                                         <HardDrive size={16} />
-                                        <span>Este PC (local)</span>
+                                        <span>Este dispositivo (local)</span>
                                     </button>
                                     <button
                                         type="button"
@@ -260,11 +355,114 @@ const EconomyManagementModal: React.FC<EconomyManagementModalProps> = ({ isOpen,
                                     <div style={infoContainerStyle}>
                                         <HardDrive size={14} color="#94a3b8" />
                                         <span style={infoTextStyle}>
-                                            Los datos se guardarán solo en este PC. Puedes añadir sincronización en la nube más adelante desde Ajustes.
+                                            Los datos se guardarán solo en este dispositivo. Puedes añadir sincronización en la nube más adelante desde Ajustes.
                                         </span>
                                     </div>
                                 )}
                             </div>
+
+                            <div style={inputGroupStyle}>
+                                <label style={labelStyle}>Modo de Creación</label>
+                                <div style={syncSelectorStyle}>
+                                    <button
+                                        type="button"
+                                        onClick={() => setCreationMode('empty')}
+                                        style={{ ...syncOptionStyle, ...(creationMode === 'empty' ? syncOptionActiveStyle : {}) }}
+                                    >
+                                        <span>Nuevo (vacío)</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setCreationMode('import_json')}
+                                        style={{ ...syncOptionStyle, ...(creationMode === 'import_json' ? syncOptionActiveStyle : {}) }}
+                                    >
+                                        <span>Cargar Copia JSON</span>
+                                    </button>
+                                    {syncType !== 'local' && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setCreationMode('link_existing')}
+                                            style={{ ...syncOptionStyle, ...(creationMode === 'link_existing' ? syncOptionActiveStyle : {}) }}
+                                        >
+                                            <span>Vincular Existente</span>
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {creationMode === 'import_json' && (
+                                <div style={inputGroupStyle}>
+                                    <label style={labelStyle}>Seleccionar Archivo JSON de Copia</label>
+                                    <input
+                                        type="file"
+                                        accept=".json"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) {
+                                                setImportFileName(file.name);
+                                                const reader = new FileReader();
+                                                reader.onload = async (event) => {
+                                                    try {
+                                                        const parsed = JSON.parse(event.target?.result as string);
+                                                        if (typeof parsed === 'object') {
+                                                            setImportJsonData(parsed);
+                                                            setError(null);
+                                                        } else {
+                                                            setError('El archivo JSON no tiene un formato válido.');
+                                                            setImportJsonData(null);
+                                                        }
+                                                    } catch (err) {
+                                                        setError('Error al procesar el archivo JSON.');
+                                                        setImportJsonData(null);
+                                                    }
+                                                };
+                                                reader.readAsText(file);
+                                            }
+                                        }}
+                                        style={inputStyle}
+                                    />
+                                    {importFileName && (
+                                        <div style={{ fontSize: '12.5px', color: '#10b981', marginTop: '2px', fontWeight: '500' }}>
+                                            Archivo cargado con éxito: {importFileName}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {syncType !== 'local' && isCheckingCloud && (
+                                <div style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic' }}>
+                                    Comprobando disponibilidad del archivo en la nube...
+                                </div>
+                            )}
+
+                            {syncType !== 'local' && !isCheckingCloud && cloudFileExists && creationMode === 'empty' && (
+                                <div style={{ ...infoContainerStyle, border: '1px solid rgba(245, 158, 11, 0.3)', background: 'rgba(245, 158, 11, 0.08)' }}>
+                                    <Info size={14} color="#f59e0b" style={{ flexShrink: 0, marginTop: '2px' }} />
+                                    <span style={{ ...infoTextStyle, color: '#fbbf24' }}>
+                                        <strong>¡Advertencia!</strong> Ya existe el archivo <code>{syncPath.split('/').pop()}</code> en la nube. Al sincronizar por primera vez, <strong>se sobrescribirá</strong> con datos vacíos. Selecciona <strong>"Vincular Existente"</strong> si deseas conservar los datos del archivo en la nube.
+                                    </span>
+                                </div>
+                            )}
+
+                            {syncType !== 'local' && !isCheckingCloud && cloudFileExists && creationMode === 'link_existing' && (
+                                <div style={{ ...infoContainerStyle, border: '1px solid rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.08)' }}>
+                                    <Check size={14} color="#10b981" style={{ flexShrink: 0, marginTop: '2px' }} />
+                                    <span style={{ ...infoTextStyle, color: '#34d399' }}>
+                                        Archivo detectado en la nube. PCSHogar descargará y vinculará los datos en este nuevo entorno.
+                                    </span>
+                                </div>
+                            )}
+
+                            {syncType !== 'local' && !isCheckingCloud && !cloudFileExists && creationMode === 'link_existing' && (
+                                <div style={{ ...infoContainerStyle, border: '1px solid rgba(239, 68, 68, 0.3)', background: 'rgba(239, 68, 68, 0.08)' }}>
+                                    <Info size={14} color="#ef4444" style={{ flexShrink: 0, marginTop: '2px' }} />
+                                    <span style={{ ...infoTextStyle, color: '#f87171' }}>
+                                        <strong>Archivo no encontrado:</strong> No existe el archivo <code>{syncPath.split('/').pop()}</code> en tu almacenamiento en la nube. Se creará un archivo vacío al sincronizar.
+                                    </span>
+                                </div>
+                            )}
+
+
 
                             {syncType === 'dropbox' && (() => {
                                 const hasToken = dropboxConnected;
@@ -419,6 +617,89 @@ const EconomyManagementModal: React.FC<EconomyManagementModalProps> = ({ isOpen,
                             </button>
                         </form>
                     </div>
+
+                    {/* Compartir tus Entornos Section */}
+                    {(() => {
+                        const ownedEconomies = activeProfile.economies.filter(e => e.ownerProfileId === activeProfile.id);
+                        const otherProfiles = settings.profiles?.filter(p => p.id !== activeProfile.id) || [];
+                        if (ownedEconomies.length === 0 || otherProfiles.length === 0) return null;
+
+                        return (
+                            <div style={{ ...sectionStyle, borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '20px' }}>
+                                <h4 style={sectionTitleStyle}>Compartir tus Entornos</h4>
+                                <p style={{ fontSize: '12px', color: '#94a3b8', margin: '0 0 4px 0', lineHeight: '1.4' }}>
+                                    Elige qué otros usuarios tienen acceso a tus entornos propietarios:
+                                </p>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '6px' }}>
+                                    {ownedEconomies.map(eco => {
+                                        const sharedWithIds = settings.profiles
+                                            ?.filter(p => p.id !== activeProfile.id && p.economies.some(e => e.id === eco.id))
+                                            .map(p => p.id) || [];
+
+                                        return (
+                                            <div 
+                                                key={eco.id} 
+                                                style={{ 
+                                                    background: 'rgba(255, 255, 255, 0.01)', 
+                                                    border: '1px solid rgba(255, 255, 255, 0.05)', 
+                                                    borderRadius: '12px', 
+                                                    padding: '12px' 
+                                                }}
+                                            >
+                                                <div style={{ fontSize: '13px', fontWeight: '700', color: '#ffffff', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                    {getEconomyIcon(eco.name)}
+                                                    <span>{eco.name}</span>
+                                                </div>
+                                                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                                                    {otherProfiles.map(p => {
+                                                        const isShared = sharedWithIds.includes(p.id);
+                                                        return (
+                                                            <label 
+                                                                key={p.id} 
+                                                                style={{ 
+                                                                    display: 'flex', 
+                                                                    alignItems: 'center', 
+                                                                    gap: '6px', 
+                                                                    cursor: 'pointer',
+                                                                    userSelect: 'none'
+                                                                }}
+                                                            >
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={isShared}
+                                                                    onChange={async () => {
+                                                                        let newSharedIds = [...sharedWithIds];
+                                                                        if (isShared) {
+                                                                            newSharedIds = newSharedIds.filter(id => id !== p.id);
+                                                                        } else {
+                                                                            newSharedIds.push(p.id);
+                                                                        }
+                                                                        try {
+                                                                            await updateEconomySharing(eco.id, newSharedIds);
+                                                                            showToast(`Permisos de "${eco.name}" actualizados.`, 'success');
+                                                                        } catch (err: any) {
+                                                                            showToast(err.message || 'Error al actualizar permisos.', 'error');
+                                                                        }
+                                                                    }}
+                                                                    style={{ 
+                                                                        width: '15px', 
+                                                                        height: '15px', 
+                                                                        cursor: 'pointer',
+                                                                        accentColor: 'var(--color-primary, #6366f1)'
+                                                                    }}
+                                                                />
+                                                                <span style={{ fontSize: '12px', color: '#cbd5e1' }}>{p.name}</span>
+                                                            </label>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        );
+                    })()}
                 </div>
             </div>
         </div>

@@ -11,6 +11,7 @@ import GoogleDriveAuthHandler from './components/auth/GoogleDriveAuthHandler';
 import CloudStartupChecker from './components/auth/CloudStartupChecker';
 import { ToastProvider } from './contexts/ToastContext';
 import AppUpdateChecker from './components/common/AppUpdateChecker';
+import AndroidApkCleanup from './components/common/AndroidApkCleanup';
 import PrivacyDisclaimerModal from './components/common/PrivacyDisclaimerModal';
 import AppLockScreen from './components/common/AppLockScreen';
 import ErrorBoundary from './components/common/ErrorBoundary';
@@ -27,6 +28,7 @@ function AppContent() {
           <GoogleDriveAuthHandler />
           <CloudStartupChecker />
           <AppUpdateChecker />
+          <AndroidApkCleanup />
           <FinanceProvider>
             <DateSelectionProvider>
               <AppLayout>

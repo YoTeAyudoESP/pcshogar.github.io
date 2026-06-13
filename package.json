@@ -1,9 +1,9 @@
 {
   "name": "pcshogar",
   "private": true,
-  "version": "1.4.1",
-  "versionCode": 175,
-  "versionName": "1.4.1",
+  "version": "1.4.2",
+  "versionCode": 176,
+  "versionName": "1.4.2",
   "type": "module",
   "main": "electron/main.js",
   "build": {
@@ -21,6 +21,13 @@
     "win": {
       "target": "nsis",
       "icon": "public/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "PCSHogar"
     }
   },
   "scripts": {
@@ -36,7 +43,9 @@
   "dependencies": {
     "@capacitor-community/file-opener": "^6.0.1",
     "@capacitor/filesystem": "^6.0.1",
-    "@capacitor/share": "^6.0.2"
+    "@capacitor/share": "^6.0.2",
+    "@capgo/capacitor-native-biometric": "^6.0.4",
+    "react-is": "^19.2.7"
   },
   "devDependencies": {
     "@capacitor/android": "^6.1.2",

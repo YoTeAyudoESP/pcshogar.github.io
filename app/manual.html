@@ -420,7 +420,9 @@
             <li class="nav-item"><a href="#cuentas">2. Cuentas y Tarjetas</a></li>
             <li class="nav-item"><a href="#huchas">3. Huchas de Ahorro</a></li>
             <li class="nav-item"><a href="#prestamos">4. Préstamos</a></li>
-            <li class="nav-item"><a href="#ajustes">5. Ajustes y Dropbox</a></li>
+            <li class="nav-item"><a href="#ajustes">5. Ajustes y Nube</a></li>
+            <li class="nav-item"><a href="#copias-seguridad">6. Copias de Seguridad</a></li>
+            <li class="nav-item"><a href="#gestion-usuarios">7. Gestión de Usuarios</a></li>
             
             <li class="nav-section-title">Eventos Críticos</li>
             <li class="nav-item"><a href="#cierre-mes">Cierre de Mes</a></li>
@@ -640,6 +642,51 @@
                     <li>La app creará o leerá un archivo en la ruta seleccionada (mostrada limpiamente en un panel con texto adaptable para smartphones).</li>
                     <li>A partir de ese momento, cada vez que crees, edites o elimines una transacción en cualquier dispositivo, la aplicación sincronizará automáticamente el archivo en segundo plano.</li>
                 </ul>
+            </div>
+        </section>
+
+        <!-- COPIAS SEGURIDAD -->
+        <section id="copias-seguridad">
+            <h2>6. Copias de Seguridad (Local y Nube)</h2>
+            <div class="glass-card">
+                <p>PCS Hogar te otorga el control absoluto de tus datos financieros. Al ser una aplicación sin servidores centrales, la responsabilidad de tus datos recae sobre ti, por lo que te facilitamos múltiples formas de resguardarlos de forma segura.</p>
+
+                <h3>1. Copias de Seguridad en Local (JSON)</h3>
+                <p>Puedes exportar tu base de datos completa como un archivo <code>.json</code> en cualquier momento desde <strong>Ajustes > Aplicación > Copia de Seguridad > Exportar JSON</strong>.</p>
+                <ul>
+                    <li><strong>En Windows:</strong> El archivo se guardará en tu carpeta de descargas de forma predeterminada.</li>
+                    <li><strong>En Android:</strong> Al exportar la copia de seguridad, el sistema abrirá automáticamente el menú nativo de <strong>Compartir</strong>. Esto te permite enviarlo por WhatsApp, Telegram, correo electrónico, guardarlo en Google Drive, o archivarlo en el explorador de archivos de tu móvil de manera segura.</li>
+                    <li><strong>Importar Copias:</strong> Para restaurar tus datos o cargar una copia guardada, ve a la opción de crear un entorno y selecciona <strong>"Cargar Copia JSON"</strong> para importar tu copia al instante.</li>
+                </ul>
+
+                <h3>2. Sincronización en la Nube (Dropbox y Google Drive)</h3>
+                <p>Puedes vincular tus entornos económicos a un archivo en la nube para mantener tus transacciones sincronizadas automáticamente entre tus dispositivos.</p>
+                <ul>
+                    <li><strong>Dropbox:</strong> Pulsa el botón de conectar, autoriza el acceso a PCS Hogar, y selecciona o crea la carpeta de destino de tu archivo de datos.</li>
+                    <li><strong>Google Drive:</strong> Habilita la integración de Google Drive autorizando tu cuenta de Google. PCS Hogar creará o sincronizará un archivo JSON en tu espacio de almacenamiento de Drive de forma automática.</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- GESTION USUARIOS -->
+        <section id="gestion-usuarios">
+            <h2>7. Gestión de Perfiles y Usuarios</h2>
+            <div class="glass-card">
+                <p>PCS Hogar permite crear múltiples perfiles de usuario independientes en el mismo dispositivo, ideal para familias o para separar las finanzas personales y profesionales.</p>
+
+                <h3>Perfil Principal (Administrador)</h3>
+                <p>El perfil inicial con el que se inicia la app es el **Perfil Principal**. Es el único que tiene permisos para gestionar la creación, modificación y eliminación de otros perfiles de usuario.</p>
+
+                <h3>Creación de Perfiles Secundarios</h3>
+                <p>Si eres el usuario Principal, ve a la pestaña <strong>Gestión de Usuarios</strong> en Ajustes y pulsa <span class="btn-rep btn-primary">+ Nuevo Usuario</span>.</p>
+                <ul>
+                    <li>Define el nombre del nuevo usuario.</li>
+                    <li>Configura un <strong>PIN opcional de 4 dígitos</strong> si deseas restringir el acceso a ese perfil.</li>
+                    <li><strong>Asignación de entornos (Economías):</strong> Selecciona las economías a las que este usuario secundario tendrá acceso. El usuario solo podrá ver e interactuar con los entornos compartidos.</li>
+                </ul>
+
+                <h3>Cambio de Perfil y Pantalla de Bloqueo</h3>
+                <p>Si hay más de un perfil creado en la aplicación, la pantalla de bloqueo te permitirá presionar el botón <span class="btn-rep btn-gray">Cambiar de Usuario</span>. Esto desplegará la lista de perfiles para que cada miembro acceda a su sesión correspondiente.</p>
             </div>
         </section>
 

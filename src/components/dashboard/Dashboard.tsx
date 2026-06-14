@@ -5,6 +5,7 @@ import ExpenseForm from '../expenses/ExpenseForm';
 import ExpenseList from '../expenses/ExpenseList';
 import FinanceSummary from './FinanceSummary';
 import PendingActionsWidget from './PendingActionsWidget';
+import NextDayPaymentAlert from './NextDayPaymentAlert';
 import FinanceGlobalSummary from './FinanceGlobalSummary';
 import CreditCardSettlement from './CreditCardSettlement';
 import SettingsView from '../settings/SettingsView';
@@ -175,8 +176,26 @@ const Dashboard: React.FC = () => {
         const days = Math.floor((Date.now() - installTime) / (1000 * 60 * 60 * 24));
         
         const reminderDismissed = localStorage.getItem('pcshogar_reminder_dismissed') === 'true';
-        if (days >= 30 && !reminderDismissed) {
-            setShow30DayReminder(true);
+        if (!reminderDismissed) {
+            const lastShownStr = localStorage.getItem('pcshogar_reminder_last_shown');
+            let shouldShow = false;
+            if (!lastShownStr) {
+                if (days >= 30) {
+                    shouldShow = true;
+                }
+            } else {
+                const lastShown = parseInt(lastShownStr);
+                // 30 días en ms = 30 * 24 * 60 * 60 * 1000 = 2592000000
+                if (Date.now() - lastShown >= 2592000000) {
+                    shouldShow = true;
+                }
+            }
+            if (shouldShow) {
+                const currentCount = parseInt(localStorage.getItem('pcshogar_reminder_count') || '0') + 1;
+                localStorage.setItem('pcshogar_reminder_count', currentCount.toString());
+                localStorage.setItem('pcshogar_reminder_last_shown', Date.now().toString());
+                setShow30DayReminder(true);
+            }
         }
 
         // 2. Changelog checking
@@ -392,6 +411,7 @@ const Dashboard: React.FC = () => {
                         </button>
                     </div>
 
+                    <NextDayPaymentAlert />
                     <FinanceSummary />
                     <PendingActionsWidget />
                     <FinanceGlobalSummary />
@@ -473,105 +493,104 @@ const Dashboard: React.FC = () => {
                 <ReportModal onClose={() => setIsReportModalOpen(false)} />
             )}
 
-            {show30DayReminder && (
-                <div className="modal-overlay" onClick={() => {
-                    localStorage.setItem('pcshogar_reminder_dismissed', 'true');
-                    setShow30DayReminder(false);
-                }}>
-                    <div className="modal-container glass-panel" style={{ padding: '2.5rem 2rem', maxWidth: '440px', width: '95%', textAlign: 'center', position: 'relative' }} onClick={e => e.stopPropagation()}>
-                        <div style={{
-                            width: '70px',
-                            height: '70px',
-                            margin: '0 auto 1.5rem',
-                            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-                            borderRadius: '20px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            boxShadow: '0 10px 20px rgba(29, 78, 216, 0.3)'
-                        }}>
-                            <HelpCircle size={36} color="white" />
-                        </div>
-                        <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '1rem', color: 'white' }}>
-                            ¿Cómo va tu experiencia?
-                        </h2>
-                        <p style={{ fontSize: '0.95rem', lineHeight: '1.6', color: 'rgba(255,255,255,0.7)', marginBottom: '2rem' }}>
-                            ¡Llevas más de 30 días usando PCS Hogar! Si tienes alguna duda, sugerencia de mejora o has detectado algún problema, nos encantaría escucharte. Puedes contactarnos haciendo clic en el botón de sugerencias.
-                        </p>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
+            {show30DayReminder && (() => {
+                const currentCount = parseInt(localStorage.getItem('pcshogar_reminder_count') || '0');
+                return (
+                    <div className="modal-overlay" onClick={() => setShow30DayReminder(false)}>
+                        <div className="modal-container glass-panel" style={{ padding: '2.5rem 2rem', maxWidth: '440px', width: '95%', textAlign: 'center', position: 'relative' }} onClick={e => e.stopPropagation()}>
+                            <div style={{
+                                width: '70px',
+                                height: '70px',
+                                margin: '0 auto 1.5rem',
+                                background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                                borderRadius: '20px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                boxShadow: '0 10px 20px rgba(29, 78, 216, 0.3)'
+                            }}>
+                                <HelpCircle size={36} color="white" />
+                            </div>
+                            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '1rem', color: 'white' }}>
+                                ¿Cómo va tu experiencia?
+                            </h2>
+                            <p style={{ fontSize: '0.95rem', lineHeight: '1.6', color: 'rgba(255,255,255,0.7)', marginBottom: '2rem' }}>
+                                ¡Llevas más de 30 días usando PCS Hogar! Si tienes alguna duda, sugerencia de mejora o has detectado algún problema, nos encantaría escucharte. Puedes contactarnos haciendo clic en el botón de sugerencias.
+                            </p>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                                <button 
+                                    onClick={() => {
+                                        const subject = encodeURIComponent('Sugerencia app PCSHogar');
+                                        const mailtoUrl = `mailto:yoayudo2020@gmail.com?subject=${subject}`;
+                                        window.open(mailtoUrl, '_system');
+                                    }}
+                                    style={{
+                                        width: '100%',
+                                        padding: '12px',
+                                        borderRadius: '10px',
+                                        background: '#1e2028',
+                                        color: 'white',
+                                        border: '1px solid rgba(255, 255, 255, 0.12)',
+                                        fontWeight: 600,
+                                        fontSize: '0.95rem',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '8px',
+                                        boxSizing: 'border-box'
+                                    }}
+                                >
+                                    <Mail size={18} /> Enviar sugerencia por email
+                                </button>
+                                <button 
+                                    onClick={() => {
+                                        const paypalUrl = 'https://www.paypal.me/pherba/5';
+                                        window.open(paypalUrl, '_system');
+                                    }}
+                                    style={{
+                                        width: '100%',
+                                        padding: '12px',
+                                        borderRadius: '10px',
+                                        background: 'linear-gradient(135deg, #ec4899 0%, #d946ef 100%)',
+                                        color: 'white',
+                                        border: 'none',
+                                        fontWeight: 700,
+                                        fontSize: '0.95rem',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '8px',
+                                        boxShadow: '0 4px 15px rgba(236, 72, 153, 0.3)',
+                                        boxSizing: 'border-box'
+                                    }}
+                                >
+                                    <Heart size={16} fill="white" color="white" /> Aportar para servidores (PayPal)
+                                </button>
+                            </div>
                             <button 
                                 onClick={() => {
-                                    const subject = encodeURIComponent('Sugerencia app PCSHogar');
-                                    const mailtoUrl = `mailto:yoayudo2020@gmail.com?subject=${subject}`;
-                                    window.open(mailtoUrl, '_system');
+                                    if (currentCount >= 3) {
+                                        localStorage.setItem('pcshogar_reminder_dismissed', 'true');
+                                    }
+                                    setShow30DayReminder(false);
                                 }}
                                 style={{
-                                    width: '100%',
-                                    padding: '12px',
-                                    borderRadius: '10px',
-                                    background: '#1e2028',
-                                    color: 'white',
-                                    border: '1px solid rgba(255, 255, 255, 0.12)',
-                                    fontWeight: 600,
-                                    fontSize: '0.95rem',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '8px',
-                                    boxSizing: 'border-box'
-                                }}
-                            >
-                                <Mail size={18} /> Enviar sugerencia por email
-                            </button>
-                            <button 
-                                onClick={() => {
-                                    const paypalUrl =
-                                        'https://www.paypal.com/donate/?business=pablopcs%40hotmail.com' +
-                                        '&currency_code=EUR' +
-                                        '&item_name=Invita%20a%20un%20caf%C3%A9%20-%20PCS%20Hogar';
-                                    window.open(paypalUrl, '_system');
-                                }}
-                                style={{
-                                    width: '100%',
-                                    padding: '12px',
-                                    borderRadius: '10px',
-                                    background: 'linear-gradient(135deg, #ec4899 0%, #d946ef 100%)',
-                                    color: 'white',
+                                    background: 'none',
                                     border: 'none',
-                                    fontWeight: 700,
-                                    fontSize: '0.95rem',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '8px',
-                                    boxShadow: '0 4px 15px rgba(236, 72, 153, 0.3)',
-                                    boxSizing: 'border-box'
+                                    color: 'rgba(255, 255, 255, 0.4)',
+                                    textDecoration: 'underline',
+                                    fontSize: '0.85rem',
+                                    cursor: 'pointer'
                                 }}
                             >
-                                <Heart size={16} fill="white" color="white" /> Aportar para servidores (PayPal)
+                                {currentCount >= 3 ? 'Cerrar y no volver a mostrar' : 'Cerrar'}
                             </button>
                         </div>
-                        <button 
-                            onClick={() => {
-                                localStorage.setItem('pcshogar_reminder_dismissed', 'true');
-                                setShow30DayReminder(false);
-                            }}
-                            style={{
-                                background: 'none',
-                                border: 'none',
-                                color: 'rgba(255, 255, 255, 0.4)',
-                                textDecoration: 'underline',
-                                fontSize: '0.85rem',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            Cerrar y no volver a mostrar
-                        </button>
                     </div>
-                </div>
-            )}
+                );
+            })()}
 
             {showChangelog && (
                 <div className="modal-overlay" onClick={() => {

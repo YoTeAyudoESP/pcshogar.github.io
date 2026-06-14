@@ -32,6 +32,7 @@ const DEFAULT_SETTINGS: AppSettings = {
     currency: 'EUR',
     language: 'es',
     theme: 'default',
+    notifyNextDayPayments: false,
     sync: {
         enabled: false,
         type: 'local',

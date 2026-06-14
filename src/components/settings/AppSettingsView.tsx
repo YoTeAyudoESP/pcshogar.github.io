@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
     Globe, 
     Coins, 
@@ -17,7 +17,9 @@ import {
     Save,
     RefreshCw,
     Shield,
-    Fingerprint
+    Fingerprint,
+    Bell,
+    Monitor
 } from 'lucide-react';
 import { useAppSettings } from '../../contexts/AppSettingsContext';
 import { useFinance } from '../../contexts/FinanceContext';
@@ -28,6 +30,15 @@ import { GoogleDriveService } from '../../services/googleDriveService';
 import { SUPPORTED_CURRENCIES, SUPPORTED_LANGUAGES, APP_THEMES } from '../../types/finance';
 import DropboxFolderPicker from './DropboxFolderPicker';
 import { useToast } from '../../contexts/ToastContext';
+import { Capacitor, registerPlugin } from '@capacitor/core';
+import { UpdateService } from '../../services/updateService';
+import versionInfo from '../../../public/version.json';
+
+interface APKInstallerPlugin {
+    downloadAndInstall(options: { url: string }): Promise<void>;
+}
+
+const APKInstaller = registerPlugin<APKInstallerPlugin>('APKInstaller');
 
 const AppSettingsView: React.FC = () => {
     const { settings, updateSettings, updateSyncSettings, activeProfile, activeEconomy, setProfilePin, setProfileBiometric } = useAppSettings();
@@ -38,6 +49,90 @@ const AppSettingsView: React.FC = () => {
     const [importFile, setImportFile] = useState<File | null>(null);
     const [showFolderPicker, setShowFolderPicker] = useState(false);
     const [pinInput, setPinInput] = useState('');
+
+    const [downloadUrlAndroid, setDownloadUrlAndroid] = useState(versionInfo.url);
+    const [downloadUrlWindows, setDownloadUrlWindows] = useState(versionInfo.windowsUrl);
+    const [checking, setChecking] = useState(false);
+    const [downloading, setDownloading] = useState(false);
+    const [progress, setProgress] = useState(0);
+
+    const isElectron = typeof window !== 'undefined' && !!(window as any).require;
+    const isApp = Capacitor.isNativePlatform() || isElectron;
+
+    useEffect(() => {
+        if (!isApp) {
+            fetch('https://pcshogar.es/version.json')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.url) setDownloadUrlAndroid(data.url);
+                    if (data.windowsUrl) setDownloadUrlWindows(data.windowsUrl);
+                })
+                .catch(err => console.log('Error fetching latest download URLs:', err));
+        }
+    }, [isApp]);
+
+    const handleCheckUpdate = async () => {
+        setChecking(true);
+        try {
+            const info = await UpdateService.checkUpdate();
+            if (info.hasUpdate) {
+                if (window.confirm(`Nueva versión disponible: v${info.latestVersion}.\n¿Deseas descargar e instalar la actualización automáticamente ahora?`)) {
+                    const isElectron = typeof window !== 'undefined' && !!(window as any).require;
+                    if (isElectron) {
+                        const { ipcRenderer } = (window as any).require('electron');
+                        setDownloading(true);
+                        setProgress(0);
+
+                        const progressListener = (_event: any, pct: number) => {
+                            setProgress(pct);
+                        };
+                        ipcRenderer.on('download-progress', progressListener);
+
+                        ipcRenderer.invoke('download-and-install-update', info.downloadUrl)
+                            .catch((err: any) => {
+                                console.error('Failed to install update:', err);
+                                showToast('Error al descargar la actualización de forma automática. Intentando descarga manual...', 'error');
+                                window.open(info.downloadUrl, '_system');
+                                setDownloading(false);
+                            })
+                            .finally(() => {
+                                ipcRenderer.removeListener('download-progress', progressListener);
+                            });
+                    } else if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android') {
+                        setDownloading(true);
+                        setProgress(0);
+
+                        let listener: any = null;
+                        try {
+                            listener = await (APKInstaller as any).addListener('downloadProgress', (data: { progress: number }) => {
+                                setProgress(data.progress);
+                            });
+
+                            await APKInstaller.downloadAndInstall({ url: info.downloadUrl });
+                        } catch (err: any) {
+                            console.error('Failed to install update on Android:', err);
+                            showToast('Error al descargar la actualización de forma automática. Intentando descarga manual...', 'error');
+                            window.open(info.downloadUrl, '_system');
+                        } finally {
+                            if (listener) {
+                                listener.remove();
+                            }
+                            setDownloading(false);
+                        }
+                    } else {
+                        window.open(info.downloadUrl, '_system');
+                    }
+                }
+            } else {
+                showToast(`Estás utilizando la versión más reciente (v${info.currentVersion}).`, 'success');
+            }
+        } catch (error) {
+            console.error(error);
+            showToast('No se pudo comprobar la actualización. Verifica tu conexión.', 'error');
+        } finally {
+            setChecking(false);
+        }
+    };
 
     const handleSavePin = async () => {
         if (pinInput.length !== 4) {
@@ -843,6 +938,116 @@ const AppSettingsView: React.FC = () => {
                             )}
                         </div>
                     )}
+                </div>
+            </section>
+
+            {/* Zone 5: Aplicación */}
+            <section style={groupStyle}>
+                <h3 style={zoneTitleStyle}><Monitor size={20} color="var(--color-primary)" /> Aplicación</h3>
+                <style dangerouslySetInnerHTML={{__html: "@keyframes spin { 100% { transform: rotate(360deg); } }" }} />
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    
+                    {/* Toggle: Aviso de pagos pendientes */}
+                    <div style={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        alignItems: 'center',
+                        padding: '1rem', 
+                        background: 'rgba(255, 255, 255, 0.02)',
+                        border: '1px solid rgba(255, 255, 255, 0.05)',
+                        borderRadius: '12px',
+                        maxWidth: '500px'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <Bell size={20} color="var(--color-primary)" />
+                            <div style={{ textAlign: 'left' }}>
+                                <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>Aviso de pagos pendientes</div>
+                                <div style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.5)' }}>Avisar de los gastos fijos previstos para mañana al abrir la aplicación</div>
+                            </div>
+                        </div>
+                        <div style={{ 
+                            width: '40px', height: '24px', borderRadius: '12px', 
+                            background: settings.notifyNextDayPayments ? 'var(--color-primary)' : 'rgba(255,255,255,0.1)',
+                            cursor: 'pointer', position: 'relative', transition: '0.3s',
+                            flexShrink: 0
+                        }} onClick={() => updateSettings({ notifyNextDayPayments: !settings.notifyNextDayPayments })}>
+                            <div style={{ 
+                                width: '18px', height: '18px', borderRadius: '50%', background: 'white',
+                                position: 'absolute', top: '3px', left: settings.notifyNextDayPayments ? '19px' : '3px',
+                                transition: '0.3s'
+                            }} />
+                        </div>
+                    </div>
+
+                    {/* Comprobar actualizaciones */}
+                    <div style={{ 
+                        display: 'flex', 
+                        flexDirection: 'column',
+                        alignItems: 'flex-start',
+                        gap: '0.75rem',
+                        padding: '1rem', 
+                        background: 'rgba(255, 255, 255, 0.02)',
+                        border: '1px solid rgba(255, 255, 255, 0.05)',
+                        borderRadius: '12px',
+                        maxWidth: '500px'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <RefreshCw size={20} color="var(--color-primary)" />
+                            <div style={{ textAlign: 'left' }}>
+                                <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>Actualizaciones de Software</div>
+                                <div style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.5)' }}>Versión actual instalada: <strong>v{versionInfo.version}</strong></div>
+                            </div>
+                        </div>
+
+                        {downloading ? (
+                            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>
+                                    <span>Descargando actualización...</span>
+                                    <span>{progress}%</span>
+                                </div>
+                                <div style={{
+                                    width: '100%',
+                                    height: '6px',
+                                    background: 'rgba(255,255,255,0.1)',
+                                    borderRadius: '3px',
+                                    overflow: 'hidden'
+                                }}>
+                                    <div style={{
+                                        width: `${progress}%`,
+                                        height: '100%',
+                                        background: 'linear-gradient(90deg, #10b981, #34d399)',
+                                        transition: 'width 0.1s ease'
+                                    }} />
+                                </div>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={handleCheckUpdate}
+                                disabled={checking}
+                                style={{
+                                    marginTop: '0.5rem',
+                                    padding: '8px 16px',
+                                    borderRadius: '8px',
+                                    background: 'rgba(255, 255, 255, 0.05)',
+                                    color: 'white',
+                                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                                    fontWeight: 600,
+                                    fontSize: '0.85rem',
+                                    cursor: checking ? 'not-allowed' : 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    transition: 'background 0.2s'
+                                }}
+                                onMouseEnter={e => { if (!checking) e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
+                                onMouseLeave={e => { if (!checking) e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
+                            >
+                                <RefreshCw size={14} style={{ animation: checking ? 'spin 1.5s linear infinite' : 'none' }} />
+                                {checking ? 'Comprobando...' : 'Comprobar actualizaciones'}
+                            </button>
+                        )}
+                    </div>
                 </div>
             </section>
         </div>

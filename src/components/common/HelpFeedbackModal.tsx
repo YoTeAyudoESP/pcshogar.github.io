@@ -19,14 +19,7 @@ const HelpFeedbackModal: React.FC<HelpFeedbackModalProps> = ({ isOpen, onClose }
     if (!isOpen) return null;
 
     const handlePayPal = () => {
-        // URL oficial de donaciones PayPal — funciona con cualquier cuenta PayPal personal.
-        // No requiere configuración previa de botón en el panel de PayPal.
-        // La donación se clasifica como "sin contraprestación" (ítem = descripción informativa).
-        const paypalUrl =
-            'https://www.paypal.com/donate/?business=pablopcs%40hotmail.com' +
-            '&currency_code=EUR' +
-            '&item_name=Invita%20a%20un%20caf%C3%A9%20-%20PCS%20Hogar';
-        // '_system' indica a Capacitor que abra la URL en el navegador externo del dispositivo
+        const paypalUrl = 'https://www.paypal.me/pherba/5';
         window.open(paypalUrl, '_system');
     };
 
@@ -305,107 +298,6 @@ const HelpFeedbackModal: React.FC<HelpFeedbackModalProps> = ({ isOpen, onClose }
                                 <Mail size={22} />
                                 Enviar una sugerencia
                             </button>
-
-                            {/* Dynamic update or download button */}
-                            {isApp ? (
-                                <>
-                                    <style dangerouslySetInnerHTML={{__html: "@keyframes spin { 100% { transform: rotate(360deg); } }" }} />
-                                    <button
-                                        onClick={handleCheckUpdate}
-                                        disabled={checking}
-                                        style={{
-                                            width: '100%',
-                                            padding: '16px',
-                                            borderRadius: '12px',
-                                            background: 'rgba(255, 255, 255, 0.05)',
-                                            color: 'white',
-                                            border: '1px solid rgba(255, 255, 255, 0.12)',
-                                            fontWeight: 600,
-                                            fontSize: '1.05rem',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            gap: '10px',
-                                            cursor: checking ? 'not-allowed' : 'pointer',
-                                            opacity: checking ? 0.7 : 1,
-                                            transition: 'background 0.2s, border-color 0.2s'
-                                        }}
-                                        onMouseEnter={e => {
-                                            if (!checking) {
-                                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
-                                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.22)';
-                                            }
-                                        }}
-                                        onMouseLeave={e => {
-                                            if (!checking) {
-                                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                                                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)';
-                                            }
-                                        }}
-                                    >
-                                        <RefreshCw 
-                                            size={22} 
-                                            style={{ 
-                                                animation: checking ? 'spin 1.5s linear infinite' : 'none' 
-                                            }} 
-                                        />
-                                        {checking ? 'Comprobando...' : 'Comprobar actualizaciones'}
-                                    </button>
-                                </>
-                            ) : (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
-                                    <a
-                                        href={downloadUrlAndroid}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        style={{
-                                            width: '100%',
-                                            padding: '16px',
-                                            borderRadius: '12px',
-                                            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                                            color: 'white',
-                                            textDecoration: 'none',
-                                            fontWeight: 700,
-                                            fontSize: '1.05rem',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            gap: '10px',
-                                            cursor: 'pointer',
-                                            boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)',
-                                            boxSizing: 'border-box'
-                                        }}
-                                    >
-                                        <Download size={22} />
-                                        Descargar para Android (.apk)
-                                    </a>
-                                    <a
-                                        href={downloadUrlWindows}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        style={{
-                                            width: '100%',
-                                            padding: '16px',
-                                            borderRadius: '12px',
-                                            background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-                                            color: 'white',
-                                            textDecoration: 'none',
-                                            fontWeight: 700,
-                                            fontSize: '1.05rem',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            gap: '10px',
-                                            cursor: 'pointer',
-                                            boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)',
-                                            boxSizing: 'border-box'
-                                        }}
-                                    >
-                                        <Download size={22} />
-                                        Descargar para Windows (.exe)
-                                    </a>
-                                </div>
-                            )}
                         </div>
                     </>
                 )}
@@ -421,21 +313,6 @@ const HelpFeedbackModal: React.FC<HelpFeedbackModalProps> = ({ isOpen, onClose }
                     Aviso Legal: Toda aportación es 100% voluntaria, no reembolsable y no otorga servicios extra. 
                     Yo Te Ayudo (ESP) no recopila datos de pago. Pagos gestionados externamente y de forma segura por PayPal.
                 </p>
-
-                {/* Link */}
-                <button 
-                    onClick={onClose}
-                    style={{
-                        background: 'none',
-                        border: 'none',
-                        color: 'rgba(255, 255, 255, 0.5)',
-                        textDecoration: 'underline',
-                        fontSize: '0.9rem',
-                        cursor: 'pointer'
-                    }}
-                >
-                    No volver a mostrar
-                </button>
             </div>
         </div>
     );

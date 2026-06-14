@@ -68,10 +68,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
     };
 
     const handlePayPal = () => {
-        const paypalUrl =
-            'https://www.paypal.com/donate/?business=pablopcs%40hotmail.com' +
-            '&currency_code=EUR' +
-            '&item_name=Invita%20a%20un%20caf%C3%A9%20-%20PCS%20Hogar';
+        const paypalUrl = 'https://www.paypal.me/pherba/5';
         window.open(paypalUrl, '_system');
     };
 

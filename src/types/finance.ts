@@ -249,6 +249,7 @@ export interface AppSettings {
     sync: SyncSettings;
     profiles?: UserProfile[];
     activeProfileId?: string;
+    notifyNextDayPayments?: boolean;
 }
 
 export const SUPPORTED_CURRENCIES = [

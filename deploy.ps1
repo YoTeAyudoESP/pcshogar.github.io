@@ -4,6 +4,13 @@ Write-Output "Parsed version: $version"
 
 git checkout main
 git pull origin main
+# Clean the app directory, but first check if it exists and is a file. If it's a file, remove it first.
+if (Test-Path -Path app -PathType Leaf) {
+    Remove-Item -Path app -Force
+}
+if (-not (Test-Path -Path app)) {
+    New-Item -ItemType Directory -Path app -Force
+}
 Remove-Item -Path app\* -Recurse -Force -Exclude ".*" -ErrorAction SilentlyContinue
 Copy-Item -Path dist\* -Destination app -Recurse -Force
 Copy-Item -Path dist\version.json -Destination app\version.json -Force

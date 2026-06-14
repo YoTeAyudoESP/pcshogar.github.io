@@ -17,8 +17,10 @@ Copy-Item -Path dist\version.json -Destination app\version.json -Force
 Copy-Item -Path dist\version.json -Destination version.json -Force
 Copy-Item -Path "dist_android\PCSHogar_Setup_v$version.apk" -Destination "." -Force
 Copy-Item -Path "dist_electron\PCSHogar Setup $version.exe" -Destination ".\PCSHogar_Setup_v$version.exe" -Force
+Copy-Item -Path "scratch\landing.html" -Destination "index.html" -Force
 git add app
 git add version.json
+git add index.html
 git add "PCSHogar_Setup_v$version.apk"
 git add "PCSHogar_Setup_v$version.exe"
 git commit -m "Deploy v$version"

@@ -6,6 +6,7 @@ import ExpenseList from '../expenses/ExpenseList';
 import FinanceSummary from './FinanceSummary';
 import PendingActionsWidget from './PendingActionsWidget';
 import NextDayPaymentAlert from './NextDayPaymentAlert';
+import UnlinkedLoanAlert from './UnlinkedLoanAlert';
 import FinanceGlobalSummary from './FinanceGlobalSummary';
 import CreditCardSettlement from './CreditCardSettlement';
 import SettingsView from '../settings/SettingsView';
@@ -412,6 +413,7 @@ const Dashboard: React.FC = () => {
                     </div>
 
                     <NextDayPaymentAlert />
+                    <UnlinkedLoanAlert />
                     <FinanceSummary />
                     <PendingActionsWidget />
                     <FinanceGlobalSummary />
@@ -474,19 +476,44 @@ const Dashboard: React.FC = () => {
             )}
 
             {isExpenseModalOpen && (
-                <ExpenseForm onClose={() => setIsExpenseModalOpen(false)} />
+                <ExpenseForm 
+                    onClose={() => setIsExpenseModalOpen(false)} 
+                    onNavigateToSettings={(tab) => {
+                        setSettingsTab(tab as any || 'accounts');
+                        setCurrentView('settings');
+                    }}
+                />
             )}
 
             {isRefundModalOpen && (
-                <ExpenseForm isRefund={true} onClose={() => setIsRefundModalOpen(false)} />
+                <ExpenseForm 
+                    isRefund={true} 
+                    onClose={() => setIsRefundModalOpen(false)} 
+                    onNavigateToSettings={(tab) => {
+                        setSettingsTab(tab as any || 'accounts');
+                        setCurrentView('settings');
+                    }}
+                />
             )}
 
             {isIncomeFormOpen && (
-                <IncomeForm onClose={() => setIsIncomeFormOpen(false)} />
+                <IncomeForm 
+                    onClose={() => setIsIncomeFormOpen(false)} 
+                    onNavigateToSettings={(tab) => {
+                        setSettingsTab(tab as any || 'accounts');
+                        setCurrentView('settings');
+                    }}
+                />
             )}
 
             {isTransferModalOpen && (
-                <BalanceTransferModal onClose={() => setIsTransferModalOpen(false)} />
+                <BalanceTransferModal 
+                    onClose={() => setIsTransferModalOpen(false)} 
+                    onNavigateToSettings={(tab) => {
+                        setSettingsTab(tab as any || 'accounts');
+                        setCurrentView('settings');
+                    }}
+                />
             )}
 
             {isReportModalOpen && (

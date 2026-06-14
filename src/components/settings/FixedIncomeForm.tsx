@@ -6,10 +6,12 @@ import { Save, X, Plus, Calendar, Tag, Landmark, Wallet, Coins, Clock4, Calendar
 interface FixedIncomeFormProps {
     editingIncome?: FixedIncome;
     onClose: () => void;
+    onNavigateToSettings?: (tab?: string) => void;
 }
 
-const FixedIncomeForm: React.FC<FixedIncomeFormProps> = ({ editingIncome, onClose }) => {
+const FixedIncomeForm: React.FC<FixedIncomeFormProps> = ({ editingIncome, onClose, onNavigateToSettings }) => {
     const { addFixedIncome, updateIncome, accounts } = useFinance();
+    const hasNoAccounts = accounts.length === 0;
     const [name, setName] = useState(editingIncome?.name || '');
     const [amount, setAmount] = useState(editingIncome?.amount?.toString() || '');
     const [currency, setCurrency] = useState(editingIncome?.currency || 'EUR');
@@ -52,7 +54,7 @@ const FixedIncomeForm: React.FC<FixedIncomeFormProps> = ({ editingIncome, onClos
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!name || !amount) return;
+        if (!name || !amount || hasNoAccounts) return;
 
         const incomeData = {
             name,
@@ -114,6 +116,44 @@ const FixedIncomeForm: React.FC<FixedIncomeFormProps> = ({ editingIncome, onClos
                     <X size={24} />
                 </button>
             </div>
+
+            {hasNoAccounts && (
+                <div style={{
+                    background: 'rgba(239, 68, 68, 0.1)',
+                    border: '1px solid rgba(239, 68, 68, 0.2)',
+                    borderRadius: '12px',
+                    padding: '1rem',
+                    marginBottom: '1.25rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    textAlign: 'center'
+                }}>
+                    <span style={{ fontSize: '0.85rem', color: '#f87171', fontWeight: 600 }}>
+                        ⚠️ Debes crear al menos una Cuenta Bancaria o Monedero en Ajustes antes de poder registrar movimientos.
+                    </span>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            if (onNavigateToSettings) onNavigateToSettings('accounts');
+                            onClose();
+                        }}
+                        style={{
+                            background: '#ef4444',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            padding: '0.4rem 0.8rem',
+                            fontSize: '0.8rem',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                        }}
+                    >
+                        Crear Cuenta / Monedero
+                    </button>
+                </div>
+            )}
 
             {/* Nombre / Fuente */}
             <div style={containerStyle}>
@@ -275,21 +315,21 @@ const FixedIncomeForm: React.FC<FixedIncomeFormProps> = ({ editingIncome, onClos
                 }}>
                     Cancelar
                 </button>
-                <button type="submit" style={{
+                <button type="submit" disabled={hasNoAccounts} style={{
                     flex: 2,
                     padding: '1.15rem',
                     borderRadius: '0.75rem',
                     border: 'none',
-                    background: '#6366f1',
-                    color: 'white',
+                    background: hasNoAccounts ? '#3e3f4b' : '#6366f1',
+                    color: hasNoAccounts ? 'rgba(255,255,255,0.3)' : 'white',
                     fontWeight: 700,
                     fontSize: '1.1rem',
-                    cursor: 'pointer',
+                    cursor: hasNoAccounts ? 'not-allowed' : 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '0.5rem',
-                    boxShadow: '0 8px 25px rgba(99, 102, 241, 0.3)',
+                    boxShadow: hasNoAccounts ? 'none' : '0 8px 25px rgba(99, 102, 241, 0.3)',
                     transition: 'transform 0.2s, opacity 0.2s'
                 }}>
                     {editingIncome ? <Save size={20} /> : null}

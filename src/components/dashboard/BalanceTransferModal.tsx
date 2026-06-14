@@ -7,9 +7,10 @@ import { useToast } from '../../contexts/ToastContext';
 
 interface BalanceTransferModalProps {
     onClose: () => void;
+    onNavigateToSettings?: (tab?: string) => void;
 }
 
-const BalanceTransferModal: React.FC<BalanceTransferModalProps> = ({ onClose }) => {
+const BalanceTransferModal: React.FC<BalanceTransferModalProps> = ({ onClose, onNavigateToSettings }) => {
     const { 
         accounts, cards, savings, fixedIncomes, extraIncomes, 
         expenses, allocations, recurringExpenses, overrides, 
@@ -49,7 +50,9 @@ const BalanceTransferModal: React.FC<BalanceTransferModalProps> = ({ onClose }) 
     const selectedSourceAccount = transferItems.find(item => item.id === fromId);
     const selectedWithdrawGoal = savings.find(goal => goal.id === fromId);
 
-    const isSubmitDisabled = loading || 
+    const hasFewerThanTwoAccounts = transferItems.length < 2;
+
+    const isSubmitDisabled = loading || hasFewerThanTwoAccounts ||
         (activeTab === 'accounts' && (!fromId || !toId || isNaN(parsedAmount) || parsedAmount <= 0 || (selectedSourceAccount && parsedAmount > selectedSourceAccount.balance))) ||
         (activeTab === 'savings' && (!toId || isNaN(parsedAmount) || parsedAmount <= 0 || parsedAmount > availableToSpend)) ||
         (activeTab === 'withdraw' && (!fromId || isNaN(parsedAmount) || parsedAmount <= 0 || (selectedWithdrawGoal && parsedAmount > selectedWithdrawGoal.currentAmount)));
@@ -214,6 +217,44 @@ const BalanceTransferModal: React.FC<BalanceTransferModalProps> = ({ onClose }) 
                     </div>
                     <h2 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0, color: 'white' }}>Traspaso Rápido</h2>
                 </div>
+
+                {hasFewerThanTwoAccounts && (
+                    <div style={{
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        border: '1px solid rgba(239, 68, 68, 0.2)',
+                        borderRadius: '12px',
+                        padding: '1rem',
+                        marginBottom: '1.5rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '0.75rem',
+                        textAlign: 'center'
+                    }}>
+                        <span style={{ fontSize: '0.9rem', color: '#f87171', fontWeight: 600 }}>
+                            ⚠️ Se requieren al menos dos cuentas o monederos configurados para realizar una transferencia.
+                        </span>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (onNavigateToSettings) onNavigateToSettings('accounts');
+                                onClose();
+                            }}
+                            style={{
+                                background: '#ef4444',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '8px',
+                                padding: '0.5rem 1rem',
+                                fontSize: '0.85rem',
+                                fontWeight: 600,
+                                cursor: 'pointer'
+                            }}
+                        >
+                            Configurar Cuentas
+                        </button>
+                    </div>
+                )}
 
                 {/* Tabs Switcher */}
                 <div style={{ 

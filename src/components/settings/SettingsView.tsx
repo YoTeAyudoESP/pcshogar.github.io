@@ -384,7 +384,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
                 )}
 
                 {activeTab === 'recurring' && (
-                    <FixedMovementsView />
+                    <FixedMovementsView onNavigateToSettings={(tab) => setActiveTab(tab)} />
                 )}
 
                 {activeTab === 'balance' && (

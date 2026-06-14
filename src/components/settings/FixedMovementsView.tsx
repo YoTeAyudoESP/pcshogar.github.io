@@ -21,9 +21,10 @@ import { isRecurringActiveInMonth, formatMoney } from '../../utils/financeCalcul
 
 interface FixedMovementsViewProps {
     onBack?: () => void;
+    onNavigateToSettings?: (tab?: string) => void;
 }
 
-const FixedMovementsView: React.FC<FixedMovementsViewProps> = ({ onBack }) => {
+const FixedMovementsView: React.FC<FixedMovementsViewProps> = ({ onBack, onNavigateToSettings }) => {
     const { 
         recurringExpenses, 
         incomes, 

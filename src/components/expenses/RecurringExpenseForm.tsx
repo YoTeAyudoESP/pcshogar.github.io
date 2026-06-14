@@ -6,10 +6,11 @@ import { Save, X, Trash2, Landmark, Wallet, CreditCard, Tag, Calendar, History, 
 interface RecurringExpenseFormProps {
     editingExpense?: RecurringExpense;
     onClose: () => void;
+    onNavigateToSettings?: (tab?: string) => void;
 }
 
-const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpense, onClose }) => {
-    const { addRecurringExpense, updateRecurringExpense, accounts, cards, categories } = useFinance();
+const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpense, onClose, onNavigateToSettings }) => {
+    const { addRecurringExpense, updateRecurringExpense, accounts, cards, categories, loans } = useFinance();
     const expenseCategories = categories
         .filter(c => c.type === 'expense')
         .sort((a, b) => a.name.localeCompare(b.name, 'es', { sensitivity: 'base' }));
@@ -30,6 +31,11 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
         editingExpense?.paymentMethod?.type === 'account' ? editingExpense.paymentMethod.accountId :
         editingExpense?.paymentMethod?.type === 'card' ? editingExpense.paymentMethod.cardId : ''
     );
+
+    const hasNoAccounts = accounts.length === 0;
+    const hasNoLoans = (loans || []).filter(l => l.status === 'active' && !(l.isPaid || (l.currentDebt ?? 0) <= 0)).length === 0;
+    const showLoansWarning = categoryId === 'cat_loans' && hasNoLoans;
+    const isFormBlocked = hasNoAccounts || showLoansWarning;
 
     useEffect(() => {
         const handleBack = (e: Event) => {
@@ -67,7 +73,7 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!description || !amount) return;
+        if (!description || !amount || isFormBlocked) return;
 
         let paymentMethod: PaymentMethod = { type: 'cash' };
         if (pmType === 'account') {
@@ -133,6 +139,82 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
                     <X size={24} />
                 </button>
             </div>
+
+            {hasNoAccounts && (
+                <div style={{
+                    background: 'rgba(239, 68, 68, 0.1)',
+                    border: '1px solid rgba(239, 68, 68, 0.2)',
+                    borderRadius: '12px',
+                    padding: '1rem',
+                    marginBottom: '1.25rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    textAlign: 'center'
+                }}>
+                    <span style={{ fontSize: '0.85rem', color: '#f87171', fontWeight: 600 }}>
+                        ⚠️ Debes crear al menos una Cuenta Bancaria o Monedero en Ajustes antes de poder registrar movimientos.
+                    </span>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            if (onNavigateToSettings) onNavigateToSettings('accounts');
+                            onClose();
+                        }}
+                        style={{
+                            background: '#ef4444',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            padding: '0.4rem 0.8rem',
+                            fontSize: '0.8rem',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                        }}
+                    >
+                        Crear Cuenta / Monedero
+                    </button>
+                </div>
+            )}
+
+            {!hasNoAccounts && showLoansWarning && (
+                <div style={{
+                    background: 'rgba(239, 68, 68, 0.1)',
+                    border: '1px solid rgba(239, 68, 68, 0.2)',
+                    borderRadius: '12px',
+                    padding: '1rem',
+                    marginBottom: '1.25rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    textAlign: 'center'
+                }}>
+                    <span style={{ fontSize: '0.85rem', color: '#f87171', fontWeight: 600 }}>
+                        ⚠️ No tienes préstamos creados en la app. Para mayor comodidad, crea primero el Préstamo en Ajustes y este Gasto Fijo se configurará automáticamente.
+                    </span>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            if (onNavigateToSettings) onNavigateToSettings('loans');
+                            onClose();
+                        }}
+                        style={{
+                            background: '#ef4444',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            padding: '0.4rem 0.8rem',
+                            fontSize: '0.8rem',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                        }}
+                    >
+                        Crear Préstamo
+                    </button>
+                </div>
+            )}
 
             {/* Concepto */}
             <div style={containerStyle}>
@@ -290,21 +372,21 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
                 }}>
                     Cancelar
                 </button>
-                <button type="submit" style={{
+                <button type="submit" disabled={isFormBlocked} style={{
                     flex: 2,
                     padding: '1.15rem',
                     borderRadius: '0.75rem',
                     border: 'none',
-                    background: '#6366f1',
-                    color: 'white',
+                    background: isFormBlocked ? '#3e3f4b' : '#6366f1',
+                    color: isFormBlocked ? 'rgba(255,255,255,0.3)' : 'white',
                     fontWeight: 700,
                     fontSize: '1.1rem',
-                    cursor: 'pointer',
+                    cursor: isFormBlocked ? 'not-allowed' : 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '0.5rem',
-                    boxShadow: '0 8px 25px rgba(99, 102, 241, 0.3)'
+                    boxShadow: isFormBlocked ? 'none' : '0 8px 25px rgba(99, 102, 241, 0.3)'
                 }}>
                     {editingExpense ? <Save size={20} /> : null}
                     {editingExpense ? 'Actualizar Gasto' : 'Añadir Gasto Fijo'}

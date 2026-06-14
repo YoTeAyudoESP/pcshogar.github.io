@@ -8,14 +8,16 @@ import { formatMoney } from '../../utils/financeCalculations';
 interface IncomeFormProps {
     onClose: () => void;
     initialData?: Income;
+    onNavigateToSettings?: (tab?: string) => void;
 }
 
-const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData }) => {
+const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData, onNavigateToSettings }) => {
     const { addFixedIncome, addExtraIncome, updateIncome, accounts, categories, savings, allocateSavings } = useFinance();
     const incomeCategories = categories
         .filter(c => c.type === 'income')
         .sort((a, b) => a.name.localeCompare(b.name, 'es', { sensitivity: 'base' }));
     const isEditing = !!initialData;
+    const hasNoAccounts = accounts.length === 0;
 
     const [type, setType] = useState<'fixed' | 'extra'>(initialData?.type === 'fixed' ? 'fixed' : 'extra');
     const [name, setName] = useState(initialData?.name || '');
@@ -54,7 +56,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData }) => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!name || !amount) return;
+        if (!name || !amount || hasNoAccounts) return;
 
         const incomeAmount = parseFloat(amount);
         const commonData = {
@@ -178,6 +180,44 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData }) => {
                     </div>
                     {isEditing ? 'Editar Ingreso' : 'Nuevo Ingreso'}
                 </h2>
+
+                {hasNoAccounts && (
+                    <div style={{
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        border: '1px solid rgba(239, 68, 68, 0.2)',
+                        borderRadius: '12px',
+                        padding: '1rem',
+                        marginBottom: '1rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '0.75rem',
+                        textAlign: 'center'
+                    }}>
+                        <span style={{ fontSize: '0.9rem', color: '#f87171', fontWeight: 600 }}>
+                            ⚠️ Debes crear al menos una Cuenta Bancaria o Monedero en Ajustes antes de poder registrar movimientos.
+                        </span>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (onNavigateToSettings) onNavigateToSettings('accounts');
+                                onClose();
+                            }}
+                            style={{
+                                background: '#ef4444',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '8px',
+                                padding: '0.5rem 1rem',
+                                fontSize: '0.85rem',
+                                fontWeight: 600,
+                                cursor: 'pointer'
+                            }}
+                        >
+                            Crear Cuenta / Monedero
+                        </button>
+                    </div>
+                )}
 
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
                     
@@ -329,14 +369,14 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData }) => {
                         </div>
                     )}
 
-                    <button type="submit" style={{
+                    <button type="submit" disabled={hasNoAccounts} style={{
                         marginTop: '1rem', padding: '1.1rem', borderRadius: '14px', border: 'none',
-                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                        color: 'white', fontWeight: 700, fontSize: '1.05rem', cursor: 'pointer',
-                        boxShadow: '0 10px 20px -5px rgba(16, 185, 129, 0.4)',
+                        background: hasNoAccounts ? '#3e3f4b' : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                        color: hasNoAccounts ? 'rgba(255,255,255,0.3)' : 'white', fontWeight: 700, fontSize: '1.05rem', cursor: hasNoAccounts ? 'not-allowed' : 'pointer',
+                        boxShadow: hasNoAccounts ? 'none' : '0 10px 20px -5px rgba(16, 185, 129, 0.4)',
                         transition: 'all 0.2s ease'
-                    }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-                       onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
+                    }} onMouseOver={e => !hasNoAccounts && (e.currentTarget.style.transform = 'translateY(-2px)')}
+                       onMouseOut={e => !hasNoAccounts && (e.currentTarget.style.transform = 'translateY(0)')}>
                         {isEditing ? 'Confirmar Cambios' : 'Guardar Ingreso'}
                     </button>
                 </form>

@@ -3,6 +3,7 @@ import { useFinance } from '../../contexts/FinanceContext';
 import { X, Check, Calendar, CreditCard, DollarSign, Info } from 'lucide-react';
 import type { Loan } from '../../types/finance';
 import { formatMoney } from '../../utils/financeCalculations';
+import { v4 as uuidv4 } from 'uuid';
 
 interface LoanFormProps {
     editingLoan?: Loan;
@@ -11,7 +12,7 @@ interface LoanFormProps {
 }
 
 const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose }) => {
-    const { addLoan, updateLoan, accounts } = useFinance();
+    const { addLoan, updateLoan, accounts, addRecurringExpense } = useFinance();
     const [name, setName] = useState('');
     const [totalAmount, setTotalAmount] = useState('');
     const [currentDebt, setCurrentDebt] = useState('');
@@ -22,6 +23,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
     const [lastInstallment, setLastInstallment] = useState('');
     const [linkedAccountId, setLinkedAccountId] = useState(accounts.find(a => a.isMain)?.id || accounts[0]?.id || '');
     const [color, setColor] = useState('#f59e0b');
+    const [autoCreateExpense, setAutoCreateExpense] = useState(true);
 
     useEffect(() => {
         if (editingLoan) {
@@ -82,8 +84,35 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
             await updateLoan({ ...editingLoan, ...loanData });
             if (onCancelEdit) onCancelEdit();
         } else {
-            //@ts-ignore
-            await addLoan(loanData);
+            if (autoCreateExpense && current > 0 && monthly > 0) {
+                const loanId = uuidv4();
+                const recId = uuidv4();
+                const payDay = new Date(startDate).getDate();
+
+                const recurringExpenseData = {
+                    id: recId,
+                    description: `Cuota Préstamo: ${name}`,
+                    amount: monthly,
+                    currency: 'EUR' as const,
+                    frequency: 'monthly' as const,
+                    paymentDay: payDay,
+                    active: true,
+                    categoryId: 'cat_loans',
+                    paymentMethod: linkedAccountId ? { type: 'account' as const, accountId: linkedAccountId } : { type: 'cash' as const },
+                    createdAt: Date.now(),
+                    updatedAt: Date.now(),
+                    ignoredPeriods: []
+                };
+
+                await addRecurringExpense(recurringExpenseData as any);
+                await addLoan({
+                    ...loanData,
+                    id: loanId,
+                    linkedRecurringExpenseId: recId
+                } as any);
+            } else {
+                await addLoan(loanData);
+            }
         }
 
         if (onClose) onClose();
@@ -195,6 +224,29 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
                             ))}
                         </select>
                     </div>
+
+                    {!editingLoan && (
+                        <div style={{ 
+                            background: 'rgba(245, 158, 11, 0.05)', 
+                            padding: '1rem', 
+                            borderRadius: '12px',
+                            border: '1px solid rgba(245, 158, 11, 0.1)',
+                            marginTop: '0.5rem'
+                        }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', color: 'white', fontSize: '0.95rem', fontWeight: 600 }}>
+                                <input 
+                                    type="checkbox" 
+                                    style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#f59e0b' }}
+                                    checked={autoCreateExpense}
+                                    onChange={e => setAutoCreateExpense(e.target.checked)}
+                                />
+                                Crear Gasto Fijo asociado automáticamente
+                            </label>
+                            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', marginTop: '6px', marginLeft: '30px', margin: '6px 0 0 30px' }}>
+                                Si se activa, se creará un gasto fijo mensual con la misma cuota y método de pago conectado a este préstamo.
+                            </p>
+                        </div>
+                    )}
 
                     <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
                         <button type="button" onClick={onClose} style={{

@@ -5,6 +5,13 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '1.4.5',
+    releaseNotes: `Novedades v1.4.5:
+- 🔗 Vinculación de préstamos: Conecta préstamos con gastos fijos para amortizar la deuda de manera automática al pagar tus cuotas.
+- ⚠️ Validaciones robustas: Avisos y bloqueos en transferencias y formularios de ingresos/gastos si no hay cuentas o préstamos configurados.
+- 🔄 Amortización inteligente: Desactivación automática del gasto fijo mensual al saldar completamente el préstamo.`
+  },
+  {
     version: '1.4.3',
     releaseNotes: `Novedades v1.4.3:
 - 🔒 Corrección en el bloqueo de pantalla: Solucionado un problema en Android y Web donde pulsar en 'Bloquear / Salir' causaba que la pantalla se quedase en blanco y no mostrase el teclado para reintroducir el PIN.

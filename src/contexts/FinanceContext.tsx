@@ -168,6 +168,39 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
             setAllocations(alls);
             setRecurringExpenses(recs);
             setLoans(lns);
+            
+            // Auto-link active loans and recurring expenses if they match and are not linked
+            let updatedLoans = [...lns];
+            let didLoanMigration = false;
+            for (let i = 0; i < updatedLoans.length; i++) {
+                const loan = updatedLoans[i];
+                if (loan.status === 'active' && !loan.linkedRecurringExpenseId && !loan.isPaid) {
+                    const amountToMatch = loan.monthlyPayment || loan.monthlyInstallment || 0;
+                    // Find an active recurring expense of type 'cat_loans' with the same amount
+                    // which is not already linked to another loan
+                    const matchingRec = recs.find(r => 
+                        r.active && 
+                        r.categoryId === 'cat_loans' && 
+                        Math.abs(r.amount - amountToMatch) < 0.01 &&
+                        !updatedLoans.some(l => l.linkedRecurringExpenseId === r.id)
+                    );
+                    
+                    if (matchingRec) {
+                        didLoanMigration = true;
+                        const linkedLoan = {
+                            ...loan,
+                            linkedRecurringExpenseId: matchingRec.id,
+                            updatedAt: Date.now()
+                        };
+                        await incomeDB.updateLoan(linkedLoan);
+                        updatedLoans[i] = linkedLoan;
+                    }
+                }
+            }
+            if (didLoanMigration) {
+                setLoans(updatedLoans);
+            }
+
             setMovements(mvms);
             setTransfers(trns);
             setClosings(clss);
@@ -564,7 +597,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
     const addRecurringExpense = async (data: Omit<RecurringExpense, 'id'>) => {
         const newRec: RecurringExpense = {
             ...data,
-            id: uuidv4(),
+            id: (data as any).id || uuidv4(),
             updatedAt: Date.now()
         };
         await incomeDB.addRecurringExpense(newRec);
@@ -737,6 +770,37 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                 updatedAt: Date.now()
             };
             await incomeDB.addExpenseWithTransaction(newExpense);
+
+            // Check if this recurring expense is linked to any active loan
+            const linkedLoan = loans.find(l => l.linkedRecurringExpenseId === fixedId && l.status === 'active');
+            if (linkedLoan) {
+                // Determine source account for amortization
+                let actualAccountId = accountId;
+                if (isCard) {
+                    const card = cards.find(c => c.id === accountId);
+                    if (card && card.linkedAccountId) {
+                        actualAccountId = card.linkedAccountId;
+                    } else {
+                        // Fallback to first available account if card has no linked account
+                        const firstAccount = accounts[0];
+                        if (firstAccount) actualAccountId = firstAccount.id;
+                    }
+                }
+                
+                // Amortize loan (which updates remaining amount, isPaid, and status inside db/financeContext)
+                await incomeDB.amortizeLoanWithTransaction(linkedLoan.id, amount, actualAccountId, date, 'Pago cuota mensual');
+                
+                // Fetch the updated loan to see if it is now paid
+                const updatedLoans = await incomeDB.getAllLoans();
+                const updatedLoan = updatedLoans.find(l => l.id === linkedLoan.id);
+                if (updatedLoan && (updatedLoan.currentDebt ?? 0) <= 0) {
+                    // Deactivate recurring expense
+                    const rec = recurringExpenses.find(r => r.id === fixedId);
+                    if (rec) {
+                        await incomeDB.updateRecurringExpense({ ...rec, active: false, updatedAt: Date.now() });
+                    }
+                }
+            }
         }
         await refreshFinance();
     };
@@ -793,7 +857,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
     const addLoan = async (loanData: Omit<Loan, 'id'>) => {
         const newLoan: Loan = {
             ...loanData,
-            id: uuidv4(),
+            id: (loanData as any).id || uuidv4(),
             updatedAt: Date.now()
         };
         await incomeDB.addLoan(newLoan);
@@ -839,6 +903,16 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
     
     const amortizeLoan = async (loanId: string, amount: number, accountId: string, date: number, notes?: string) => {
         await incomeDB.amortizeLoanWithTransaction(loanId, amount, accountId, date, notes);
+        
+        // Check if the loan is now paid to deactivate its linked recurring expense
+        const updatedLoans = await incomeDB.getAllLoans();
+        const updatedLoan = updatedLoans.find(l => l.id === loanId);
+        if (updatedLoan && (updatedLoan.currentDebt ?? 0) <= 0 && updatedLoan.linkedRecurringExpenseId) {
+            const rec = recurringExpenses.find(r => r.id === updatedLoan.linkedRecurringExpenseId);
+            if (rec) {
+                await incomeDB.updateRecurringExpense({ ...rec, active: false, updatedAt: Date.now() });
+            }
+        }
         await refreshFinance();
     };
 

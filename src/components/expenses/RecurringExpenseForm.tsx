@@ -33,9 +33,10 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
     );
 
     const hasNoAccounts = accounts.length === 0;
+    const hasNoCategories = expenseCategories.length === 0;
     const hasNoLoans = (loans || []).filter(l => l.status === 'active' && !(l.isPaid || (l.currentDebt ?? 0) <= 0)).length === 0;
     const showLoansWarning = categoryId === 'cat_loans' && hasNoLoans;
-    const isFormBlocked = hasNoAccounts || showLoansWarning;
+    const isFormBlocked = hasNoAccounts || showLoansWarning || hasNoCategories;
 
     useEffect(() => {
         const handleBack = (e: Event) => {
@@ -174,6 +175,44 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
                         }}
                     >
                         Crear Cuenta / Monedero
+                    </button>
+                </div>
+            )}
+
+            {!hasNoAccounts && hasNoCategories && (
+                <div style={{
+                    background: 'rgba(239, 68, 68, 0.1)',
+                    border: '1px solid rgba(239, 68, 68, 0.2)',
+                    borderRadius: '12px',
+                    padding: '1rem',
+                    marginBottom: '1.25rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    textAlign: 'center'
+                }}>
+                    <span style={{ fontSize: '0.85rem', color: '#f87171', fontWeight: 600 }}>
+                        ⚠️ Debes crear al menos una Categoría de Gastos en Ajustes antes de poder registrar movimientos.
+                    </span>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            if (onNavigateToSettings) onNavigateToSettings('categories');
+                            onClose();
+                        }}
+                        style={{
+                            background: '#ef4444',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            padding: '0.4rem 0.8rem',
+                            fontSize: '0.8rem',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                        }}
+                    >
+                        Crear Categoría
                     </button>
                 </div>
             )}

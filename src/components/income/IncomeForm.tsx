@@ -18,6 +18,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData, onNavigat
         .sort((a, b) => a.name.localeCompare(b.name, 'es', { sensitivity: 'base' }));
     const isEditing = !!initialData;
     const hasNoAccounts = accounts.length === 0;
+    const hasNoCategories = incomeCategories.length === 0;
 
     const [type, setType] = useState<'fixed' | 'extra'>(initialData?.type === 'fixed' ? 'fixed' : 'extra');
     const [name, setName] = useState(initialData?.name || '');
@@ -219,6 +220,44 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData, onNavigat
                     </div>
                 )}
 
+                {hasNoCategories && (
+                    <div style={{
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        border: '1px solid rgba(239, 68, 68, 0.2)',
+                        borderRadius: '12px',
+                        padding: '1rem',
+                        marginBottom: '1rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '0.75rem',
+                        textAlign: 'center'
+                    }}>
+                        <span style={{ fontSize: '0.9rem', color: '#f87171', fontWeight: 600 }}>
+                            ⚠️ Debes crear al menos una Categoría de Ingresos en Ajustes antes de poder registrar movimientos.
+                        </span>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (onNavigateToSettings) onNavigateToSettings('categories');
+                                onClose();
+                            }}
+                            style={{
+                                background: '#ef4444',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '8px',
+                                padding: '0.5rem 1rem',
+                                fontSize: '0.85rem',
+                                fontWeight: 600,
+                                cursor: 'pointer'
+                            }}
+                        >
+                            Crear Categoría
+                        </button>
+                    </div>
+                )}
+
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
                     
                     {/* Status & Type */}
@@ -369,14 +408,14 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData, onNavigat
                         </div>
                     )}
 
-                    <button type="submit" disabled={hasNoAccounts} style={{
+                    <button type="submit" disabled={hasNoAccounts || hasNoCategories} style={{
                         marginTop: '1rem', padding: '1.1rem', borderRadius: '14px', border: 'none',
-                        background: hasNoAccounts ? '#3e3f4b' : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                        color: hasNoAccounts ? 'rgba(255,255,255,0.3)' : 'white', fontWeight: 700, fontSize: '1.05rem', cursor: hasNoAccounts ? 'not-allowed' : 'pointer',
-                        boxShadow: hasNoAccounts ? 'none' : '0 10px 20px -5px rgba(16, 185, 129, 0.4)',
+                        background: (hasNoAccounts || hasNoCategories) ? '#3e3f4b' : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                        color: (hasNoAccounts || hasNoCategories) ? 'rgba(255,255,255,0.3)' : 'white', fontWeight: 700, fontSize: '1.05rem', cursor: (hasNoAccounts || hasNoCategories) ? 'not-allowed' : 'pointer',
+                        boxShadow: (hasNoAccounts || hasNoCategories) ? 'none' : '0 10px 20px -5px rgba(16, 185, 129, 0.4)',
                         transition: 'all 0.2s ease'
-                    }} onMouseOver={e => !hasNoAccounts && (e.currentTarget.style.transform = 'translateY(-2px)')}
-                       onMouseOut={e => !hasNoAccounts && (e.currentTarget.style.transform = 'translateY(0)')}>
+                    }} onMouseOver={e => !(hasNoAccounts || hasNoCategories) && (e.currentTarget.style.transform = 'translateY(-2px)')}
+                       onMouseOut={e => !(hasNoAccounts || hasNoCategories) && (e.currentTarget.style.transform = 'translateY(0)')}>
                         {isEditing ? 'Confirmar Cambios' : 'Guardar Ingreso'}
                     </button>
                 </form>

@@ -38,6 +38,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
 
     const expenseTotal = parseFloat(amount) || 0;
     const hasNoAccounts = accounts.length === 0;
+    const hasNoCategories = expenseCategories.length === 0;
 
     const totalAllocated = Object.entries(savingGoalFunding)
         .filter(([id]) => selectedHuchas[id])
@@ -193,6 +194,44 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                             }}
                         >
                             Crear Cuenta / Monedero
+                        </button>
+                    </div>
+                )}
+
+                {hasNoCategories && (
+                    <div style={{
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        border: '1px solid rgba(239, 68, 68, 0.2)',
+                        borderRadius: '12px',
+                        padding: '1rem',
+                        marginBottom: '1rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '0.75rem',
+                        textAlign: 'center'
+                    }}>
+                        <span style={{ fontSize: '0.9rem', color: '#f87171', fontWeight: 600 }}>
+                            ⚠️ Debes crear al menos una Categoría de Gastos en Ajustes antes de poder registrar movimientos.
+                        </span>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (onNavigateToSettings) onNavigateToSettings('categories');
+                                onClose();
+                            }}
+                            style={{
+                                background: '#ef4444',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '8px',
+                                padding: '0.5rem 1rem',
+                                fontSize: '0.85rem',
+                                fontWeight: 600,
+                                cursor: 'pointer'
+                            }}
+                        >
+                            Crear Categoría
                         </button>
                     </div>
                 )}
@@ -445,18 +484,18 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                         </div>
                     )}
 
-                    <button type="submit" disabled={isFundingInvalid || hasNoAccounts} style={{
+                    <button type="submit" disabled={isFundingInvalid || hasNoAccounts || hasNoCategories} style={{
                         marginTop: '1rem',
                         padding: '1.2rem',
                         borderRadius: '12px',
                         border: 'none',
-                        background: (isFundingInvalid || hasNoAccounts) ? '#3e3f4b' : (isRefund ? 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)' : '#4f46e5'),
-                        color: (isFundingInvalid || hasNoAccounts) ? 'rgba(255,255,255,0.3)' : 'white',
+                        background: (isFundingInvalid || hasNoAccounts || hasNoCategories) ? '#3e3f4b' : (isRefund ? 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)' : '#4f46e5'),
+                        color: (isFundingInvalid || hasNoAccounts || hasNoCategories) ? 'rgba(255,255,255,0.3)' : 'white',
                         fontWeight: 700,
                         fontSize: '1.1rem',
-                        cursor: (isFundingInvalid || hasNoAccounts) ? 'not-allowed' : 'pointer',
+                        cursor: (isFundingInvalid || hasNoAccounts || hasNoCategories) ? 'not-allowed' : 'pointer',
                         transition: 'background 0.2s',
-                        boxShadow: (isFundingInvalid || hasNoAccounts) ? 'none' : (isRefund ? '0 4px 15px rgba(14, 165, 233, 0.3)' : 'none')
+                        boxShadow: (isFundingInvalid || hasNoAccounts || hasNoCategories) ? 'none' : (isRefund ? '0 4px 15px rgba(14, 165, 233, 0.3)' : 'none')
                     }}>
                         {isRefund ? 'Añadir Devolución' : 'Añadir Gasto'}
                     </button>

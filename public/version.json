@@ -1,6 +1,6 @@
 {
-  "version": "1.4.5",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.4.5.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.4.5.exe",
-  "releaseNotes": "Novedades v1.4.5:\n- 🔗 Vinculación de préstamos: Conecta préstamos con gastos fijos para amortizar la deuda de manera automática al pagar tus cuotas.\n- ⚠️ Validaciones robustas: Avisos y bloqueos en transferencias y formularios de ingresos/gastos si no hay cuentas o préstamos configurados.\n- 🔄 Amortización inteligente: Desactivación automática del gasto fijo mensual al saldar completamente el préstamo."
+  "version": "1.4.6",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.4.6.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.4.6.exe",
+  "releaseNotes": "Novedades v1.4.6:\n- ⚠️ Validaciones de categorías: Ahora es obligatorio tener al menos una categoría creada antes de poder registrar ingresos o gastos, evitando movimientos sin categorizar."
 }

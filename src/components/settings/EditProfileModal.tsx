@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAppSettings } from '../../contexts/AppSettingsContext';
 import { X, Camera, Lock, Check, Key, Trash2, ShieldAlert } from 'lucide-react';
-import UserAvatar, { AVATAR_GRADIENTS } from '../common/UserAvatar';
+import UserAvatar, { AVATAR_GRADIENTS, AVATAR_EMOJIS } from '../common/UserAvatar';
 import { useToast } from '../../contexts/ToastContext';
 
 interface EditProfileModalProps {
@@ -195,9 +195,40 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose, pr
                             />
                         </div>
 
+                        {/* Personajes y Animalitos */}
+                        <div style={inputGroupStyle}>
+                            <label style={labelStyle}>Personajes y Animalitos</label>
+                            <div style={avatarGridStyle}>
+                                {AVATAR_EMOJIS.map(preset => {
+                                    const isSelected = selectedAvatar === preset.id;
+                                    return (
+                                        <button
+                                            key={preset.id}
+                                            type="button"
+                                            onClick={() => handleAvatarSelect(preset.id)}
+                                            style={{
+                                                ...avatarOptionStyle,
+                                                background: preset.background,
+                                                border: isSelected ? '2px solid #ffffff' : '1px solid rgba(255,255,255,0.08)',
+                                                boxShadow: isSelected ? '0 0 12px rgba(99, 102, 241, 0.6)' : 'none',
+                                                transform: isSelected ? 'scale(1.1)' : 'scale(1)',
+                                                fontSize: '24px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center'
+                                            }}
+                                        >
+                                            {preset.emoji}
+                                            {isSelected && <Check size={16} color="#ffffff" style={checkmarkOverlayStyle} />}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
                         {/* Predefined Gradients */}
                         <div style={inputGroupStyle}>
-                            <label style={labelStyle}>Gradientes Predefinidos</label>
+                            <label style={labelStyle}>Gradientes Básicos</label>
                             <div style={avatarGridStyle}>
                                 {AVATAR_GRADIENTS.map(gradient => {
                                     const isSelected = selectedAvatar === gradient.id;

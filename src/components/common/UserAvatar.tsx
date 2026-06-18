@@ -19,11 +19,28 @@ export const AVATAR_GRADIENTS = [
     { id: 'gradient:8', background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)' }  // Purple-Pink
 ];
 
+export const AVATAR_EMOJIS = [
+    { id: 'emoji:fox', emoji: '🦊', background: 'linear-gradient(135deg, #fed7aa 0%, #fdba74 100%)' },
+    { id: 'emoji:cat', emoji: '🐱', background: 'linear-gradient(135deg, #fef08a 0%, #fde047 100%)' },
+    { id: 'emoji:dog', emoji: '🐶', background: 'linear-gradient(135deg, #e5e5e5 0%, #d4d4d4 100%)' },
+    { id: 'emoji:panda', emoji: '🐼', background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)' },
+    { id: 'emoji:lion', emoji: '🦁', background: 'linear-gradient(135deg, #fde68a 0%, #fcd34d 100%)' },
+    { id: 'emoji:koala', emoji: '🐨', background: 'linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%)' },
+    { id: 'emoji:rabbit', emoji: '🐰', background: 'linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%)' },
+    { id: 'emoji:frog', emoji: '🐸', background: 'linear-gradient(135deg, #bbf7d0 0%, #86efac 100%)' },
+    { id: 'emoji:unicorn', emoji: '🦄', background: 'linear-gradient(135deg, #f3e8ff 0%, #d8b4fe 100%)' },
+    { id: 'emoji:robot', emoji: '🤖', background: 'linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%)' },
+    { id: 'emoji:alien', emoji: '👽', background: 'linear-gradient(135deg, #dcfce3 0%, #bbf7d0 100%)' },
+    { id: 'emoji:astronaut', emoji: '👨‍🚀', background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)' },
+];
+
 const UserAvatar: React.FC<UserAvatarProps> = ({ avatar, name, size = 40, fontSize, style }) => {
     const initial = name ? name.trim().charAt(0).toUpperCase() : '?';
 
     // Check if avatar is a gradient preset
     const gradientPreset = AVATAR_GRADIENTS.find(g => g.id === avatar);
+    // Check if avatar is an emoji preset
+    const emojiPreset = AVATAR_EMOJIS.find(e => e.id === avatar);
 
     const baseStyle: React.CSSProperties = {
         width: `${size}px`,
@@ -54,6 +71,14 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ avatar, name, size = 40, fontSi
                     border: '1.5px solid rgba(255, 255, 255, 0.15)' 
                 }} 
             />
+        );
+    }
+
+    if (emojiPreset) {
+        return (
+            <div style={{ ...baseStyle, background: emojiPreset.background, fontSize: fontSize || `${Math.max(16, Math.floor(size * 0.55))}px` }}>
+                {emojiPreset.emoji}
+            </div>
         );
     }
 

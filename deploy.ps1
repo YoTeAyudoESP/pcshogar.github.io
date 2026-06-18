@@ -2,7 +2,21 @@ $package = Get-Content -Raw -Path package.json | ConvertFrom-Json
 $version = $package.version
 Write-Output "Parsed version: $version"
 
+# Proteger código fuente: Verificar si hay cambios sin guardar
+git diff-index --quiet HEAD --
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Error crítico: Tienes cambios sin confirmar en el código. Haz commit de tus cambios antes de desplegar para evitar perderlos."
+    exit 1
+}
+
+$currentBranch = (git branch --show-current).Trim()
+
 git checkout main
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Error: No se pudo cambiar a la rama main."
+    exit 1
+}
+
 git fetch origin main
 git reset --hard origin/main
 # Clean the app directory, but first check if it exists and is a file. If it's a file, remove it first.
@@ -24,4 +38,4 @@ git add "PCSHogar_Setup_v$version.apk"
 git add "PCSHogar_Setup_v$version.exe"
 git commit -m "Deploy v$version"
 git push origin main
-git checkout source
+git checkout $currentBranch

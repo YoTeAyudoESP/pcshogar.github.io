@@ -1,6 +1,6 @@
 {
     "version": "1.5.0",
-    "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.4.5.apk",
-    "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.4.5.exe",
-    "releaseNotes": "Novedades v1.4.5:\n- \ud83d\udd17 Vinculaci\u00f3n de pr\u00e9stamos: Conecta pr\u00e9stamos con gastos fijos para amortizar la deuda de manera autom\u00e1tica al pagar tus cuotas.\n- \u26a0\ufe0f Validaciones robustas: Avisos y bloqueos en transferencias y formularios de ingresos/gastos si no hay cuentas o pr\u00e9stamos configurados.\n- \ud83d\udd04 Amortizaci\u00f3n inteligente: Desactivaci\u00f3n autom\u00e1tica del gasto fijo mensual al saldar completamente el pr\u00e9stamo."
+    "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.5.0.apk",
+    "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.5.0.exe",
+    "releaseNotes": "Novedades v1.5.0:\n- 🧠 Amortización Inteligente: Nueva modalidad para calcular la reducción en cuota o en tiempo restante.\n- 💳 Comisiones de Amortización: Ahora puedes contabilizar y deducir la comisión del banco al amortizar anticipadamente.\n- 🎨 Avatares Personalizados: Mejora en la selección de emojis y avatares en la gestión de perfiles de la app."
 }

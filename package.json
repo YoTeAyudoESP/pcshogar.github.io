@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.5.0",
   "versionCode": 179,
-  "versionName": "1.4.5",
+  "versionName": "1.5.0",
   "type": "module",
   "main": "electron/main.js",
   "build": {

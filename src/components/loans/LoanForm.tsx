@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import { X, Check, Calendar, CreditCard, DollarSign, Info } from 'lucide-react';
 import type { Loan } from '../../types/finance';
-import { formatMoney } from '../../utils/financeCalculations';
+import { formatMoney, calculateLoanInstallment } from '../../utils/financeCalculations';
 import { v4 as uuidv4 } from 'uuid';
 
 interface LoanFormProps {
@@ -24,6 +24,20 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
     const [linkedAccountId, setLinkedAccountId] = useState(accounts.find(a => a.isMain)?.id || accounts[0]?.id || '');
     const [color, setColor] = useState('#f59e0b');
     const [autoCreateExpense, setAutoCreateExpense] = useState(true);
+    const [mode, setMode] = useState<'manual' | 'intelligent'>('manual');
+    const [tin, setTin] = useState('');
+    const [durationMonths, setDurationMonths] = useState('');
+    const [earlyAmortizationFee, setEarlyAmortizationFee] = useState('');
+
+    const autoCalculate = (t: string, d: string, amt: string) => {
+        const pt = parseFloat(t) || 0;
+        const pd = parseInt(d) || 0;
+        const pamt = parseFloat(amt) || 0;
+        if (pt > 0 && pd > 0 && pamt > 0) {
+            const installment = calculateLoanInstallment(pamt, pt, pd);
+            setMonthlyPayment(installment.toFixed(2));
+        }
+    };
 
     useEffect(() => {
         if (editingLoan) {
@@ -37,6 +51,10 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
             setLastInstallment((editingLoan.lastInstallmentAmount ?? 0).toString());
             setLinkedAccountId(editingLoan.linkedAccountId || '');
             setColor(editingLoan.color || '#f59e0b');
+            setMode(editingLoan.mode || 'manual');
+            setTin(editingLoan.tin !== undefined ? editingLoan.tin.toString() : '');
+            setDurationMonths(editingLoan.durationMonths !== undefined ? editingLoan.durationMonths.toString() : '');
+            setEarlyAmortizationFee(editingLoan.earlyAmortizationFee !== undefined ? editingLoan.earlyAmortizationFee.toString() : '');
         } else {
             setName('');
             setTotalAmount('');
@@ -48,6 +66,10 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
             setLastInstallment('');
             setLinkedAccountId(accounts.find(a => a.isMain)?.id || accounts[0]?.id || '');
             setColor('#f59e0b');
+            setMode('manual');
+            setTin('');
+            setDurationMonths('');
+            setEarlyAmortizationFee('');
         }
     }, [editingLoan, accounts]);
 
@@ -60,12 +82,19 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
         const monthly = parseFloat(monthlyPayment) || 0;
         const first = parseFloat(firstInstallment) || 0;
         const last = parseFloat(lastInstallment) || 0;
+        const parsedTin = parseFloat(tin) || 0;
+        const parsedDuration = parseInt(durationMonths) || 0;
+        const parsedFee = parseFloat(earlyAmortizationFee) || 0;
 
         const loanData = {
             name,
+            mode,
             totalAmount: total,
             currentDebt: current,
             remainingAmount: current,
+            tin: parsedTin,
+            durationMonths: parsedDuration,
+            earlyAmortizationFee: parsedFee,
             monthlyPayment: monthly,
             monthlyInstallment: monthly,
             firstInstallmentAmount: first,
@@ -174,6 +203,16 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
                         </div>
                     </div>
 
+                    {/* Mode Selector */}
+                    <div style={{ display: 'flex', gap: '1rem', background: 'rgba(255, 255, 255, 0.03)', padding: '0.5rem', borderRadius: '1rem' }}>
+                        <button type="button" onClick={() => setMode('manual')} style={{ flex: 1, padding: '0.75rem', borderRadius: '0.75rem', border: 'none', background: mode === 'manual' ? 'rgba(245, 158, 11, 0.2)' : 'transparent', color: mode === 'manual' ? '#f59e0b' : 'rgba(255,255,255,0.6)', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}>
+                            Modo Manual
+                        </button>
+                        <button type="button" onClick={() => setMode('intelligent')} style={{ flex: 1, padding: '0.75rem', borderRadius: '0.75rem', border: 'none', background: mode === 'intelligent' ? 'rgba(245, 158, 11, 0.2)' : 'transparent', color: mode === 'intelligent' ? '#f59e0b' : 'rgba(255,255,255,0.6)', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}>
+                            Modo Calculadora
+                        </button>
+                    </div>
+
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                         <div>
                             <label style={labelStyle}><DollarSign size={14} /> Importe Solicitado (€)</label>
@@ -195,6 +234,25 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
                             <input type="date" style={inputStyle} value={estimatedEndDate} onChange={e => setEstimatedEndDate(e.target.value)} />
                         </div>
                     </div>
+
+                    {mode === 'intelligent' && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div>
+                                    <label style={labelStyle}>TIN (%)</label>
+                                    <input type="number" step="0.01" style={inputStyle} value={tin} onChange={e => { setTin(e.target.value); autoCalculate(e.target.value, durationMonths, currentDebt || totalAmount); }} placeholder="Ej: 5.5" />
+                                </div>
+                                <div>
+                                    <label style={labelStyle}>Duración (Meses)</label>
+                                    <input type="number" style={inputStyle} value={durationMonths} onChange={e => { setDurationMonths(e.target.value); autoCalculate(tin, e.target.value, currentDebt || totalAmount); }} placeholder="Ej: 48" />
+                                </div>
+                            </div>
+                            <div>
+                                <label style={labelStyle}>Comisión Amortización Anticipada (%)</label>
+                                <input type="number" step="0.01" style={inputStyle} value={earlyAmortizationFee} onChange={e => setEarlyAmortizationFee(e.target.value)} placeholder="Ej: 1.0" />
+                            </div>
+                        </div>
+                    )}
 
                     <div style={{ background: 'rgba(245, 158, 11, 0.05)', padding: '1rem', borderRadius: '1rem', border: '1px solid rgba(245, 158, 11, 0.1)' }}>
                         <h4 style={{ margin: '0 0 1rem 0', fontSize: '0.9rem', color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

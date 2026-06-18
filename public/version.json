@@ -1,6 +1,6 @@
 {
-  "version": "1.4.5",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.4.5.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.4.5.exe",
-  "releaseNotes": "Novedades v1.4.5:\n- 🔗 Vinculación de préstamos: Conecta préstamos con gastos fijos para amortizar la deuda de manera automática al pagar tus cuotas.\n- ⚠️ Validaciones robustas: Avisos y bloqueos en transferencias y formularios de ingresos/gastos si no hay cuentas o préstamos configurados.\n- 🔄 Amortización inteligente: Desactivación automática del gasto fijo mensual al saldar completamente el préstamo."
+    "version": "1.5.0",
+    "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.4.5.apk",
+    "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.4.5.exe",
+    "releaseNotes": "Novedades v1.4.5:\n- \ud83d\udd17 Vinculaci\u00f3n de pr\u00e9stamos: Conecta pr\u00e9stamos con gastos fijos para amortizar la deuda de manera autom\u00e1tica al pagar tus cuotas.\n- \u26a0\ufe0f Validaciones robustas: Avisos y bloqueos en transferencias y formularios de ingresos/gastos si no hay cuentas o pr\u00e9stamos configurados.\n- \ud83d\udd04 Amortizaci\u00f3n inteligente: Desactivaci\u00f3n autom\u00e1tica del gasto fijo mensual al saldar completamente el pr\u00e9stamo."
 }

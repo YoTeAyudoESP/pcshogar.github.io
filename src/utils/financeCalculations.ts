@@ -381,6 +381,64 @@ export function predictSettlementDate(card: CreditCard, date: number, adjustment
     return new Date(settlementYear, settlementMonth, paymentDay);
 }
 
+export const calculateLoanInstallment = (amount: number, tin: number, durationMonths: number): number => {
+    if (tin === 0 || durationMonths === 0) return amount / durationMonths;
+    const r = (tin / 100) / 12; // Monthly interest rate
+    const n = durationMonths;
+    // P * r * (1 + r)^n / ((1 + r)^n - 1)
+    const factor = Math.pow(1 + r, n);
+    return (amount * r * factor) / (factor - 1);
+};
+
+export const calculateAmortizationEffect = (
+    currentDebt: number,
+    monthlyInstallment: number,
+    tin: number,
+    durationMonths: number,
+    amortizationAmount: number,
+    reduceType: 'quota' | 'term'
+) => {
+    const newDebt = currentDebt - amortizationAmount;
+    if (newDebt <= 0) {
+        return { newInstallment: 0, newDuration: 0 };
+    }
+    
+    const r = (tin / 100) / 12;
+
+    if (reduceType === 'quota') {
+        // Same duration, new quota
+        // First find remaining months
+        // If we don't know remaining months precisely, we approximate using durationMonths
+        // Since durationMonths is total duration, let's calculate remaining months from current debt
+        // N = -log(1 - r*D/P) / log(1+r)
+        let remainingMonths = durationMonths;
+        if (r > 0 && monthlyInstallment > 0) {
+            const num = 1 - (r * currentDebt / monthlyInstallment);
+            if (num > 0) {
+                remainingMonths = -Math.log(num) / Math.log(1 + r);
+            }
+        }
+        
+        // Calculate new installment for remaining months
+        const factor = Math.pow(1 + r, remainingMonths);
+        const newInstallment = (newDebt * r * factor) / (factor - 1);
+        return { newInstallment, newDuration: Math.ceil(remainingMonths) };
+    } else {
+        // Same quota, new duration
+        // N = -log(1 - r*D/P) / log(1+r)
+        if (r > 0) {
+            const num = 1 - (r * newDebt / monthlyInstallment);
+            if (num <= 0) {
+                return { newInstallment: monthlyInstallment, newDuration: 1 }; // Will be paid immediately
+            }
+            const newDuration = -Math.log(num) / Math.log(1 + r);
+            return { newInstallment: monthlyInstallment, newDuration: Math.ceil(newDuration) };
+        } else {
+            return { newInstallment: monthlyInstallment, newDuration: Math.ceil(newDebt / monthlyInstallment) };
+        }
+    }
+};
+
 export function formatMoney(amount: number | undefined | null, includeSymbol: boolean = true): string {
     if (amount === undefined || amount === null || isNaN(amount)) {
         return includeSymbol ? '0,00€' : '0,00';

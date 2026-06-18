@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, Check, CreditCard, DollarSign, Calendar, MessageSquare } from 'lucide-react';
 import { useFinance } from '../../contexts/FinanceContext';
 import type { Loan } from '../../types/finance';
-import { formatMoney } from '../../utils/financeCalculations';
+import { formatMoney, calculateAmortizationEffect } from '../../utils/financeCalculations';
 
 interface AmortizeLoanModalProps {
     loan: Loan;
@@ -15,6 +15,7 @@ const AmortizeLoanModal: React.FC<AmortizeLoanModalProps> = ({ loan, onClose }) 
     const [accountId, setAccountId] = useState(accounts.find(a => a.isMain)?.id || accounts[0]?.id || '');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [notes, setNotes] = useState('');
+    const [reduceType, setReduceType] = useState<'quota' | 'term'>('quota');
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -23,12 +24,30 @@ const AmortizeLoanModal: React.FC<AmortizeLoanModalProps> = ({ loan, onClose }) 
 
         setLoading(true);
         try {
+            const parsedAmount = parseFloat(amount);
+            const feeAmount = (loan.earlyAmortizationFee && loan.earlyAmortizationFee > 0) ? (parsedAmount * loan.earlyAmortizationFee / 100) : 0;
+            const totalToPay = parsedAmount + feeAmount;
+
+            let finalNotes = notes;
+            if (feeAmount > 0) {
+                finalNotes += ` (Incluye ${formatMoney(feeAmount)} de comisión por amortización anticipada)`;
+            }
+
+            let effect: any = null;
+            if (loan.mode === 'intelligent' && parsedAmount > 0) {
+                effect = calculateAmortizationEffect(loan.currentDebt, loan.monthlyPayment, loan.tin || 0, loan.durationMonths || 0, parsedAmount, reduceType);
+            }
+
             await amortizeLoan(
                 loan.id, 
-                parseFloat(amount), 
+                parsedAmount, 
                 accountId, 
                 new Date(date).getTime(), 
-                notes
+                finalNotes,
+                loan.mode === 'intelligent' ? reduceType : undefined,
+                effect?.newInstallment,
+                effect?.newDuration,
+                feeAmount
             );
             onClose();
         } catch (error) {
@@ -106,6 +125,36 @@ const AmortizeLoanModal: React.FC<AmortizeLoanModalProps> = ({ loan, onClose }) 
                             required
                         />
                     </div>
+
+                    {loan.mode === 'intelligent' && parseFloat(amount) > 0 && (
+                        <div style={{ background: 'rgba(245, 158, 11, 0.05)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(245, 158, 11, 0.1)' }}>
+                            <p style={{ color: '#f59e0b', fontSize: '0.9rem', marginBottom: '0.5rem', fontWeight: 600 }}>Opciones de Amortización</p>
+                            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.85rem' }}>
+                                    <input type="radio" checked={reduceType === 'quota'} onChange={() => setReduceType('quota')} /> Reducir Cuota
+                                </label>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.85rem' }}>
+                                    <input type="radio" checked={reduceType === 'term'} onChange={() => setReduceType('term')} /> Reducir Plazo
+                                </label>
+                            </div>
+                            
+                            {(() => {
+                                const effect = calculateAmortizationEffect(loan.currentDebt, loan.monthlyPayment, loan.tin || 0, loan.durationMonths || 0, parseFloat(amount), reduceType);
+                                const fee = (loan.earlyAmortizationFee && loan.earlyAmortizationFee > 0) ? (parseFloat(amount) * loan.earlyAmortizationFee / 100) : 0;
+                                return (
+                                    <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)' }}>
+                                        <p><strong>Comisión a cobrar ({loan.earlyAmortizationFee || 0}%):</strong> {formatMoney(fee)}</p>
+                                        <p><strong>Total a descontar de tu cuenta:</strong> {formatMoney(parseFloat(amount) + fee)}</p>
+                                        {reduceType === 'quota' ? (
+                                            <p><strong>Nueva cuota estimada:</strong> {formatMoney(effect.newInstallment)}</p>
+                                        ) : (
+                                            <p><strong>Nuevo plazo estimado:</strong> {effect.newDuration} meses</p>
+                                        )}
+                                    </div>
+                                );
+                            })()}
+                        </div>
+                    )}
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                         <label style={{ fontSize: '0.85rem', opacity: 0.6, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>

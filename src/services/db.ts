@@ -708,7 +708,7 @@ class IncomeDB {
     async updateLoan(loan: Loan): Promise<void> { await (await this.dbPromise).put('loans', { ...loan, updatedAt: Date.now() }); }
     async deleteLoan(id: string): Promise<void> { await (await this.dbPromise).delete('loans', id); }
 
-    async amortizeLoanWithTransaction(loanId: string, amount: number, accountId: string, date: number, notes?: string): Promise<void> {
+    async amortizeLoanWithTransaction(loanId: string, amount: number, accountId: string, date: number, notes?: string, reduceType?: 'quota' | 'term', newInstallment?: number, newDuration?: number, feeAmount?: number): Promise<void> {
         const db = await this.dbPromise;
         const tx = db.transaction(['loans', 'accounts', 'expenses', 'movements'], 'readwrite');
         const loanStore = tx.objectStore('loans');
@@ -731,16 +731,28 @@ class IncomeDB {
         loan.updatedAt = Date.now();
         await loanStore.put(loan);
 
-        // Update account
-        account.balance -= amount;
+        // Update account (total amount + fee)
+        const totalDiscount = amount + (feeAmount || 0);
+        account.balance -= totalDiscount;
         account.updatedAt = Date.now();
         await accountStore.put(account);
+
+        // Apply intelligence
+        if (loan.mode === 'intelligent') {
+            if (reduceType === 'quota' && newInstallment) {
+                loan.monthlyPayment = newInstallment;
+                loan.monthlyInstallment = newInstallment;
+            } else if (reduceType === 'term' && newDuration) {
+                loan.durationMonths = newDuration;
+            }
+            await loanStore.put(loan);
+        }
 
         // Create expense
         const expense: Expense = {
             id: `exp_amort_${Date.now()}`,
             description: `Amortización: ${loan.name} ${notes ? `(${notes})` : ''}`,
-            amount: amount,
+            amount: totalDiscount,
             currency: 'EUR',
             date: date,
             categoryId: 'cat_loans',

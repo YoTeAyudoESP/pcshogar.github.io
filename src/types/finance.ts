@@ -108,13 +108,17 @@ export interface RecurringExpense {
 export interface Loan {
     id: string;
     name: string;
+    mode?: 'manual' | 'intelligent';
     totalAmount: number;
     remainingAmount: number;
     currentDebt: number;       // Alias / current outstanding debt (same as remainingAmount)
+    tin?: number;              // TIN percentage
+    durationMonths?: number;   // Duration in months
     monthlyInstallment: number;
     monthlyPayment: number;    // Alias for monthlyInstallment used in components
     firstInstallmentAmount?: number;
     lastInstallmentAmount?: number;
+    earlyAmortizationFee?: number; // Commission percentage for early amortization
     startDate: number;
     estimatedEndDate?: number;
     currency: Currency;

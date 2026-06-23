@@ -415,7 +415,7 @@ const Dashboard: React.FC = () => {
                     <NextDayPaymentAlert />
                     <UnlinkedLoanAlert />
                     <FinanceSummary />
-                    <PendingActionsWidget />
+                    <PendingActionsWidget onEdit={(item, type) => { setEditingTx(item); setEditingType(type); }} />
                     <FinanceGlobalSummary />
                     <CreditCardSettlement />
 

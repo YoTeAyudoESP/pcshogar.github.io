@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
-import { CheckCircle, Clock, ArrowUpRight, ArrowDownLeft, ChevronRight } from 'lucide-react';
+import { CheckCircle, Clock, ArrowUpRight, ArrowDownLeft, ChevronRight, Edit2 } from 'lucide-react';
 import { isRecurringActiveInMonth, formatMoney, isItemInMonthAndYear } from '../../utils/financeCalculations';
 import ConfirmMovementModal from '../settings/ConfirmMovementModal';
 
-const PendingActionsWidget: React.FC = () => {
+interface PendingActionsWidgetProps {
+    onEdit?: (item: any, type: 'income' | 'expense') => void;
+}
+
+const PendingActionsWidget: React.FC<PendingActionsWidgetProps> = ({ onEdit }) => {
     const { 
         recurringExpenses, fixedIncomes, expenses, incomes, 
         accounts 
@@ -198,8 +202,35 @@ const PendingActionsWidget: React.FC = () => {
                             }}>
                                 {(item.actionType === 'income' || item.actionType === 'refund') ? <ArrowDownLeft size={16} /> : <ArrowUpRight size={16} />}
                             </div>
-                            <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>
-                                Día {item.actionType === 'refund' ? (isRollover(item) ? '1' : new Date(item.date).getDate()) : (item.paymentDay || (item.receivedDate ? new Date(item.receivedDate).getDate() : new Date(item.date || item.createdAt).getDate()))}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>
+                                    Día {item.actionType === 'refund' ? (isRollover(item) ? '1' : new Date(item.date).getDate()) : (item.paymentDay || (item.receivedDate ? new Date(item.receivedDate).getDate() : new Date(item.date || item.createdAt).getDate()))}
+                                </div>
+                                {(item.isExtraPending || item.actionType === 'refund') && onEdit && (
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onEdit(item, item.actionType === 'refund' ? 'expense' : 'income');
+                                        }}
+                                        onMouseEnter={(e) => e.currentTarget.style.color = 'white'}
+                                        onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.5)'}
+                                        style={{
+                                            background: 'transparent',
+                                            border: 'none',
+                                            color: 'rgba(255,255,255,0.5)',
+                                            cursor: 'pointer',
+                                            padding: '4px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            borderRadius: '50%',
+                                            transition: 'color 0.2s'
+                                        }}
+                                        title="Editar movimiento"
+                                    >
+                                        <Edit2 size={14} />
+                                    </button>
+                                )}
                             </div>
                         </div>
 

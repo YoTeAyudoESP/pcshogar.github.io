@@ -27,7 +27,7 @@ export interface CreditCard {
 export type PaymentMethod =
     | { type: 'account'; accountId: string; settlementAdjustment?: number }
     | { type: 'card'; cardId: string; settlementAdjustment?: number }
-    | { type: 'cash' };
+    | { type: 'cash'; accountId?: string };
 
 export interface Expense {
     id: string;

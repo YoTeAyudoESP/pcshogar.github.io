@@ -1,6 +1,6 @@
 {
-    "version": "1.5.0",
-    "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.5.0.apk",
-    "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.5.0.exe",
-    "releaseNotes": "Novedades v1.5.0:\n- 🧠 Amortización Inteligente: Nueva modalidad para calcular la reducción en cuota o en tiempo restante.\n- 💳 Comisiones de Amortización: Ahora puedes contabilizar y deducir la comisión del banco al amortizar anticipadamente.\n- 🎨 Avatares Personalizados: Mejora en la selección de emojis y avatares en la gestión de perfiles de la app."
+    "version": "1.5.1",
+    "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.5.1.apk",
+    "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.5.1.exe",
+    "releaseNotes": "Novedades v1.5.1:\n- 🧠 Amortización Inteligente: Nueva modalidad para calcular la reducción en cuota o en tiempo restante.\n- 💳 Comisiones de Amortización: Ahora puedes contabilizar y deducir la comisión del banco al amortizar anticipadamente.\n- 🎨 Avatares Personalizados: Mejora en la selección de emojis y avatares en la gestión de perfiles de la app."
 }

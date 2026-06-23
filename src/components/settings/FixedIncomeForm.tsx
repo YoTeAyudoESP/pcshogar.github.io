@@ -20,6 +20,7 @@ const FixedIncomeForm: React.FC<FixedIncomeFormProps> = ({ editingIncome, onClos
     const [paymentDay, setPaymentDay] = useState(editingIncome?.paymentDay?.toString() || '1');
     const [paymentMonth, setPaymentMonth] = useState(editingIncome?.paymentMonth?.toString() || '1');
     const [accountId, setAccountId] = useState(editingIncome?.linkedAccountId || '');
+    const [countForNextMonth, setCountForNextMonth] = useState<boolean>(editingIncome?.countForNextMonth || false);
 
     useEffect(() => {
         const handleBack = (e: Event) => {
@@ -35,7 +36,8 @@ const FixedIncomeForm: React.FC<FixedIncomeFormProps> = ({ editingIncome, onClos
                     frequency !== editingIncome.frequency ||
                     paymentDay !== (editingIncome.paymentDay?.toString() || '1') ||
                     paymentMonth !== (editingIncome.paymentMonth?.toString() || '1') ||
-                    accountId !== (editingIncome.linkedAccountId || '');
+                    accountId !== (editingIncome.linkedAccountId || '') ||
+                    countForNextMonth !== (editingIncome.countForNextMonth || false);
                 if (isModified) {
                     if (window.confirm('Tienes cambios sin guardar. ¿Deseas descartarlos y volver?')) {
                         onClose();
@@ -67,6 +69,7 @@ const FixedIncomeForm: React.FC<FixedIncomeFormProps> = ({ editingIncome, onClos
             linkedAccountId: accountId || undefined,
             status: 'pending' as const,
             type: 'fixed' as const,
+            countForNextMonth: frequency === 'monthly' ? countForNextMonth : false,
             expirationDate: expirationDate ? new Date(expirationDate).getTime() : undefined,
             createdAt: editingIncome?.createdAt || Date.now()
         };
@@ -257,6 +260,25 @@ const FixedIncomeForm: React.FC<FixedIncomeFormProps> = ({ editingIncome, onClos
                         <option value="11">Noviembre</option>
                         <option value="12">Diciembre</option>
                     </select>
+                </div>
+            )}
+
+            {/* Computar para mes siguiente */}
+            {frequency === 'monthly' && (
+                <div style={{ ...containerStyle, display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.5rem' }}>
+                    <input 
+                        type="checkbox" 
+                        id="countForNextMonth"
+                        checked={countForNextMonth}
+                        onChange={(e) => setCountForNextMonth(e.target.checked)}
+                        style={{ width: '1.2rem', height: '1.2rem', accentColor: '#6366f1', cursor: 'pointer' }}
+                    />
+                    <label htmlFor="countForNextMonth" style={{ ...labelStyle, marginBottom: 0, cursor: 'pointer' }}>
+                        Computar para el presupuesto del mes siguiente
+                        <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', marginTop: '2px', fontWeight: 400 }}>
+                            Útil para nóminas que se cobran a final de mes.
+                        </div>
+                    </label>
                 </div>
             )}
 

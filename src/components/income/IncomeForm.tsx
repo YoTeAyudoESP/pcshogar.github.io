@@ -252,8 +252,12 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData, onNavigat
                         <div style={{ flex: 2 }}>
                             <label style={labelStyle}>Concepto / Fuente</label>
                             <input 
-                                style={inputStyle} value={name} onChange={e => setName(e.target.value)} 
-                                placeholder="Ej. Nómina Abril, Venta Wallapop" required 
+                                style={inputStyle} 
+                                value={name} 
+                                onChange={e => setName(e.target.value)} 
+                                placeholder="Ej: Nómina, Venta de artículo..." 
+                                required 
+                                autoFocus
                             />
                         </div>
                         <div style={{ flex: 1 }}>

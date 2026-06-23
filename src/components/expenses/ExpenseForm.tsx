@@ -84,7 +84,8 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
             if (!selectedMethodId) return;
             paymentMethod = { type: 'card', cardId: selectedMethodId, settlementAdjustment };
         } else {
-            paymentMethod = { type: 'cash' };
+            // For cash, if an account was selected (e.g. a monedero), save it
+            paymentMethod = { type: 'cash', accountId: selectedMethodId || undefined };
         }
 
         const parsedAmount = parseFloat(amount);
@@ -204,11 +205,12 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                         <div style={{ flex: 2 }}>
                             <label style={labelStyle}>Concepto</label>
                             <input 
-                                style={inputStyle} 
+                                style={{...inputStyle, paddingLeft: '2.5rem'}} 
                                 value={description} 
                                 onChange={e => setDescription(e.target.value)} 
-                                placeholder={isRefund ? "Ej. Amazon (Zapatillas)" : "Ej. Supermercado"} 
+                                placeholder="Ej: Supermercado, Factura Luz..." 
                                 required 
+                                autoFocus
                             />
                         </div>
                         <div style={{ flex: 1 }}>
@@ -329,9 +331,18 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                             <select style={inputStyle} value={selectedMethodId} onChange={e => setSelectedMethodId(e.target.value)} required>
                                 <option value="">Seleccione...</option>
                                 {paymentMethodType === 'account'
-                                    ? accounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name} ({formatMoney(acc.balance)})</option>)
+                                    ? accounts.filter(a => a.type !== 'cash').map(acc => <option key={acc.id} value={acc.id}>{acc.name} ({formatMoney(acc.balance)})</option>)
                                     : cards.map(c => <option key={c.id} value={c.id}>{c.name} {c.type === 'virtual' ? `(${formatMoney(c.currentBalance)})` : ''}</option>)
                                 }
+                            </select>
+                        </div>
+                    )}
+                    {paymentMethodType === 'cash' && accounts.some(a => a.type === 'cash') && (
+                        <div>
+                            <label style={labelStyle}>Seleccionar Monedero</label>
+                            <select style={inputStyle} value={selectedMethodId} onChange={e => setSelectedMethodId(e.target.value)} required>
+                                <option value="">Seleccione Monedero...</option>
+                                {accounts.filter(a => a.type === 'cash').map(acc => <option key={acc.id} value={acc.id}>{acc.name} ({formatMoney(acc.balance)})</option>)}
                             </select>
                         </div>
                     )}

@@ -23,10 +23,12 @@ export interface FixedIncome extends IncomeBase {
     type: 'fixed';
     frequency: Frequency;
     expirationDate?: number; // Timestamp, optional (null means indefinite)
-    paymentDay: number;
-    paymentMonth?: number; // 1-indexed
+    paymentDay?: number;
+    paymentMonth?: number; // 1-12, for yearly/bi-monthly etc.
     active: boolean;
+    linkedAccountId?: string;
     ignoredPeriods?: string[]; // Format: "YYYY-MM"
+    countForNextMonth?: boolean;
 }
 
 export interface ExtraIncome extends IncomeBase {

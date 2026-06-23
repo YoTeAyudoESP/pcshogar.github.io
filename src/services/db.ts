@@ -448,9 +448,7 @@ class IncomeDB {
             let targetAccountId: string | null = null;
 
             if (expense.paymentMethod.type === 'account' || expense.paymentMethod.type === 'cash') {
-                targetAccountId = expense.paymentMethod.type === 'account'
-                    ? expense.paymentMethod.accountId
-                    : null;
+                targetAccountId = (expense.paymentMethod as any).accountId || null;
 
                 if (targetAccountId) {
                     const account = await accountStore.get(targetAccountId);

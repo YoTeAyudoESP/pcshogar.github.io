@@ -110,17 +110,23 @@ export function calculateAvailableBalanceForMonth(
         }
     });
 
+    let pendingExtraIncomes = 0;
+
     // 2. Process Extra Incomes (Actual records)
     extraIncomes.forEach(inc => {
         if (inc.type === 'rollover') return;
-        if (inc.status === 'pending') return;
         if (inc.excludeFromBudget) return;
+        
         if (isItemInMonthAndYear(inc, month, year)) {
-            extraIncomesReceived += inc.amount;
+            if (inc.status === 'pending') {
+                pendingExtraIncomes += inc.amount;
+            } else {
+                extraIncomesReceived += inc.amount;
+            }
         }
     });
 
-    const totalMonthIncome = extraIncomesReceived + pendingFixedIncomes;
+    const totalMonthIncome = extraIncomesReceived + pendingFixedIncomes + pendingExtraIncomes;
 
     // Calculate Expenses
     let totalMonthExpenses = 0;
@@ -259,9 +265,9 @@ export function calculateAvailableBalanceForMonth(
     const overrideId = `${year}-${(month + 1).toString().padStart(2, '0')}`;
     const activeOverride = overrides.find(o => o.id === overrideId);
 
-    // Formula: Total Received (Extra + Confirmed Fixed) + Pending Fixed - (Projected Fixed Expenses + Variable Paid + Deviations + Allocations + Projected Savings) + Remanente
+    // Formula: Total Received (Extra + Confirmed Fixed) + Pending Fixed + Pending Extra - (Projected Fixed Expenses + Variable Paid + Deviations + Allocations + Projected Savings) + Remanente
     const availableToSpend = 
-        (extraIncomesReceived + pendingFixedIncomes) 
+        (extraIncomesReceived + pendingFixedIncomes + pendingExtraIncomes) 
         - (totalProjectedFixedExpenses + variableExpensesPaid + fixedExpensesDeviations + totalMonthAllocations + pendingSavings)
         + remanente;
 
@@ -278,6 +284,7 @@ export function calculateAvailableBalanceForMonth(
         totalMonthAllocations,
         remanente,
         pendingFixedExpenses,
+        pendingExtraIncomes,
         pendingFixedIncomes: 0, // Simplified for now as fixed incomes are also in the 'projected' pool
         pendingSavings,
         activeOverride

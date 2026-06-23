@@ -40,10 +40,12 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
         if (isDuplicateIncome) {
             setBudgetPeriod(nextMonthPeriod);
             setDuplicateOption('next');
+        } else if (type === 'income' && item.countForNextMonth) {
+            setBudgetPeriod(nextMonthPeriod);
         } else {
             setBudgetPeriod(currentRealPeriod);
         }
-    }, [isDuplicateIncome]);
+    }, [isDuplicateIncome, type, item, nextMonthPeriod, currentRealPeriod]);
 
     const handleDuplicateOptionChange = (option: 'next' | 'current') => {
         setDuplicateOption(option);

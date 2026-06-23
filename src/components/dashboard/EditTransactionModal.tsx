@@ -28,6 +28,19 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction
         const val = tx.date || tx.effectiveDate || tx.receivedDate || tx.createdAt || Date.now();
         return new Date(val).toISOString().split('T')[0];
     });
+
+    const [budgetPeriod, setBudgetPeriod] = useState<string>(() => {
+        const tx = transaction as any;
+        if (tx.budgetMonth !== undefined && tx.budgetYear !== undefined) {
+            return `${tx.budgetYear}-${(tx.budgetMonth + 1).toString().padStart(2, '0')}`;
+        }
+        if (tx.period && typeof tx.period === 'string') {
+            return tx.period;
+        }
+        // Fallback to current real month
+        const d = new Date();
+        return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}`;
+    });
     
     // Expense specific fields
     const [paymentMethodType, setPaymentMethodType] = useState<'account' | 'card' | 'cash'>(
@@ -182,26 +195,32 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction
                         .map(([id, val]) => ({ goalId: id, amount: parseFloat(val) }))
                     : undefined;
 
+                const isSettledValue = isSettled;
+                
                 const updated = {
                     ...transaction as Expense,
                     description: finalDescription,
                     amount: finalAmount,
                     date: new Date(date).getTime(),
+                    period: budgetPeriod,
                     categoryId,
                     paymentMethod,
                     status,
-                    isSettled,
+                    isSettled: isSettledValue,
                     savingGoalFunding: fundingList,
                     linkedSavingGoalId: undefined, // Clear old single goal field
                     updatedAt: Date.now()
                 };
                 await updateExpense(updated);
             } else {
+                const [bYear, bMonth] = budgetPeriod.split('-').map(Number);
                 const updated = {
                     ...transaction as Income,
                     name: description,
                     amount: parseFloat(amount),
                     date: new Date(date).getTime(),
+                    budgetYear: bYear,
+                    budgetMonth: bMonth - 1,
                     categoryId,
                     updatedAt: Date.now()
                 };
@@ -291,7 +310,21 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction
                                 ))}
                             </select>
                         </div>
-                        {type === 'expense' && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <label style={labelStyle}>
+                            <Calendar size={14} style={{ display: 'inline', marginRight: '4px' }} /> 
+                            Mes de Presupuesto
+                        </label>
+                        <input 
+                            type="month" 
+                            style={inputStyle} 
+                            value={budgetPeriod} 
+                            onChange={e => setBudgetPeriod(e.target.value)} 
+                            required 
+                        />
+                    </div>
+
+                    {type === 'expense' && (
                             <div style={{ flex: 1 }}>
                                 <label style={labelStyle}>Método Pago</label>
                                 <select style={inputStyle} value={paymentMethodType} onChange={e => {

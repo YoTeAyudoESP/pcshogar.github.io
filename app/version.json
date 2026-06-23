@@ -1,0 +1,6 @@
+{
+    "version": "1.5.2",
+    "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.5.2.apk",
+    "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.5.2.exe",
+    "releaseNotes": "Novedades v1.5.2:\n- ✏️ Edición Rápida: Añadido botón de editar (lápiz) directamente en la tarjeta de movimientos pendientes no fijos en el dashboard.\n- 🐛 Correcciones previas: Todos los arreglos de rollover de meses, cálculos de huchas en efectivo, tarjetas parcheadas y autofoco de formularios."
+}

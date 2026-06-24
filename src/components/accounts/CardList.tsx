@@ -73,8 +73,11 @@ const CardList: React.FC<CardListProps> = ({ onEdit }) => {
                                 </div>
                             </div>
                             {card.type !== 'virtual' ? (
-                                <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', marginTop: '0.75rem' }}>
-                                    Vinculada a: <span style={{ color: 'rgba(255,255,255,0.8)' }}>{getAccountName(card.linkedAccountId || '')}</span>
+                                <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', marginTop: '0.75rem', display: 'flex', justifyContent: 'space-between' }}>
+                                    <span>Vinculada a: <span style={{ color: 'rgba(255,255,255,0.8)' }}>{getAccountName(card.linkedAccountId || '')}</span></span>
+                                    {card.type === 'credit' && (
+                                        <span>Deuda acumulada: <span style={{ color: '#ef4444', fontWeight: 600 }}>{formatMoney(card.currentBalance)}</span></span>
+                                    )}
                                 </div>
                             ) : (
                                 <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', marginTop: '0.75rem' }}>

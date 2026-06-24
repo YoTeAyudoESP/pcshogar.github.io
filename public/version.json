@@ -1,6 +1,3 @@
 {
-    "version": "1.5.3",
-    "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.5.3.apk",
-    "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.5.3.exe",
-    "releaseNotes": "Novedades v1.5.3:\n- 🚀 Auditoría Financiera Global: Nueva alerta en el Dashboard si tu dinero comprometido supera tu liquidez real.\n- 🔒 Huchas Seguras: Ahora puedes asignar gastos fijos a huchas. Si falta dinero, podrás traspasarlo o asumirlo desde el disponible, garantizando siempre el cuadre de tus cuentas."
+  "version": "1.5.4"
 }

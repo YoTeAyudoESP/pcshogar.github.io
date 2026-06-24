@@ -17,6 +17,7 @@ const CardForm: React.FC<CardFormProps> = ({ onClose, editingCard, onCancelEdit 
     const [limit, setLimit] = useState('');
     const [cutoffDay, setCutoffDay] = useState('20');
     const [paymentDay, setPaymentDay] = useState('5');
+    const [currentBalance, setCurrentBalance] = useState('0');
     const [color, setColor] = useState('#f87171');
 
     useEffect(() => {
@@ -27,6 +28,7 @@ const CardForm: React.FC<CardFormProps> = ({ onClose, editingCard, onCancelEdit 
             setLimit(editingCard.type === 'virtual' ? editingCard.currentBalance.toString() : editingCard.limit.toString());
             setCutoffDay(editingCard.cutoffDay.toString());
             setPaymentDay(editingCard.paymentDay.toString());
+            setCurrentBalance(editingCard.currentBalance.toString());
             setColor(editingCard.color || '#f87171');
         } else {
             // Reset form when not editing
@@ -36,6 +38,7 @@ const CardForm: React.FC<CardFormProps> = ({ onClose, editingCard, onCancelEdit 
             setLimit('');
             setCutoffDay('20');
             setPaymentDay('5');
+            setCurrentBalance('0');
             setColor('#f87171');
         }
     }, [editingCard]);
@@ -53,7 +56,7 @@ const CardForm: React.FC<CardFormProps> = ({ onClose, editingCard, onCancelEdit 
                 limit: type === 'virtual' ? 0 : (parseFloat(limit) || 0),
                 cutoffDay: type === 'virtual' ? 0 : parseInt(cutoffDay),
                 paymentDay: type === 'virtual' ? 0 : parseInt(paymentDay),
-                currentBalance: type === 'virtual' ? (parseFloat(limit) || 0) : editingCard.currentBalance,
+                currentBalance: type === 'virtual' ? (parseFloat(limit) || 0) : (parseFloat(currentBalance) || 0),
                 color
             });
             if (onCancelEdit) onCancelEdit();
@@ -66,13 +69,14 @@ const CardForm: React.FC<CardFormProps> = ({ onClose, editingCard, onCancelEdit 
                 type === 'virtual' ? 0 : parseInt(paymentDay),
                 type,
                 color,
-                type === 'virtual' ? (parseFloat(limit) || 0) : 0
+                type === 'virtual' ? (parseFloat(limit) || 0) : (parseFloat(currentBalance) || 0)
             );
         }
 
         setName('');
         setLinkedAccountId('');
         setLimit('');
+        setCurrentBalance('0');
         if (onClose) onClose();
     };
 
@@ -186,6 +190,11 @@ const CardForm: React.FC<CardFormProps> = ({ onClose, editingCard, onCancelEdit 
                     <div>
                         <label style={{ display: 'block', marginBottom: '0.75rem', color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.9rem' }}>Límite de Crédito</label>
                         <input type="number" style={inputStyle} value={limit} onChange={e => setLimit(e.target.value)} placeholder="3000" />
+                    </div>
+                    <div>
+                        <label style={{ display: 'block', marginBottom: '0.75rem', color: '#fca5a5', fontSize: '0.9rem', fontWeight: 600 }}>Deuda Acumulada Actual (€)</label>
+                        <input type="number" step="0.01" style={{...inputStyle, borderColor: 'rgba(239, 68, 68, 0.3)', background: 'rgba(239, 68, 68, 0.05)'}} value={currentBalance} onChange={e => setCurrentBalance(e.target.value)} placeholder="0.00" />
+                        <p style={{ margin: '-0.5rem 0 1rem 0', fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>Ajusta este valor si la app no tiene sincronizada la deuda real (ej. si pagaste recibos anteriores pero no lo marcaste en la app).</p>
                     </div>
                     <div style={{ display: 'flex', gap: '1.5rem' }}>
                         <div style={{ flex: 1 }}>

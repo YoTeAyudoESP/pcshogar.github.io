@@ -102,7 +102,10 @@ export function calculateFinancialMismatch(
         return sum;
     }, 0);
     
-    const totalHuchas = savings.reduce((sum, s) => sum + s.currentAmount, 0);
+    const totalHuchas = savings.reduce((sum, s) => {
+        if (s.accountInBudget === false) return sum;
+        return sum + s.currentAmount;
+    }, 0);
 
     const dineroComprometido = availableToSpend + pendingFixedExpenses + deudaTarjetas + totalHuchas;
 
@@ -323,6 +326,8 @@ export function calculateAvailableBalanceForMonth(
     allocations
         .filter(alloc => isItemInMonthAndYear(alloc, month, year) && (alloc.type === 'manual' || alloc.type === 'automatic'))
         .forEach(alloc => {
+            const hucha = savings.find(s => s.id === alloc.goalId);
+            if (hucha && hucha.accountInBudget === false) return;
             totalMonthAllocations += alloc.amount;
         });
 
@@ -336,7 +341,7 @@ export function calculateAvailableBalanceForMonth(
     let pendingSavings = 0;
     
     savings
-        .filter(s => (s.monthlySavingAmount || 0) > 0)
+        .filter(s => (s.monthlySavingAmount || 0) > 0 && s.accountInBudget !== false)
         .forEach(s => {
             const start = s.createdAt || 0;
             if (start <= monthEnd) {

@@ -884,7 +884,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                 id: `adj_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
                 goalId: goal.id,
                 amount: diff,
-                type: 'manual',
+                type: 'adjustment',
                 description: diff > 0 ? 'Ajuste manual de saldo (Incremento)' : 'Ajuste manual de saldo (Reducción)',
                 date: Date.now(),
                 updatedAt: Date.now()

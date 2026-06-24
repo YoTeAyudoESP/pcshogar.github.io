@@ -1,6 +1,6 @@
 {
-    "version": "1.5.4",
-    "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.5.4.apk",
-    "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.5.4.exe",
-    "releaseNotes": "Novedades v1.5.4:\\n- 🛠️ Corrección de Deuda en Tarjetas: Ahora puedes ajustar el saldo actual acumulado de tus tarjetas de crédito desde la pantalla de edición, permitiendo corregir descuadres de auditoría causados por pagos no registrados.\\n- 📊 Se muestra la deuda total acumulada en la lista de tarjetas."
+    "version": "1.5.5",
+    "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.5.5.apk",
+    "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.5.5.exe",
+    "releaseNotes": "Novedades v1.5.5: 🏦 Se puede destinar ingresos a huchas antes de cobrarlos. 🛡️ Nuevo botón para marcar ingresos como Seguros o Inciertos. 🧠 Auditor Inteligente mejorado para evitar alertas erróneas."
 }

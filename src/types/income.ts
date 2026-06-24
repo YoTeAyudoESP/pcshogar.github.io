@@ -16,7 +16,8 @@ export interface IncomeBase {
     categoryId?: string;
     fixedIncomeId?: string;
     updatedAt?: number;
-    excludeFromBudget?: boolean;
+    excludeFromBudget?: boolean; // Se usará como indicador de "Ingreso Incierto" (false = seguro, true = incierto)
+    allocations?: { piggyBankId: string; amount: number }[];
 }
 
 export interface FixedIncome extends IncomeBase {

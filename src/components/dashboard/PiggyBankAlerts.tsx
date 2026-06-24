@@ -14,7 +14,7 @@ const PiggyBankAlerts: React.FC<PiggyBankAlertsProps> = ({ onNavigateToSavings }
     const { selectedMonth, selectedYear } = useDateSelection();
 
     // 1. Calculate available balance and pending fixed expenses
-    const { availableToSpend, pendingFixedExpenses } = calculateAvailableBalanceForMonth(selectedYear, selectedMonth, {
+    const { availableToSpend, pendingFixedExpenses, pendingSecureIncomes } = calculateAvailableBalanceForMonth(selectedYear, selectedMonth, {
         fixedIncomes,
         extraIncomes,
         expenses,
@@ -31,7 +31,8 @@ const PiggyBankAlerts: React.FC<PiggyBankAlertsProps> = ({ onNavigateToSavings }
         cards,
         savings,
         availableToSpend,
-        pendingFixedExpenses
+        pendingFixedExpenses,
+        pendingSecureIncomes
     );
 
     // 3. Shortfalls Alerts

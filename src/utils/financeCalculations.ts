@@ -88,7 +88,8 @@ export function calculateFinancialMismatch(
     cards: CreditCard[],
     savings: SavingGoal[],
     availableToSpend: number,
-    pendingFixedExpenses: number
+    pendingFixedExpenses: number,
+    pendingSecureIncomes: number = 0
 ) {
     // 1. Dinero Real = Suma de Cuentas bancarias + Efectivo
     const dineroReal = accounts.reduce((sum, acc) => sum + acc.balance, 0);
@@ -106,9 +107,9 @@ export function calculateFinancialMismatch(
     const dineroComprometido = availableToSpend + pendingFixedExpenses + deudaTarjetas + totalHuchas;
 
     return {
-        dineroReal,
+        dineroReal: dineroReal + pendingSecureIncomes,
         dineroComprometido,
-        mismatch: dineroComprometido - dineroReal
+        mismatch: dineroComprometido - (dineroReal + pendingSecureIncomes)
     };
 }
 
@@ -137,10 +138,11 @@ export function calculateAvailableBalanceForMonth(
         cards = [] 
     } = data || {};
 
-    // Calculate Incomes
     let extraIncomesReceived = 0;
     let pendingFixedIncomes = 0;
     let totalProjectedFixedIncomes = 0; // Total that should happen
+    let pendingSecureIncomes = 0;
+    let pendingPreAllocations = 0;
 
     const period = `${year}-${(month + 1).toString().padStart(2, '0')}`;
     const monthStart = new Date(year, month, 1).getTime();
@@ -160,7 +162,13 @@ export function calculateAvailableBalanceForMonth(
                 // Check if actually confirmed/received
                 const isConfirmed = extraIncomes.some(ei => ei.period === period && (ei as any).fixedIncomeId === inc.id);
                 if (!isConfirmed && inc.status !== 'received') {
-                    pendingFixedIncomes += inc.amount;
+                    if (!inc.excludeFromBudget) {
+                        pendingFixedIncomes += inc.amount;
+                        pendingSecureIncomes += inc.amount;
+                        if (inc.allocations) {
+                            pendingPreAllocations += inc.allocations.reduce((sum, a) => sum + a.amount, 0);
+                        }
+                    }
                 }
             }
         }
@@ -176,6 +184,10 @@ export function calculateAvailableBalanceForMonth(
         if (isItemInMonthAndYear(inc, month, year)) {
             if (inc.status === 'pending') {
                 pendingExtraIncomes += inc.amount;
+                pendingSecureIncomes += inc.amount;
+                if (inc.allocations) {
+                    pendingPreAllocations += inc.allocations.reduce((sum, a) => sum + a.amount, 0);
+                }
             } else {
                 extraIncomesReceived += inc.amount;
             }
@@ -364,10 +376,10 @@ export function calculateAvailableBalanceForMonth(
     const overrideId = `${year}-${(month + 1).toString().padStart(2, '0')}`;
     const activeOverride = overrides.find(o => o.id === overrideId);
 
-    // Formula: Total Received (Extra + Confirmed Fixed) + Pending Fixed + Pending Extra - (Projected Fixed Expenses + Variable Paid + Deviations + Allocations + Projected Savings) + Remanente
+    // Formula: Total Received (Extra + Confirmed Fixed) + Pending Fixed + Pending Extra - (Projected Fixed Expenses + Variable Paid + Deviations + Allocations + Projected Savings + Pending Pre-Allocations) + Remanente
     const availableToSpend = 
         (extraIncomesReceived + pendingFixedIncomes + pendingExtraIncomes) 
-        - (totalProjectedFixedExpenses + variableExpensesPaid + fixedExpensesDeviations + totalMonthAllocations + pendingSavings)
+        - (totalProjectedFixedExpenses + variableExpensesPaid + fixedExpensesDeviations + totalMonthAllocations + pendingSavings + pendingPreAllocations)
         + remanente;
 
     const summary = {
@@ -384,6 +396,7 @@ export function calculateAvailableBalanceForMonth(
         remanente,
         pendingFixedExpenses,
         pendingExtraIncomes,
+        pendingSecureIncomes,
         pendingFixedIncomes: 0, // Simplified for now as fixed incomes are also in the 'projected' pool
         pendingSavings,
         activeOverride

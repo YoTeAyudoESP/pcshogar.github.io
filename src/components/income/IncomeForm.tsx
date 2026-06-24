@@ -41,8 +41,8 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData, onNavigat
     const [receivedDate, setReceivedDate] = useState((initialData as ExtraIncome)?.receivedDate ? new Date((initialData as ExtraIncome).receivedDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
     const [categoryId, setCategoryId] = useState(initialData?.categoryId || '');
 
-    // Saving
-    const [targetSavingGoalId, setTargetSavingGoalId] = useState('');
+    // Saving Allocations
+    const [allocations, setAllocations] = useState<{ piggyBankId: string; amount: number }[]>(initialData?.allocations || []);
 
     // Common
     const [linkedAccountId, setLinkedAccountId] = useState(initialData?.linkedAccountId || '');
@@ -68,7 +68,8 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData, onNavigat
             budgetMonth,
             budgetYear,
             effectiveDate: effectiveDate ? new Date(effectiveDate).getTime() : undefined,
-            excludeFromBudget: status === 'pending' ? excludeFromBudget : false,
+            excludeFromBudget,
+            allocations: allocations.length > 0 ? allocations : undefined,
         };
 
         if (isEditing) {
@@ -105,20 +106,31 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData, onNavigat
             }
         }
 
-        // Handle savings transfer if requested
-        if (status === 'received' && targetSavingGoalId && linkedAccountId) {
+        // Auto transfer allocations if received now
+        if (status === 'received' && allocations.length > 0 && linkedAccountId) {
             const allocationDate = type === 'fixed'
                 ? (effectiveDate ? new Date(effectiveDate).getTime() : Date.now())
                 : new Date(receivedDate).getTime();
-            await allocateSavings(
-                targetSavingGoalId, 
-                linkedAccountId, 
-                incomeAmount, 
-                allocationDate,
-                `Ahorro directo de ingreso: ${name}`,
-                budgetMonth,
-                budgetYear
-            );
+
+            // Only transfer if they weren't already transferred (isNew or was pending before this edit)
+            const wasPending = initialData?.status === 'pending';
+            const isNew = !initialData;
+
+            if (isNew || wasPending) {
+                for (const alloc of allocations) {
+                    if (alloc.piggyBankId && alloc.amount > 0) {
+                        await allocateSavings(
+                            alloc.piggyBankId, 
+                            linkedAccountId, 
+                            alloc.amount, 
+                            allocationDate,
+                            `Ahorro de ingreso: ${name}`,
+                            budgetMonth,
+                            budgetYear
+                        );
+                    }
+                }
+            }
         }
 
         onClose();
@@ -330,45 +342,92 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData, onNavigat
                             </div>
                         ) : (
                             <div style={{ flex: 1 }}>
-                                <label style={labelStyle}>¿Sumar al disponible del mes?</label>
+                                <label style={labelStyle}>Certeza del Ingreso</label>
                                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.4rem' }}>
                                     <button 
                                         type="button" 
                                         onClick={() => setExcludeFromBudget(false)} 
                                         style={toggleButtonStyle(!excludeFromBudget, '#10b981')}
                                     >
-                                        Sí, sumar
+                                        Seguro (sumar al mes)
                                     </button>
                                     <button 
                                         type="button" 
                                         onClick={() => setExcludeFromBudget(true)} 
                                         style={toggleButtonStyle(excludeFromBudget, '#fbbf24')}
                                     >
-                                        No sumar
+                                        Incierto (no sumar)
                                     </button>
                                 </div>
                             </div>
                         )}
                     </div>
 
-                    {status === 'received' && linkedAccountId && savings.length > 0 && (
+                    {savings.length > 0 && (
                         <div style={{ 
                             background: 'rgba(129, 140, 248, 0.05)', padding: '1.2rem', 
                             borderRadius: '16px', border: '1px solid rgba(129, 140, 248, 0.2)',
                             marginTop: '0.5rem'
                         }}>
-                            <label style={{ ...labelStyle, color: '#818cf8', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <label style={{ ...labelStyle, color: '#818cf8', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem' }}>
                                 <PiggyBank size={16} />
-                                Enviar directamente a Hucha
+                                Destinar a Huchas
                             </label>
-                            <select style={inputStyle} value={targetSavingGoalId} onChange={e => setTargetSavingGoalId(e.target.value)}>
-                                <option value="">No ahorrar este ingreso</option>
-                                {savings.map(goal => (
-                                    <option key={goal.id} value={goal.id}>{goal.name} (Meta: {formatMoney(goal.targetAmount)})</option>
-                                ))}
-                            </select>
-                            <small style={{ color: 'rgba(255,255,255,0.4)', marginTop: '0.5rem', display: 'block' }}>
-                                Al guardar, el dinero se descontará de la cuenta y se sumará a la hucha.
+                            
+                            {allocations.map((alloc, idx) => (
+                                <div key={idx} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                    <select 
+                                        style={{...inputStyle, marginTop: 0, flex: 2}} 
+                                        value={alloc.piggyBankId}
+                                        onChange={e => {
+                                            const newAlloc = [...allocations];
+                                            newAlloc[idx].piggyBankId = e.target.value;
+                                            setAllocations(newAlloc);
+                                        }}
+                                    >
+                                        <option value="">Selecciona Hucha...</option>
+                                        {savings.map(s => <option key={s.id} value={s.id}>{s.name} ({formatMoney(s.currentAmount)})</option>)}
+                                    </select>
+                                    <input 
+                                        type="number" step="0.01" style={{...inputStyle, marginTop: 0, flex: 1}} 
+                                        value={alloc.amount || ''} 
+                                        onChange={e => {
+                                            const newAlloc = [...allocations];
+                                            newAlloc[idx].amount = parseFloat(e.target.value) || 0;
+                                            setAllocations(newAlloc);
+                                        }}
+                                        placeholder="Importe"
+                                    />
+                                    <button 
+                                        type="button"
+                                        onClick={() => setAllocations(allocations.filter((_, i) => i !== idx))}
+                                        style={{
+                                            background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', 
+                                            border: 'none', borderRadius: '8px', padding: '0 0.8rem', cursor: 'pointer'
+                                        }}
+                                    >
+                                        <X size={16} />
+                                    </button>
+                                </div>
+                            ))}
+
+                            <button 
+                                type="button"
+                                onClick={() => setAllocations([...allocations, { piggyBankId: '', amount: 0 }])}
+                                style={{
+                                    background: 'transparent', color: '#818cf8', border: '1px dashed rgba(129, 140, 248, 0.4)',
+                                    padding: '0.5rem 1rem', borderRadius: '8px', fontSize: '0.9rem', cursor: 'pointer',
+                                    display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem'
+                                }}
+                            >
+                                <PlusCircle size={16} />
+                                Añadir Destino (Hucha)
+                            </button>
+
+                            <small style={{ color: 'rgba(255,255,255,0.4)', marginTop: '0.8rem', display: 'block' }}>
+                                {status === 'received' 
+                                    ? "Al guardar, este dinero se transferirá automáticamente de la cuenta a las huchas indicadas."
+                                    : "Este dinero quedará reservado y se transferirá automáticamente a las huchas cuando cobres el ingreso."}
                             </small>
                         </div>
                     )}

@@ -25,6 +25,7 @@ import { useDateSelection } from '../../contexts/DateSelectionContext';
 import EditTransactionModal from './EditTransactionModal';
 import BalanceTransferModal from './BalanceTransferModal';
 import ReportModal from './ReportModal';
+import PiggyBankAlerts from './PiggyBankAlerts';
 import type { Expense } from '../../types/finance';
 import type { Income } from '../../types/income';
 
@@ -412,6 +413,7 @@ const Dashboard: React.FC = () => {
                         </button>
                     </div>
 
+                    <PiggyBankAlerts onNavigateToSavings={() => { setSettingsTab('savings'); setCurrentView('settings'); }} />
                     <NextDayPaymentAlert />
                     <UnlinkedLoanAlert />
                     <FinanceSummary />

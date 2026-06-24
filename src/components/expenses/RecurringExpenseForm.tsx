@@ -10,7 +10,7 @@ interface RecurringExpenseFormProps {
 }
 
 const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpense, onClose, onNavigateToSettings }) => {
-    const { addRecurringExpense, updateRecurringExpense, accounts, cards, categories, loans } = useFinance();
+    const { addRecurringExpense, updateRecurringExpense, accounts, cards, categories, loans, savings } = useFinance();
     const expenseCategories = categories
         .filter(c => c.type === 'expense')
         .sort((a, b) => a.name.localeCompare(b.name, 'es', { sensitivity: 'base' }));
@@ -22,6 +22,7 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
     const [paymentDay, setPaymentDay] = useState(editingExpense?.paymentDay?.toString() || '1');
     const [paymentMonth, setPaymentMonth] = useState(editingExpense?.paymentMonth?.toString() || '1');
     const [categoryId, setCategoryId] = useState(editingExpense?.categoryId || expenseCategories[0]?.id || '');
+    const [linkedSavingGoalId, setLinkedSavingGoalId] = useState(editingExpense?.linkedSavingGoalId || '');
     
     // Payment Method State
     const [pmType, setPmType] = useState<'account' | 'card' | 'cash'>(
@@ -52,6 +53,7 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
                     paymentDay !== (editingExpense.paymentDay?.toString() || '1') ||
                     paymentMonth !== (editingExpense.paymentMonth?.toString() || '1') ||
                     categoryId !== (editingExpense.categoryId || '') ||
+                    linkedSavingGoalId !== (editingExpense.linkedSavingGoalId || '') ||
                     pmType !== (editingExpense.paymentMethod?.type || 'account') ||
                     (pmType === 'account' && pmId !== (editingExpense.paymentMethod as any).accountId) ||
                     (pmType === 'card' && pmId !== (editingExpense.paymentMethod as any).cardId);
@@ -92,9 +94,11 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
             active: true,
             categoryId,
             paymentMethod,
+            linkedSavingGoalId: linkedSavingGoalId || undefined,
             updatedAt: Date.now(),
             createdAt: editingExpense?.createdAt || Date.now(),
-            ignoredPeriods: editingExpense?.ignoredPeriods || []
+            ignoredPeriods: editingExpense?.ignoredPeriods || [],
+            acknowledgedShortfalls: editingExpense?.acknowledgedShortfalls || []
         };
 
         if (editingExpense) {
@@ -317,6 +321,29 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
                         <option key={cat.id} value={cat.id}>{cat.name}</option>
                     ))}
                 </select>
+            </div>
+
+            {/* Hucha Asociada (Opcional) */}
+            <div style={containerStyle}>
+                <label style={labelStyle}>Soportar desde Hucha (Opcional)</label>
+                <select 
+                    style={{ ...inputStyle, appearance: 'none', backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'rgba(255,255,255,0.4)\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpath d=\'m6 9 6 6 6-6\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center' }} 
+                    value={linkedSavingGoalId} 
+                    onChange={e => setLinkedSavingGoalId(e.target.value)}
+                >
+                    <option value="">Ninguna (restar del disponible general)</option>
+                    {savings.map(hucha => (
+                        <option key={hucha.id} value={hucha.id}>
+                            {hucha.name} (Saldo: {hucha.currentAmount.toFixed(2)} €)
+                        </option>
+                    ))}
+                </select>
+                {linkedSavingGoalId && (
+                    <div style={{ marginTop: '0.75rem', fontSize: '0.85rem', color: '#10b981', display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+                        <span style={{ marginTop: '2px' }}>ℹ️</span>
+                        <span>Este recibo fijo se pagará con el saldo de la hucha seleccionada. No restará del "Disponible" del mes actual a menos que la hucha no tenga fondos suficientes.</span>
+                    </div>
+                )}
             </div>
 
             {/* Método de Pago */}

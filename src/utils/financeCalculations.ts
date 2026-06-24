@@ -1,6 +1,6 @@
 import type { 
     Expense, SavingGoal, SavingAllocation, 
-    RecurringExpense, MonthOverride, CreditCard
+    RecurringExpense, MonthOverride, CreditCard, Account
 } from '../types/finance';
 import type { Income, FixedIncome } from '../types/income';
 
@@ -54,6 +54,62 @@ export function isRecurringActiveInMonth(
     if (frequency === 'eleven-monthly') return diffMonths % 11 === 0;
 
     return false;
+}
+
+export function getRetainedAmountForPiggyBank(huchaId: string, recurringExpenses: RecurringExpense[], expenses: Expense[], month: number, year: number): number {
+    let retained = 0;
+    const period = `${year}-${(month + 1).toString().padStart(2, '0')}`;
+    const monthEnd = new Date(year, month + 1, 0).getTime();
+    
+    recurringExpenses.forEach(re => {
+        if (!re.active || re.linkedSavingGoalId !== huchaId) return;
+        const start = re.createdAt || re.updatedAt || 0;
+        if (start > monthEnd) return;
+        const isIgnored = re.ignoredPeriods?.includes(period);
+        if (!isIgnored && isRecurringActiveInMonth(re.frequency, re.paymentMonth, month, year, start)) {
+            const isPaid = expenses.some(e => e.recurringExpenseId === re.id && isItemInMonthAndYear(e, month, year));
+            if (!isPaid) {
+                retained += re.amount;
+            }
+        }
+    });
+    return retained;
+}
+
+export function getPiggyBankFreeCapacity(huchaId: string, savings: SavingGoal[], recurringExpenses: RecurringExpense[], expenses: Expense[], month: number, year: number): number {
+    const goal = savings.find(s => s.id === huchaId);
+    if (!goal) return 0;
+    const retained = getRetainedAmountForPiggyBank(huchaId, recurringExpenses, expenses, month, year);
+    return Math.max(0, goal.currentAmount - retained);
+}
+
+export function calculateFinancialMismatch(
+    accounts: Account[],
+    cards: CreditCard[],
+    savings: SavingGoal[],
+    availableToSpend: number,
+    pendingFixedExpenses: number
+) {
+    // 1. Dinero Real = Suma de Cuentas bancarias + Efectivo
+    const dineroReal = accounts.reduce((sum, acc) => sum + acc.balance, 0);
+
+    // 2. Dinero Comprometido = Disponible + Gastos Pendientes + Deuda Tarjetas + Huchas
+    const deudaTarjetas = cards.reduce((sum, card) => {
+        if (card.type === 'credit') {
+            return sum + (card.currentBalance || 0);
+        }
+        return sum;
+    }, 0);
+    
+    const totalHuchas = savings.reduce((sum, s) => sum + s.currentAmount, 0);
+
+    const dineroComprometido = availableToSpend + pendingFixedExpenses + deudaTarjetas + totalHuchas;
+
+    return {
+        dineroReal,
+        dineroComprometido,
+        mismatch: dineroComprometido - dineroReal
+    };
 }
 
 export function calculateAvailableBalanceForMonth(
@@ -186,10 +242,14 @@ export function calculateAvailableBalanceForMonth(
             }
         });
 
-    // Calculate Projected Fixed Expenses
     let totalProjectedFixedExpenses = 0;
     let pendingFixedExpenses = 0;
-
+    
+    // First, let's calculate shortfalls for huchas to know what we need to cover from disponible
+    const shortfalls = getPiggyBankShortfalls(recurringExpenses, savings, expenses, month, year);
+    // Keep track of how much shortfall we've already accounted for per hucha to avoid double counting
+    const appliedShortfalls: Record<string, number> = {};
+    
     recurringExpenses.forEach(re => {
         if (!re.active) return;
         const start = re.createdAt || re.updatedAt || 0;
@@ -197,12 +257,51 @@ export function calculateAvailableBalanceForMonth(
         const isIgnored = re.ignoredPeriods?.includes(period);
         
         if (!isIgnored && isRecurringActiveInMonth(re.frequency, re.paymentMonth, month, year, start)) {
-            totalProjectedFixedExpenses += re.amount;
-            
-            // For the 'Pending' report specifically
             const isPaid = expenses.some(e => e.recurringExpenseId === re.id && isItemInMonthAndYear(e, month, year));
+            
+            let amountToProject = re.amount;
+            
+            if (re.linkedSavingGoalId && !isPaid) {
+                // By default, if it's linked to a hucha, it doesn't affect the 'disponible'
+                amountToProject = 0;
+                
+                // Unless there's a shortfall that hasn't been acknowledged
+                const isAcknowledged = re.acknowledgedShortfalls?.includes(period);
+                
+                let forceAssumption = false;
+                const shortfallInfo = shortfalls.find(s => s.huchaId === re.linkedSavingGoalId);
+                
+                if (!isAcknowledged && shortfallInfo && shortfallInfo.shortfall > 0) {
+                    // Check if other huchas have free capacity
+                    const otherHuchasCapacity = savings
+                        .filter(s => s.id !== re.linkedSavingGoalId)
+                        .reduce((sum, s) => sum + getPiggyBankFreeCapacity(s.id, savings, recurringExpenses, expenses, month, year), 0);
+                    
+                    if (otherHuchasCapacity <= 0) {
+                        forceAssumption = true;
+                    }
+                }
+
+                if (isAcknowledged || forceAssumption) {
+                    if (shortfallInfo && shortfallInfo.shortfall > 0) {
+                        const remainingShortfall = shortfallInfo.shortfall - (appliedShortfalls[re.linkedSavingGoalId] || 0);
+                        if (remainingShortfall > 0) {
+                            // Apply up to re.amount of the remaining shortfall
+                            const applyAmount = Math.min(re.amount, remainingShortfall);
+                            amountToProject = applyAmount;
+                            appliedShortfalls[re.linkedSavingGoalId] = (appliedShortfalls[re.linkedSavingGoalId] || 0) + applyAmount;
+                        }
+                    }
+                }
+            } else if (re.linkedSavingGoalId && isPaid) {
+                // If it's already paid, the expense loop handles whether it was funded by the hucha
+                amountToProject = 0;
+            }
+
+            totalProjectedFixedExpenses += amountToProject;
+            
             if (!isPaid) {
-                pendingFixedExpenses += re.amount;
+                pendingFixedExpenses += amountToProject;
             }
         }
     });
@@ -467,4 +566,60 @@ export function formatMoneySigned(amount: number | undefined | null): string {
     const [integerPart, decimalPart] = fixedVal.split('.');
     const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     return `${sign}${formattedInteger},${decimalPart}€`;
+}
+
+export function getTotalLiquidity(accounts: { type: string, balance: number }[]): number {
+    return accounts
+        .filter(acc => acc.type === 'bank' || acc.type === 'cash')
+        .reduce((sum, acc) => sum + acc.balance, 0);
+}
+
+export function getPiggyBankShortfalls(
+    recurringExpenses: RecurringExpense[], 
+    savings: SavingGoal[], 
+    expenses: Expense[], 
+    month: number, 
+    year: number
+) {
+    const period = `${year}-${(month + 1).toString().padStart(2, '0')}`;
+    const monthEnd = new Date(year, month + 1, 0).getTime();
+
+    const shortfalls: { huchaId: string; huchaName: string; recurringIds: string[]; totalRetained: number; currentAmount: number; shortfall: number }[] = [];
+    const huchaRetainedMap: Record<string, { amount: number; recurringIds: string[] }> = {};
+
+    recurringExpenses.forEach(re => {
+        if (!re.active || !re.linkedSavingGoalId) return;
+        const start = re.createdAt || re.updatedAt || 0;
+        if (start > monthEnd) return;
+        const isIgnored = re.ignoredPeriods?.includes(period);
+        
+        if (!isIgnored && isRecurringActiveInMonth(re.frequency, re.paymentMonth, month, year, start)) {
+            const isPaid = expenses.some(e => e.recurringExpenseId === re.id && isItemInMonthAndYear(e, month, year));
+            if (!isPaid) {
+                if (!huchaRetainedMap[re.linkedSavingGoalId]) {
+                    huchaRetainedMap[re.linkedSavingGoalId] = { amount: 0, recurringIds: [] };
+                }
+                huchaRetainedMap[re.linkedSavingGoalId].amount += re.amount;
+                huchaRetainedMap[re.linkedSavingGoalId].recurringIds.push(re.id);
+            }
+        }
+    });
+
+    Object.keys(huchaRetainedMap).forEach(huchaId => {
+        const hucha = savings.find(s => s.id === huchaId);
+        const retainedInfo = huchaRetainedMap[huchaId];
+        const currentAmount = hucha ? hucha.currentAmount : 0;
+        if (retainedInfo.amount > currentAmount) {
+            shortfalls.push({
+                huchaId,
+                huchaName: hucha ? hucha.name : 'Hucha eliminada',
+                recurringIds: retainedInfo.recurringIds,
+                totalRetained: retainedInfo.amount,
+                currentAmount,
+                shortfall: retainedInfo.amount - currentAmount
+            });
+        }
+    });
+
+    return shortfalls;
 }

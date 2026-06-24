@@ -103,6 +103,8 @@ export interface RecurringExpense {
     createdAt?: number;
     updatedAt?: number;
     ignoredPeriods?: string[]; // Array of strings like "2026-04"
+    linkedSavingGoalId?: string;
+    acknowledgedShortfalls?: string[]; // Array of strings like "2026-04" to hide alerts
 }
 
 export interface Loan {

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import { X, ArrowRightLeft, Info, AlertTriangle } from 'lucide-react';
-import { formatMoney, calculateAvailableBalanceForMonth } from '../../utils/financeCalculations';
+import { formatMoney, calculateAvailableBalanceForMonth, isItemInMonthAndYear, isRecurringActiveInMonth, getRetainedAmountForPiggyBank } from '../../utils/financeCalculations';
 import { useToast } from '../../contexts/ToastContext';
 
 interface BalanceTransferModalProps {
@@ -52,10 +52,13 @@ const BalanceTransferModal: React.FC<BalanceTransferModalProps> = ({ onClose, on
 
     const hasFewerThanTwoAccounts = transferItems.length < 2;
 
+    const retainedInSelectedGoal = selectedWithdrawGoal ? getRetainedAmountForPiggyBank(selectedWithdrawGoal.id, recurringExpenses, expenses, selectedMonth, selectedYear) : 0;
+    const maxWithdrawable = selectedWithdrawGoal ? Math.max(0, selectedWithdrawGoal.currentAmount - retainedInSelectedGoal) : 0;
+
     const isSubmitDisabled = loading || hasFewerThanTwoAccounts ||
         (activeTab === 'accounts' && (!fromId || !toId || isNaN(parsedAmount) || parsedAmount <= 0 || (selectedSourceAccount && parsedAmount > selectedSourceAccount.balance))) ||
         (activeTab === 'savings' && (!toId || isNaN(parsedAmount) || parsedAmount <= 0 || parsedAmount > availableToSpend)) ||
-        (activeTab === 'withdraw' && (!fromId || isNaN(parsedAmount) || parsedAmount <= 0 || (selectedWithdrawGoal && parsedAmount > selectedWithdrawGoal.currentAmount)));
+        (activeTab === 'withdraw' && (!fromId || isNaN(parsedAmount) || parsedAmount <= 0 || parsedAmount > maxWithdrawable));
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -132,8 +135,11 @@ const BalanceTransferModal: React.FC<BalanceTransferModalProps> = ({ onClose, on
             }
 
             const selectedGoal = savings.find(goal => goal.id === fromId);
-            if (!selectedGoal || selectedGoal.currentAmount < transferAmount) {
-                showToast('La hucha seleccionada no tiene suficiente saldo acumulado', 'error');
+            const retainedAmount = getRetainedAmountForPiggyBank(fromId, recurringExpenses, expenses, selectedMonth, selectedYear);
+            const maxTransferable = selectedGoal ? Math.max(0, selectedGoal.currentAmount - retainedAmount) : 0;
+
+            if (!selectedGoal || maxTransferable < transferAmount) {
+                showToast('La hucha seleccionada no tiene suficiente saldo disponible (descontando el saldo retenido para gastos fijos)', 'error');
                 return;
             }
 
@@ -450,31 +456,34 @@ const BalanceTransferModal: React.FC<BalanceTransferModalProps> = ({ onClose, on
                             </div>
                         ))
                     ) : (
-                        savings.map(goal => (
-                            <div key={goal.id} style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                                padding: '0.6rem 0.8rem',
-                                background: 'rgba(255,255,255,0.02)',
-                                borderRadius: '8px',
-                                border: '1px solid rgba(255,255,255,0.03)'
-                            }}>
-                                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                    <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#fff' }}>{goal.name}</span>
-                                    <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)' }}>
-                                        Hucha virtual
+                        savings.map(goal => {
+                            const retained = getRetainedAmountForPiggyBank(goal.id, recurringExpenses, expenses, selectedMonth, selectedYear);
+                            return (
+                                <div key={goal.id} style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    padding: '0.6rem 0.8rem',
+                                    background: 'rgba(255,255,255,0.02)',
+                                    borderRadius: '8px',
+                                    border: '1px solid rgba(255,255,255,0.03)'
+                                }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                        <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#fff' }}>{goal.name}</span>
+                                        <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)' }}>
+                                            {retained > 0 ? `Hucha virtual (${formatMoney(retained)} retenidos)` : 'Hucha virtual'}
+                                        </span>
+                                    </div>
+                                    <span style={{ 
+                                        fontWeight: 700, 
+                                        color: '#10B981', 
+                                        fontSize: '0.95rem' 
+                                    }}>
+                                        {formatMoney(goal.currentAmount)}
                                     </span>
                                 </div>
-                                <span style={{ 
-                                    fontWeight: 700, 
-                                    color: '#10B981', 
-                                    fontSize: '0.95rem' 
-                                }}>
-                                    {formatMoney(goal.currentAmount)}
-                                </span>
-                            </div>
-                        ))
+                            );
+                        })
                     )}
                 </div>
 
@@ -552,11 +561,15 @@ const BalanceTransferModal: React.FC<BalanceTransferModalProps> = ({ onClose, on
                                 required
                             >
                                 <option value="">Seleccione hucha...</option>
-                                {savings.map(goal => (
-                                    <option key={goal.id} value={goal.id}>
-                                        {goal.name} ({formatMoney(goal.currentAmount)})
-                                    </option>
-                                ))}
+                                {savings.map(goal => {
+                                    const retained = getRetainedAmountForPiggyBank(goal.id, recurringExpenses, expenses, selectedMonth, selectedYear);
+                                    const available = Math.max(0, goal.currentAmount - retained);
+                                    return (
+                                        <option key={goal.id} value={goal.id}>
+                                            {goal.name} (Disponible: {formatMoney(available)})
+                                        </option>
+                                    );
+                                })}
                             </select>
                         </div>
                     )}
@@ -607,11 +620,11 @@ const BalanceTransferModal: React.FC<BalanceTransferModalProps> = ({ onClose, on
                             marginTop: '-0.75rem', 
                             fontSize: '0.85rem', 
                             fontWeight: 600,
-                            color: selectedWithdrawGoal && parsedAmount <= selectedWithdrawGoal.currentAmount ? '#10b981' : '#f43f5e' 
+                            color: selectedWithdrawGoal && parsedAmount <= maxWithdrawable ? '#10b981' : '#f43f5e' 
                         }}>
-                            {selectedWithdrawGoal && parsedAmount <= selectedWithdrawGoal.currentAmount
+                            {selectedWithdrawGoal && parsedAmount <= maxWithdrawable
                                 ? `Disponible incrementado si aceptas: ${formatMoney(availableToSpend + parsedAmount)} (Quedarán ${formatMoney(selectedWithdrawGoal.currentAmount - parsedAmount)} en hucha)`
-                                : '¡Atención! El importe supera el saldo acumulado en la hucha seleccionada'
+                                : `¡Atención! El importe supera el saldo disponible (Retenidos: ${formatMoney(retainedInSelectedGoal)})`
                             }
                         </div>
                     )}

@@ -1,1 +1,6 @@
-﻿{"version": "1.5.9","url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.5.9.apk","windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.5.9.exe","releaseNotes": "Novedades v1.5.9:\n- Fix Dropbox Login: Se soluciona el fallo en Dropbox si el usuario se conectaba y luego pulsaba el botón de Cancelar en el diálogo de inicio, lo cual dejaba la aplicación con un estado falso de conexión.\n- Descuadre Global: Corrección en las métricas de descuadre para considerar el mes actual de forma correcta, independientemente del mes visible en la app."}
+{
+  "version": "1.5.9",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.5.9.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.5.9.exe",
+  "releaseNotes": "Novedades v1.5.9:\n- 📊 Auditor Global: Corregido el cálculo del Descuadre Financiero para que siempre compare con el mes actual real, evitando falsas alertas al navegar a meses futuros.\n- ☁️ Sincronización en la Nube: Arreglado un problema visual por el que Dropbox o Google Drive seguían apareciendo conectados al cancelar la re-autenticación."
+}

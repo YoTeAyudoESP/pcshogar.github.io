@@ -5,6 +5,12 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '1.5.9',
+    releaseNotes: `Novedades v1.5.9:
+- 📊 Auditor Global: Corregido el cálculo del Descuadre Financiero para que siempre compare con el mes actual real, evitando falsas alertas al navegar a meses futuros.
+- ☁️ Sincronización en la Nube: Arreglado un problema visual por el que Dropbox o Google Drive seguían apareciendo conectados al cancelar la re-autenticación.`
+  },
+  {
     version: '1.4.5',
     releaseNotes: `Novedades v1.4.5:
 - 🔗 Vinculación de préstamos: Conecta préstamos con gastos fijos para amortizar la deuda de manera automática al pagar tus cuotas.

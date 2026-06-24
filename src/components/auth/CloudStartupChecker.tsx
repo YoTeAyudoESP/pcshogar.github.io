@@ -106,6 +106,11 @@ const CloudStartupChecker: React.FC = () => {
     };
 
     const handleClose = () => {
+        if (isDropbox) {
+            DropboxService.disconnect();
+        } else if (isGoogle) {
+            GoogleDriveService.disconnect();
+        }
         setShowModal(false);
     };
 

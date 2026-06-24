@@ -11,6 +11,10 @@ export class GoogleDriveService {
         if (path) this.currentPath = path;
     }
 
+    static disconnect() {
+        this.token = null;
+    }
+
     static getAuthUrl(state: string = 'web') {
         // Detect if we are on a real mobile device or emulator via Capacitor
         const isMobile = window.location.origin.includes('localhost') && !window.location.port;

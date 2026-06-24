@@ -13,7 +13,7 @@ const PiggyBankAlerts: React.FC<PiggyBankAlertsProps> = ({ onNavigateToSavings }
     const { savings, accounts, recurringExpenses, expenses, updateRecurringExpense, fixedIncomes, extraIncomes, allocations, overrides, cards } = useFinance();
     const { selectedMonth, selectedYear } = useDateSelection();
 
-    // 1. Calculate available balance and pending fixed expenses
+    // 1. Calculate available balance and pending fixed expenses for the SELECTED month
     const { availableToSpend, pendingFixedExpenses, pendingSecureIncomes } = calculateAvailableBalanceForMonth(selectedYear, selectedMonth, {
         fixedIncomes,
         extraIncomes,
@@ -25,14 +25,22 @@ const PiggyBankAlerts: React.FC<PiggyBankAlertsProps> = ({ onNavigateToSavings }
         cards
     });
 
-    // 2. Global Mismatch Alert
+    // 2. Global Mismatch Alert (Must ALWAYS use REAL CURRENT month, not the selected one)
+    const currentDate = new Date();
+    const currentRealMonth = currentDate.getMonth();
+    const currentRealYear = currentDate.getFullYear();
+
+    const currentBalanceData = calculateAvailableBalanceForMonth(currentRealYear, currentRealMonth, {
+        fixedIncomes, extraIncomes, expenses, allocations, savings, recurringExpenses, overrides, cards
+    });
+
     const { mismatch } = calculateFinancialMismatch(
         accounts,
         cards,
         savings,
-        availableToSpend,
-        pendingFixedExpenses,
-        pendingSecureIncomes
+        currentBalanceData.availableToSpend,
+        currentBalanceData.pendingFixedExpenses,
+        currentBalanceData.pendingSecureIncomes
     );
 
     // 3. Shortfalls Alerts

@@ -161,6 +161,9 @@ export function calculateAvailableBalanceForMonth(
                 variableExpensesPaid += netAmount;
             }
 
+            // Do not add pending expenses to specific payment method totals
+            if (exp.status === 'pending') return;
+
             const method = exp.paymentMethod || { type: 'cash' };
             if (method.type === 'cash') {
                 totalCashExpenses += netAmount;

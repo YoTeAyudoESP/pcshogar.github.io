@@ -1,1 +1,6 @@
-{"version": "1.6.0","url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.6.0.apk","windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.6.0.exe","releaseNotes": "Novedades v1.6.0:\n- Fix Dropbox Sync: Corrección de errores al sincronizar automáticamente después de conectar.\n- Gastos Pendientes de Tarjeta: Los gastos puntuales no afectan a la deuda hasta confirmación y se pueden editar desde el Dashboard.\n- UI/UX: Corrección del formato de números negativos y alertas."}
+{
+  "version": "1.6.1",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.6.1.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.6.1.exe",
+  "releaseNotes": "Novedades v1.6.1:\n- Solución de errores en los gastos puntuales pendientes con tarjeta de crédito."
+}

@@ -32,6 +32,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ onEdit }) => {
     const currentMonthExpenses = useMemo(() => {
         return expenses
             .filter(isItemInSelectedMonth)
+            .filter(exp => exp.status !== 'pending')
             .sort((a, b) => {
                 const dateA = new Date(a.date).getTime();
                 const dateB = new Date(b.date).getTime();

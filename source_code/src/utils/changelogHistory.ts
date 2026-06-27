@@ -5,6 +5,18 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '1.6.1',
+    releaseNotes: `Novedades v1.6.1:
+- 🐞 Solución de errores: Corregido el listado de gastos puntuales pendientes para que no se sumen a los saldos de la tarjeta de crédito hasta ser confirmados.`
+  },
+  {
+    version: '1.6.0',
+    releaseNotes: `Novedades v1.6.0:
+- 🔄 Sincronización en tiempo real mejorada con Dropbox.
+- ⚙️ Correcciones en el manejo de gastos puntuales pendientes.
+- 📊 Alertas mejoradas de superávit y déficit en el dashboard.`
+  },
+  {
     version: '1.4.5',
     releaseNotes: `Novedades v1.4.5:
 - 🔗 Vinculación de préstamos: Conecta préstamos con gastos fijos para amortizar la deuda de manera automática al pagar tus cuotas.

@@ -1,6 +1,6 @@
 {
-  "version": "1.6.0",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.6.0.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.6.0.exe",
-  "releaseNotes": "Novedades v1.6.0:\n- Sincronización en tiempo real mejorada con Dropbox.\n- Correcciones en el manejo de gastos puntuales pendientes.\n- Alertas mejoradas de superávit y déficit en el dashboard."
+  "version": "1.6.1",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.6.1.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.6.1.exe",
+  "releaseNotes": "Novedades v1.6.1:\n- Solución de errores en los gastos puntuales pendientes con tarjeta de crédito."
 }

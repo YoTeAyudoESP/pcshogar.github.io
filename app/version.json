@@ -1,6 +1,6 @@
 {
-  "version": "1.5.9",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.5.9.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.5.9.exe",
-  "releaseNotes": "Novedades v1.5.9:\n- 📊 Auditor Global: Corregido el cálculo del Descuadre Financiero para que siempre compare con el mes actual real, evitando falsas alertas al navegar a meses futuros.\n- ☁️ Sincronización en la Nube: Arreglado un problema visual por el que Dropbox o Google Drive seguían apareciendo conectados al cancelar la re-autenticación."
+  "version": "1.6.0",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.6.0.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.6.0.exe",
+  "releaseNotes": "Novedades v1.6.0:\n- Sincronización en tiempo real mejorada con Dropbox.\n- Correcciones en el manejo de gastos puntuales pendientes.\n- Alertas mejoradas de superávit y déficit en el dashboard."
 }

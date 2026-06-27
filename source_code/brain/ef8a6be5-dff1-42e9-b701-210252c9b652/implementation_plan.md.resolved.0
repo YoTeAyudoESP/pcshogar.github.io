@@ -1,0 +1,39 @@
+# Domestic Economy App - Income Module Implementation Plan
+
+The goal is to build a responsive, offline-first web application for managing domestic finances, starting with the **Income Module**. The app will allow users to manage fixed monthly incomes (with expiration dates) and one-off extra incomes.
+
+## Proposed Changes
+
+### Tech Stack
+-   **Framework**: React + TypeScript (via Vite)
+-   **Styling**: Vanilla CSS (using CSS Variables for theming, focusing on "Premium" aesthetics - glassmorphism, gradients)
+-   **State/Data**: React Context + IndexedDB (via `idb` or similar lightweight wrapper) for offline persistence.
+-   **Platform**: Web (PWA ready).
+
+### Core Architecture
+
+#### [NEW] Data Layer
+-   `src/types/income.ts`: Definitions for `IncomeBase`, `FixedIncome`, `ExtraIncome`.
+-   `src/services/db.ts`: Singleton for IndexedDB interaction.
+-   `src/contexts/IncomeContext.tsx`: Global state for incomes.
+
+#### [NEW] UI Components
+-   `src/components/layout/AppLayout.tsx`: Main shell with navigation.
+-   `src/components/income/IncomeList.tsx`: Display for fixed/extra incomes.
+-   `src/components/income/IncomeForm.tsx`: Unified or tabbed form for adding incomes.
+
+#### [NEW] Styles
+-   `src/index.css`: Reset and base typography.
+-   `src/theme.css`: CSS Variables for colors, spacing, glass effects.
+
+## Verification Plan
+
+### Automated Tests
+-   `npm run build`: Verify type safety and build process.
+
+### Manual Verification
+1.  **Offline Capability**: Reload page, disconnect network, add data, reload. Data should persist.
+2.  **Responsiveness**: Check layout on Mobile (375px) and Desktop (1200px+).
+3.  **Income Logic**:
+    -   Add Fixed Income with future expiration. Verify it shows in "Forecast".
+    -   Add Extra Income. Verify it appears in history.

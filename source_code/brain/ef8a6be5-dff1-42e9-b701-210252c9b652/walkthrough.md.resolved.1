@@ -1,0 +1,41 @@
+# Domestic Economy App: Income Module Walkthrough
+
+The Income Module has been successfully implemented with a focus on "Premium" aesthetics and offline capability.
+
+## Getting Started
+
+1.  Open the project directory: `domestic-economy-app`
+2.  Install dependencies (if not already done): `npm install`
+3.  Start the development server:
+    ```bash
+    npm run dev
+    ```
+4.  Open the local URL (usually `http://localhost:5173`) in your browser.
+
+## Features to Verify
+
+### 1. Dashboard & Design
+-   **Premium Theme**: Verify the dark "Cosmic Financial" theme with glassmorphism panels and animated gradients.
+-   **Responsiveness**: Resize the browser window to mobile width. The layout should adapt (sidebar becomes header, grid columns stack).
+
+### 2. Income Management
+-   **Add Fixed Income**:
+    -   Use the **Form** to add a "Salario" or "Alquiler". Select `Fijo`.
+    -   Set an expiration date (or leave empty).
+    -   Verify it appears in the **Ingresos Fijos** list on the right.
+    -   Verify the **Fijo Mensual** total on the top card updates.
+-   **Add Extra Income**:
+    -   Select [Extra](file:///C:/Users/pablo/.gemini/antigravity/scratch/domestic-economy-app/src/types/income.ts#18-24) in the form toggle.
+    -   Add a "Bono" or "Regalo".
+    -   Verify it appears in the **Ingresos Extra** list.
+    -   Verify the **Ingresos Extra** total updates.
+
+### 3. Offline Capabilities
+-   **Data Persistence**:
+    -   Refresh the page. The data should persist (loaded from IndexedDB).
+    -   (Advanced) Use DevTools > Application > IndexedDB to see the `domestic-economy-db` database.
+
+## Technical Notes
+-   **Stack**: React, TypeScript, Vite.
+-   **State**: React Context + IDB (IndexedDB wrapper).
+-   **Styling**: Pure CSS Variables + Glassmorphism.

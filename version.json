@@ -1,6 +1,6 @@
 {
-  "version": "1.6.7",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.6.7/PCSHogar_Setup_v1.6.7.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.6.7/PCSHogar_Setup_v1.6.7.exe",
-  "releaseNotes": "Novedades v1.6.7:\n- 🚀 Motor Dinámico de Desajustes: La app ahora calcula tu deuda real en tiempo real revisando cada transacción de tarjeta.\n- 🛠 Auto-Reparación Inteligente: Al actualizar la app, todos los saldos de tus tarjetas se repararán automáticamente."
+  "version": "1.6.8",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.6.8.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.6.8.exe",
+  "releaseNotes": "Novedades v1.6.8:\n- 🚀 Corrección Crítica: Se ha solucionado el desajuste en el cálculo de deuda de tarjetas de crédito que alteraba el dinero libre real.\n- 📊 Gráficos: Corrección del fallo que mostraba categorías desconocidas."
 }

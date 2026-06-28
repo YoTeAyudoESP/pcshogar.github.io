@@ -100,7 +100,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
         }
 
         if (type === 'fixed' && !isRefund) {
-            await addRecurringExpense({
+            const recurringId = await addRecurringExpense({
                 description: finalDescription,
                 amount: finalAmount,
                 currency: 'EUR',
@@ -111,6 +111,24 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                 paymentMethod,
                 sourceAccountId: paymentMethodType === 'account' ? selectedMethodId : undefined
             });
+
+            if (status === 'paid') {
+                const dateObj = new Date(date);
+                const period = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`;
+                
+                await addExpense({
+                    description: finalDescription,
+                    amount: finalAmount,
+                    currency: 'EUR',
+                    date: dateObj.getTime(),
+                    categoryId,
+                    paymentMethod,
+                    isFixed: true,
+                    status: 'paid',
+                    recurringExpenseId: recurringId,
+                    period: period
+                });
+            }
         } else {
             const fundingList = isFinancedByHucha
                 ? Object.entries(savingGoalFunding)

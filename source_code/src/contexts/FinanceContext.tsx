@@ -54,7 +54,7 @@ interface FinanceContextType {
     transferSavings: (fromGoalId: string, toGoalId: string, amount: number) => Promise<void>;
     adjustSavings: (goalId: string, amount: number, accountId?: string, isBudgetAdjustment?: boolean, date?: number, budgetMonth?: number, budgetYear?: number) => Promise<void>;
     deleteSavingGoal: (id: string) => Promise<void>;
-    addRecurringExpense: (expense: Omit<RecurringExpense, 'id'>) => Promise<void>;
+    addRecurringExpense: (expense: Omit<RecurringExpense, 'id'>) => Promise<string>;
     updateRecurringExpense: (expense: RecurringExpense) => Promise<void>;
     deleteRecurringExpense: (id: string) => Promise<void>;
     addFixedIncome: (income: Omit<FixedIncome, 'id' | 'type' | 'createdAt'>) => Promise<void>;
@@ -630,7 +630,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         await refreshFinance();
     };
 
-    const addRecurringExpense = async (data: Omit<RecurringExpense, 'id'>) => {
+    const addRecurringExpense = async (data: Omit<RecurringExpense, 'id'>): Promise<string> => {
         const newRec: RecurringExpense = {
             ...data,
             id: (data as any).id || uuidv4(),
@@ -638,6 +638,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         };
         await incomeDB.addRecurringExpense(newRec);
         await refreshFinance();
+        return newRec.id;
     };
 
     const updateRecurringExpense = async (expense: RecurringExpense) => {

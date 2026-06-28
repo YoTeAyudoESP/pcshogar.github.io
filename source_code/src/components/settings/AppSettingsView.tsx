@@ -45,10 +45,20 @@ const AppSettingsView: React.FC = () => {
     const { importData, refreshFinance } = useFinance();
     const { showToast } = useToast();
     const [dropboxConnected, setDropboxConnected] = useState(() => DropboxService.isConnected());
+    const [googleConnected, setGoogleConnected] = useState(() => GoogleDriveService.isConnected());
 
+    // Re-read the real connection state whenever this view becomes visible.
+    // This handles the case where the user chose "Continuar sin conexión" at
+    // startup — the token is still stored but the session is not verified.
     useEffect(() => {
-        setDropboxConnected(DropboxService.isConnected());
-    }, [settings.sync.dropboxToken]);
+        const refresh = () => {
+            setDropboxConnected(DropboxService.isConnected());
+            setGoogleConnected(GoogleDriveService.isConnected());
+        };
+        refresh(); // run immediately on mount
+        window.addEventListener('focus', refresh);
+        return () => window.removeEventListener('focus', refresh);
+    }, [settings.sync.dropboxToken, settings.sync.googledriveToken]);
     const [showImportWarning, setShowImportWarning] = useState(false);
     const [importFile, setImportFile] = useState<File | null>(null);
     const [showFolderPicker, setShowFolderPicker] = useState(false);

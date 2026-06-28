@@ -5,10 +5,42 @@ const GOOGLE_CLIENT_ID = '199102669718-4icl7gmh1rvi36oj33fb6rm5d6qmbv34.apps.goo
 export class GoogleDriveService {
     private static token: string | null = null;
     private static currentPath: string = 'pcshogar_data.json';
+    /**
+     * True only when the Google Drive session has been explicitly verified
+     * (getUserInfo() succeeded). init() with a stored token does NOT set this
+     * flag. setSessionDisconnected() resets it when the user chooses
+     * "Continuar sin conexión" at startup.
+     */
+    private static _sessionVerified: boolean = false;
 
     static init(token: string, path?: string) {
         this.token = token;
         if (path) this.currentPath = path;
+        // init() alone does NOT mark the session as verified.
+    }
+
+    /** Returns true only when token exists AND session has been verified. */
+    static isConnected(): boolean {
+        return this.token !== null && this._sessionVerified;
+    }
+
+    /** Mark the session as verified after a successful getUserInfo() call. */
+    static setSessionVerified() {
+        this._sessionVerified = true;
+    }
+
+    /**
+     * Mark the session as intentionally disconnected.
+     * Called when the user presses "Continuar sin conexión" at startup.
+     */
+    static setSessionDisconnected() {
+        this._sessionVerified = false;
+    }
+
+    /** Clears the in-memory token and session flag (does NOT clear the stored token) */
+    static disconnect() {
+        this.token = null;
+        this._sessionVerified = false;
     }
 
     static getAuthUrl(state: string = 'web') {
@@ -39,6 +71,8 @@ export class GoogleDriveService {
         });
         if (!response.ok) throw new Error('Failed to get Google user info');
         const data = await response.json();
+        // Mark session as verified since the API call succeeded
+        this._sessionVerified = true;
         return {
             email: data.email
         };

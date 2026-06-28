@@ -6,6 +6,14 @@ const DROPBOX_CLIENT_ID = 'y9nh44kplesrdd1';
 export class DropboxService {
     private static dbx: Dropbox | null = null;
     private static currentPath: string = '/pcshogar_data.json';
+    /**
+     * True only when the Dropbox session has been explicitly verified
+     * (i.e. getUserInfo() completed successfully this session).
+     * Initialising with a stored token does NOT set this flag — the token
+     * may be expired. Calling setSessionDisconnected() resets it, which
+     * happens when the user chooses "Continuar sin conexión" at startup.
+     */
+    private static _sessionVerified: boolean = false;
 
     static init(token: string, path?: string) {
         this.dbx = new Dropbox({ accessToken: token });
@@ -14,16 +22,37 @@ export class DropboxService {
         } else {
             this.currentPath = '/pcshogar_data.json';
         }
+        // init() alone does NOT mark the session as verified.
+        // Call getUserInfo() and on success call setSessionVerified() (or it is
+        // done automatically inside getUserInfo() when it succeeds).
     }
 
-    /** Returns true only if DropboxService has been initialized this session */
+    /**
+     * Returns true only when the Dropbox client exists AND the session has
+     * been verified (getUserInfo succeeded) in the current app session.
+     */
     static isConnected(): boolean {
-        return this.dbx !== null;
+        return this.dbx !== null && this._sessionVerified;
     }
 
-    /** Clears the in-memory Dropbox client (does NOT clear the stored token) */
+    /** Mark the session as verified after a successful getUserInfo() call. */
+    static setSessionVerified() {
+        this._sessionVerified = true;
+    }
+
+    /**
+     * Mark the session as intentionally disconnected.
+     * Called when the user presses "Continuar sin conexión" at startup.
+     * Does NOT clear the stored token — the user can reconnect later.
+     */
+    static setSessionDisconnected() {
+        this._sessionVerified = false;
+    }
+
+    /** Clears the in-memory Dropbox client and session flag (does NOT clear the stored token) */
     static disconnect() {
         this.dbx = null;
+        this._sessionVerified = false;
     }
 
     static async fileExists(path: string): Promise<boolean> {
@@ -60,6 +89,8 @@ export class DropboxService {
     static async getUserInfo() {
         if (!this.dbx) throw new Error('Dropbox not initialized');
         const response = await this.dbx.usersGetCurrentAccount();
+        // Mark session as verified since the API call succeeded
+        this._sessionVerified = true;
         return response.result;
     }
 

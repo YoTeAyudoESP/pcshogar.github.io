@@ -1,6 +1,7 @@
 import type { 
     Expense, SavingGoal, SavingAllocation, 
-    RecurringExpense, MonthOverride, CreditCard
+    RecurringExpense, MonthOverride, CreditCard,
+    Account
 } from '../types/finance';
 import type { Income, FixedIncome } from '../types/income';
 
@@ -405,4 +406,99 @@ export function formatMoneySigned(amount: number | undefined | null): string {
     const [integerPart, decimalPart] = fixedVal.split('.');
     const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     return `${sign}${formattedInteger},${decimalPart}€`;
+}
+
+/**
+ * Calculates the discrepancy between real free money and what is allocated in savings.
+ *
+ * Formula:
+ *   dineroReal      = Σ account.balance  (all bank + cash accounts)
+ *   compromisos     = pending expenses of the current real month that will leave
+ *                     real money (paymentMethod = account | cash | debit card)
+ *                   + Σ currentBalance of open credit/virtual card cycles
+ *                     (these will be charged to the linked bank at cycle close)
+ *   dineroLibreReal = dineroReal - compromisos
+ *   desajuste       = dineroLibreReal - dineroEnHuchas
+ *
+ * Notes:
+ *  - Settlement expenses (closed cycle payments) have type='account' + status='pending',
+ *    so they are captured by the first rule without double-counting.
+ *  - Debit card paid expenses already reduced account.balance; pending debit
+ *    expenses are captured by the debit-card rule.
+ *  - THRESHOLD: differences below 0.50€ are ignored to avoid rounding noise.
+ */
+export function calculateBalanceDiscrepancy(
+    accounts: Account[],
+    savings: SavingGoal[],
+    expenses: Expense[],
+    cards: CreditCard[],
+    threshold: number = 0.50
+): {
+    dineroReal: number;
+    dineroLibreReal: number;
+    compromisoGastos: number;
+    compromisoTarjetas: number;
+    compromisos: number;
+    dineroEnHuchas: number;
+    desajuste: number;
+    isOverdraft: boolean;
+    hasSignificantDiscrepancy: boolean;
+    mesActual: string;
+} {
+    // ── Real money ───────────────────────────────────────────────────────────
+    const dineroReal = accounts.reduce((sum, a) => sum + (a.balance || 0), 0);
+
+    // ── Current real month (never the navigated month) ───────────────────────
+    const now = new Date();
+    const mesActual = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+    // ── Build a quick card-type lookup ───────────────────────────────────────
+    const cardTypeMap = new Map<string, string>();
+    cards.forEach(c => cardTypeMap.set(c.id, c.type));
+
+    // ── Pending expenses of the current month that will reduce real money ─────
+    // Includes: account payments, cash payments, debit-card payments
+    // Excludes: credit/virtual card payments (those go into the cycle balance)
+    const gastosPendientes = expenses.filter(exp => {
+        if (exp.status !== 'pending') return false;
+
+        // Match by period field or by the expense date falling in current month
+        const expPeriod = exp.period ?? `${new Date(exp.date).getFullYear()}-${String(new Date(exp.date).getMonth() + 1).padStart(2, '0')}`;
+        if (expPeriod !== mesActual) return false;
+
+        const pm = exp.paymentMethod;
+        if (pm.type === 'account' || pm.type === 'cash') return true;
+        if (pm.type === 'card') {
+            return cardTypeMap.get(pm.cardId) === 'debit';
+        }
+        return false;
+    });
+
+    const compromisoGastos = gastosPendientes.reduce((sum, e) => sum + (e.amount || 0), 0);
+
+    // ── Open credit / virtual card cycles ────────────────────────────────────
+    const compromisoTarjetas = cards
+        .filter(c => c.type === 'credit' || c.type === 'virtual')
+        .reduce((sum, c) => sum + (c.currentBalance || 0), 0);
+
+    // ── Final calculation ─────────────────────────────────────────────────────
+    const compromisos = compromisoGastos + compromisoTarjetas;
+    const dineroEnHuchas = savings.reduce((sum, s) => sum + (s.currentAmount || 0), 0);
+    const dineroLibreReal = dineroReal - compromisos;
+    const desajuste = dineroLibreReal - dineroEnHuchas;
+    const isOverdraft = dineroReal < -threshold;
+    const hasSignificantDiscrepancy = Math.abs(desajuste) >= threshold;
+
+    return {
+        dineroReal,
+        dineroLibreReal,
+        compromisoGastos,
+        compromisoTarjetas,
+        compromisos,
+        dineroEnHuchas,
+        desajuste,
+        isOverdraft,
+        hasSignificantDiscrepancy,
+        mesActual
+    };
 }

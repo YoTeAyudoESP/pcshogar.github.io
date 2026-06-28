@@ -248,6 +248,42 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
             }
 
             setIncomes(activeIncomes);
+
+            // Auto-rollover pending expenses from past months
+            let activeExpenses = [...exps];
+            let didExpenseRollover = false;
+            for (let i = 0; i < exps.length; i++) {
+                const exp = exps[i];
+                if (exp.status === 'pending') {
+                    const expPeriod = exp.period ?? `${new Date(exp.date).getFullYear()}-${String(new Date(exp.date).getMonth() + 1).padStart(2, '0')}`;
+                    const currentPeriod = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+                    
+                    if (expPeriod < currentPeriod) {
+                        didExpenseRollover = true;
+                        
+                        // Change date to 1st of current month
+                        const newDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1).getTime();
+                        let newDesc = exp.description;
+                        if (!newDesc.includes('[Atrasado]')) {
+                            newDesc = `[Atrasado] ${newDesc}`;
+                        }
+                        
+                        const updatedExp = {
+                            ...exp,
+                            description: newDesc,
+                            date: newDate,
+                            period: currentPeriod,
+                            updatedAt: Date.now()
+                        };
+                        
+                        await incomeDB.updateExpense(updatedExp);
+                        activeExpenses[i] = updatedExp;
+                    }
+                }
+            }
+            if (didExpenseRollover) {
+                setExpenses(activeExpenses);
+            }
             
             // Split incomes for convenience
             setFixedIncomes(activeIncomes.filter((i): i is FixedIncome => i.type === 'fixed'));

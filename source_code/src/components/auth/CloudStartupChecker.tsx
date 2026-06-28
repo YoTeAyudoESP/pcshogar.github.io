@@ -106,6 +106,12 @@ const CloudStartupChecker: React.FC = () => {
     };
 
     const handleClose = () => {
+        // The user chose to continue without a cloud connection.
+        // Mark both services as session-disconnected so that the settings
+        // screen correctly reflects "No conectado" even though a token may
+        // still be stored in localStorage.
+        DropboxService.setSessionDisconnected();
+        GoogleDriveService.setSessionDisconnected();
         setShowModal(false);
     };
 

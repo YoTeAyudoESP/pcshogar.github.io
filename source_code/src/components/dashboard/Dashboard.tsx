@@ -22,6 +22,7 @@ const version = versionInfo.version;
 import { changelogHistory, compareVersions } from '../../utils/changelogHistory';
 import { formatMoney } from '../../utils/financeCalculations';
 import RemnantDecisionModal from '../settings/RemnantDecisionModal';
+import BalanceDiscrepancyAlert from './BalanceDiscrepancyAlert';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import EditTransactionModal from './EditTransactionModal';
 import BalanceTransferModal from './BalanceTransferModal';
@@ -370,6 +371,9 @@ const Dashboard: React.FC = () => {
             {currentView === 'dashboard' ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                     <DateSelector />
+
+                    {/* Balance Discrepancy Alerts — shown at the top when there is a financial imbalance */}
+                    <BalanceDiscrepancyAlert />
 
                     {/* Action Palette */}
                     <div style={{ 

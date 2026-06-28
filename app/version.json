@@ -1,5 +1,5 @@
 {
-  "version": "1.6.4",
+  "version": "1.6.5",
   "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.6.4/PCSHogar_Setup_v1.6.4.apk",
   "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.6.4/PCSHogar_Setup_v1.6.4.exe",
   "releaseNotes": "Novedades v1.6.4:\n- Solucionado error en el descuadre y arrastre automático de gastos de meses anteriores. Los gastos pendientes de meses anteriores ahora se mueven automáticamente al día 1 del mes actual (con la etiqueta [Atrasado]). Esto ajusta tu disponible real de forma perfecta y hace que tus saldos cuadren.\n- Validaciones de reparto mejoradas: Ahora el widget de desajuste controla que no introduzcas cifras incorrectas, impidiéndote repartir más dinero del que realmente tienes o exigiéndote cuadrar exactamente el déficit antes de permitirte ajustar huchas."

@@ -29,6 +29,7 @@ import { DropboxService } from '../../services/dropboxService';
 import { GoogleDriveService } from '../../services/googleDriveService';
 import { SUPPORTED_CURRENCIES, SUPPORTED_LANGUAGES, APP_THEMES } from '../../types/finance';
 import DropboxFolderPicker from './DropboxFolderPicker';
+import GoogleDriveFolderPicker from './GoogleDriveFolderPicker';
 import { useToast } from '../../contexts/ToastContext';
 import { Capacitor, registerPlugin } from '@capacitor/core';
 import { UpdateService } from '../../services/updateService';
@@ -62,6 +63,7 @@ const AppSettingsView: React.FC = () => {
     const [showImportWarning, setShowImportWarning] = useState(false);
     const [importFile, setImportFile] = useState<File | null>(null);
     const [showFolderPicker, setShowFolderPicker] = useState(false);
+    const [showGoogleDriveFolderPicker, setShowGoogleDriveFolderPicker] = useState(false);
     const [pinInput, setPinInput] = useState('');
 
     const [downloadUrlAndroid, setDownloadUrlAndroid] = useState(versionInfo.url);
@@ -784,6 +786,21 @@ const AppSettingsView: React.FC = () => {
                                     />
                                 );
                             })()}
+
+                            {showGoogleDriveFolderPicker && (() => {
+                                const currentPath = activeEconomy?.sync?.googledrivePath || settings.sync.googledrivePath || 'pcshogar_data.json';
+                                const currentFileName = currentPath.split('/').pop() || 'pcshogar_data.json';
+                                const currentFolder = currentPath.substring(0, currentPath.lastIndexOf('/')) || '';
+                                return (
+                                    <GoogleDriveFolderPicker 
+                                        currentPath={currentFolder} 
+                                        fileName={currentFileName}
+                                        onSelect={(path) => updateSyncSettings({ googledrivePath: path })}
+                                        onClose={() => setShowGoogleDriveFolderPicker(false)}
+                                    />
+                                );
+                            })()}
+                            
                             {!settings.sync.dropboxToken && (
                                 <p style={{ fontSize: '0.75rem', opacity: 0.4, margin: 0, fontStyle: 'italic' }}>
                                     Al conectar Dropbox, la app podrá leer y escribir el archivo 'pcshogar_data.json' en tu cuenta para sincronizar con otros dispositivos.
@@ -890,6 +907,22 @@ const AppSettingsView: React.FC = () => {
                                                         {settings.sync.googledrivePath || 'pcshogar_data.json'}
                                                     </span>
                                                 </div>
+                                                <button
+                                                    onClick={() => setShowGoogleDriveFolderPicker(true)}
+                                                    style={{ 
+                                                        background: 'rgba(255, 255, 255, 0.05)',
+                                                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                                                        color: 'white',
+                                                        borderRadius: '0.75rem', 
+                                                        fontSize: '0.85rem', 
+                                                        cursor: 'pointer', 
+                                                        fontWeight: 600,
+                                                        flex: '0 0 auto', 
+                                                        padding: '0.75rem 1rem' 
+                                                    }}
+                                                >
+                                                    Cambiar
+                                                </button>
                                             </div>
                                         </div>
 

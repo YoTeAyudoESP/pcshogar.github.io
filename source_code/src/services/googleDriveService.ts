@@ -78,16 +78,68 @@ export class GoogleDriveService {
         };
     }
 
-    private static async getFileId(): Promise<string | null> {
-        if (!this.token) throw new Error('Google Drive not initialized');
-        const q = encodeURIComponent(`name = '${this.currentPath}' and trashed = false`);
-        const response = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&spaces=drive`, {
-            headers: {
-                Authorization: `Bearer ${this.token}`
+    private static async getFolderIdByPath(path: string, createIfMissing: boolean = false): Promise<string | null> {
+        if (!this.token) return null;
+        const cleanPath = path.replace(/^\/+|\/+$/g, '');
+        if (!cleanPath) return 'root';
+        
+        const parts = cleanPath.split('/');
+        let currentParentId = 'root';
+        
+        for (const part of parts) {
+            const q = encodeURIComponent(`name = '${part}' and mimeType = 'application/vnd.google-apps.folder' and '${currentParentId}' in parents and trashed = false`);
+            const response = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id)&spaces=drive`, {
+                headers: { Authorization: `Bearer ${this.token}` }
+            });
+            if (!response.ok) return null;
+            const data = await response.json();
+            
+            if (data.files && data.files.length > 0) {
+                currentParentId = data.files[0].id;
+            } else {
+                if (!createIfMissing) return null;
+                
+                const createResponse = await fetch('https://www.googleapis.com/drive/v3/files', {
+                    method: 'POST',
+                    headers: {
+                        Authorization: `Bearer ${this.token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: part,
+                        mimeType: 'application/vnd.google-apps.folder',
+                        parents: [currentParentId]
+                    })
+                });
+                if (!createResponse.ok) throw new Error(`Failed to create folder ${part} on Google Drive`);
+                const createData = await createResponse.json();
+                currentParentId = createData.id;
             }
+        }
+        return currentParentId;
+    }
+
+    private static async getFileId(createFoldersIfMissing: boolean = false): Promise<string | null> {
+        if (!this.token) throw new Error('Google Drive not initialized');
+        let folderPath = '';
+        let fileName = this.currentPath;
+        
+        if (this.currentPath.includes('/')) {
+            const parts = this.currentPath.split('/');
+            fileName = parts.pop() || '';
+            folderPath = parts.join('/');
+        }
+        
+        const folderId = await this.getFolderIdByPath(folderPath, createFoldersIfMissing);
+        if (!folderId) return null;
+        
+        const q = encodeURIComponent(`name = '${fileName}' and '${folderId}' in parents and trashed = false`);
+        const response = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id)&spaces=drive`, {
+            headers: { Authorization: `Bearer ${this.token}` }
         });
         if (!response.ok) throw new Error('Failed to search file on Google Drive');
         const data = await response.json();
+        
         if (data.files && data.files.length > 0) {
             return data.files[0].id;
         }
@@ -97,18 +149,34 @@ export class GoogleDriveService {
     static async fileExists(path: string): Promise<boolean> {
         if (!this.token) return false;
         try {
-            const q = encodeURIComponent(`name = '${path}' and trashed = false`);
-            const response = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&spaces=drive`, {
-                headers: {
-                    Authorization: `Bearer ${this.token}`
-                }
-            });
-            if (!response.ok) return false;
-            const data = await response.json();
-            return !!(data.files && data.files.length > 0);
+            const originalPath = this.currentPath;
+            this.currentPath = path;
+            const fileId = await this.getFileId();
+            this.currentPath = originalPath;
+            return fileId !== null;
         } catch {
             return false;
         }
+    }
+
+    static async listFolders(path: string = ''): Promise<{ name: string, path_lower: string }[]> {
+        if (!this.token) throw new Error('Google Drive not initialized');
+        const folderId = await this.getFolderIdByPath(path);
+        if (!folderId) return [];
+
+        const q = encodeURIComponent(`mimeType = 'application/vnd.google-apps.folder' and '${folderId}' in parents and trashed = false`);
+        const response = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&spaces=drive`, {
+            headers: { Authorization: `Bearer ${this.token}` }
+        });
+        
+        if (!response.ok) throw new Error('Failed to list folders on Google Drive');
+        const data = await response.json();
+        
+        const cleanPath = path.replace(/\/+$/g, '');
+        return (data.files || []).map((f: any) => ({
+            name: f.name,
+            path_lower: `${cleanPath}/${f.name}`
+        }));
     }
 
     static async deleteFile(): Promise<void> {
@@ -146,7 +214,7 @@ export class GoogleDriveService {
 
     static async uploadData(data: any) {
         if (!this.token) throw new Error('Google Drive not initialized');
-        const fileId = await this.getFileId();
+        const fileId = await this.getFileId(true); // create folders if missing
         const content = JSON.stringify(data);
         
         if (fileId) {
@@ -162,10 +230,22 @@ export class GoogleDriveService {
             if (!response.ok) throw new Error('Failed to update file on Google Drive');
         } else {
             // Create new file with metadata and content (using multipart upload)
-            const metadata = {
-                name: this.currentPath,
+            let folderPath = '';
+            let fileName = this.currentPath;
+            if (this.currentPath.includes('/')) {
+                const parts = this.currentPath.split('/');
+                fileName = parts.pop() || '';
+                folderPath = parts.join('/');
+            }
+            
+            const folderId = await this.getFolderIdByPath(folderPath, true);
+            const metadata: any = {
+                name: fileName,
                 mimeType: 'application/json'
             };
+            if (folderId && folderId !== 'root') {
+                metadata.parents = [folderId];
+            }
             
             const boundary = '314159265358979323846';
             const delimiter = `\r\n--${boundary}\r\n`;

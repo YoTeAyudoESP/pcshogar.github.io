@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAppSettings } from '../../contexts/AppSettingsContext';
 import { X, Plus, Trash2, Home, Building2, Briefcase, Wallet, HardDrive, Cloud, Info, FolderOpen, Check } from 'lucide-react';
 import DropboxFolderPicker from './DropboxFolderPicker';
+import GoogleDriveFolderPicker from './GoogleDriveFolderPicker';
 import { DropboxService } from '../../services/dropboxService';
 import { GoogleDriveService } from '../../services/googleDriveService';
 import { incomeDB } from '../../services/db';
@@ -23,6 +24,7 @@ const EconomyManagementModal: React.FC<EconomyManagementModalProps> = ({ isOpen,
     const [isConnectingDropbox, setIsConnectingDropbox] = useState(false);
     // Track actual Dropbox service connection (not just stored token)
     const [dropboxConnected, setDropboxConnected] = useState(() => DropboxService.isConnected());
+    const [googleConnected, setGoogleConnected] = useState(() => GoogleDriveService.isConnected());
     // Inline delete confirmation: stores the economy id pending confirmation (avoids window.confirm focus loss)
     const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
@@ -591,22 +593,55 @@ const EconomyManagementModal: React.FC<EconomyManagementModalProps> = ({ isOpen,
 
                             {syncType === 'googledrive' && (() => {
                                 const autoFileName = name ? `pcshogar_${toSafeName(name)}.json` : 'pcshogar_nueva_economia.json';
+                                const hasToken = googleConnected;
                                 return (
                                     <div style={inputGroupStyle}>
                                         <label style={labelStyle}>Ruta en Google Drive</label>
-                                        <input
-                                            type="text"
-                                            placeholder={`Ej. /${autoFileName}`}
-                                            value={syncPath}
-                                            onChange={(e) => setSyncPath(e.target.value)}
-                                            style={inputStyle}
-                                        />
+                                        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.4rem' }}>
+                                            <input 
+                                                style={{ ...inputStyle, marginTop: 0 }} 
+                                                value={syncPath || 'pcshogar_data.json'} 
+                                                disabled 
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => hasToken && setShowFolderPicker(true)}
+                                                disabled={!hasToken}
+                                                style={{
+                                                    background: hasToken ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+                                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                                    color: hasToken ? 'white' : 'rgba(255, 255, 255, 0.3)',
+                                                    padding: '0 12px',
+                                                    borderRadius: '8px',
+                                                    fontSize: '0.85rem',
+                                                    fontWeight: 600,
+                                                    cursor: hasToken ? 'pointer' : 'not-allowed',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '6px',
+                                                    whiteSpace: 'nowrap'
+                                                }}
+                                            >
+                                                <FolderOpen size={14} />
+                                                Explorar
+                                            </button>
+                                        </div>
                                         <div style={infoContainerStyle}>
                                             <Info size={14} color="#94a3b8" />
                                             <span style={infoTextStyle}>
-                                                El archivo <strong style={{ color: '#e2e8f0' }}>{syncPath ? syncPath.split('/').pop() : autoFileName}</strong> es exclusivo de esta economía. La integración con Google Drive para explorar carpetas estará disponible próximamente.
+                                                El archivo <strong style={{ color: '#e2e8f0' }}>{syncPath ? syncPath.split('/').pop() : autoFileName}</strong> es exclusivo de esta economía y nunca se compartirá con otros entornos.
                                             </span>
                                         </div>
+
+                                        {/* Folder picker overlay */}
+                                        {showFolderPicker && (
+                                            <GoogleDriveFolderPicker
+                                                currentPath={(syncPath || `/${autoFileName}`).substring(0, (syncPath || `/${autoFileName}`).lastIndexOf('/')) || '/'}
+                                                fileName={syncPath ? syncPath.split('/').pop()! : autoFileName}
+                                                onSelect={(path) => { setSyncPath(path); setShowFolderPicker(false); }}
+                                                onClose={() => setShowFolderPicker(false)}
+                                            />
+                                        )}
                                     </div>
                                 );
                             })()}

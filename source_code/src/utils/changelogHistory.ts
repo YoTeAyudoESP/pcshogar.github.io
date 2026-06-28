@@ -5,6 +5,12 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '1.6.4',
+    releaseNotes: `Novedades v1.6.4:
+- Solucionado error en el descuadre y arrastre automático de gastos de meses anteriores. Los gastos pendientes de meses anteriores ahora se mueven automáticamente al día 1 del mes actual (con la etiqueta [Atrasado]). Esto ajusta tu disponible real de forma perfecta y hace que tus saldos cuadren.
+- Validaciones de reparto mejoradas: Ahora el widget de desajuste controla que no introduzcas cifras incorrectas, impidiéndote repartir más dinero del que realmente tienes o exigiéndote cuadrar exactamente el déficit antes de permitirte ajustar huchas.`
+  },
+  {
     version: '1.6.1',
     releaseNotes: `Novedades v1.6.1:
 - 🐞 Solución de errores: Corregido el listado de gastos puntuales pendientes para que no se sumen a los saldos de la tarjeta de crédito hasta ser confirmados.`

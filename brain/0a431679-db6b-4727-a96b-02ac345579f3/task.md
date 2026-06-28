@@ -1,0 +1,7 @@
+- `[/]` Modificar `ExpenseForm.tsx` para incluir el estado de tipo de gasto (Puntual vs Fijo).
+- `[ ]` Añadir botones selectores para el Tipo de Gasto.
+- `[ ]` Añadir botones selectores para el Estado (Pagado vs Pendiente).
+- `[ ]` Mostrar campos de recurrencia (`frequency`, `paymentDay`) cuando el tipo sea Fijo.
+- `[ ]` Ocultar la sección de financiación de Huchas cuando el tipo sea Fijo.
+- `[ ]` Modificar la función `handleSubmit` para invocar `addRecurringExpense` si es fijo, o `addExpense` si es puntual.
+- `[ ]` Validar y probar el funcionamiento del formulario.

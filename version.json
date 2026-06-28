@@ -1,6 +1,6 @@
 {
-  "version": "1.6.6",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.6.6/PCSHogar_Setup_v1.6.6.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.6.6/PCSHogar_Setup_v1.6.6.exe",
-  "releaseNotes": "Novedades v1.6.6:\n- 🐞 Corrección importante: Se ha solucionado un error que dejaba la aplicación abierta en la versión web (el navegador) al conectar con Google Drive desde Android, en lugar de devolverte a la aplicación móvil."
+  "version": "1.6.7",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.6.7/PCSHogar_Setup_v1.6.7.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.6.7/PCSHogar_Setup_v1.6.7.exe",
+  "releaseNotes": "Novedades v1.6.7:\n- 🚀 Motor Dinámico de Desajustes: La app ahora calcula tu deuda real en tiempo real revisando cada transacción de tarjeta.\n- 🛠 Auto-Reparación Inteligente: Al actualizar la app, todos los saldos de tus tarjetas se repararán automáticamente."
 }

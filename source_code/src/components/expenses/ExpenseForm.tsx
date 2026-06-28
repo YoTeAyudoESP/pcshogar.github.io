@@ -270,24 +270,22 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                                 </button>
                             </div>
 
-                            {type === 'puntual' && (
-                                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                    <button
-                                        type="button"
-                                        onClick={() => setStatus('paid')}
-                                        style={toggleButtonStyle(status === 'paid', '#ef4444')}
-                                    >
-                                        <CheckCircle size={18} /> Pagado
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setStatus('pending')}
-                                        style={toggleButtonStyle(status === 'pending', '#f59e0b')}
-                                    >
-                                        <Clock size={18} /> Pendiente
-                                    </button>
-                                </div>
-                            )}
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <button
+                                    type="button"
+                                    onClick={() => setStatus('paid')}
+                                    style={toggleButtonStyle(status === 'paid', '#ef4444')}
+                                >
+                                    <CheckCircle size={18} /> Pagado
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setStatus('pending')}
+                                    style={toggleButtonStyle(status === 'pending', '#f59e0b')}
+                                >
+                                    <Clock size={18} /> Pendiente
+                                </button>
+                            </div>
                         </>
                     )}
 

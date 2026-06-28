@@ -222,29 +222,38 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData, onNavigat
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
                     
                     {/* Status & Type */}
-                    <div style={{ display: 'flex', gap: '1rem' }}>
-                        <div style={{ flex: 1 }}>
-                            <label style={labelStyle}>Estado</label>
-                            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.4rem' }}>
-                                <button type="button" onClick={() => setStatus('pending')} style={toggleButtonStyle(status === 'pending', '#fbbf24')}>
-                                    Pendiente
-                                </button>
-                                <button type="button" onClick={() => setStatus('received')} style={toggleButtonStyle(status === 'received', '#10b981')}>
-                                    Recibido
-                                </button>
-                            </div>
-                        </div>
-                        <div style={{ flex: 1 }}>
-                            <label style={labelStyle}>Tipo de Ingreso</label>
-                            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.4rem' }}>
-                                <button type="button" onClick={() => setType('fixed')} style={toggleButtonStyle(type === 'fixed', '#818cf8')}>
-                                    Fijo
-                                </button>
-                                <button type="button" onClick={() => setType('extra')} style={toggleButtonStyle(type === 'extra', '#d946ef')}>
-                                    Extra
-                                </button>
-                            </div>
-                        </div>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button
+                            type="button"
+                            onClick={() => setType('extra')}
+                            style={toggleButtonStyle(type === 'extra', '#d946ef')}
+                        >
+                            <PlusCircle size={18} /> Extra
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setType('fixed')}
+                            style={toggleButtonStyle(type === 'fixed', '#818cf8')}
+                        >
+                            <Calendar size={18} /> Fijo
+                        </button>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button
+                            type="button"
+                            onClick={() => setStatus('received')}
+                            style={toggleButtonStyle(status === 'received', '#10b981')}
+                        >
+                            <TrendingUp size={18} /> Recibido
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setStatus('pending')}
+                            style={toggleButtonStyle(status === 'pending', '#fbbf24')}
+                        >
+                            <Clock size={18} /> Pendiente
+                        </button>
                     </div>
 
                     {/* Common Fields */}

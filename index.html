@@ -217,14 +217,10 @@
                 if (!response.ok) throw new Error('No se pudo leer version.json');
                 const data = await response.json();
 
-                if (data.url) {
-                    const filename = data.url.substring(data.url.lastIndexOf('/') + 1);
-                    document.getElementById('android-download').href = filename;
-                }
-
                 if (data.version) {
                     document.getElementById('android-version').textContent = 'Versión v' + data.version;
-                    document.getElementById('win-download').href = 'PCSHogar_Setup_v' + data.version + '.exe';
+                    if (data.url) document.getElementById('android-download').href = data.url;
+                    if (data.windowsUrl) document.getElementById('win-download').href = data.windowsUrl;
                     document.getElementById('win-version').textContent = 'Descargar v' + data.version;
                 }
             } catch (error) {

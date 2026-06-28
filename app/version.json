@@ -1,6 +1,6 @@
 {
-  "version": "1.6.5",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.6.5/PCSHogar_Setup_v1.6.5.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.6.5/PCSHogar_Setup_v1.6.5.exe",
-  "releaseNotes": "Novedades v1.6.5:\n- 📁 Integración total con Google Drive: Ahora puedes explorar y seleccionar la carpeta exacta donde guardar tus datos, usando una interfaz idéntica a la de Dropbox.\n- 🎨 Interfaz unificada: Los formularios de ingresos y gastos se han rediseñado para compartir la misma estructura visual en la selección de opciones (puntual/fijo, cobrado/pendiente)."
+  "version": "1.6.6",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.6.6/PCSHogar_Setup_v1.6.6.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.6.6/PCSHogar_Setup_v1.6.6.exe",
+  "releaseNotes": "Novedades v1.6.6:\n- 🐞 Corrección importante: Se ha solucionado un error que dejaba la aplicación abierta en la versión web (el navegador) al conectar con Google Drive desde Android, en lugar de devolverte a la aplicación móvil."
 }

@@ -5,6 +5,12 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '1.6.5',
+    releaseNotes: `Novedades v1.6.5:
+- 📁 Integración total con Google Drive: Ahora puedes explorar y seleccionar la carpeta exacta donde guardar tus datos, usando una interfaz idéntica a la de Dropbox.
+- 🎨 Interfaz unificada: Los formularios de ingresos y gastos se han rediseñado para compartir la misma estructura visual en la selección de opciones (puntual/fijo, cobrado/pendiente).`
+  },
+  {
     version: '1.6.4',
     releaseNotes: `Novedades v1.6.4:
 - Solucionado error en el descuadre y arrastre automático de gastos de meses anteriores. Los gastos pendientes de meses anteriores ahora se mueven automáticamente al día 1 del mes actual (con la etiqueta [Atrasado]). Esto ajusta tu disponible real de forma perfecta y hace que tus saldos cuadren.

@@ -48,18 +48,28 @@ export class GoogleDriveService {
         const isMobile = window.location.origin.includes('localhost') && !window.location.port;
         
         let redirectUri = '';
+        let finalState = state;
+        
         if (isMobile) {
             // Mobile app will open system browser which redirects to landing page
-            redirectUri = 'https://yoteayudoesp.github.io/pcshogar.github.io/app/';
+            redirectUri = 'https://pcshogar.es/app/';
+            if (state === 'googledrive') finalState = 'googledrive-android';
         } else if (window.location.origin.startsWith('file://')) {
             // Electron production
-            redirectUri = 'https://yoteayudoesp.github.io/pcshogar.github.io/app/';
+            redirectUri = 'https://pcshogar.es/app/';
         } else {
             // Web production or dev
             redirectUri = window.location.origin + window.location.pathname;
         }
-            
-        return `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${encodeURIComponent('https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email')}&state=${encodeURIComponent(state)}`;
+
+        return `https://accounts.google.com/o/oauth2/v2/auth?` +
+            `client_id=${GOOGLE_CLIENT_ID}` +
+            `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+            `&response_type=token` +
+            `&scope=${encodeURIComponent('https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email')}` +
+            `&state=${finalState}` +
+            `&include_granted_scopes=true` +
+            `&prompt=select_account`;
     }
 
     static async getUserInfo() {

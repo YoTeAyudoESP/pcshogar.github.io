@@ -33,7 +33,10 @@ const DropboxAuthHandler: React.FC = () => {
         if (hash && hash.includes('access_token=')) {
             const params = new URLSearchParams(hash.substring(1));
             const token = params.get('access_token');
-            if (token) {
+            const state = params.get('state');
+            
+            // Ignore if this token belongs to Google Drive
+            if (token && state !== 'googledrive' && state !== 'googledrive-android' && !hash.includes('googledrive')) {
                 window.history.replaceState({}, document.title, window.location.pathname);
                 handleToken(token);
             }
@@ -49,6 +52,10 @@ const DropboxAuthHandler: React.FC = () => {
                     // The URL will be com.pcshogar.app://auth/dropbox#access_token=...
                     const url = data.url;
                     if (url.includes('access_token=')) {
+                        // Ignore if this token belongs to Google Drive
+                        if (url.includes('auth/googledrive') || url.includes('state=googledrive') || url.includes('googledrive')) {
+                            return;
+                        }
                         const hashPart = url.split('#')[1];
                         const params = new URLSearchParams(hashPart);
                         const token = params.get('access_token');

@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
-import { X, Calendar, Info } from 'lucide-react';
+import { X, Calendar, Info, Clock, CheckCircle } from 'lucide-react';
 import { predictSettlementDate, formatMoney } from '../../utils/financeCalculations';
 import type { CreditCard } from '../../types/finance';
 
@@ -12,11 +11,12 @@ interface ExpenseFormProps {
 }
 
 const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, onNavigateToSettings }) => {
-    const { addExpense, accounts, cards, categories, savings } = useFinance();
+    const { addExpense, addRecurringExpense, accounts, cards, categories, savings } = useFinance();
     const expenseCategories = categories
         .filter(c => c.type === 'expense')
         .sort((a, b) => a.name.localeCompare(b.name, 'es', { sensitivity: 'base' }));
     
+    const [type, setType] = useState<'puntual' | 'fixed'>('puntual');
     const [description, setDescription] = useState('');
     const [amount, setAmount] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -24,10 +24,17 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
     const [paymentMethodType, setPaymentMethodType] = useState<'account' | 'card' | 'cash'>('account');
     const [selectedMethodId, setSelectedMethodId] = useState('');
     const [status, setStatus] = useState<'paid' | 'pending'>('paid');
+    
+    // Fixed specific
+    const [frequency, setFrequency] = useState<any>('monthly');
+    const [paymentDay, setPaymentDay] = useState('1');
+
+    // Huchas specific
     const [isFinancedByHucha, setIsFinancedByHucha] = useState(false);
     const [selectedHuchas, setSelectedHuchas] = useState<Record<string, boolean>>({});
     const [savingGoalFunding, setSavingGoalFunding] = useState<Record<string, string>>({});
     const [isHuchaConfigOpen, setIsHuchaConfigOpen] = useState(false);
+    
     const [settlementAdjustment, setSettlementAdjustment] = useState<number>(0);
 
     useEffect(() => {
@@ -50,7 +57,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
     const hasNegativeError = Object.entries(savingGoalFunding)
         .some(([id, val]) => selectedHuchas[id] && (parseFloat(val) || 0) < 0);
 
-    const isFundingInvalid = isFinancedByHucha && (
+    const isFundingInvalid = type === 'puntual' && isFinancedByHucha && (
         totalAllocated > expenseTotal ||
         totalAllocated <= 0 ||
         hasBalanceError ||
@@ -58,7 +65,6 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
     );
 
     const handleAutofill = (goalId: string, availableAmount: number) => {
-        // Calculate total allocated except this hucha
         const otherAllocated = Object.entries(savingGoalFunding)
             .filter(([id]) => id !== goalId && selectedHuchas[id])
             .reduce((sum, [_, val]) => sum + (parseFloat(val) || 0), 0);
@@ -66,9 +72,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
         const remaining = Math.max(0, expenseTotal - otherAllocated);
         const toAlloc = Math.min(availableAmount, remaining);
         
-        // Set checked to true
         setSelectedHuchas(prev => ({ ...prev, [goalId]: true }));
-        // Update funding amount
         setSavingGoalFunding(prev => ({ ...prev, [goalId]: toAlloc.toFixed(2) }));
     };
 
@@ -95,23 +99,37 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
             finalDescription = `Devolución: ${finalDescription}`;
         }
 
-        const fundingList = isFinancedByHucha
-            ? Object.entries(savingGoalFunding)
-                .filter(([id, val]) => selectedHuchas[id] && parseFloat(val) > 0)
-                .map(([id, val]) => ({ goalId: id, amount: parseFloat(val) }))
-            : undefined;
+        if (type === 'fixed' && !isRefund) {
+            await addRecurringExpense({
+                description: finalDescription,
+                amount: finalAmount,
+                currency: 'EUR',
+                frequency,
+                paymentDay: parseInt(paymentDay) || 1,
+                active: true,
+                categoryId,
+                paymentMethod,
+                sourceAccountId: paymentMethodType === 'account' ? selectedMethodId : undefined
+            });
+        } else {
+            const fundingList = isFinancedByHucha
+                ? Object.entries(savingGoalFunding)
+                    .filter(([id, val]) => selectedHuchas[id] && parseFloat(val) > 0)
+                    .map(([id, val]) => ({ goalId: id, amount: parseFloat(val) }))
+                : undefined;
 
-        await addExpense({
-            description: finalDescription,
-            amount: finalAmount,
-            currency: 'EUR',
-            date: new Date(date).getTime(),
-            categoryId,
-            paymentMethod,
-            isFixed: false,
-            status,
-            savingGoalFunding: fundingList
-        });
+            await addExpense({
+                description: finalDescription,
+                amount: finalAmount,
+                currency: 'EUR',
+                date: new Date(date).getTime(),
+                categoryId,
+                paymentMethod,
+                isFixed: false,
+                status,
+                savingGoalFunding: fundingList
+            });
+        }
 
         onClose();
     };
@@ -133,6 +151,22 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
         fontSize: '0.9rem',
         fontWeight: 500
     };
+
+    const toggleButtonStyle = (active: boolean, color: string = '#ef4444'): React.CSSProperties => ({
+        flex: 1,
+        padding: '0.8rem',
+        borderRadius: '10px',
+        border: active ? `1px solid ${color}` : '1px solid rgba(255,255,255,0.1)',
+        background: active ? `${color}20` : 'rgba(255,255,255,0.03)',
+        color: active ? color : 'rgba(255,255,255,0.4)',
+        fontWeight: 600,
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '8px',
+        transition: 'all 0.2s ease'
+    });
 
     return (
         <>
@@ -199,6 +233,46 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
 
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                     
+                    {!isRefund && (
+                        <>
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <button
+                                    type="button"
+                                    onClick={() => setType('puntual')}
+                                    style={toggleButtonStyle(type === 'puntual', '#ef4444')}
+                                >
+                                    <Clock size={18} /> Puntual
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setType('fixed')}
+                                    style={toggleButtonStyle(type === 'fixed', '#8b5cf6')}
+                                >
+                                    <Calendar size={18} /> Fijo
+                                </button>
+                            </div>
+
+                            {type === 'puntual' && (
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <button
+                                        type="button"
+                                        onClick={() => setStatus('paid')}
+                                        style={toggleButtonStyle(status === 'paid', '#ef4444')}
+                                    >
+                                        <CheckCircle size={18} /> Pagado
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setStatus('pending')}
+                                        style={toggleButtonStyle(status === 'pending', '#f59e0b')}
+                                    >
+                                        <Clock size={18} /> Pendiente
+                                    </button>
+                                </div>
+                            )}
+                        </>
+                    )}
+
                     {/* Rows */}
                     <div style={{ display: 'flex', gap: '1rem' }}>
                         <div style={{ flex: 2 }}>
@@ -225,22 +299,51 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                         </div>
                     </div>
 
-                    <div>
-                        <label style={labelStyle}>Fecha</label>
-                        <div style={{ position: 'relative' }}>
-                            <input 
-                                type="date" 
-                                style={{ ...inputStyle, paddingRight: '2.5rem' }} 
-                                value={date} 
-                                onChange={e => setDate(e.target.value)} 
-                                required 
-                            />
-                            <Calendar 
-                                size={18} 
-                                style={{ position: 'absolute', right: '1rem', top: '1.3rem', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none' }} 
-                            />
+                    {type === 'puntual' ? (
+                        <div>
+                            <label style={labelStyle}>Fecha</label>
+                            <div style={{ position: 'relative' }}>
+                                <input 
+                                    type="date" 
+                                    style={{ ...inputStyle, paddingRight: '2.5rem' }} 
+                                    value={date} 
+                                    onChange={e => setDate(e.target.value)} 
+                                    required 
+                                />
+                                <Calendar 
+                                    size={18} 
+                                    style={{ position: 'absolute', right: '1rem', top: '1.3rem', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none' }} 
+                                />
+                            </div>
                         </div>
-                    </div>
+                    ) : (
+                        <div style={{ display: 'flex', gap: '1rem' }}>
+                            <div style={{ flex: 1 }}>
+                                <label style={labelStyle}>Frecuencia</label>
+                                <select style={inputStyle} value={frequency} onChange={e => setFrequency(e.target.value)}>
+                                    <option value="weekly">Semanal</option>
+                                    <option value="monthly">Mensual</option>
+                                    <option value="bi-monthly">Bimestral</option>
+                                    <option value="quarterly">Trimestral</option>
+                                    <option value="four-monthly">Cuatrimestral</option>
+                                    <option value="semi-annually">Semestral</option>
+                                    <option value="yearly">Anual</option>
+                                </select>
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <label style={labelStyle}>Día de cobro</label>
+                                <input 
+                                    type="number" 
+                                    min="1" 
+                                    max="31" 
+                                    style={inputStyle} 
+                                    value={paymentDay} 
+                                    onChange={e => setPaymentDay(e.target.value)} 
+                                    required 
+                                />
+                            </div>
+                        </div>
+                    )}
 
                     <div style={{ display: 'flex', gap: '1rem' }}>
                         <div style={{ flex: 1 }}>
@@ -265,22 +368,6 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                     </div>
 
                     <div style={{ display: 'flex', gap: '1rem' }}>
-                        <div style={{ flex: 1 }}>
-                            <label style={labelStyle}>Estado</label>
-                            <select 
-                                style={inputStyle} 
-                                value={status} 
-                                onChange={e => setStatus(e.target.value as any)}
-                            >
-                                <option value="paid">
-                                    {isRefund 
-                                        ? `Recibida (${paymentMethodType === 'account' ? 'Banco' : paymentMethodType === 'card' ? 'Tarjeta' : 'Efectivo'})`
-                                        : `Pagado (${paymentMethodType === 'account' ? 'Banco' : paymentMethodType === 'card' ? 'Tarjeta' : 'Efectivo'})`
-                                    }
-                                </option>
-                                <option value="pending">{isRefund ? 'Pendiente de recibir' : 'Pendiente'}</option>
-                            </select>
-                        </div>
                         {paymentMethodType === 'card' && selectedMethodId && cards.find(c => c.id === selectedMethodId)?.type !== 'virtual' && (
                             <div style={{ flex: 1 }}>
                                 <label style={labelStyle}>Ajuste de Liquidación</label>
@@ -297,7 +384,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                         )}
                     </div>
 
-                    {paymentMethodType === 'card' && selectedMethodId && cards.find(c => c.id === selectedMethodId)?.type !== 'virtual' && (
+                    {type === 'puntual' && paymentMethodType === 'card' && selectedMethodId && cards.find(c => c.id === selectedMethodId)?.type !== 'virtual' && (
                         <div style={{ 
                             background: 'rgba(251, 191, 36, 0.05)', 
                             border: '1px solid rgba(251, 191, 36, 0.15)',
@@ -336,8 +423,8 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                         </div>
                     )}
 
-                    {/* Hucha Financing */}
-                    {!isRefund && (
+                    {/* Hucha Financing (Only for Puntual) */}
+                    {type === 'puntual' && !isRefund && (
                         <div style={{ 
                             background: 'rgba(99, 102, 241, 0.05)', 
                             padding: '1.5rem', 
@@ -440,8 +527,6 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                                     </div>
                                 </div>
                             )}
-
-
                         </div>
                     )}
 
@@ -450,15 +535,15 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                         padding: '1.2rem',
                         borderRadius: '12px',
                         border: 'none',
-                        background: (isFundingInvalid || hasNoAccounts) ? '#3e3f4b' : (isRefund ? 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)' : '#4f46e5'),
+                        background: (isFundingInvalid || hasNoAccounts) ? '#3e3f4b' : (isRefund ? 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)' : '#ef4444'),
                         color: (isFundingInvalid || hasNoAccounts) ? 'rgba(255,255,255,0.3)' : 'white',
                         fontWeight: 700,
                         fontSize: '1.1rem',
                         cursor: (isFundingInvalid || hasNoAccounts) ? 'not-allowed' : 'pointer',
                         transition: 'background 0.2s',
-                        boxShadow: (isFundingInvalid || hasNoAccounts) ? 'none' : (isRefund ? '0 4px 15px rgba(14, 165, 233, 0.3)' : 'none')
+                        boxShadow: (isFundingInvalid || hasNoAccounts) ? 'none' : (isRefund ? '0 4px 15px rgba(14, 165, 233, 0.3)' : '0 4px 15px rgba(239, 68, 68, 0.3)')
                     }}>
-                        {isRefund ? 'Añadir Devolución' : 'Añadir Gasto'}
+                        {isRefund ? 'Añadir Devolución' : (type === 'fixed' ? 'Añadir Gasto Fijo' : 'Añadir Gasto')}
                     </button>
                 </form>
             </div>

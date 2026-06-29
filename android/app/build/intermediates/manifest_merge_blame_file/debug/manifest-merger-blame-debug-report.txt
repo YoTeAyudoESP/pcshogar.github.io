@@ -1,0 +1,256 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.pcshogar.app"
+4    android:versionCode="10509"
+5    android:versionName="1.5.9" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="22"
+9        android:targetSdkVersion="34" />
+10
+11    <!-- Permissions -->
+12    <uses-permission android:name="android.permission.INTERNET" />
+12-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:47:5-67
+12-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:47:22-64
+13    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+13-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:48:5-83
+13-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:48:22-80
+14    <!-- Storage: allows writing to public Downloads folder on Android 9–12 -->
+15    <uses-permission
+15-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:50:5-51:38
+16        android:name="android.permission.READ_EXTERNAL_STORAGE"
+16-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:50:22-77
+17        android:maxSdkVersion="32" />
+17-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:51:9-35
+18    <uses-permission
+18-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:52:5-53:38
+19        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+19-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:52:22-78
+20        android:maxSdkVersion="32" />
+20-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:53:9-35
+21    <!-- Biometrics: Fingerprint and Face ID support -->
+22    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+22-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:55:5-72
+22-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:55:22-69
+23    <uses-permission android:name="android.permission.USE_FINGERPRINT" />
+23-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:56:5-74
+23-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:56:22-71
+24
+25    <queries>
+25-->[:capacitor-browser] C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\node_modules\@capacitor\browser\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:7:5-11:15
+26        <intent>
+26-->[:capacitor-browser] C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\node_modules\@capacitor\browser\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:8:9-10:18
+27            <action android:name="android.support.customtabs.action.CustomTabsService" />
+27-->[:capacitor-browser] C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\node_modules\@capacitor\browser\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:9:13-90
+27-->[:capacitor-browser] C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\node_modules\@capacitor\browser\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:9:21-87
+28        </intent>
+29    </queries>
+30
+31    <permission
+31-->[androidx.core:core:1.12.0] C:\Users\pablo\.gradle\caches\transforms-3\4f7b0d764f8b5d0d84c4d0344e1adc27\transformed\core-1.12.0\AndroidManifest.xml:22:5-24:47
+32        android:name="com.pcshogar.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+32-->[androidx.core:core:1.12.0] C:\Users\pablo\.gradle\caches\transforms-3\4f7b0d764f8b5d0d84c4d0344e1adc27\transformed\core-1.12.0\AndroidManifest.xml:23:9-81
+33        android:protectionLevel="signature" />
+33-->[androidx.core:core:1.12.0] C:\Users\pablo\.gradle\caches\transforms-3\4f7b0d764f8b5d0d84c4d0344e1adc27\transformed\core-1.12.0\AndroidManifest.xml:24:9-44
+34
+35    <uses-permission android:name="com.pcshogar.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+35-->[androidx.core:core:1.12.0] C:\Users\pablo\.gradle\caches\transforms-3\4f7b0d764f8b5d0d84c4d0344e1adc27\transformed\core-1.12.0\AndroidManifest.xml:26:5-97
+35-->[androidx.core:core:1.12.0] C:\Users\pablo\.gradle\caches\transforms-3\4f7b0d764f8b5d0d84c4d0344e1adc27\transformed\core-1.12.0\AndroidManifest.xml:26:22-94
+36
+37    <application
+37-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:4:5-44:19
+38        android:allowBackup="true"
+38-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:5:9-35
+39        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+39-->[androidx.core:core:1.12.0] C:\Users\pablo\.gradle\caches\transforms-3\4f7b0d764f8b5d0d84c4d0344e1adc27\transformed\core-1.12.0\AndroidManifest.xml:28:18-86
+40        android:debuggable="true"
+41        android:extractNativeLibs="true"
+42        android:icon="@mipmap/ic_launcher"
+42-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:6:9-43
+43        android:label="@string/app_name"
+43-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:7:9-41
+44        android:requestLegacyExternalStorage="true"
+44-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:10:9-52
+45        android:roundIcon="@mipmap/ic_launcher_round"
+45-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:8:9-54
+46        android:supportsRtl="true"
+46-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:9:9-35
+47        android:theme="@style/AppTheme" >
+47-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:11:9-40
+48        <activity
+48-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:13:9-33:20
+49            android:name="com.pcshogar.app.MainActivity"
+49-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:15:13-41
+50            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
+50-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:14:13-129
+51            android:exported="true"
+51-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:19:13-36
+52            android:label="@string/title_activity_main"
+52-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:16:13-56
+53            android:launchMode="singleTask"
+53-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:18:13-44
+54            android:theme="@style/AppTheme.NoActionBarLaunch" >
+54-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:17:13-62
+55            <intent-filter>
+55-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:21:13-24:29
+56                <action android:name="android.intent.action.MAIN" />
+56-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:22:17-69
+56-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:22:25-66
+57
+58                <category android:name="android.intent.category.LAUNCHER" />
+58-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:23:17-77
+58-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:23:27-74
+59            </intent-filter>
+60            <intent-filter>
+60-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:26:13-31:29
+61                <action android:name="android.intent.action.VIEW" />
+61-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:27:17-69
+61-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:27:25-66
+62
+63                <category android:name="android.intent.category.DEFAULT" />
+63-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:28:17-76
+63-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:28:27-73
+64                <category android:name="android.intent.category.BROWSABLE" />
+64-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:29:17-78
+64-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:29:27-75
+65
+66                <data android:scheme="com.pcshogar.app" />
+66-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:30:17-59
+66-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:30:23-56
+67            </intent-filter>
+68        </activity>
+69
+70        <provider
+71            android:name="androidx.core.content.FileProvider"
+71-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:36:13-62
+72            android:authorities="com.pcshogar.app.fileprovider"
+72-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:37:13-64
+73            android:exported="false"
+73-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:38:13-37
+74            android:grantUriPermissions="true" >
+74-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:39:13-47
+75            <meta-data
+75-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:40:13-42:64
+76                android:name="android.support.FILE_PROVIDER_PATHS"
+76-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:41:17-67
+77                android:resource="@xml/file_paths" />
+77-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:42:17-51
+78        </provider>
+79        <provider
+79-->[:capacitor-community-file-opener] C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\node_modules\@capacitor-community\file-opener\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:8:9-16:20
+80            android:name="com.ryltsov.alex.plugins.file.opener.FileOpenerProvider"
+80-->[:capacitor-community-file-opener] C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\node_modules\@capacitor-community\file-opener\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:9:13-83
+81            android:authorities="com.pcshogar.app.file.opener.provider"
+81-->[:capacitor-community-file-opener] C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\node_modules\@capacitor-community\file-opener\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:10:13-72
+82            android:exported="false"
+82-->[:capacitor-community-file-opener] C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\node_modules\@capacitor-community\file-opener\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:11:13-37
+83            android:grantUriPermissions="true" >
+83-->[:capacitor-community-file-opener] C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\node_modules\@capacitor-community\file-opener\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:12:13-47
+84            <meta-data
+84-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:40:13-42:64
+85                android:name="android.support.FILE_PROVIDER_PATHS"
+85-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:41:17-67
+86                android:resource="@xml/file_opener_paths" />
+86-->C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\AndroidManifest.xml:42:17-51
+87        </provider>
+88
+89        <activity
+89-->[:capgo-capacitor-native-biometric] C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\node_modules\@capgo\capacitor-native-biometric\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:8:9-11:59
+90            android:name="ee.forgr.biometric.AuthActivity"
+90-->[:capgo-capacitor-native-biometric] C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\node_modules\@capgo\capacitor-native-biometric\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:9:13-59
+91            android:label="@string/title_activity_auth_activity"
+91-->[:capgo-capacitor-native-biometric] C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\node_modules\@capgo\capacitor-native-biometric\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:10:13-65
+92            android:theme="@style/AppTheme.Transparent" />
+92-->[:capgo-capacitor-native-biometric] C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\node_modules\@capgo\capacitor-native-biometric\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:11:13-56
+93        <activity
+93-->[:capacitor-browser] C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\node_modules\@capacitor\browser\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:14:9-18:75
+94            android:name="com.capacitorjs.plugins.browser.BrowserControllerActivity"
+94-->[:capacitor-browser] C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\node_modules\@capacitor\browser\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:15:13-85
+95            android:exported="false"
+95-->[:capacitor-browser] C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\node_modules\@capacitor\browser\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:16:13-37
+96            android:launchMode="singleTask"
+96-->[:capacitor-browser] C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\node_modules\@capacitor\browser\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:17:13-44
+97            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+97-->[:capacitor-browser] C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\node_modules\@capacitor\browser\android\build\intermediates\merged_manifest\debug\AndroidManifest.xml:18:13-72
+98
+99        <provider
+99-->[androidx.emoji2:emoji2:1.2.0] C:\Users\pablo\.gradle\caches\transforms-3\61f606930917a64588c199b54d3d711a\transformed\emoji2-1.2.0\AndroidManifest.xml:24:9-32:20
+100            android:name="androidx.startup.InitializationProvider"
+100-->[androidx.emoji2:emoji2:1.2.0] C:\Users\pablo\.gradle\caches\transforms-3\61f606930917a64588c199b54d3d711a\transformed\emoji2-1.2.0\AndroidManifest.xml:25:13-67
+101            android:authorities="com.pcshogar.app.androidx-startup"
+101-->[androidx.emoji2:emoji2:1.2.0] C:\Users\pablo\.gradle\caches\transforms-3\61f606930917a64588c199b54d3d711a\transformed\emoji2-1.2.0\AndroidManifest.xml:26:13-68
+102            android:exported="false" >
+102-->[androidx.emoji2:emoji2:1.2.0] C:\Users\pablo\.gradle\caches\transforms-3\61f606930917a64588c199b54d3d711a\transformed\emoji2-1.2.0\AndroidManifest.xml:27:13-37
+103            <meta-data
+103-->[androidx.emoji2:emoji2:1.2.0] C:\Users\pablo\.gradle\caches\transforms-3\61f606930917a64588c199b54d3d711a\transformed\emoji2-1.2.0\AndroidManifest.xml:29:13-31:52
+104                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+104-->[androidx.emoji2:emoji2:1.2.0] C:\Users\pablo\.gradle\caches\transforms-3\61f606930917a64588c199b54d3d711a\transformed\emoji2-1.2.0\AndroidManifest.xml:30:17-75
+105                android:value="androidx.startup" />
+105-->[androidx.emoji2:emoji2:1.2.0] C:\Users\pablo\.gradle\caches\transforms-3\61f606930917a64588c199b54d3d711a\transformed\emoji2-1.2.0\AndroidManifest.xml:31:17-49
+106            <meta-data
+106-->[androidx.lifecycle:lifecycle-process:2.6.1] C:\Users\pablo\.gradle\caches\transforms-3\7d158143758428a9a27e664e481c199e\transformed\lifecycle-process-2.6.1\AndroidManifest.xml:29:13-31:52
+107                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+107-->[androidx.lifecycle:lifecycle-process:2.6.1] C:\Users\pablo\.gradle\caches\transforms-3\7d158143758428a9a27e664e481c199e\transformed\lifecycle-process-2.6.1\AndroidManifest.xml:30:17-78
+108                android:value="androidx.startup" />
+108-->[androidx.lifecycle:lifecycle-process:2.6.1] C:\Users\pablo\.gradle\caches\transforms-3\7d158143758428a9a27e664e481c199e\transformed\lifecycle-process-2.6.1\AndroidManifest.xml:31:17-49
+109            <meta-data
+109-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\pablo\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:29:13-31:52
+110                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+110-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\pablo\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:30:17-85
+111                android:value="androidx.startup" />
+111-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\pablo\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:31:17-49
+112        </provider>
+113
+114        <uses-library
+114-->[androidx.window:window:1.0.0] C:\Users\pablo\.gradle\caches\transforms-3\a10b6c9ea0a558dd104b9867ec3ab4a6\transformed\window-1.0.0\AndroidManifest.xml:25:9-27:40
+115            android:name="androidx.window.extensions"
+115-->[androidx.window:window:1.0.0] C:\Users\pablo\.gradle\caches\transforms-3\a10b6c9ea0a558dd104b9867ec3ab4a6\transformed\window-1.0.0\AndroidManifest.xml:26:13-54
+116            android:required="false" />
+116-->[androidx.window:window:1.0.0] C:\Users\pablo\.gradle\caches\transforms-3\a10b6c9ea0a558dd104b9867ec3ab4a6\transformed\window-1.0.0\AndroidManifest.xml:27:13-37
+117        <uses-library
+117-->[androidx.window:window:1.0.0] C:\Users\pablo\.gradle\caches\transforms-3\a10b6c9ea0a558dd104b9867ec3ab4a6\transformed\window-1.0.0\AndroidManifest.xml:28:9-30:40
+118            android:name="androidx.window.sidecar"
+118-->[androidx.window:window:1.0.0] C:\Users\pablo\.gradle\caches\transforms-3\a10b6c9ea0a558dd104b9867ec3ab4a6\transformed\window-1.0.0\AndroidManifest.xml:29:13-51
+119            android:required="false" />
+119-->[androidx.window:window:1.0.0] C:\Users\pablo\.gradle\caches\transforms-3\a10b6c9ea0a558dd104b9867ec3ab4a6\transformed\window-1.0.0\AndroidManifest.xml:30:13-37
+120
+121        <receiver
+121-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\pablo\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:34:9-52:20
+122            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+122-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\pablo\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:35:13-76
+123            android:directBootAware="false"
+123-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\pablo\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:36:13-44
+124            android:enabled="true"
+124-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\pablo\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:37:13-35
+125            android:exported="true"
+125-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\pablo\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:38:13-36
+126            android:permission="android.permission.DUMP" >
+126-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\pablo\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:39:13-57
+127            <intent-filter>
+127-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\pablo\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:40:13-42:29
+128                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+128-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\pablo\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:41:17-91
+128-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\pablo\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:41:25-88
+129            </intent-filter>
+130            <intent-filter>
+130-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\pablo\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:43:13-45:29
+131                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+131-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\pablo\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:44:17-85
+131-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\pablo\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:44:25-82
+132            </intent-filter>
+133            <intent-filter>
+133-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\pablo\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:46:13-48:29
+134                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+134-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\pablo\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:47:17-88
+134-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\pablo\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:47:25-85
+135            </intent-filter>
+136            <intent-filter>
+136-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\pablo\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:49:13-51:29
+137                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+137-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\pablo\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:50:17-95
+137-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\pablo\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\AndroidManifest.xml:50:25-92
+138            </intent-filter>
+139        </receiver>
+140    </application>
+141
+142</manifest>

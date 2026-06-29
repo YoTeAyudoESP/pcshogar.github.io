@@ -1,8 +1,8 @@
-node_modules/
-dist/
-dist_android/
-dist_electron/
-android/
 *.exe
 *.apk
-backup_pcshogar_*.zip
+*.zip
+node_modules/
+dist/
+dist_electron/
+dist_android/
+.DS_Store

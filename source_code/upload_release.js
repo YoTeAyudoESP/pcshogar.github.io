@@ -3,7 +3,7 @@ import path from 'path';
 
 const token = "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";
 const repo = "YoTeAyudoESP/pcshogar.github.io";
-const version = "v1.6.7";
+const version = "v1.7.0";
 
 async function uploadRelease() {
     console.log("Creating release...");
@@ -18,7 +18,7 @@ async function uploadRelease() {
         body: JSON.stringify({
             tag_name: version,
             name: `PCSHogar ${version}`,
-            body: "Novedades v1.6.7:\n- 🚀 Motor Dinámico de Desajustes: La app ahora calcula tu deuda real en tiempo real revisando cada transacción de tarjeta, en lugar de fiarse de saldos estáticos que puedan fallar.\n- 🛠 Auto-Reparación Inteligente: Al actualizar la app, todos los saldos de tus tarjetas se repararán automáticamente si existía algún desajuste por un borrado o error pasado.",
+            body: "Novedades v1.7.0:\n- 🚀 Alerta de desajustes mejorada (incluye gastos fijos pendientes).\n- 💳 Cálculo de deuda acumulada de tarjetas de crédito optimizado.\n- 🛠 Opción de ocultar alerta de desajustes (3 días o hasta próximo mes).",
             draft: false,
             prerelease: false
         })
@@ -46,10 +46,10 @@ async function uploadRelease() {
     console.log("Upload URL:", uploadUrl);
 
     // Upload APK
-    const apkPath = "dist_android/PCSHogar_Setup_v1.6.7.apk";
+    const apkPath = "dist_android/PCSHogar_Setup_v1.7.0.apk";
     console.log("Uploading APK...");
     const apkBuffer = fs.readFileSync(apkPath);
-    const apkRes = await fetch(`${uploadUrl}?name=PCSHogar_Setup_v1.6.7.apk`, {
+    const apkRes = await fetch(`${uploadUrl}?name=PCSHogar_Setup_v1.7.0.apk`, {
         method: "POST",
         headers: {
             "Authorization": `Bearer ${token}`,
@@ -62,13 +62,13 @@ async function uploadRelease() {
     console.log("APK uploaded:", apkRes.ok, await apkRes.text());
 
     // Upload EXE
-    let exePath = "dist_electron/PCSHogar Setup 1.6.7.exe";
+    let exePath = "dist_electron/PCSHogar Setup 1.7.0.exe";
     if (!fs.existsSync(exePath)) {
-        exePath = "dist_electron/PCSHogar_Setup_v1.6.7.exe";
+        exePath = "dist_electron/PCSHogar_Setup_v1.7.0.exe";
     }
-    console.log("Uploading EXE from " + exePath + "...");
+    console.log(`Uploading EXE from ${exePath}...`);
     const exeBuffer = fs.readFileSync(exePath);
-    const exeRes = await fetch(`${uploadUrl}?name=PCSHogar_Setup_v1.6.7.exe`, {
+    const exeRes = await fetch(`${uploadUrl}?name=PCSHogar_Setup_v1.7.0.exe`, {
         method: "POST",
         headers: {
             "Authorization": `Bearer ${token}`,

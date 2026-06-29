@@ -470,6 +470,7 @@ export class GoogleDriveService {
             const localData = this.normalizeDataKeys(rawLocal);
             
             const rawRemote = await this.downloadData();
+            this._sessionVerified = true;
             if (!rawRemote) {
                 await this.uploadData(localData);
                 return Date.now();

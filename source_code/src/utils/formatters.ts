@@ -4,14 +4,17 @@
  * Example: 1234.56 => "1.234,56 €"
  */
 export const formatCurrency = (amount: number, currency: string = 'EUR'): string => {
-    // We use 'es-ES' locale to get the requested format (dot for thousands, comma for decimals)
-    // regardless of the application language setting, as per user's specific request.
-    const formatter = new Intl.NumberFormat('es-ES', {
-        style: 'currency',
-        currency: currency,
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    });
+    if (amount === undefined || amount === null || isNaN(amount)) {
+        return `0,00€`;
+    }
+    const isNegative = amount < 0;
+    const fixedVal = Math.abs(amount).toFixed(2);
+    const [integerPart, decimalPart] = fixedVal.split('.');
+    const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    
+    let symbol = '€';
+    if (currency === 'USD') symbol = '$';
+    if (currency === 'GBP') symbol = '£';
 
-    return formatter.format(amount);
+    return `${isNegative ? '-' : ''}${formattedInteger},${decimalPart}${symbol}`;
 };

@@ -27,6 +27,7 @@ export interface FixedIncome extends IncomeBase {
     paymentMonth?: number; // 1-indexed
     active: boolean;
     ignoredPeriods?: string[]; // Format: "YYYY-MM"
+    accountForNextMonth?: boolean;
 }
 
 export interface ExtraIncome extends IncomeBase {

@@ -29,21 +29,27 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
 
     const [amount, setAmount] = useState(type === 'refund' ? Math.abs(item.amount) : item.amount);
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-    const [budgetPeriod, setBudgetPeriod] = useState(isDuplicateIncome ? nextMonthPeriod : currentRealPeriod);
+    const [budgetPeriod, setBudgetPeriod] = useState(() => {
+        if (isDuplicateIncome) return nextMonthPeriod;
+        if (type === 'income' && item.accountForNextMonth) return nextMonthPeriod;
+        return currentRealPeriod;
+    });
     const [accountId, setAccountId] = useState('');
     const [methodType, setMethodType] = useState<'account' | 'card'>('account');
     const [allocationTarget, setAllocationTarget] = useState<'budget' | 'exclude' | 'hucha'>('budget');
     const [selectedSavingGoalId, setSelectedSavingGoalId] = useState('');
-    const [duplicateOption, setDuplicateOption] = useState<'next' | 'current'>('next');
+    const [duplicateOption, setDuplicateOption] = useState<'next' | 'current'>(isDuplicateIncome ? 'next' : 'current');
 
     useEffect(() => {
         if (isDuplicateIncome) {
             setBudgetPeriod(nextMonthPeriod);
             setDuplicateOption('next');
+        } else if (type === 'income' && item.accountForNextMonth) {
+            setBudgetPeriod(nextMonthPeriod);
         } else {
             setBudgetPeriod(currentRealPeriod);
         }
-    }, [isDuplicateIncome]);
+    }, [isDuplicateIncome, type, item.accountForNextMonth]);
 
     const handleDuplicateOptionChange = (option: 'next' | 'current') => {
         setDuplicateOption(option);

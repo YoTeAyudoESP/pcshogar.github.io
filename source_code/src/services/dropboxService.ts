@@ -346,6 +346,8 @@ export class DropboxService {
             
             // 2. Download remote and normalize
             const rawRemote = await this.downloadData();
+            // If downloadData succeeded, the token is valid
+            this._sessionVerified = true;
             if (!rawRemote) {
                 // First time: just upload local
                 await this.uploadData(localData);

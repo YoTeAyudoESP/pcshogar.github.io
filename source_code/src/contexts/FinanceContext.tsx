@@ -570,7 +570,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                 id: `adj_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
                 goalId: newGoal.id,
                 amount: newGoal.currentAmount,
-                type: 'manual',
+                type: newGoal.accountInBudget !== false ? 'manual' : 'adjustment',
                 description: 'Saldo inicial',
                 date: Date.now(),
                 updatedAt: Date.now()
@@ -911,6 +911,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         await refreshFinance();
     };
 
+
     const updateSavingGoal = async (goal: SavingGoal) => {
         const oldGoal = savings.find(g => g.id === goal.id);
         const oldAmount = oldGoal ? oldGoal.currentAmount : 0;
@@ -921,7 +922,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                 id: `adj_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
                 goalId: goal.id,
                 amount: diff,
-                type: 'manual',
+                type: goal.accountInBudget !== false ? 'manual' : 'adjustment',
                 description: diff > 0 ? 'Ajuste manual de saldo (Incremento)' : 'Ajuste manual de saldo (Reducción)',
                 date: Date.now(),
                 updatedAt: Date.now()

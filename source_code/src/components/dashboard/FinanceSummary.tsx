@@ -80,8 +80,9 @@ const FinanceSummary: React.FC = () => {
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'center',
-                gap: '1.5rem',
-                position: 'relative'
+                width: '100%',
+                position: 'relative',
+                padding: '0 40px'
             }}>
                 <div style={{ 
                     fontSize: isMobile ? '3.5rem' : '4.5rem', 
@@ -108,6 +109,8 @@ const FinanceSummary: React.FC = () => {
                         padding: '8px',
                         position: 'absolute',
                         right: '0',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
                         display: 'flex',
                         alignItems: 'center'
                     }}

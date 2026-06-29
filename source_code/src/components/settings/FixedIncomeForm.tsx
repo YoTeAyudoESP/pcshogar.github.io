@@ -20,11 +20,12 @@ const FixedIncomeForm: React.FC<FixedIncomeFormProps> = ({ editingIncome, onClos
     const [paymentDay, setPaymentDay] = useState(editingIncome?.paymentDay?.toString() || '1');
     const [paymentMonth, setPaymentMonth] = useState(editingIncome?.paymentMonth?.toString() || '1');
     const [accountId, setAccountId] = useState(editingIncome?.linkedAccountId || '');
+    const [accountForNextMonth, setAccountForNextMonth] = useState(editingIncome?.accountForNextMonth || false);
 
     useEffect(() => {
         const handleBack = (e: Event) => {
             e.preventDefault();
-            const isDirty = name !== '' || amount !== '' || frequency !== 'monthly' || paymentDay !== '1' || accountId !== '';
+            const isDirty = name !== '' || amount !== '' || frequency !== 'monthly' || paymentDay !== '1' || accountId !== '' || accountForNextMonth;
             if (!editingIncome && isDirty) {
                 if (window.confirm('Tienes cambios sin guardar. ¿Deseas descartarlos y volver?')) {
                     onClose();
@@ -35,7 +36,8 @@ const FixedIncomeForm: React.FC<FixedIncomeFormProps> = ({ editingIncome, onClos
                     frequency !== editingIncome.frequency ||
                     paymentDay !== (editingIncome.paymentDay?.toString() || '1') ||
                     paymentMonth !== (editingIncome.paymentMonth?.toString() || '1') ||
-                    accountId !== (editingIncome.linkedAccountId || '');
+                    accountId !== (editingIncome.linkedAccountId || '') ||
+                    accountForNextMonth !== (editingIncome.accountForNextMonth || false);
                 if (isModified) {
                     if (window.confirm('Tienes cambios sin guardar. ¿Deseas descartarlos y volver?')) {
                         onClose();
@@ -50,7 +52,7 @@ const FixedIncomeForm: React.FC<FixedIncomeFormProps> = ({ editingIncome, onClos
 
         document.addEventListener('app-back-pressed', handleBack);
         return () => document.removeEventListener('app-back-pressed', handleBack);
-    }, [name, amount, frequency, paymentDay, paymentMonth, accountId, editingIncome, onClose]);
+    }, [name, amount, frequency, paymentDay, paymentMonth, accountId, accountForNextMonth, editingIncome, onClose]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -68,6 +70,7 @@ const FixedIncomeForm: React.FC<FixedIncomeFormProps> = ({ editingIncome, onClos
             status: 'pending' as const,
             type: 'fixed' as const,
             expirationDate: expirationDate ? new Date(expirationDate).getTime() : undefined,
+            accountForNextMonth,
             createdAt: editingIncome?.createdAt || Date.now()
         };
 
@@ -271,6 +274,22 @@ const FixedIncomeForm: React.FC<FixedIncomeFormProps> = ({ editingIncome, onClos
                         onChange={e => setExpirationDate(e.target.value)} 
                     />
                 </div>
+            </div>
+
+            {/* Contabilizar al mes siguiente */}
+            <div style={{ ...containerStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', background: 'rgba(25, 27, 34, 0.4)', borderRadius: '0.75rem', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span style={{ fontSize: '0.95rem', fontWeight: 500 }}>Contabilizar al mes siguiente</span>
+                    <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>El cobro se asignará automáticamente al presupuesto del mes próximo</span>
+                </div>
+                <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                    <input 
+                        type="checkbox"
+                        checked={accountForNextMonth}
+                        onChange={(e) => setAccountForNextMonth(e.target.checked)}
+                        style={{ width: '20px', height: '20px', accentColor: 'var(--primary)', cursor: 'pointer' }}
+                    />
+                </label>
             </div>
 
             {/* Cuenta o Efectivo */}

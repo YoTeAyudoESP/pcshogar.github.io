@@ -48,8 +48,33 @@ const PendingActionsWidget: React.FC<PendingActionsWidgetProps> = ({ onEdit }) =
 
         if (start > monthEnd || end < monthStart || isIgnored) return false;
         if (inc.status === 'received') return false; // Already received (though fixedIncomes usually stay 'pending' and create extra incomes)
+        let expectedPeriod = period;
+        if (inc.accountForNextMonth) {
+            let nextM = selectedMonth + 1;
+            let nextY = selectedYear;
+            if (nextM > 11) {
+                nextM = 0;
+                nextY++;
+            }
+            expectedPeriod = `${nextY}-${(nextM + 1).toString().padStart(2, '0')}`;
+        }
+
+        const isConfirmed = incomes.some(ei => {
+            if (ei.fixedIncomeId !== inc.id) return false;
+            
+            if (ei.period === expectedPeriod) return true;
+            if (ei.budgetMonth !== undefined && ei.budgetYear !== undefined) {
+                const expectedMonth = parseInt(expectedPeriod.split('-')[1]) - 1;
+                const expectedYear = parseInt(expectedPeriod.split('-')[0]);
+                if (ei.budgetMonth === expectedMonth && ei.budgetYear === expectedYear) return true;
+            }
+            
+            const d = new Date((ei as any).receivedDate || (ei as any).effectiveDate || (ei as any).createdAt || Date.now());
+            if (d.getFullYear() === selectedYear && d.getMonth() === selectedMonth) return true;
+            
+            return false;
+        });
         
-        const isConfirmed = incomes.some(ei => ei.fixedIncomeId === inc.id && ei.period === period);
         if (isConfirmed) return false;
 
         return isRecurringActiveInMonth(inc.frequency, inc.paymentMonth, selectedMonth, selectedYear, start);

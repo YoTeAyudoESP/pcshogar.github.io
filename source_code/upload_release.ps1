@@ -1,4 +1,4 @@
-$token = "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"
+$token = $env:GITHUB_TOKEN
 $repo = "YoTeAyudoESP/pcshogar.github.io"
 $version = "v1.7.0"
 $apkPath = "dist_android\PCSHogar_Setup_v1.7.0.apk"

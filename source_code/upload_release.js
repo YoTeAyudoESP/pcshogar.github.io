@@ -1,7 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 
-const token = "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";
+const token = process.env.GITHUB_TOKEN;
+if (!token) {
+    console.error("Please set GITHUB_TOKEN environment variable.");
+    process.exit(1);
+}
 const repo = "YoTeAyudoESP/pcshogar.github.io";
 const version = "v1.7.0";
 

@@ -1,0 +1,24 @@
+# Task: Domestic Economy App - Income Module
+
+- [ ] Project Initialization
+    - [/] Initialize Vite + React + TypeScript project
+    - [ ] Clean up boilerplate and set up basic directory structure
+    - [ ] Create core CSS variables (Vanilla CSS) for "Premium Design"
+- [ ] Data Layer Implementation
+    - [ ] Define TypeScript interfaces for Income (Fixed & Extra)
+    - [ ] Set up Local Storage / IndexedDB service (Offline priority)
+    - [ ] Create Service Layer for Income Management (CRUD)
+- [ ] Income Module UI - Foundation
+    - [ ] Create layout component with responsive sidebar/nav
+    - [ ] Design and implement "Dashboard" overview card
+- [ ] Feature: Fixed Incomes
+    - [ ] List View (with expiration dates awareness)
+    - [ ] Add/Edit Form (Date picker, Frequency, Amount)
+    - [ ] Forecast logic (calculating future projections)
+- [ ] Feature: Extra Incomes
+    - [ ] Quick Add Interface
+    - [ ] History Log
+- [ ] Verification & Polish
+    - [ ] Verify offline data persistence
+    - [ ] Test responsiveness (Mobile vs Desktop)
+    - [ ] Final design polish (Animations, Gradients)

@@ -1,0 +1,6 @@
+{
+  "artifactType": "ARTIFACT_TYPE_IMPLEMENTATION_PLAN",
+  "summary": "Detailed plan for the System Expansion. Defines new data models (Account, Card, Expense, Savings), interaction logic, and the UI components required for the new features.",
+  "updatedAt": "2025-12-16T11:38:26.618436200Z",
+  "version": "1"
+}

@@ -160,6 +160,7 @@ export function calculateAvailableBalanceForMonth(
     let grossCashExpenses = 0;
     let variableExpensesPaid = 0;
     let fixedExpensesDeviations = 0;
+    const paidFixedExpensesByReId: Record<string, number> = {};
 
     expenses
         .filter(exp => isItemInMonthAndYear(exp, month, year))
@@ -178,11 +179,9 @@ export function calculateAvailableBalanceForMonth(
             totalMonthExpenses += netAmount;
 
             if (exp.isFixed) {
-                const re = recurringExpenses.find(r => r.id === exp.recurringExpenseId);
-                if (re) {
-                    fixedExpensesDeviations += (netAmount - re.amount);
+                if (exp.recurringExpenseId) {
+                    paidFixedExpensesByReId[exp.recurringExpenseId] = (paidFixedExpensesByReId[exp.recurringExpenseId] || 0) + netAmount;
                 } else {
-                    // If it's fixed but no recurring record found, treat it as a variable expense for budget purposes
                     variableExpensesPaid += netAmount;
                 }
             } else {
@@ -229,6 +228,21 @@ export function calculateAvailableBalanceForMonth(
             if (!isPaid) {
                 pendingFixedExpenses += re.amount;
             }
+        }
+    });
+
+    Object.entries(paidFixedExpensesByReId).forEach(([reId, totalPaid]) => {
+        const re = recurringExpenses.find(r => r.id === reId);
+        if (re) {
+            const start = re.createdAt || re.updatedAt || 0;
+            const isIgnored = re.ignoredPeriods?.includes(period);
+            const isProjected = re.active && start <= monthEnd && !isIgnored && isRecurringActiveInMonth(re.frequency, re.paymentMonth, month, year, start);
+            
+            const projectedAmount = isProjected ? re.amount : 0;
+            fixedExpensesDeviations += (totalPaid - projectedAmount);
+        } else {
+            // Re-assign to variable expenses since RE doesn't exist
+            variableExpensesPaid += totalPaid;
         }
     });
 
@@ -346,15 +360,30 @@ export function calculateAvailableBalanceForMonth(
             return isItemInMonthAndYear(exp, month, year) && t > overrideTime;
         }).reduce((sum, exp) => sum + exp.amount, 0);
 
-        const fixedDeviationsAfter = expenses.filter(exp => {
+        const paidFixedDeviationsByReIdAfter: Record<string, number> = {};
+        expenses.filter(exp => {
             if (!exp.isFixed || exp.excludeFromBudget) return false;
             if (exp.amount < 0 && exp.status === 'pending') return false;
             const t = Number(exp.updatedAt || exp.date || (exp as any).createdAt || 0);
             return isItemInMonthAndYear(exp, month, year) && t > overrideTime;
-        }).reduce((sum, exp) => {
-            const re = recurringExpenses.find(r => r.id === exp.recurringExpenseId);
-            return sum + (exp.amount - (re?.amount || 0));
-        }, 0);
+        }).forEach(exp => {
+            if (exp.recurringExpenseId) {
+                paidFixedDeviationsByReIdAfter[exp.recurringExpenseId] = (paidFixedDeviationsByReIdAfter[exp.recurringExpenseId] || 0) + exp.amount;
+            }
+        });
+
+        let fixedDeviationsAfter = 0;
+        Object.entries(paidFixedDeviationsByReIdAfter).forEach(([reId, totalPaid]) => {
+            const re = recurringExpenses.find(r => r.id === reId);
+            let projectedAmount = 0;
+            if (re) {
+                const start = re.createdAt || re.updatedAt || 0;
+                const isIgnored = re.ignoredPeriods?.includes(period);
+                const isProjected = re.active && start <= monthEnd && !isIgnored && isRecurringActiveInMonth(re.frequency, re.paymentMonth, month, year, start);
+                projectedAmount = isProjected ? re.amount : 0;
+            }
+            fixedDeviationsAfter += (totalPaid - projectedAmount);
+        });
 
         const allocationsAfter = allocations.filter(alloc => {
             const t = Number(alloc.updatedAt || (alloc as any).date || (alloc as any).createdAt || 0);

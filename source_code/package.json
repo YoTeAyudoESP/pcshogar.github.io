@@ -1,15 +1,16 @@
 {
   "name": "pcshogar",
   "private": true,
-  "version": "1.7.0",
+  "version": "1.7.1",
   "description": "Control de Gastos",
-  "versionCode": 190,
-  "versionName": "1.7.0",
+  "versionCode": 191,
+  "versionName": "1.7.1",
   "type": "module",
   "main": "electron/main.js",
   "build": {
     "appId": "com.pcshogar.app",
     "productName": "PCSHogar",
+    "artifactName": "PCSHogar_Setup_v${version}.${ext}",
     "compression": "maximum",
     "icon": "public/Icono_PCSHogar.png",
     "publish": [

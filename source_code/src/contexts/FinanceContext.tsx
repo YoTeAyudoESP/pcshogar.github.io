@@ -811,27 +811,19 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
             // Check if this recurring expense is linked to any active loan
             const linkedLoan = loans.find(l => l.linkedRecurringExpenseId === fixedId && l.status === 'active');
             if (linkedLoan) {
-                // Determine source account for amortization
-                let actualAccountId = accountId;
-                if (isCard) {
-                    const card = cards.find(c => c.id === accountId);
-                    if (card && card.linkedAccountId) {
-                        actualAccountId = card.linkedAccountId;
-                    } else {
-                        // Fallback to first available account if card has no linked account
-                        const firstAccount = accounts[0];
-                        if (firstAccount) actualAccountId = firstAccount.id;
-                    }
-                }
-                
-                // Amortize loan (which updates remaining amount, isPaid, and status inside db/financeContext)
-                await incomeDB.amortizeLoanWithTransaction(linkedLoan.id, amount, actualAccountId, date, 'Pago cuota mensual');
-                
-                // Fetch the updated loan to see if it is now paid
-                const updatedLoans = await incomeDB.getAllLoans();
-                const updatedLoan = updatedLoans.find(l => l.id === linkedLoan.id);
-                if (updatedLoan && (updatedLoan.currentDebt ?? 0) <= 0) {
-                    // Deactivate recurring expense
+                const updatedDebt = Math.max(0, (linkedLoan.currentDebt ?? 0) - amount);
+                const isPaid = updatedDebt <= 0;
+
+                await incomeDB.updateLoan({
+                    ...linkedLoan,
+                    currentDebt: updatedDebt,
+                    remainingAmount: updatedDebt,
+                    status: isPaid ? 'paid' : 'active',
+                    isPaid: isPaid,
+                    updatedAt: Date.now()
+                });
+
+                if (isPaid) {
                     const rec = recurringExpenses.find(r => r.id === fixedId);
                     if (rec) {
                         await incomeDB.updateRecurringExpense({ ...rec, active: false, updatedAt: Date.now() });

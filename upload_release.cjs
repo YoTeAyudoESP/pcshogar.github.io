@@ -5,7 +5,7 @@ const https = require('https');
 const TOKEN = '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';
 const OWNER = 'YoTeAyudoESP';
 const REPO = 'pcshogar.github.io';
-const TAG = 'v1.6.6';
+const TAG = 'v1.7.1';
 
 function request(method, url, data = null, headers = {}) {
     return new Promise((resolve, reject) => {
@@ -68,7 +68,9 @@ async function main() {
 
     const res = await request('POST', `https://api.github.com/repos/${OWNER}/${REPO}/releases`, releaseData);
     
-    if (res.errors) {
+    console.log('RES:', JSON.stringify(res, null, 2));
+
+    if (res.errors || res.message === "Validation Failed") {
         console.error('Error creating release:', res);
         // Maybe it already exists? Let's try to get it
         const getRes = await request('GET', `https://api.github.com/repos/${OWNER}/${REPO}/releases/tags/${TAG}`);

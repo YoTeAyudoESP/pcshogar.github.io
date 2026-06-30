@@ -2,7 +2,7 @@ import React from 'react';
 import { X, Info, ChevronRight, TrendingUp, TrendingDown, Target, Wallet } from 'lucide-react';
 import { useFinance } from '../../contexts/FinanceContext';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
-import { isRecurringActiveInMonth, calculateAvailableBalanceForMonth } from '../../utils/financeCalculations';
+import { isRecurringActiveInMonth, calculateAvailableBalanceForMonth, calculateCardCycleDates, getEffectiveSettlementDate } from '../../utils/financeCalculations';
 
 interface FinanceBreakdownModalProps {
     isOpen: boolean;
@@ -295,9 +295,33 @@ const FinanceBreakdownModal: React.FC<FinanceBreakdownModalProps> = ({ isOpen, o
                     {(() => {
                         const pendingCardDebt = (cards || [])
                             .filter(c => c.type === 'credit')
-                            .reduce((sum, c) => sum + (c.currentBalance || 0), 0);
+                            .reduce((sum, c) => {
+                                const cycleDates = calculateCardCycleDates(c);
+                                
+                                const activeExpenses = (expenses || []).filter(exp => {
+                                    if (!exp?.paymentMethod) return false;
+                                    const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === c.id;
+                                    if (!isCard || exp.isSettled) return false;
+                                    if (exp.status === 'pending') return false;
+                                    const expDate = getEffectiveSettlementDate(exp);
+                                    return expDate >= cycleDates.active.start && expDate <= cycleDates.active.cutoff;
+                                });
+                                const activeTotal = activeExpenses.reduce((s, exp) => s + exp.amount, 0);
+
+                                const pendingExpenses = (expenses || []).filter(exp => {
+                                    if (!exp?.paymentMethod) return false;
+                                    const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === c.id;
+                                    if (!isCard || exp.isSettled) return false;
+                                    if (exp.status === 'pending') return false;
+                                    const expDate = getEffectiveSettlementDate(exp);
+                                    return expDate >= cycleDates.pending.start && expDate <= cycleDates.pending.cutoff;
+                                });
+                                const pendingTotal = pendingExpenses.reduce((s, exp) => s + exp.amount, 0);
+
+                                return sum + activeTotal + pendingTotal;
+                            }, 0);
                             
-                        if (pendingCardDebt > 0) {
+                        if (pendingCardDebt > 0.009) {
                             return (
                                 <div style={{ 
                                     background: 'rgba(255, 255, 255, 0.03)', 

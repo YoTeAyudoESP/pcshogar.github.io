@@ -20,7 +20,7 @@ const FixedIncomeForm: React.FC<FixedIncomeFormProps> = ({ editingIncome, onClos
     const [paymentDay, setPaymentDay] = useState(editingIncome?.paymentDay?.toString() || '1');
     const [paymentMonth, setPaymentMonth] = useState(editingIncome?.paymentMonth?.toString() || '1');
     const [accountId, setAccountId] = useState(editingIncome?.linkedAccountId || '');
-    const [accountForNextMonth, setAccountForNextMonth] = useState(editingIncome?.accountForNextMonth || false);
+    const [accountForNextMonth, setAccountForNextMonth] = useState(editingIncome?.accountForNextMonth || (editingIncome as any)?.countForNextMonth || false);
 
     useEffect(() => {
         const handleBack = (e: Event) => {
@@ -37,7 +37,7 @@ const FixedIncomeForm: React.FC<FixedIncomeFormProps> = ({ editingIncome, onClos
                     paymentDay !== (editingIncome.paymentDay?.toString() || '1') ||
                     paymentMonth !== (editingIncome.paymentMonth?.toString() || '1') ||
                     accountId !== (editingIncome.linkedAccountId || '') ||
-                    accountForNextMonth !== (editingIncome.accountForNextMonth || false);
+                    accountForNextMonth !== (editingIncome.accountForNextMonth || (editingIncome as any)?.countForNextMonth || false);
                 if (isModified) {
                     if (window.confirm('Tienes cambios sin guardar. ¿Deseas descartarlos y volver?')) {
                         onClose();

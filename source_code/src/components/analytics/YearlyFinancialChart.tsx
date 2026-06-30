@@ -10,7 +10,7 @@ const YearlyFinancialChart: React.FC = () => {
         recurringExpenses, overrides, cards, incomes 
     } = useFinance();
     
-    const { selectedYear } = useDateSelection();
+    const { selectedYear, selectedMonth } = useDateSelection();
 
     const currentYear = selectedYear;
 
@@ -20,11 +20,7 @@ const YearlyFinancialChart: React.FC = () => {
         const isCurrentYear = currentYear === actualDate.getFullYear();
         const currentMonth = actualDate.getMonth();
 
-        return monthNames.map((monthName, index) => {
-            if (isCurrentYear && index > currentMonth) {
-                return { name: monthName };
-            }
-
+        const rawData = monthNames.map((monthName, index) => {
             const { 
                 totalMonthIncome, 
                 grossAccountExpenses, 
@@ -41,17 +37,41 @@ const YearlyFinancialChart: React.FC = () => {
                 cards
             });
 
-            // Use the gross expenses totals (including hucha-funded) for the cash-flow chart
             const totalExpense = (grossAccountExpenses || 0) + (grossCardExpenses || 0) + (grossCashExpenses || 0);
 
             return {
                 name: monthName,
                 Ingresos: totalMonthIncome,
-                Gastos: totalExpense
+                Gastos: totalExpense,
+                index
             };
         });
 
-    }, [expenses, fixedIncomes, extraIncomes, allocations, savings, recurringExpenses, overrides, cards, incomes, currentYear]);
+        let maxMonthToShow = isCurrentYear ? currentMonth : 11;
+        
+        if (isCurrentYear) {
+            for (let i = 11; i > currentMonth; i--) {
+                const hasMovement = extraIncomes.some(inc => isItemInMonthAndYear(inc, i, currentYear) && inc.status !== 'pending') ||
+                                    expenses.some(exp => isItemInMonthAndYear(exp, i, currentYear) && exp.status !== 'pending');
+                if (hasMovement) {
+                    maxMonthToShow = i;
+                    break;
+                }
+            }
+        }
+
+        return rawData.map(d => {
+            if (isCurrentYear && d.index > maxMonthToShow) {
+                return { name: d.name };
+            }
+            return {
+                name: d.name,
+                Ingresos: d.Ingresos,
+                Gastos: d.Gastos
+            };
+        });
+
+    }, [expenses, fixedIncomes, extraIncomes, allocations, savings, recurringExpenses, overrides, cards, incomes, currentYear, selectedMonth]);
 
     return (
         <div className="glass-panel" style={{ padding: '2rem 1.5rem', height: '100%', background: 'rgba(25, 27, 34, 0.3)' }}>

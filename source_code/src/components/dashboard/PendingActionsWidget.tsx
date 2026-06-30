@@ -49,7 +49,7 @@ const PendingActionsWidget: React.FC<PendingActionsWidgetProps> = ({ onEdit }) =
         if (start > monthEnd || end < monthStart || isIgnored) return false;
         if (inc.status === 'received') return false; // Already received (though fixedIncomes usually stay 'pending' and create extra incomes)
         let expectedPeriod = period;
-        if (inc.accountForNextMonth) {
+        if (inc.accountForNextMonth || (inc as any).countForNextMonth) {
             let nextM = selectedMonth + 1;
             let nextY = selectedYear;
             if (nextM > 11) {
@@ -68,9 +68,6 @@ const PendingActionsWidget: React.FC<PendingActionsWidgetProps> = ({ onEdit }) =
                 const expectedYear = parseInt(expectedPeriod.split('-')[0]);
                 if (ei.budgetMonth === expectedMonth && ei.budgetYear === expectedYear) return true;
             }
-            
-            const d = new Date((ei as any).receivedDate || (ei as any).effectiveDate || (ei as any).createdAt || Date.now());
-            if (d.getFullYear() === selectedYear && d.getMonth() === selectedMonth) return true;
             
             return false;
         });
@@ -192,11 +189,8 @@ const PendingActionsWidget: React.FC<PendingActionsWidgetProps> = ({ onEdit }) =
             <div style={{ 
                 display: 'flex', 
                 gap: '12px', 
-                overflowX: 'auto', 
-                paddingBottom: '10px',
-                msOverflowStyle: 'none',
-                scrollbarWidth: 'none'
-            }} className="hide-scrollbar">
+                paddingBottom: '10px'
+            }} className="horizontal-scroll">
                 {allPending.map((item: any) => (
                     <div 
                         key={item.id}

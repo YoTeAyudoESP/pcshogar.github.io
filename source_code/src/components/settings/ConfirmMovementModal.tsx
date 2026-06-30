@@ -31,7 +31,7 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [budgetPeriod, setBudgetPeriod] = useState(() => {
         if (isDuplicateIncome) return nextMonthPeriod;
-        if (type === 'income' && item.accountForNextMonth) return nextMonthPeriod;
+        if (type === 'income' && (item.accountForNextMonth || (item as any).countForNextMonth)) return nextMonthPeriod;
         return currentRealPeriod;
     });
     const [accountId, setAccountId] = useState('');
@@ -44,12 +44,12 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
         if (isDuplicateIncome) {
             setBudgetPeriod(nextMonthPeriod);
             setDuplicateOption('next');
-        } else if (type === 'income' && item.accountForNextMonth) {
+        } else if (type === 'income' && (item.accountForNextMonth || (item as any).countForNextMonth)) {
             setBudgetPeriod(nextMonthPeriod);
         } else {
             setBudgetPeriod(currentRealPeriod);
         }
-    }, [isDuplicateIncome, type, item.accountForNextMonth]);
+    }, [isDuplicateIncome, type, item.accountForNextMonth, (item as any).countForNextMonth]);
 
     const handleDuplicateOptionChange = (option: 'next' | 'current') => {
         setDuplicateOption(option);

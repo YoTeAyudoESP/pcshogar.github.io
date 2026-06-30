@@ -1,21 +1,20 @@
 import React, { useMemo } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
+import { useDateSelection } from '../../contexts/DateSelectionContext';
 import { DEFAULT_CATEGORIES } from '../../types/finance';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-import { formatMoney } from '../../utils/financeCalculations';
+import { formatMoney, isItemInMonthAndYear } from '../../utils/financeCalculations';
 
 const ExpenseCategoryChart: React.FC = () => {
     const { expenses, categories } = useFinance();
-    const currentMonth = new Date().getMonth();
-    const currentYear = new Date().getFullYear();
+    const { selectedMonth, selectedYear } = useDateSelection();
 
     const data = useMemo(() => {
         // Filter current month expenses
         const monthlyExpenses = expenses.filter(e => {
             if (e.excludeFromBudget) return false;
             if (e.amount < 0 && e.status === 'pending') return false;
-            const d = new Date(e.date);
-            return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+            return isItemInMonthAndYear(e, selectedMonth, selectedYear);
         });
 
         // Group by category
@@ -35,7 +34,7 @@ const ExpenseCategoryChart: React.FC = () => {
             };
         }).filter(item => item.value > 0); // Only show categories with expenses
 
-    }, [expenses, currentMonth, currentYear]);
+    }, [expenses, categories, selectedMonth, selectedYear]);
 
     if (data.length === 0) {
         return (

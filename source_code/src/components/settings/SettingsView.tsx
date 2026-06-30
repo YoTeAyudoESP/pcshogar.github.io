@@ -199,11 +199,10 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
 
     return (
         <div className="glass-panel" style={{ padding: 'var(--space-sm) 0', minHeight: '80vh', border: 'none', background: 'transparent' }}>
-            <div className="no-scrollbar" style={{ 
+            <div className="horizontal-scroll" style={{ 
                 display: 'flex', 
                 gap: '0.5rem', 
                 marginBottom: '1.5rem', 
-                overflowX: 'auto', 
                 padding: '0.25rem',
                 scrollSnapType: 'x mandatory',
                 WebkitOverflowScrolling: 'touch'

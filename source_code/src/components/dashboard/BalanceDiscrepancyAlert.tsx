@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import { AlertTriangle, TrendingDown, PiggyBank, ChevronDown, ChevronUp, Calendar, Check } from 'lucide-react';
-import { calculateBalanceDiscrepancy, formatMoney } from '../../utils/financeCalculations';
+import { calculateBalanceDiscrepancy, calculateAvailableBalanceForMonth, formatMoney } from '../../utils/financeCalculations';
 import type { SavingGoal } from '../../types/finance';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -52,12 +52,23 @@ const BreakdownRow: React.FC<{
 // ─────────────────────────────────────────────────────────────────────────────
 
 const BalanceDiscrepancyAlert: React.FC = () => {
-    const { accounts, savings, expenses, cards, fixedIncomes, recurringExpenses, adjustSavings } = useFinance();
+    const { accounts, savings, expenses, cards, fixedIncomes, recurringExpenses, incomes, allocations, overrides, adjustSavings } = useFinance();
 
-    const result = useMemo(
-        () => calculateBalanceDiscrepancy(accounts, savings, expenses, cards, recurringExpenses),
-        [accounts, savings, expenses, cards, recurringExpenses]
-    );
+    const result = useMemo(() => {
+        const now = new Date();
+        const { availableToSpend } = calculateAvailableBalanceForMonth(now.getFullYear(), now.getMonth(), {
+            fixedIncomes: (incomes || []).filter((i: any) => i.type === 'fixed') as any[],
+            extraIncomes: incomes?.filter(i => i.type === 'extra' || i.type === 'rollover') || [],
+            expenses,
+            allocations,
+            savings,
+            recurringExpenses,
+            overrides,
+            cards
+        });
+
+        return calculateBalanceDiscrepancy(accounts, savings, expenses, cards, recurringExpenses, availableToSpend);
+    }, [accounts, savings, expenses, cards, recurringExpenses, incomes, allocations, overrides]);
 
     const {
         dineroReal, dineroLibreReal, compromisoGastos, compromisoTarjetas,

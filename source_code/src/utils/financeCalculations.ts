@@ -94,24 +94,32 @@ export function calculateAvailableBalanceForMonth(
     // 1. Process Fixed Incomes (Templates)
     fixedIncomes.forEach(inc => {
         if (!inc.active) return;
+        const accountForNext = inc.accountForNextMonth || (inc as any).countForNextMonth;
+        let actionMonth = month;
+        let actionYear = year;
+        
+        if (accountForNext) {
+            actionMonth -= 1;
+            if (actionMonth < 0) {
+                actionMonth = 11;
+                actionYear -= 1;
+            }
+        }
+        
+        const actionPeriod = `${actionYear}-${(actionMonth + 1).toString().padStart(2, '0')}`;
+        const actionMonthStart = new Date(actionYear, actionMonth, 1).getTime();
+        const actionMonthEnd = new Date(actionYear, actionMonth + 1, 0).getTime();
+        
         const start = inc.effectiveDate || inc.createdAt || 0;
         const end = inc.expirationDate || new Date(9999, 11, 31).getTime();
-        const isIgnored = inc.ignoredPeriods?.includes(period);
+        const isIgnored = inc.ignoredPeriods?.includes(actionPeriod);
 
-        if (start <= monthEnd && end >= monthStart && !isIgnored) {
-            if (isRecurringActiveInMonth(inc.frequency, inc.paymentMonth, month, year, start)) {
+        if (start <= actionMonthEnd && end >= actionMonthStart && !isIgnored) {
+            if (isRecurringActiveInMonth(inc.frequency, inc.paymentMonth, actionMonth, actionYear, start)) {
                 totalProjectedFixedIncomes += inc.amount;
-                let expectedPeriod = period;
-                if (inc.accountForNextMonth) {
-                    let nextM = month + 1;
-                    let nextY = year;
-                    if (nextM > 11) {
-                        nextM = 0;
-                        nextY++;
-                    }
-                    expectedPeriod = `${nextY}-${(nextM + 1).toString().padStart(2, '0')}`;
-                }
-
+                
+                const expectedPeriod = `${year}-${(month + 1).toString().padStart(2, '0')}`;
+                
                 // Check if actually confirmed/received
                 const isConfirmed = extraIncomes.some(ei => {
                     if ((ei as any).fixedIncomeId !== inc.id) return false;
@@ -119,14 +127,8 @@ export function calculateAvailableBalanceForMonth(
                     // Matches expected budget period
                     if (ei.period === expectedPeriod) return true;
                     if (ei.budgetMonth !== undefined && ei.budgetYear !== undefined) {
-                        const expectedMonth = parseInt(expectedPeriod.split('-')[1]) - 1;
-                        const expectedYear = parseInt(expectedPeriod.split('-')[0]);
-                        if (ei.budgetMonth === expectedMonth && ei.budgetYear === expectedYear) return true;
+                        if (ei.budgetMonth === month && ei.budgetYear === year) return true;
                     }
-                    
-                    // Or physically paid in this month (covers cases where user manually changed affectMonth)
-                    const d = new Date((ei as any).receivedDate || (ei as any).effectiveDate || (ei as any).createdAt || Date.now());
-                    if (d.getFullYear() === year && d.getMonth() === month) return true;
                     
                     return false;
                 });
@@ -441,6 +443,51 @@ export function predictSettlementDate(card: CreditCard, date: number, adjustment
     return new Date(settlementYear, settlementMonth, paymentDay);
 }
 
+export function calculateCardCycleDates(card: CreditCard) {
+    const cutoffDay = card.cutoffDay || 1;
+    const paymentDay = card.paymentDay || 1;
+    
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    const day = today.getDate();
+
+    let activeCutoff: Date;
+    let activeStart: Date;
+    let activePayment: Date;
+
+    let pendingCutoff: Date;
+    let pendingStart: Date;
+    let pendingPayment: Date;
+
+    if (day > cutoffDay) {
+        activeCutoff = new Date(year, month + 1, cutoffDay, 23, 59, 59);
+        activeStart = new Date(year, month, cutoffDay + 1, 0, 0, 0);
+        activePayment = new Date(year, month + 1, paymentDay, 12, 0, 0);
+        if (paymentDay <= cutoffDay) activePayment = new Date(year, month + 2, paymentDay, 12, 0, 0);
+
+        pendingCutoff = new Date(year, month, cutoffDay, 23, 59, 59);
+        pendingStart = new Date(year, month - 1, cutoffDay + 1, 0, 0, 0);
+        pendingPayment = new Date(year, month, paymentDay, 12, 0, 0);
+        if (paymentDay <= cutoffDay) pendingPayment = new Date(year, month + 1, paymentDay, 12, 0, 0);
+    } else {
+        activeCutoff = new Date(year, month, cutoffDay, 23, 59, 59);
+        activeStart = new Date(year, month - 1, cutoffDay + 1, 0, 0, 0);
+        activePayment = new Date(year, month, paymentDay, 12, 0, 0);
+        if (paymentDay <= cutoffDay) activePayment = new Date(year, month + 1, paymentDay, 12, 0, 0);
+
+        pendingCutoff = new Date(year, month - 1, cutoffDay, 23, 59, 59);
+        pendingStart = new Date(year, month - 2, cutoffDay + 1, 0, 0, 0);
+        pendingPayment = new Date(year, month - 1, paymentDay, 12, 0, 0);
+        if (paymentDay <= cutoffDay) pendingPayment = new Date(year, month, paymentDay, 12, 0, 0);
+    }
+
+    return {
+        active: { start: activeStart, cutoff: activeCutoff, payment: activePayment },
+        pending: { start: pendingStart, cutoff: pendingCutoff, payment: pendingPayment }
+    };
+}
+
 export function formatMoney(amount: number | undefined | null, includeSymbol: boolean = true): string {
     if (amount === undefined || amount === null || isNaN(amount)) {
         return includeSymbol ? '0,00€' : '0,00';
@@ -489,6 +536,7 @@ export function calculateBalanceDiscrepancy(
     expenses: Expense[],
     cards: CreditCard[],
     recurringExpenses: RecurringExpense[] = [],
+    disponibleDelMes: number = 0,
     threshold: number = 0.50
 ): {
     dineroReal: number;
@@ -564,7 +612,7 @@ export function calculateBalanceDiscrepancy(
     const compromisos = compromisoGastos + compromisoTarjetas;
     const dineroEnHuchas = savings.reduce((sum, s) => sum + (s.currentAmount || 0), 0);
     const dineroLibreReal = dineroReal - compromisos;
-    const desajuste = dineroLibreReal - dineroEnHuchas;
+    const desajuste = dineroLibreReal - (dineroEnHuchas + disponibleDelMes);
     const isOverdraft = dineroReal < -threshold;
     const hasSignificantDiscrepancy = Math.abs(desajuste) >= threshold;
 

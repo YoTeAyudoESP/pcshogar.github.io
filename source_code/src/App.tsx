@@ -8,6 +8,8 @@ import { DateSelectionProvider } from './contexts/DateSelectionContext';
 import { AppSettingsProvider, useAppSettings } from './contexts/AppSettingsContext';
 import DropboxAuthHandler from './components/auth/DropboxAuthHandler';
 import GoogleDriveAuthHandler from './components/auth/GoogleDriveAuthHandler';
+
+import DeveloperNotice from './components/common/DeveloperNotice';
 import CloudStartupChecker from './components/auth/CloudStartupChecker';
 import { ToastProvider } from './contexts/ToastContext';
 import AppUpdateChecker from './components/common/AppUpdateChecker';
@@ -30,6 +32,7 @@ function AppContent() {
           <AppUpdateChecker />
           <AndroidApkCleanup />
           <FinanceProvider>
+            <DeveloperNotice />
             <DateSelectionProvider>
               <AppLayout>
                 <Dashboard />

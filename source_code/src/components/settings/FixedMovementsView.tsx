@@ -73,7 +73,18 @@ const FixedMovementsView: React.FC<FixedMovementsViewProps> = ({ onBack, onNavig
 
     const isConfirmed = (item: FixedIncome | RecurringExpense) => {
         if ('type' in item && item.type === 'fixed') {
-            return incomes.some(inc => inc.fixedIncomeId === item.id && inc.period === currentMonthPeriod);
+            let expectedPeriod = currentMonthPeriod;
+            if (item.accountForNextMonth || (item as any).countForNextMonth) {
+                const [y, m] = currentMonthPeriod.split('-');
+                let nextM = parseInt(m, 10) + 1;
+                let nextY = parseInt(y, 10);
+                if (nextM > 12) {
+                    nextM = 1;
+                    nextY++;
+                }
+                expectedPeriod = `${nextY}-${nextM.toString().padStart(2, '0')}`;
+            }
+            return incomes.some(inc => inc.fixedIncomeId === item.id && inc.period === expectedPeriod);
         } else {
             return expenses.some(exp => exp.recurringExpenseId === item.id && exp.period === currentMonthPeriod);
         }

@@ -1,0 +1,405 @@
+import React, { useState, useEffect } from 'react';
+import { useFinance } from '../../contexts/FinanceContext';
+import type { RecurringExpense } from '../../types/finance';
+import type { FixedIncome } from '../../types/income';
+import { 
+    CalendarClock, 
+    Plus, 
+    Edit2, 
+    Trash2, 
+    CheckCircle2, 
+    ChevronRight,
+    TrendingDown,
+    TrendingUp,
+    AlertCircle
+} from 'lucide-react';
+import FixedIncomeForm from './FixedIncomeForm';
+import RecurringExpenseForm from '../expenses/RecurringExpenseForm';
+import ConfirmMovementModal from './ConfirmMovementModal';
+import { useDateSelection } from '../../contexts/DateSelectionContext';
+import { isRecurringActiveInMonth, formatMoney } from '../../utils/financeCalculations';
+
+interface FixedMovementsViewProps {
+    onBack?: () => void;
+    onNavigateToSettings?: (tab?: string) => void;
+}
+
+const FixedMovementsView: React.FC<FixedMovementsViewProps> = ({ onBack, onNavigateToSettings }) => {
+    const { 
+        recurringExpenses, 
+        incomes, 
+        deleteRecurringExpense, 
+        deleteIncome,
+        expenses
+    } = useFinance();
+
+    const [activeTab, setActiveTab] = useState<'income' | 'expense'>('expense');
+    const [showIncomeForm, setShowIncomeForm] = useState(false);
+    const [showExpenseForm, setShowExpenseForm] = useState(false);
+    const [editingIncome, setEditingIncome] = useState<FixedIncome | undefined>(undefined);
+    const [editingExpense, setEditingExpense] = useState<RecurringExpense | undefined>(undefined);
+    
+    const [confirmModal, setConfirmModal] = useState<{
+        show: boolean;
+        type: 'income' | 'expense';
+        item: FixedIncome | RecurringExpense | null;
+    }>({ show: false, type: 'expense', item: null });
+
+    useEffect(() => {
+        const handleBack = (e: Event) => {
+            if (e.defaultPrevented) return;
+
+            if (confirmModal.show) {
+                e.preventDefault();
+                setConfirmModal({ show: false, type: 'expense', item: null });
+            }
+        };
+
+        document.addEventListener('app-back-pressed', handleBack);
+        return () => document.removeEventListener('app-back-pressed', handleBack);
+    }, [confirmModal]);
+
+    const { selectedMonth, selectedYear } = useDateSelection();
+    const currentMonthPeriod = `${selectedYear}-${(selectedMonth + 1).toString().padStart(2, '0')}`;
+
+    const filteredFixedIncomes = incomes
+        .filter((i): i is FixedIncome => i.type === 'fixed');
+
+    const filteredRecurringExpenses = recurringExpenses;
+
+    const isIgnored = (item: FixedIncome | RecurringExpense) => {
+        return item.ignoredPeriods?.includes(currentMonthPeriod) || false;
+    };
+
+    const isConfirmed = (item: FixedIncome | RecurringExpense) => {
+        if ('type' in item && item.type === 'fixed') {
+            let expectedPeriod = currentMonthPeriod;
+            if (item.accountForNextMonth || (item as any).countForNextMonth) {
+                const [y, m] = currentMonthPeriod.split('-');
+                let nextM = parseInt(m, 10) + 1;
+                let nextY = parseInt(y, 10);
+                if (nextM > 12) {
+                    nextM = 1;
+                    nextY++;
+                }
+                expectedPeriod = `${nextY}-${nextM.toString().padStart(2, '0')}`;
+            }
+            return incomes.some(inc => inc.fixedIncomeId === item.id && inc.period === expectedPeriod);
+        } else {
+            return expenses.some(exp => exp.recurringExpenseId === item.id && exp.period === currentMonthPeriod);
+        }
+    };
+
+    const isProcessed = (item: FixedIncome | RecurringExpense) => {
+        return isIgnored(item) || isConfirmed(item);
+    };
+
+    const handleDelete = (type: 'income' | 'expense', id: string) => {
+        if (window.confirm('¿Estás seguro de que deseas eliminar este movimiento fijo?')) {
+            if (type === 'income') {
+                deleteIncome(id);
+            } else {
+                deleteRecurringExpense(id);
+            }
+        }
+    };
+
+    const handleEdit = (type: 'income' | 'expense', item: FixedIncome | RecurringExpense) => {
+        if (type === 'income') {
+            setEditingIncome(item as FixedIncome);
+            setShowIncomeForm(true);
+        } else {
+            setEditingExpense(item as RecurringExpense);
+            setShowExpenseForm(true);
+        }
+    };
+
+    const handleConfirm = (type: 'income' | 'expense', item: FixedIncome | RecurringExpense) => {
+        setConfirmModal({ show: true, type, item });
+    };
+
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingBottom: '2rem' }}>
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ margin: 0, opacity: 0.9 }}>Gestión de Movimientos Fijos</h3>
+                <div style={{ display: 'flex', background: 'var(--panel-bg-2)', padding: '0.25rem', borderRadius: '100px', border: '1px solid var(--panel-bg-3)' }}>
+                    <button 
+                        onClick={() => setActiveTab('expense')}
+                        style={{
+                            padding: '0.4rem 1rem',
+                            borderRadius: '100px',
+                            border: 'none',
+                            background: activeTab === 'expense' ? 'var(--color-primary)' : 'transparent',
+                            color: 'var(--text-main)',
+                            fontSize: '0.85rem',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.4rem'
+                        }}
+                    >
+                        <TrendingDown size={14} /> Gastos
+                    </button>
+                    <button 
+                        onClick={() => setActiveTab('income')}
+                        style={{
+                            padding: '0.4rem 1rem',
+                            borderRadius: '100px',
+                            border: 'none',
+                            background: activeTab === 'income' ? 'var(--color-success)' : 'transparent',
+                            color: 'var(--text-main)',
+                            fontSize: '0.85rem',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.4rem'
+                        }}
+                    >
+                        <TrendingUp size={14} /> Ingresos
+                    </button>
+                </div>
+            </div>
+
+            {/* Info Banner showing Selected Month */}
+            <div style={{
+                background: 'rgba(59, 130, 246, 0.05)',
+                border: '1px solid rgba(59, 130, 246, 0.15)',
+                borderRadius: '16px',
+                padding: '1rem 1.25rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.5rem',
+                marginTop: '-0.5rem'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <CalendarClock size={18} style={{ color: '#60a5fa' }} />
+                    <span style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                        Periodo Activo: <span style={{ color: '#60a5fa' }}>{(() => {
+                            const months = [
+                                'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+                            ];
+                            return `${months[selectedMonth]} de ${selectedYear}`;
+                        })()}</span>
+                    </span>
+                </div>
+                <p style={{ margin: 0, fontSize: '0.8rem', color: 'rgba(var(--color-rgb-light), 0.5)', lineHeight: '1.45' }}>
+                    Estás visualizando, confirmando o descartando los movimientos fijos de este periodo. Si deseas cambiar de mes, por favor hazlo desde el selector de fecha del panel principal (Dashboard).
+                </p>
+            </div>
+
+            {/* Form Section */}
+            {showIncomeForm && (
+                <FixedIncomeForm 
+                    editingIncome={editingIncome} 
+                    onClose={() => {
+                        setShowIncomeForm(false);
+                        setEditingIncome(undefined);
+                    }} 
+                />
+            )}
+
+            {showExpenseForm && (
+                <RecurringExpenseForm 
+                    editingExpense={editingExpense}
+                    onClose={() => {
+                        setShowExpenseForm(false);
+                        setEditingExpense(undefined);
+                    }} 
+                />
+            )}
+
+            {!showIncomeForm && !showExpenseForm && (
+                <button 
+                    onClick={() => activeTab === 'income' ? setShowIncomeForm(true) : setShowExpenseForm(true)}
+                    style={{
+                        padding: '1rem',
+                        borderRadius: '1rem',
+                        border: '1px dashed rgba(var(--color-rgb-light), 0.2)',
+                        background: 'var(--panel-bg-1)',
+                        color: 'var(--text-main)',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.5rem',
+                        transition: 'all 0.2s ease'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.background = 'var(--panel-bg-2)'}
+                    onMouseOut={(e) => e.currentTarget.style.background = 'var(--panel-bg-1)'}
+                >
+                    <Plus size={20} /> Añadir {activeTab === 'income' ? 'Ingreso Fijo' : 'Gasto Fijo'}
+                </button>
+            )}
+
+            {/* List Section */}
+            {!showIncomeForm && !showExpenseForm && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    {(activeTab === 'expense' ? filteredRecurringExpenses : filteredFixedIncomes).map(item => {
+                        const processed = isProcessed(item);
+                        return (
+                            <div 
+                                key={item.id}
+                                className="glass-panel"
+                                style={{
+                                    padding: '1.25rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    gap: '1rem',
+                                    opacity: processed ? 0.6 : 1,
+                                    position: 'relative',
+                                    overflow: 'hidden'
+                                }}
+                            >
+                                {isConfirmed(item) && (
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        width: '4px',
+                                        height: '100%',
+                                        backgroundColor: 'var(--color-success, #10b981)'
+                                    }} />
+                                )}
+                                {isIgnored(item) && (
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        width: '4px',
+                                        height: '100%',
+                                        backgroundColor: '#f43f5e'
+                                    }} />
+                                )}
+                                
+                                <div style={{ flex: 1 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <h4 style={{ margin: 0, fontWeight: 600 }}>{(item as any).description || (item as any).name}</h4>
+                                        {isConfirmed(item) && (
+                                            <span style={{ 
+                                                fontSize: '0.7rem', 
+                                                background: 'rgba(var(--color-success-rgb), 0.1)', 
+                                                color: 'var(--color-success)', 
+                                                padding: '0.1rem 0.4rem', 
+                                                borderRadius: '4px',
+                                                fontWeight: 700,
+                                                textTransform: 'uppercase'
+                                            }}>Confirmado</span>
+                                        )}
+                                        {isIgnored(item) && (
+                                            <span style={{ 
+                                                fontSize: '0.7rem', 
+                                                background: 'rgba(244, 63, 94, 0.1)', 
+                                                color: '#f43f5e', 
+                                                padding: '0.1rem 0.4rem', 
+                                                borderRadius: '4px',
+                                                fontWeight: 700,
+                                                textTransform: 'uppercase'
+                                            }}>Descartado</span>
+                                        )}
+                                    </div>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '0.25rem', opacity: 0.6, fontSize: '0.85rem' }}>
+                                        <span>{formatMoney(item.amount)}</span>
+                                        <span style={{ textTransform: 'capitalize' }}>
+                                            {item.frequency === 'monthly' ? 'Mensual' :
+                                             item.frequency === 'weekly' ? 'Semanal' :
+                                             item.frequency === 'bi-monthly' ? 'Bimensual (cada 2 meses)' :
+                                             item.frequency === 'quarterly' ? 'Trimestral (cada 3 meses)' :
+                                             item.frequency === 'four-monthly' ? 'Cuatrimestral (cada 4 meses)' :
+                                             item.frequency === 'five-monthly' ? 'Cada 5 meses' :
+                                             item.frequency === 'semi-annually' ? 'Semestral (cada 6 meses)' :
+                                             item.frequency === 'seven-monthly' ? 'Cada 7 meses' :
+                                             item.frequency === 'eight-monthly' ? 'Cada 8 meses' :
+                                             item.frequency === 'nine-monthly' ? 'Cada 9 meses' :
+                                             item.frequency === 'ten-monthly' ? 'Cada 10 meses' :
+                                             item.frequency === 'eleven-monthly' ? 'Cada 11 meses' :
+                                             item.frequency === 'yearly' ? 'Anual' : item.frequency}
+                                        </span>
+                                        {((item as any).paymentMonth !== undefined) && (
+                                            <span>
+                                                Mes: {new Date(2000, (item as any).paymentMonth - 1, 1).toLocaleString('es-ES', { month: 'long' })}
+                                            </span>
+                                        )}
+                                        <span>Día { (item as any).paymentDay || (item as any).dayOfMonth || 1 }</span>
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <button 
+                                        onClick={() => handleConfirm(activeTab, item)}
+                                        title={processed ? "Confirmar de nuevo" : "Confirmar cobro/pago"}
+                                        style={{
+                                            padding: '0.6rem',
+                                            borderRadius: '0.75rem',
+                                            border: 'none',
+                                            background: processed 
+                                                ? 'var(--panel-bg-2)' 
+                                                : (activeTab === 'income' ? 'rgba(var(--color-success-rgb), 0.1)' : 'rgba(99, 102, 241, 0.1)'),
+                                            color: processed
+                                                ? 'rgba(var(--color-rgb-light), 0.4)'
+                                                : (activeTab === 'income' ? 'var(--color-success)' : '#818cf8'),
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        {processed ? <Plus size={18} /> : <CheckCircle2 size={18} />}
+                                    </button>
+                                    <button 
+                                        onClick={() => handleEdit(activeTab, item)}
+                                        title="Editar"
+                                        style={{
+                                            padding: '0.6rem',
+                                            borderRadius: '0.75rem',
+                                            border: '1px solid var(--panel-bg-3)',
+                                            background: 'var(--panel-bg-2)',
+                                            color: 'var(--text-main)',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        <Edit2 size={18} />
+                                    </button>
+                                    <button 
+                                        onClick={() => handleDelete(activeTab, item.id)}
+                                        title="Eliminar"
+                                        style={{
+                                            padding: '0.6rem',
+                                            borderRadius: '0.75rem',
+                                            border: '1px solid rgba(244, 63, 94, 0.2)',
+                                            background: 'rgba(244, 63, 94, 0.05)',
+                                            color: '#fb7185',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        <Trash2 size={18} />
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })}
+
+                    {(activeTab === 'expense' ? filteredRecurringExpenses : filteredFixedIncomes).length === 0 && (
+                        <div style={{ textAlign: 'center', padding: '3rem', opacity: 0.5 }}>
+                            <CalendarClock size={48} style={{ margin: '0 auto 1rem auto' }} />
+                            <p>No hay {activeTab === 'income' ? 'ingresos fijos' : 'gastos fijos'} para este periodo.</p>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Confirmation Modal */}
+            {confirmModal.show && confirmModal.item && (
+                <ConfirmMovementModal 
+                    type={confirmModal.type}
+                    item={confirmModal.item}
+                    onClose={() => setConfirmModal({ show: false, type: 'expense', item: null })}
+                />
+            )}
+        </div>
+    );
+};
+
+export default FixedMovementsView;

@@ -1,0 +1,631 @@
+import type { 
+    Expense, SavingGoal, SavingAllocation, 
+    RecurringExpense, MonthOverride, CreditCard,
+    Account
+} from '../types/finance';
+import type { Income, FixedIncome } from '../types/income';
+
+export function isItemInMonthAndYear(item: any, month: number, year: number) {
+    if (item.budgetMonth !== undefined && item.budgetYear !== undefined) {
+        return item.budgetMonth === month && item.budgetYear === year;
+    }
+    if (item.period && typeof item.period === 'string') {
+        const [y, m] = item.period.split('-').map(Number);
+        return y === year && (m - 1) === month;
+    }
+    const timestamp = item.receivedDate || item.date || item.updatedAt || item.createdAt;
+    if (!timestamp) return false;
+    
+    const d = new Date(timestamp);
+    return d.getFullYear() === year && d.getMonth() === month;
+}
+
+export function isRecurringActiveInMonth(
+    frequency: string,
+    paymentMonth: number | undefined,
+    targetMonth: number, // 0-indexed
+    targetYear: number,
+    startTimestamp: number
+) {
+    const startDate = new Date(startTimestamp);
+    const startMonth = startDate.getMonth();
+    const startYear = startDate.getFullYear();
+
+    if (frequency === 'monthly' || frequency === 'weekly') return true;
+
+    // For frequencies that depend on a specific month
+    const referenceMonth = (paymentMonth !== undefined) ? (paymentMonth - 1) : startMonth;
+    
+    if (frequency === 'yearly') {
+        return targetMonth === referenceMonth;
+    }
+
+    const diffMonths = (targetYear - startYear) * 12 + (targetMonth - referenceMonth);
+    if (diffMonths < 0) return false;
+
+    if (frequency === 'bi-monthly') return diffMonths % 2 === 0;
+    if (frequency === 'quarterly') return diffMonths % 3 === 0;
+    if (frequency === 'four-monthly') return diffMonths % 4 === 0;
+    if (frequency === 'five-monthly') return diffMonths % 5 === 0;
+    if (frequency === 'semi-annually') return diffMonths % 6 === 0;
+    if (frequency === 'seven-monthly') return diffMonths % 7 === 0;
+    if (frequency === 'eight-monthly') return diffMonths % 8 === 0;
+    if (frequency === 'nine-monthly') return diffMonths % 9 === 0;
+    if (frequency === 'ten-monthly') return diffMonths % 10 === 0;
+    if (frequency === 'eleven-monthly') return diffMonths % 11 === 0;
+
+    return false;
+}
+
+export function calculateAvailableBalanceForMonth(
+    year: number,
+    month: number,
+    data: {
+        fixedIncomes: FixedIncome[],
+        extraIncomes: Income[],
+        expenses: Expense[],
+        allocations: SavingAllocation[],
+        savings: SavingGoal[],
+        recurringExpenses: RecurringExpense[],
+        overrides: MonthOverride[],
+        cards: CreditCard[]
+    }
+) {
+    const { 
+        fixedIncomes = [], 
+        extraIncomes = [], 
+        expenses = [], 
+        allocations = [], 
+        savings = [], 
+        recurringExpenses = [], 
+        overrides = [], 
+        cards = [] 
+    } = data || {};
+
+    // Calculate Incomes
+    let extraIncomesReceived = 0;
+    let pendingFixedIncomes = 0;
+    let totalProjectedFixedIncomes = 0; // Total that should happen
+
+    const period = `${year}-${(month + 1).toString().padStart(2, '0')}`;
+    const monthStart = new Date(year, month, 1).getTime();
+    const monthEnd = new Date(year, month + 1, 0).getTime();
+
+    // 1. Process Fixed Incomes (Templates)
+    fixedIncomes.forEach(inc => {
+        if (!inc.active) return;
+        const accountForNext = inc.accountForNextMonth || (inc as any).countForNextMonth;
+        let actionMonth = month;
+        let actionYear = year;
+        
+        if (accountForNext) {
+            actionMonth -= 1;
+            if (actionMonth < 0) {
+                actionMonth = 11;
+                actionYear -= 1;
+            }
+        }
+        
+        const actionPeriod = `${actionYear}-${(actionMonth + 1).toString().padStart(2, '0')}`;
+        const actionMonthStart = new Date(actionYear, actionMonth, 1).getTime();
+        const actionMonthEnd = new Date(actionYear, actionMonth + 1, 0).getTime();
+        
+        const start = inc.effectiveDate || inc.createdAt || 0;
+        const end = inc.expirationDate || new Date(9999, 11, 31).getTime();
+        const isIgnored = inc.ignoredPeriods?.includes(actionPeriod);
+
+        if (start <= actionMonthEnd && end >= actionMonthStart && !isIgnored) {
+            if (isRecurringActiveInMonth(inc.frequency, inc.paymentMonth, actionMonth, actionYear, start)) {
+                totalProjectedFixedIncomes += inc.amount;
+                
+                const expectedPeriod = `${year}-${(month + 1).toString().padStart(2, '0')}`;
+                
+                // Check if actually confirmed/received
+                const isConfirmed = extraIncomes.some(ei => {
+                    if ((ei as any).fixedIncomeId !== inc.id) return false;
+                    
+                    // Matches expected budget period
+                    if (ei.period === expectedPeriod) return true;
+                    if (ei.budgetMonth !== undefined && ei.budgetYear !== undefined) {
+                        if (ei.budgetMonth === month && ei.budgetYear === year) return true;
+                    }
+                    
+                    return false;
+                });
+                
+                if (!isConfirmed && inc.status !== 'received') {
+                    pendingFixedIncomes += inc.amount;
+                }
+            }
+        }
+    });
+
+    // 2. Process Extra Incomes (Actual records)
+    extraIncomes.forEach(inc => {
+        if (inc.type === 'rollover') return;
+        if (inc.status === 'pending') return;
+        if (inc.excludeFromBudget) return;
+        if (isItemInMonthAndYear(inc, month, year)) {
+            extraIncomesReceived += inc.amount;
+        }
+    });
+
+    const totalMonthIncome = extraIncomesReceived + pendingFixedIncomes;
+
+    // Calculate Expenses
+    let totalMonthExpenses = 0;
+    let totalAccountExpenses = 0;
+    let totalCardExpenses = 0;
+    let totalCashExpenses = 0;
+    let grossAccountExpenses = 0;
+    let grossCardExpenses = 0;
+    let grossCashExpenses = 0;
+    let variableExpensesPaid = 0;
+    let fixedExpensesDeviations = 0;
+    const paidFixedExpensesByReId: Record<string, number> = {};
+
+    expenses
+        .filter(exp => isItemInMonthAndYear(exp, month, year))
+        .filter(exp => !exp.excludeFromBudget)
+        .filter(exp => !(exp.amount < 0 && exp.status === 'pending'))
+        .forEach(exp => {
+            // Calculate how much of this expense is funded by huchas
+            let fundedAmount = 0;
+            if (exp.savingGoalFunding && exp.savingGoalFunding.length > 0) {
+                fundedAmount = exp.savingGoalFunding.reduce((sum, f) => sum + f.amount, 0);
+            } else if (exp.linkedSavingGoalId) {
+                fundedAmount = exp.amount;
+            }
+
+            const netAmount = exp.amount - fundedAmount;
+            totalMonthExpenses += netAmount;
+
+            if (exp.isFixed) {
+                if (exp.recurringExpenseId) {
+                    paidFixedExpensesByReId[exp.recurringExpenseId] = (paidFixedExpensesByReId[exp.recurringExpenseId] || 0) + netAmount;
+                } else {
+                    variableExpensesPaid += netAmount;
+                }
+            } else {
+                variableExpensesPaid += netAmount;
+            }
+
+            // Do not add pending expenses to specific payment method totals
+            if (exp.status === 'pending') return;
+
+            const method = exp.paymentMethod || { type: 'cash' };
+            if (method.type === 'cash') {
+                totalCashExpenses += netAmount;
+                grossCashExpenses += exp.amount;
+            } else if (method.type === 'account') {
+                totalAccountExpenses += netAmount;
+                grossAccountExpenses += exp.amount;
+            } else if (method.type === 'card') {
+                const card = (cards || []).find(c => c.id === (method as any).cardId);
+                if (card && card.type === 'debit') {
+                    totalAccountExpenses += netAmount;
+                    grossAccountExpenses += exp.amount;
+                } else {
+                    totalCardExpenses += netAmount;
+                    grossCardExpenses += exp.amount;
+                }
+            }
+        });
+
+    // Calculate Projected Fixed Expenses
+    let totalProjectedFixedExpenses = 0;
+    let pendingFixedExpenses = 0;
+
+    recurringExpenses.forEach(re => {
+        if (!re.active) return;
+        const start = re.createdAt || re.updatedAt || 0;
+        if (start > monthEnd) return;
+        const isIgnored = re.ignoredPeriods?.includes(period);
+        
+        if (!isIgnored && isRecurringActiveInMonth(re.frequency, re.paymentMonth, month, year, start)) {
+            totalProjectedFixedExpenses += re.amount;
+            
+            // For the 'Pending' report specifically
+            const isPaid = expenses.some(e => e.recurringExpenseId === re.id && isItemInMonthAndYear(e, month, year));
+            if (!isPaid) {
+                pendingFixedExpenses += re.amount;
+            }
+        }
+    });
+
+    Object.entries(paidFixedExpensesByReId).forEach(([reId, totalPaid]) => {
+        const re = recurringExpenses.find(r => r.id === reId);
+        if (re) {
+            const start = re.createdAt || re.updatedAt || 0;
+            const isIgnored = re.ignoredPeriods?.includes(period);
+            const isProjected = re.active && start <= monthEnd && !isIgnored && isRecurringActiveInMonth(re.frequency, re.paymentMonth, month, year, start);
+            
+            const projectedAmount = isProjected ? re.amount : 0;
+            fixedExpensesDeviations += (totalPaid - projectedAmount);
+        } else {
+            // Re-assign to variable expenses since RE doesn't exist
+            variableExpensesPaid += totalPaid;
+        }
+    });
+
+    // Calculate Allocations
+    let totalMonthAllocations = 0;
+    allocations
+        .filter(alloc => isItemInMonthAndYear(alloc, month, year) && (alloc.type === 'manual' || alloc.type === 'automatic'))
+        .forEach(alloc => {
+            totalMonthAllocations += alloc.amount;
+        });
+
+    // Remanente
+    let remanente = 0;
+    extraIncomes.filter(inc => inc.type === 'rollover' && isItemInMonthAndYear(inc, month, year)).forEach(inc => {
+        remanente += inc.amount;
+    });
+
+    // Calculate pending savings per hucha
+    let pendingSavings = 0;
+    
+    savings
+        .filter(s => (s.monthlySavingAmount || 0) > 0)
+        .forEach(s => {
+            const start = s.createdAt || 0;
+            if (start <= monthEnd) {
+                // If it is linked to a fixed income, check if that fixed income is active or confirmed in this month
+                let isLinkedIncomeActive = true;
+                if (s.linkedFixedIncomeId) {
+                    const linkedIncome = fixedIncomes.find(inc => inc.id === s.linkedFixedIncomeId);
+                    if (linkedIncome && linkedIncome.active) {
+                        const incStart = linkedIncome.effectiveDate || linkedIncome.createdAt || 0;
+                        const incEnd = linkedIncome.expirationDate || new Date(9999, 11, 31).getTime();
+                        const isIgnored = linkedIncome.ignoredPeriods?.includes(period);
+                        let isTemplateActive = false;
+                        if (incStart <= monthEnd && incEnd >= monthStart && !isIgnored) {
+                            isTemplateActive = isRecurringActiveInMonth(linkedIncome.frequency, linkedIncome.paymentMonth, month, year, incStart);
+                        }
+                        const isConfirmed = extraIncomes.some(ei => ei.fixedIncomeId === s.linkedFixedIncomeId && isItemInMonthAndYear(ei, month, year));
+                        isLinkedIncomeActive = isTemplateActive || isConfirmed;
+                    } else {
+                        // If the linked income does not exist, do not project savings
+                        isLinkedIncomeActive = false;
+                    }
+                }
+
+                if (isLinkedIncomeActive) {
+                    const projectedAmount = s.monthlySavingAmount || 0;
+                    // Find actual allocations to this hucha in this month
+                    const allocationsForThisHucha = allocations
+                        .filter(alloc => alloc.goalId === s.id && isItemInMonthAndYear(alloc, month, year) && (alloc.type === 'manual' || alloc.type === 'automatic'))
+                        .reduce((sum, alloc) => sum + alloc.amount, 0);
+
+                    pendingSavings += Math.max(0, projectedAmount - allocationsForThisHucha);
+                }
+            }
+        });
+
+    // Active Override
+    const overrideId = `${year}-${(month + 1).toString().padStart(2, '0')}`;
+    const activeOverride = overrides.find(o => o.id === overrideId);
+
+    // Formula: Total Received (Extra + Confirmed Fixed) + Pending Fixed - (Projected Fixed Expenses + Variable Paid + Deviations + Allocations + Projected Savings) + Remanente
+    const availableToSpend = 
+        (extraIncomesReceived + pendingFixedIncomes) 
+        - (totalProjectedFixedExpenses + variableExpensesPaid + fixedExpensesDeviations + totalMonthAllocations + pendingSavings)
+        + remanente;
+
+    const summary = {
+        availableToSpend,
+        totalMonthIncome,
+        totalMonthExpenses,
+        totalAccountExpenses,
+        totalCardExpenses,
+        totalCashExpenses,
+        grossAccountExpenses,
+        grossCardExpenses,
+        grossCashExpenses,
+        totalMonthAllocations,
+        remanente,
+        pendingFixedExpenses,
+        pendingFixedIncomes: 0, // Simplified for now as fixed incomes are also in the 'projected' pool
+        pendingSavings,
+        activeOverride
+    };
+
+    if (activeOverride) {
+        if (activeOverride.delta !== undefined) {
+            return {
+                ...summary,
+                availableToSpend: availableToSpend + activeOverride.delta
+            };
+        }
+
+        const overrideTime = activeOverride.updatedAt;
+        
+        // Correct logic for Override (Budget-First):
+        // The user sets the "Starting Available" for the rest of the month.
+        // We add Extra Incomes that happen AFTER the override.
+        // We subtract Variable Expenses that happen AFTER the override.
+        // We subtract the DEVIATION of Fixed Expenses (only the difference from planned).
+        // We subtract any Manual Allocations to savings that happen AFTER the override.
+        
+        const extraIncomeAfter = extraIncomes.filter(inc => {
+            if (inc.type === 'rollover') return false;
+            if (inc.status === 'pending') return false;
+            if (inc.excludeFromBudget) return false;
+            const t = Number(inc.updatedAt || inc.effectiveDate || (inc as any).receivedDate || (inc as any).createdAt || 0);
+            return isItemInMonthAndYear(inc, month, year) && t > overrideTime;
+        }).reduce((sum, inc) => sum + inc.amount, 0);
+
+        const varExpensesAfter = expenses.filter(exp => {
+            if (exp.isFixed || exp.excludeFromBudget) return false;
+            if (exp.amount < 0 && exp.status === 'pending') return false;
+            const t = Number(exp.updatedAt || exp.date || (exp as any).createdAt || 0);
+            return isItemInMonthAndYear(exp, month, year) && t > overrideTime;
+        }).reduce((sum, exp) => sum + exp.amount, 0);
+
+        const paidFixedDeviationsByReIdAfter: Record<string, number> = {};
+        expenses.filter(exp => {
+            if (!exp.isFixed || exp.excludeFromBudget) return false;
+            if (exp.amount < 0 && exp.status === 'pending') return false;
+            const t = Number(exp.updatedAt || exp.date || (exp as any).createdAt || 0);
+            return isItemInMonthAndYear(exp, month, year) && t > overrideTime;
+        }).forEach(exp => {
+            if (exp.recurringExpenseId) {
+                paidFixedDeviationsByReIdAfter[exp.recurringExpenseId] = (paidFixedDeviationsByReIdAfter[exp.recurringExpenseId] || 0) + exp.amount;
+            }
+        });
+
+        let fixedDeviationsAfter = 0;
+        Object.entries(paidFixedDeviationsByReIdAfter).forEach(([reId, totalPaid]) => {
+            const re = recurringExpenses.find(r => r.id === reId);
+            let projectedAmount = 0;
+            if (re) {
+                const start = re.createdAt || re.updatedAt || 0;
+                const isIgnored = re.ignoredPeriods?.includes(period);
+                const isProjected = re.active && start <= monthEnd && !isIgnored && isRecurringActiveInMonth(re.frequency, re.paymentMonth, month, year, start);
+                projectedAmount = isProjected ? re.amount : 0;
+            }
+            fixedDeviationsAfter += (totalPaid - projectedAmount);
+        });
+
+        const allocationsAfter = allocations.filter(alloc => {
+            const t = Number(alloc.updatedAt || (alloc as any).date || (alloc as any).createdAt || 0);
+            return isItemInMonthAndYear(alloc, month, year) && t > overrideTime && (alloc.type === 'manual' || alloc.type === 'automatic');
+        }).reduce((sum, alloc) => {
+            return sum + alloc.amount;
+        }, 0);
+
+        return {
+            ...summary,
+            availableToSpend: activeOverride.amount + extraIncomeAfter - varExpensesAfter - fixedDeviationsAfter - allocationsAfter,
+        };
+    }
+
+    return summary;
+}
+
+export function getEffectiveSettlementDate(exp: Expense) {
+    if (!exp) return new Date();
+    const d = new Date(exp.date || Date.now());
+    const adjustment = (exp.paymentMethod as any)?.settlementAdjustment || 0;
+    if (adjustment !== 0) {
+        d.setMonth(d.getMonth() + adjustment);
+    }
+    return d;
+}
+
+export function predictSettlementDate(card: CreditCard, date: number, adjustment: number = 0) {
+    const d = new Date(date);
+    const cutoffDay = card.cutoffDay || 1;
+    const paymentDay = card.paymentDay || 1;
+    
+    // Apply the user's manual adjustment
+    if (adjustment !== 0) {
+        d.setMonth(d.getMonth() + adjustment);
+    }
+    
+    const year = d.getFullYear();
+    const month = d.getMonth();
+    const day = d.getDate();
+    
+    let settlementMonth = month;
+    let settlementYear = year;
+    
+    if (day > cutoffDay) {
+        // Belongs to the next settlement period
+        settlementMonth++;
+    }
+    
+    // If payment day is on or before cutoff, it usually pays in the month AFTER the settlement period closes
+    if (paymentDay <= cutoffDay) {
+        settlementMonth++;
+    }
+    
+    return new Date(settlementYear, settlementMonth, paymentDay);
+}
+
+export function calculateCardCycleDates(card: CreditCard) {
+    const cutoffDay = card.cutoffDay || 1;
+    const paymentDay = card.paymentDay || 1;
+    
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    const day = today.getDate();
+
+    let activeCutoff: Date;
+    let activeStart: Date;
+    let activePayment: Date;
+
+    let pendingCutoff: Date;
+    let pendingStart: Date;
+    let pendingPayment: Date;
+
+    if (day > cutoffDay) {
+        activeCutoff = new Date(year, month + 1, cutoffDay, 23, 59, 59);
+        activeStart = new Date(year, month, cutoffDay + 1, 0, 0, 0);
+        activePayment = new Date(year, month + 1, paymentDay, 12, 0, 0);
+        if (paymentDay <= cutoffDay) activePayment = new Date(year, month + 2, paymentDay, 12, 0, 0);
+
+        pendingCutoff = new Date(year, month, cutoffDay, 23, 59, 59);
+        pendingStart = new Date(year, month - 1, cutoffDay + 1, 0, 0, 0);
+        pendingPayment = new Date(year, month, paymentDay, 12, 0, 0);
+        if (paymentDay <= cutoffDay) pendingPayment = new Date(year, month + 1, paymentDay, 12, 0, 0);
+    } else {
+        activeCutoff = new Date(year, month, cutoffDay, 23, 59, 59);
+        activeStart = new Date(year, month - 1, cutoffDay + 1, 0, 0, 0);
+        activePayment = new Date(year, month, paymentDay, 12, 0, 0);
+        if (paymentDay <= cutoffDay) activePayment = new Date(year, month + 1, paymentDay, 12, 0, 0);
+
+        pendingCutoff = new Date(year, month - 1, cutoffDay, 23, 59, 59);
+        pendingStart = new Date(year, month - 2, cutoffDay + 1, 0, 0, 0);
+        pendingPayment = new Date(year, month - 1, paymentDay, 12, 0, 0);
+        if (paymentDay <= cutoffDay) pendingPayment = new Date(year, month, paymentDay, 12, 0, 0);
+    }
+
+    return {
+        active: { start: activeStart, cutoff: activeCutoff, payment: activePayment },
+        pending: { start: pendingStart, cutoff: pendingCutoff, payment: pendingPayment }
+    };
+}
+
+export function formatMoney(amount: number | undefined | null, includeSymbol: boolean = true): string {
+    if (amount === undefined || amount === null || isNaN(amount)) {
+        return includeSymbol ? '0,00€' : '0,00';
+    }
+    const isNegative = amount < 0;
+    const fixedVal = Math.abs(amount).toFixed(2);
+    const [integerPart, decimalPart] = fixedVal.split('.');
+    const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    const base = `${isNegative ? '-' : ''}${formattedInteger},${decimalPart}`;
+    return includeSymbol ? `${base}€` : base;
+}
+
+export function formatMoneySigned(amount: number | undefined | null): string {
+    if (amount === undefined || amount === null || isNaN(amount)) {
+        return '0,00€';
+    }
+    const sign = amount > 0 ? '+' : amount < 0 ? '-' : '';
+    const fixedVal = Math.abs(amount).toFixed(2);
+    const [integerPart, decimalPart] = fixedVal.split('.');
+    const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return `${sign}${formattedInteger},${decimalPart}€`;
+}
+
+/**
+ * Calculates the discrepancy between real free money and what is allocated in savings.
+ *
+ * Formula:
+ *   dineroReal      = Σ account.balance  (all bank + cash accounts)
+ *   compromisos     = pending expenses of the current real month that will leave
+ *                     real money (paymentMethod = account | cash | debit card)
+ *                   + Σ currentBalance of open credit/virtual card cycles
+ *                     (these will be charged to the linked bank at cycle close)
+ *   dineroLibreReal = dineroReal - compromisos
+ *   desajuste       = dineroLibreReal - dineroEnHuchas
+ *
+ * Notes:
+ *  - Settlement expenses (closed cycle payments) have type='account' + status='pending',
+ *    so they are captured by the first rule without double-counting.
+ *  - Debit card paid expenses already reduced account.balance; pending debit
+ *    expenses are captured by the debit-card rule.
+ *  - THRESHOLD: differences below 0.50€ are ignored to avoid rounding noise.
+ */
+export function calculateBalanceDiscrepancy(
+    accounts: Account[],
+    savings: SavingGoal[],
+    expenses: Expense[],
+    cards: CreditCard[],
+    recurringExpenses: RecurringExpense[] = [],
+    disponibleDelMes: number = 0,
+    threshold: number = 0.50
+): {
+    dineroReal: number;
+    dineroLibreReal: number;
+    compromisoGastos: number;
+    compromisoTarjetas: number;
+    compromisos: number;
+    dineroEnHuchas: number;
+    desajuste: number;
+    isOverdraft: boolean;
+    hasSignificantDiscrepancy: boolean;
+    mesActual: string;
+} {
+    // ── Real money ───────────────────────────────────────────────────────────
+    const dineroReal = accounts.reduce((sum, a) => sum + (a.balance || 0), 0);
+
+    // ── Current real month (never the navigated month) ───────────────────────
+    const now = new Date();
+    const mesActual = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+    // ── Build a quick card-type lookup ───────────────────────────────────────
+    const cardTypeMap = new Map<string, string>();
+    cards.forEach(c => cardTypeMap.set(c.id, c.type));
+
+    // ── Pending expenses of the current month that will reduce real money ─────
+    // Includes: account payments, cash payments, debit-card payments
+    // Excludes: credit/virtual card payments (those go into the cycle balance)
+    const gastosPendientes = expenses.filter(exp => {
+        if (exp.status !== 'pending') return false;
+
+        // Match by period field or by the expense date falling in current month
+        const expPeriod = exp.period ?? `${new Date(exp.date).getFullYear()}-${String(new Date(exp.date).getMonth() + 1).padStart(2, '0')}`;
+        if (expPeriod !== mesActual) return false;
+
+        const pm = exp.paymentMethod;
+        if (pm.type === 'account' || pm.type === 'cash') return true;
+        if (pm.type === 'card') {
+            return cardTypeMap.get(pm.cardId) === 'debit';
+        }
+        return false;
+    });
+
+    // ── Pending fixed expenses of the current month ───────────────────────────
+    let pendingFixedExpenses = 0;
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+    
+    recurringExpenses.forEach(re => {
+        if (!re.active) return;
+        const start = re.createdAt || re.updatedAt || 0;
+        const monthEnd = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59, 999).getTime();
+        if (start > monthEnd) return;
+        const isIgnored = re.ignoredPeriods?.includes(mesActual);
+        
+        // Use the same helper used for availableToSpend (requires importing isRecurringActiveInMonth if not already, wait, it's defined in the same file)
+        if (!isIgnored && isRecurringActiveInMonth(re.frequency, re.paymentMonth, currentMonth, currentYear, start)) {
+            // Check if it's paid (or pending, but wait! If it's pending it's in gastosPendientes!)
+            const isRegistered = expenses.some(e => e.recurringExpenseId === re.id && isItemInMonthAndYear(e, currentMonth, currentYear));
+            if (!isRegistered) {
+                pendingFixedExpenses += re.amount;
+            }
+        }
+    });
+
+    const compromisoGastos = gastosPendientes.reduce((sum, e) => sum + (e.amount || 0), 0) + pendingFixedExpenses;
+
+    // ── Open credit / virtual card cycles ────────────────────────────────────
+    const compromisoTarjetas = cards
+        .filter(c => c.type === 'credit' || c.type === 'virtual')
+        .reduce((sum, c) => sum + (c.currentBalance || 0), 0);
+
+    // ── Final calculation ─────────────────────────────────────────────────────
+    const compromisos = compromisoGastos + compromisoTarjetas;
+    const dineroEnHuchas = savings.reduce((sum, s) => sum + (s.currentAmount || 0), 0);
+    const dineroLibreReal = dineroReal - compromisos;
+    const desajuste = dineroLibreReal - (dineroEnHuchas + disponibleDelMes);
+    const isOverdraft = dineroReal < -threshold;
+    const hasSignificantDiscrepancy = Math.abs(desajuste) >= threshold;
+
+    return {
+        dineroReal,
+        dineroLibreReal,
+        compromisoGastos,
+        compromisoTarjetas,
+        compromisos,
+        dineroEnHuchas,
+        desajuste,
+        isOverdraft,
+        hasSignificantDiscrepancy,
+        mesActual
+    };
+}

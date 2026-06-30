@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">PCSHogar</string>
+    <string name="title_activity_main">PCSHogar</string>
+    <string name="package_name">com.pcshogar.inicial</string>
+    <string name="custom_url_scheme">com.pcshogar.inicial</string>
+</resources>

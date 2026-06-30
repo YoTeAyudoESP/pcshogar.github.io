@@ -1,0 +1,9 @@
+# Date Navigation Implementation
+
+- [ ] Explore codebase to identify state location and data flow <!-- id: 0 -->
+- [ ] Create Implementation Plan <!-- id: 1 -->
+- [ ] Implement `DateSelector` component or similar UI <!-- id: 2 -->
+- [ ] Lift state for `selectedDate` to [App.tsx](file:///c:/Users/pablo/.gemini/antigravity/scratch/domestic-economy-app/src/App.tsx) or appropriate context <!-- id: 3 -->
+- [ ] Update `FinanceSummary` to use selected date <!-- id: 4 -->
+- [ ] Update `YearlyFinancialChart` to use selected year <!-- id: 5 -->
+- [ ] Verify changes work as expected <!-- id: 6 -->

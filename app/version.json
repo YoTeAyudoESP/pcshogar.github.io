@@ -1,6 +1,6 @@
 {
-  "version": "1.7.3",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.7.3/PCSHogar_Setup_v1.7.3.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.7.3/PCSHogar_Setup_v1.7.3.exe",
-  "releaseNotes": "Novedades v1.7.3:\n- 📁 Creación de carpetas directamente en Google Drive y Dropbox.\n- 🌍 Traducción al inglés de los menús y la configuración.\n- 💵 Mejoras en el sistema multimoneda y conversión automática.\n- 🎨 Mejoras visuales en el tema claro y oscuro."
+  "version": "1.7.5",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.7.5/PCSHogar_Setup_v1.7.5.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.7.5/PCSHogar_Setup_v1.7.5.exe",
+  "releaseNotes": "Novedades v1.7.5:\n- 📊 Cuadro de Amortización completo para préstamos bancarios.\n- ✅ Validación estricta y alertas visuales al crear préstamos.\n- 📅 Posibilidad de fijar la duración de un préstamo en meses.\n- 🎨 Modal de amortización mejorado con fondo opaco y mayor claridad."
 }

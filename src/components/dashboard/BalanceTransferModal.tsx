@@ -4,6 +4,7 @@ import { useDateSelection } from '../../contexts/DateSelectionContext';
 import { X, ArrowRightLeft, Info, AlertTriangle } from 'lucide-react';
 import { formatMoney, calculateAvailableBalanceForMonth } from '../../utils/financeCalculations';
 import { useToast } from '../../contexts/ToastContext';
+import { getCurrencySymbol } from '../../utils/financeCalculations';
 
 interface BalanceTransferModalProps {
     onClose: () => void;
@@ -562,7 +563,7 @@ const BalanceTransferModal: React.FC<BalanceTransferModalProps> = ({ onClose, on
                     )}
 
                     <div>
-                        <label style={labelStyle}>Importe (€)</label>
+                        <label style={labelStyle}>Importe ({getCurrencySymbol()})</label>
                         <input 
                             type="number" 
                             step="0.01" 

@@ -100,6 +100,12 @@ export class DropboxService {
         return response.result.entries.filter(entry => entry['.tag'] === 'folder');
     }
 
+    static async createFolder(path: string, name: string) {
+        if (!this.dbx) throw new Error('Dropbox not initialized');
+        const fullPath = path === '' ? `/${name}` : `${path}/${name}`;
+        await this.dbx.filesCreateFolderV2({ path: fullPath });
+    }
+
     static async uploadData(data: any) {
         if (!this.dbx) throw new Error('Dropbox not initialized');
         

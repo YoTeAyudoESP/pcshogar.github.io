@@ -10,6 +10,7 @@ import { Share } from '@capacitor/share';
 import { FileOpener } from '@capacitor-community/file-opener';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface ReportModalProps {
     onClose: () => void;
@@ -57,6 +58,7 @@ const tdStyle: React.CSSProperties = { padding: '9px 10px', borderBottom: '1px s
 
 // ── Component ────────────────────────────────────────────────────────────────
 const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
+    const { t } = useTranslation();
     const { expenses, savings, categories, extraIncomes } = useFinance();
 
     const [periodType, setPeriodType] = useState<PeriodType>('monthly');
@@ -325,7 +327,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                                         <thead>
                                             <tr>
-                                                <th style={thStyle}>Categoría</th>
+                                                <th style={thStyle}>{t('Categoría')}</th>
                                                 <th style={{ ...thStyle, textAlign: 'right' }}>Importe</th>
                                                 <th style={{ ...thStyle, textAlign: 'right' }}>% sobre total</th>
                                                 <th style={{ ...thStyle, width: '140px' }}>Barra</th>
@@ -422,9 +424,9 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                                 <thead>
                                     <tr>
-                                        <th style={thStyle}>Fecha</th>
+                                        <th style={thStyle}>{t('Fecha')}</th>
                                         <th style={thStyle}>Descripción</th>
-                                        <th style={thStyle}>Categoría</th>
+                                        <th style={thStyle}>{t('Categoría')}</th>
                                         <th style={{ ...thStyle, textAlign: 'right' }}>Importe</th>
                                     </tr>
                                 </thead>
@@ -536,9 +538,9 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                                 <thead>
                                     <tr>
-                                        <th style={thStyle}>Fecha</th>
+                                        <th style={thStyle}>{t('Fecha')}</th>
                                         <th style={thStyle}>Descripción</th>
-                                        <th style={thStyle}>Categoría</th>
+                                        <th style={thStyle}>{t('Categoría')}</th>
                                         <th style={{ ...thStyle, textAlign: 'right' }}>Importe</th>
                                     </tr>
                                 </thead>
@@ -595,9 +597,9 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                                 <thead>
                                     <tr>
-                                        <th style={thStyle}>Fecha</th>
-                                        <th style={thStyle}>Concepto</th>
-                                        <th style={thStyle}>Categoría</th>
+                                        <th style={thStyle}>{t('Fecha')}</th>
+                                        <th style={thStyle}>{t('Concepto')}</th>
+                                        <th style={thStyle}>{t('Categoría')}</th>
                                         <th style={{ ...thStyle, textAlign: 'right' }}>Importe</th>
                                     </tr>
                                 </thead>
@@ -653,9 +655,9 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                                 <thead>
                                     <tr>
-                                        <th style={thStyle}>Fecha</th>
+                                        <th style={thStyle}>{t('Fecha')}</th>
                                         <th style={thStyle}>Descripción</th>
-                                        <th style={thStyle}>Categoría</th>
+                                        <th style={thStyle}>{t('Categoría')}</th>
                                         <th style={{ ...thStyle, textAlign: 'right' }}>Importe</th>
                                     </tr>
                                 </thead>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import type { Account } from '../../types/finance';
 import ColorPicker from '../common/ColorPicker';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface AccountFormProps {
     onClose?: () => void;
@@ -12,6 +13,7 @@ interface AccountFormProps {
 }
 
 const AccountForm: React.FC<AccountFormProps> = ({ onClose, editingAccount, onCancelEdit, defaultType = 'bank', hideTypeSelector = false }) => {
+    const { t } = useTranslation();
     const { addAccount, updateAccount } = useFinance();
     const [name, setName] = useState('');
     const [balance, setBalance] = useState('');
@@ -153,7 +155,7 @@ const AccountForm: React.FC<AccountFormProps> = ({ onClose, editingAccount, onCa
                         fontWeight: 600,
                         transition: 'all 0.2s ease'
                     }}
-                >Cancelar</button>
+                >{t('Cancelar')}</button>
                 <button type="submit" style={{
                     flex: 1.5,
                     padding: '1.2rem',

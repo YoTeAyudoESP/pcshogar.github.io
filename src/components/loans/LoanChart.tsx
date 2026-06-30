@@ -12,6 +12,7 @@ import {
 import { useFinance } from '../../contexts/FinanceContext';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import { formatMoney } from '../../utils/financeCalculations';
+import { getCurrencySymbol } from '../../utils/financeCalculations';
 
 const LoanChart: React.FC = () => {
     const { loans, expenses } = useFinance();
@@ -113,7 +114,7 @@ const LoanChart: React.FC = () => {
                         fontSize={10}
                         tickLine={false}
                         axisLine={false}
-                        tickFormatter={(value) => `${value}€`}
+                        tickFormatter={(value) => `${value}${getCurrencySymbol()}`}
                     />
                     <Tooltip 
                         contentStyle={{ 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Folder, ChevronRight, ChevronLeft, Check, Search, X } from 'lucide-react';
+import { Folder, ChevronRight, ChevronLeft, Check, Search, X, FolderPlus } from 'lucide-react';
 import { DropboxService } from '../../services/dropboxService';
 
 interface DropboxFolderPickerProps {
@@ -14,6 +14,8 @@ const DropboxFolderPicker: React.FC<DropboxFolderPickerProps> = ({ currentPath, 
     const [folders, setFolders] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [isCreatingFolder, setIsCreatingFolder] = useState(false);
+    const [newFolderName, setNewFolderName] = useState("");
 
     useEffect(() => {
         loadFolders(path);
@@ -43,6 +45,35 @@ const DropboxFolderPicker: React.FC<DropboxFolderPickerProps> = ({ currentPath, 
         parts.pop();
         setPath(parts.join('/'));
     };
+
+    
+    const handleCreateFolder = () => {
+        setIsCreatingFolder(true);
+        setNewFolderName("");
+    };
+
+    const confirmCreateFolder = async () => {
+        if (!newFolderName.trim()) {
+            setIsCreatingFolder(false);
+            return;
+        }
+        setLoading(true);
+        setIsCreatingFolder(false);
+        try {
+            await DropboxService.createFolder(path, newFolderName.trim());
+            await loadFolders(path);
+        } catch (err) {
+            console.error("Error creating folder:", err);
+            setError("Error al crear la carpeta.");
+            setLoading(false);
+        }
+    };
+
+    const cancelCreateFolder = () => {
+        setIsCreatingFolder(false);
+        setNewFolderName("");
+    };
+    
 
     const handleSelectCurrent = () => {
         // Build the final path using the economy's own file name (never hardcoded)
@@ -115,15 +146,56 @@ const DropboxFolderPicker: React.FC<DropboxFolderPickerProps> = ({ currentPath, 
                         <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Seleccionar Carpeta</h3>
                         <p style={{ margin: 0, fontSize: '0.8rem', opacity: 0.5 }}>{path || 'Raíz (Dropbox)'}</p>
                     </div>
-                    <button 
-                        onClick={onClose}
-                        style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', cursor: 'pointer', padding: '0.5rem' }}
-                    >
-                        <X size={20} />
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button 
+                            onClick={handleCreateFolder}
+                            style={{ background: 'transparent', border: 'none', color: 'var(--color-primary)', cursor: 'pointer', padding: '0.5rem' }}
+                            title="Crear nueva carpeta aquí"
+                        >
+                            <FolderPlus size={20} />
+                        </button>
+                        <button 
+                            onClick={onClose}
+                            style={{ background: 'transparent', border: 'none', color: 'var(--text-main)', cursor: 'pointer', padding: '0.5rem' }}
+                        >
+                            <X size={20} />
+                        </button>
+                    </div>
                 </div>
 
                 <div style={listStyle}>
+
+                    {isCreatingFolder && (
+                        <div style={{ ...itemStyle(true), background: 'var(--panel-bg-2)', cursor: 'default' }}>
+                            <FolderPlus size={18} color="var(--color-primary)" />
+                            <input 
+                                autoFocus
+                                type="text"
+                                value={newFolderName}
+                                onChange={(e) => setNewFolderName(e.target.value)}
+                                placeholder="Nombre de la carpeta..."
+                                style={{
+                                    flex: 1,
+                                    background: 'transparent',
+                                    border: 'none',
+                                    color: 'white',
+                                    outline: 'none',
+                                    fontSize: '1rem'
+                                }}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') confirmCreateFolder();
+                                    if (e.key === 'Escape') cancelCreateFolder();
+                                }}
+                            />
+                            <button onClick={confirmCreateFolder} style={{ background: 'transparent', border: 'none', color: '#10b981', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                                <Check size={18} />
+                            </button>
+                            <button onClick={cancelCreateFolder} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                                <X size={18} />
+                            </button>
+                        </div>
+                    )}
+    
                     {path !== '' && (
                         <div 
                             style={{ ...itemStyle(true), background: 'var(--panel-bg-2)' }}

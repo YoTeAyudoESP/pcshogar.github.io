@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import type { FixedIncome, Frequency } from '../../types/income';
 import { Save, X, Plus, Calendar, Tag, Landmark, Wallet, Coins, Clock4, CalendarRange } from 'lucide-react';
+import { getCurrencySymbol } from '../../utils/financeCalculations';
 
 interface FixedIncomeFormProps {
     editingIncome?: FixedIncome;
@@ -193,7 +194,7 @@ const FixedIncomeForm: React.FC<FixedIncomeFormProps> = ({ editingIncome, onClos
                         value={currency} 
                         onChange={e => setCurrency(e.target.value)}
                     >
-                        <option value="EUR">€ EUR</option>
+                        <option value="EUR">{getCurrencySymbol()} EUR</option>
                         <option value="USD">$ USD</option>
                         <option value="GBP">£ GBP</option>
                     </select>

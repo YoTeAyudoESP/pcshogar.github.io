@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import type { MonthClosing } from '../../types/finance';
 import { isItemInMonthAndYear, isRecurringActiveInMonth } from '../../utils/financeCalculations';
+import { getCurrencySymbol } from '../../utils/financeCalculations';
 
 interface RemnantDecisionModalProps {
     closing: MonthClosing;
@@ -80,7 +81,7 @@ const RemnantDecisionModal: React.FC<RemnantDecisionModalProps> = ({ closing, on
         const isNegative = val < 0;
         const [integerPart, decimalPart] = Math.abs(val).toFixed(2).split('.');
         const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        return `${isNegative ? '-' : ''}${formattedInteger},${decimalPart}€`;
+        return `${isNegative ? '-' : ''}${formattedInteger},${decimalPart}${getCurrencySymbol()}`;
     };
 
     const activeBalance = customBalance !== null ? customBalance : derivedFinalBalance;
@@ -246,7 +247,7 @@ const RemnantDecisionModal: React.FC<RemnantDecisionModalProps> = ({ closing, on
                                         color: (customBalance ?? 0) < 0 ? '#ef4444' : '#10b881'
                                     }}
                                 />
-                                <span style={{ fontSize: '1.4rem', fontWeight: 700 }}>€</span>
+                                <span style={{ fontSize: '1.4rem', fontWeight: 700 }}>${getCurrencySymbol()}</span>
                                 <button 
                                     type="button"
                                     onClick={() => setIsEditingBalance(false)}
@@ -346,7 +347,7 @@ const RemnantDecisionModal: React.FC<RemnantDecisionModalProps> = ({ closing, on
                                 style={{ width: '100%', padding: '0.5rem', textAlign: 'right', paddingRight: '1.5rem', fontSize: '1rem' }}
                                 placeholder="0.00"
                             />
-                            <span style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}>€</span>
+                            <span style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}>${getCurrencySymbol()}</span>
                         </div>
                     </div>
 
@@ -368,7 +369,7 @@ const RemnantDecisionModal: React.FC<RemnantDecisionModalProps> = ({ closing, on
                                     style={{ width: '100%', padding: '0.5rem', textAlign: 'right', paddingRight: '1.5rem', fontSize: '1rem' }}
                                     placeholder="0.00"
                                 />
-                                <span style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}>€</span>
+                                <span style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}>{getCurrencySymbol()}</span>
                             </div>
                         </div>
                     ))}

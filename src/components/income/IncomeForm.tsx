@@ -4,6 +4,8 @@ import { useFinance } from '../../contexts/FinanceContext';
 import { X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, PiggyBank } from 'lucide-react';
 import type { Income, FixedIncome, ExtraIncome, Frequency } from '../../types/income';
 import { formatMoney } from '../../utils/financeCalculations';
+import { getCurrencySymbol } from '../../utils/financeCalculations';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface IncomeFormProps {
     onClose: () => void;
@@ -12,6 +14,7 @@ interface IncomeFormProps {
 }
 
 const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData, onNavigateToSettings }) => {
+    const { t } = useTranslation();
     const { addFixedIncome, addExtraIncome, updateIncome, accounts, categories, savings, allocateSavings } = useFinance();
     const incomeCategories = categories
         .filter(c => c.type === 'income')
@@ -266,7 +269,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData, onNavigat
                             />
                         </div>
                         <div style={{ flex: 1 }}>
-                            <label style={labelStyle}>Importe (€)</label>
+                            <label style={labelStyle}>Importe ({getCurrencySymbol()})</label>
                             <input 
                                 type="number" step="0.01" style={inputStyle} value={amount} 
                                 onChange={e => setAmount(e.target.value)} placeholder="0.00" required 
@@ -308,7 +311,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData, onNavigat
                     ) : (
                         <div style={{ display: 'flex', gap: '1rem' }}>
                             <div style={{ flex: 1 }}>
-                                <label style={labelStyle}>Categoría</label>
+                                <label style={labelStyle}>{t('Categoría')}</label>
                                 <select style={inputStyle} value={categoryId} onChange={e => setCategoryId(e.target.value)}>
                                     {incomeCategories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
                                 </select>

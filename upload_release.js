@@ -7,7 +7,7 @@ if (!token) {
     process.exit(1);
 }
 const repo = "YoTeAyudoESP/pcshogar.github.io";
-const version = "v1.7.0";
+const version = "v1.7.3";
 
 async function uploadRelease() {
     console.log("Creating release...");
@@ -22,7 +22,7 @@ async function uploadRelease() {
         body: JSON.stringify({
             tag_name: version,
             name: `PCSHogar ${version}`,
-            body: "Novedades v1.7.0:\n- 🚀 Alerta de desajustes mejorada (incluye gastos fijos pendientes).\n- 💳 Cálculo de deuda acumulada de tarjetas de crédito optimizado.\n- 🛠 Opción de ocultar alerta de desajustes (3 días o hasta próximo mes).",
+            body: "Novedades v1.7.3:\n- 📁 Creación de carpetas directamente en Google Drive y Dropbox.\n- 🌍 Traducción al inglés de los menús y la configuración.\n- 💵 Mejoras en el sistema multimoneda y conversión automática.\n- 🎨 Mejoras visuales en el tema claro y oscuro.",
             draft: false,
             prerelease: false
         })
@@ -50,10 +50,10 @@ async function uploadRelease() {
     console.log("Upload URL:", uploadUrl);
 
     // Upload APK
-    const apkPath = "dist_android/PCSHogar_Setup_v1.7.0.apk";
+    const apkPath = "dist_android/PCSHogar_Setup_v1.7.3.apk";
     console.log("Uploading APK...");
     const apkBuffer = fs.readFileSync(apkPath);
-    const apkRes = await fetch(`${uploadUrl}?name=PCSHogar_Setup_v1.7.0.apk`, {
+    const apkRes = await fetch(`${uploadUrl}?name=PCSHogar_Setup_v1.7.3.apk`, {
         method: "POST",
         headers: {
             "Authorization": `Bearer ${token}`,
@@ -66,13 +66,13 @@ async function uploadRelease() {
     console.log("APK uploaded:", apkRes.ok, await apkRes.text());
 
     // Upload EXE
-    let exePath = "dist_electron/PCSHogar Setup 1.7.0.exe";
+    let exePath = "dist_electron/PCSHogar Setup 1.7.3.exe";
     if (!fs.existsSync(exePath)) {
-        exePath = "dist_electron/PCSHogar_Setup_v1.7.0.exe";
+        exePath = "dist_electron/PCSHogar_Setup_v1.7.3.exe";
     }
     console.log(`Uploading EXE from ${exePath}...`);
     const exeBuffer = fs.readFileSync(exePath);
-    const exeRes = await fetch(`${uploadUrl}?name=PCSHogar_Setup_v1.7.0.exe`, {
+    const exeRes = await fetch(`${uploadUrl}?name=PCSHogar_Setup_v1.7.3.exe`, {
         method: "POST",
         headers: {
             "Authorization": `Bearer ${token}`,

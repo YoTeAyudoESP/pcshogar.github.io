@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import type { CreditCard } from '../../types/finance';
 import { AlertCircle, Trash2, Info } from 'lucide-react';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface DeleteCardDialogProps {
     card: CreditCard;
@@ -9,6 +10,7 @@ interface DeleteCardDialogProps {
 }
 
 const DeleteCardDialog: React.FC<DeleteCardDialogProps> = ({ card, onClose }) => {
+    const { t } = useTranslation();
     const { deleteCard } = useFinance();
     const [isDeleting, setIsDeleting] = useState(false);
 
@@ -118,7 +120,7 @@ const DeleteCardDialog: React.FC<DeleteCardDialogProps> = ({ card, onClose }) =>
                             cursor: 'pointer',
                             fontWeight: 600
                         }}
-                    >Cancelar</button>
+                    >{t('Cancelar')}</button>
                     
                     {!hasDebt && (
                         <button 

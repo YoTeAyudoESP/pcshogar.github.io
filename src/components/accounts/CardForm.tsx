@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import type { CreditCard } from '../../types/finance';
 import ColorPicker from '../common/ColorPicker';
+import { getCurrencySymbol } from '../../utils/financeCalculations';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface CardFormProps {
     onClose?: () => void;
@@ -10,6 +12,7 @@ interface CardFormProps {
 }
 
 const CardForm: React.FC<CardFormProps> = ({ onClose, editingCard, onCancelEdit }) => {
+    const { t } = useTranslation();
     const { accounts, addCard, updateCard } = useFinance();
     const [name, setName] = useState('');
     const [type, setType] = useState<'debit' | 'credit' | 'virtual'>('credit');
@@ -176,7 +179,7 @@ const CardForm: React.FC<CardFormProps> = ({ onClose, editingCard, onCancelEdit 
 
             {type === 'virtual' && (
                 <div>
-                    <label style={{ display: 'block', marginBottom: '0.75rem', color: 'rgba(var(--color-rgb-light), 0.6)', fontSize: '0.9rem' }}>Saldo Inicial (€)</label>
+                    <label style={{ display: 'block', marginBottom: '0.75rem', color: 'rgba(var(--color-rgb-light), 0.6)', fontSize: '0.9rem' }}>Saldo Inicial ({getCurrencySymbol()})</label>
                     <input type="number" step="0.01" style={inputStyle} value={limit} onChange={e => setLimit(e.target.value)} placeholder="0.00" />
                 </div>
             )}
@@ -221,7 +224,7 @@ const CardForm: React.FC<CardFormProps> = ({ onClose, editingCard, onCancelEdit 
                         fontWeight: 600,
                         transition: 'all 0.2s ease'
                     }}
-                >Cancelar</button>
+                >{t('Cancelar')}</button>
                 <button type="submit" style={{
                     flex: 1.5,
                     padding: '1.2rem',

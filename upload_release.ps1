@@ -1,8 +1,8 @@
 $token = $env:GITHUB_TOKEN
 $repo = "YoTeAyudoESP/pcshogar.github.io"
-$version = "v1.7.0"
-$apkPath = "dist_android\PCSHogar_Setup_v1.7.0.apk"
-$exePath = "dist_electron\PCSHogar Setup 1.7.0.exe"
+$version = "v1.7.3"
+$apkPath = "dist_android\PCSHogar_Setup_v1.7.3.apk"
+$exePath = "dist_electron\PCSHogar Setup 1.7.3.exe"
 
 $headers = @{
     "Authorization" = "Bearer $token"
@@ -14,7 +14,7 @@ $headers = @{
 $releaseBody = @{
     "tag_name" = $version
     "name" = "PCSHogar $version"
-    "body" = "Novedades v1.7.0:`n- 🚀 Alerta de desajustes mejorada (incluye gastos fijos pendientes).`n- 💳 Cálculo de deuda acumulada de tarjetas de crédito optimizado.`n- 🛠 Opción de ocultar alerta de desajustes (3 días o hasta próximo mes)."
+    "body" = "Novedades v1.7.3:`n- 📁 Creación de carpetas directamente en Google Drive y Dropbox.`n- 🌍 Traducción al inglés de los menús y la configuración.`n- 💵 Mejoras en el sistema multimoneda y conversión automática.`n- 🎨 Mejoras visuales en el tema claro y oscuro."
     "draft" = $false
     "prerelease" = $false
 } | ConvertTo-Json -Depth 10
@@ -37,7 +37,7 @@ Write-Output "Upload URL: $uploadUrl"
 
 # 2. Upload APK
 Write-Output "Uploading APK..."
-$apkName = "PCSHogar_Setup_v1.7.0.apk"
+$apkName = "PCSHogar_Setup_v1.7.3.apk"
 $apkUploadUrl = "$uploadUrl?name=$apkName"
 $apkHeaders = @{
     "Authorization" = "Bearer $token"
@@ -49,7 +49,7 @@ Invoke-RestMethod -Uri $apkUploadUrl -Method Post -Headers $apkHeaders -InFile $
 
 # 3. Upload EXE
 Write-Output "Uploading EXE from $exePath ..."
-$exeName = "PCSHogar_Setup_v1.7.0.exe"
+$exeName = "PCSHogar_Setup_v1.7.3.exe"
 $exeUploadUrl = "$uploadUrl?name=$exeName"
 $exeHeaders = @{
     "Authorization" = "Bearer $token"

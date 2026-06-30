@@ -1,3 +1,4 @@
+import { useTranslation } from '../../hooks/useTranslation';
 import React, { useState, useMemo } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
@@ -18,6 +19,7 @@ import {
 import type { MonthClosing, MonthOverride } from '../../types/finance';
 
 const BalanceAdjustmentView: React.FC = () => {
+    const { t } = useTranslation();
     const { 
         overrides, closings, incomes,
         setMonthOverride, deleteMonthOverride,

@@ -4,6 +4,8 @@ import { useDateSelection } from '../../../contexts/DateSelectionContext';
 import { PlusCircle, AlertTriangle } from 'lucide-react';
 import type { SavingGoal } from '../../../types/finance';
 import { formatMoney, calculateAvailableBalanceForMonth } from '../../../utils/financeCalculations';
+import { getCurrencySymbol } from '../../../utils/financeCalculations';
+import { useTranslation } from '../../../hooks/useTranslation';
 
 interface PiggyBankAddMoneyFormProps {
     goal: SavingGoal;
@@ -11,6 +13,7 @@ interface PiggyBankAddMoneyFormProps {
 }
 
 const PiggyBankAddMoneyForm: React.FC<PiggyBankAddMoneyFormProps> = ({ goal, onClose }) => {
+    const { t } = useTranslation();
     const { 
         fixedIncomes, extraIncomes, expenses, allocations, 
         savings, recurringExpenses, overrides, cards, adjustSavings 
@@ -112,7 +115,7 @@ const PiggyBankAddMoneyForm: React.FC<PiggyBankAddMoneyFormProps> = ({ goal, onC
                 </div>
 
                 <div>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'rgba(var(--color-rgb-light),0.5)', fontSize: '0.85rem' }}>Importe a Ahorrar (€)</label>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', color: 'rgba(var(--color-rgb-light),0.5)', fontSize: '0.85rem' }}>Importe a Ahorrar ({getCurrencySymbol()})</label>
                     <input type="number" step="0.01" style={inputStyle} value={amount} onChange={e => setAmount(e.target.value)} placeholder="0.00" required />
                 </div>
 
@@ -151,7 +154,7 @@ const PiggyBankAddMoneyForm: React.FC<PiggyBankAddMoneyFormProps> = ({ goal, onC
                 <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
                     <button type="button" onClick={onClose} style={{
                         flex: 1, padding: '1rem', borderRadius: '12px', border: '1px solid var(--panel-bg-3)', background: 'transparent', color: 'var(--text-main)', cursor: 'pointer', fontWeight: 600
-                    }}>Cancelar</button>
+                    }}>{t('Cancelar')}</button>
                     <button type="submit" style={{
                         flex: 1.5,
                         padding: '1rem',

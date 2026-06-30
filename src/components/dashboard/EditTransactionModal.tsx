@@ -4,6 +4,8 @@ import type { Expense, Category, PaymentMethod, CreditCard } from '../../types/f
 import type { Income } from '../../types/income';
 import { X, Calendar, Info } from 'lucide-react';
 import { predictSettlementDate, formatMoney } from '../../utils/financeCalculations';
+import { getCurrencySymbol } from '../../utils/financeCalculations';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface EditTransactionModalProps {
     transaction: Expense | Income;
@@ -12,6 +14,7 @@ interface EditTransactionModalProps {
 }
 
 const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction, type, onClose }) => {
+    const { t } = useTranslation();
     const { updateIncome, updateExpense, accounts, cards, categories, savings } = useFinance();
     
     const isRefund = type === 'expense' && (transaction as Expense).amount < 0;
@@ -256,17 +259,17 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction
                 <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                     <div style={{ display: 'flex', gap: '1rem' }}>
                         <div style={{ flex: 2 }}>
-                            <label style={labelStyle}>Concepto</label>
+                            <label style={labelStyle}>{t('Concepto')}</label>
                             <input style={inputStyle} value={description} onChange={e => setDescription(e.target.value)} required />
                         </div>
                         <div style={{ flex: 1 }}>
-                            <label style={labelStyle}>{isRefund ? 'Importe Devolución (€)' : 'Importe (€)'}</label>
+                            <label style={labelStyle}>{isRefund ? 'Importe Devolución ({getCurrencySymbol()})' : 'Importe ({getCurrencySymbol()})'}</label>
                             <input type="number" step="0.01" style={inputStyle} value={amount} onChange={e => setAmount(e.target.value)} required />
                         </div>
                     </div>
 
                     <div>
-                        <label style={labelStyle}>Fecha</label>
+                        <label style={labelStyle}>{t('Fecha')}</label>
                         <div style={{ position: 'relative' }}>
                             <input 
                                 type="date" 
@@ -284,7 +287,7 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction
 
                     <div style={{ display: 'flex', gap: '1rem' }}>
                         <div style={{ flex: 1 }}>
-                            <label style={labelStyle}>Categoría</label>
+                            <label style={labelStyle}>{t('Categoría')}</label>
                             <select style={inputStyle} value={categoryId} onChange={e => setCategoryId(e.target.value)}>
                                 {(type === 'expense' ? expenseCategories : incomeCategories).map(cat => (
                                     <option key={cat.id} value={cat.id}>{cat.name}</option>
@@ -310,7 +313,7 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction
                         <>
                             <div style={{ display: 'flex', gap: '1rem' }}>
                                 <div style={{ flex: 1 }}>
-                                    <label style={labelStyle}>Estado</label>
+                                    <label style={labelStyle}>{t('Estado')}</label>
                                     <select style={inputStyle} value={status} onChange={e => setStatus(e.target.value as any)}>
                                         <option value="paid">
                                             {isRefund 
@@ -621,7 +624,7 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction
                                                         boxSizing: 'border-box'
                                                     }}
                                                 />
-                                                <span style={{ position: 'absolute', right: '16px', top: '12px', color: 'rgba(var(--color-rgb-light),0.4)', fontSize: '1.1rem' }}>€</span>
+                                                <span style={{ position: 'absolute', right: '16px', top: '12px', color: 'rgba(var(--color-rgb-light),0.4)', fontSize: '1.1rem' }}>{getCurrencySymbol()}</span>
                                             </div>
                                             <button
                                                 type="button"

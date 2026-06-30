@@ -1,11 +1,13 @@
+import { useTranslation } from '../../hooks/useTranslation';
 import React, { useMemo, useState, useEffect } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import { Info, Trash2 } from 'lucide-react';
 import FinanceBreakdownModal from './FinanceBreakdownModal';
-import { calculateAvailableBalanceForMonth } from '../../utils/financeCalculations';
+import { calculateAvailableBalanceForMonth, getCurrencySymbol } from '../../utils/financeCalculations';
 
 const FinanceSummary: React.FC = () => {
+    const { t } = useTranslation();
     const { 
         expenses, allocations, overrides, cards, 
         fixedIncomes, extraIncomes, recurringExpenses, savings
@@ -72,7 +74,7 @@ const FinanceSummary: React.FC = () => {
                 marginBottom: '1rem',
                 textTransform: 'capitalize'
             }}>
-                Disponible En {monthName}
+                {t('Disponible')} En {monthName}
             </h2>
 
             {/* Balance and Info Icon Row */}
@@ -95,7 +97,7 @@ const FinanceSummary: React.FC = () => {
                     transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
                     whiteSpace: 'nowrap'
                 }}>
-                    {availableToSpend >= 0 ? '' : '-'}{formatCurrency(Math.abs(availableToSpend), false)}€
+                    {availableToSpend >= 0 ? '' : '-'}{formatCurrency(Math.abs(availableToSpend), false)}{getCurrencySymbol()}
                 </div>
                 
                 {/* Info Icon (Circular i) */}
@@ -130,7 +132,7 @@ const FinanceSummary: React.FC = () => {
                     color: 'rgba(var(--color-rgb-light), 0.6)',
                     fontSize: '1rem'
                 }}>
-                    <span>Remanente mes anterior:</span>
+                    <span>{t('Remanente mes anterior:')}</span>
                     <span style={{ color: remanente >= 0 ? '#2ed573' : '#ff4757', fontWeight: 600 }}>
                         {formatCurrency(remanente)}
                     </span>

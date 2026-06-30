@@ -3,6 +3,7 @@ import { X, Info, ChevronRight, TrendingUp, TrendingDown, Target, Wallet } from 
 import { useFinance } from '../../contexts/FinanceContext';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import { isRecurringActiveInMonth, calculateAvailableBalanceForMonth, calculateCardCycleDates, getEffectiveSettlementDate } from '../../utils/financeCalculations';
+import { getCurrencySymbol } from '../../utils/financeCalculations';
 
 interface FinanceBreakdownModalProps {
     isOpen: boolean;
@@ -173,7 +174,7 @@ const FinanceBreakdownModal: React.FC<FinanceBreakdownModalProps> = ({ isOpen, o
         const isNegative = val < 0;
         const [integerPart, decimalPart] = Math.abs(val).toFixed(2).split('.');
         const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        const formattedVal = `${formattedInteger},${decimalPart}€`;
+        const formattedVal = `${formattedInteger},${decimalPart}${getCurrencySymbol()}`;
         if (!includeSign) return formattedVal;
         return (val >= 0 ? '+' : '-') + ' ' + formattedVal;
     };

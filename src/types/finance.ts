@@ -127,6 +127,10 @@ export interface Loan {
     isPaid?: boolean;          // Convenience flag
     updatedAt?: number;
     color?: string;
+    mode?: 'basic' | 'advanced';
+    tin?: number; // Tipo de Interés Nominal (%)
+    tae?: number; // Tasa Anual Equivalente (%)
+    earlyAmortizationFee?: number; // Comisión de cancelación anticipada (%)
 }
 
 export interface Transfer {
@@ -273,6 +277,10 @@ export const SUPPORTED_LANGUAGES = [
 ];
 
 export const APP_THEMES = [
-    { id: 'default', name: 'Principal (Oscuro)', colors: { primary: '#1e293b', secondary: '#0f172a' } },
-    { id: 'light', name: 'Claro (Light)', colors: { primary: '#ffffff', secondary: '#f3f4f6' } }
+    { id: 'default', name: 'Principal (Por defecto)', colors: { primary: '#6366f1', secondary: '#4f46e5' } },
+    { id: 'ocean', name: 'Océano Blue', colors: { primary: '#0ea5e9', secondary: '#0284c7' } },
+    { id: 'forest', name: 'Bosque Esmeralda', colors: { primary: '#10b981', secondary: '#059669' } },
+    { id: 'sunset', name: 'Atardecer Cálido', colors: { primary: '#f59e0b', secondary: '#d97706' } },
+    { id: 'midnight', name: 'Medianoche', colors: { primary: '#334155', secondary: '#1e293b' } }
 ];
+

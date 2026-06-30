@@ -189,6 +189,30 @@ export class GoogleDriveService {
         }));
     }
 
+    static async createFolder(name: string, path: string = '') {
+        if (!this.token) throw new Error('Google Drive not initialized');
+        const parentId = await this.getFolderIdByPath(path, true); // create parent paths if needed
+        if (!parentId) throw new Error('Failed to find or create parent folder');
+
+        const metadata = {
+            name: name,
+            mimeType: 'application/vnd.google-apps.folder',
+            parents: [parentId]
+        };
+
+        const response = await fetch('https://www.googleapis.com/drive/v3/files', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${this.token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(metadata)
+        });
+
+        if (!response.ok) throw new Error('Failed to create folder on Google Drive');
+        return await response.json();
+    }
+
     static async deleteFile(): Promise<void> {
         if (!this.token) throw new Error('Google Drive not initialized');
         const fileId = await this.getFileId();

@@ -3,6 +3,7 @@ import { useFinance } from '../../contexts/FinanceContext';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { isRecurringActiveInMonth, formatMoney, isItemInMonthAndYear, calculateAvailableBalanceForMonth } from '../../utils/financeCalculations';
+import { getCurrencySymbol } from '../../utils/financeCalculations';
 
 const YearlyFinancialChart: React.FC = () => {
     const { 
@@ -115,7 +116,7 @@ const YearlyFinancialChart: React.FC = () => {
                             fontSize={12} 
                             tickLine={false}
                             axisLine={false}
-                            tickFormatter={(value) => `${value}€`}
+                            tickFormatter={(value) => `${value}${getCurrencySymbol()}`}
                         />
                         
                         <Tooltip

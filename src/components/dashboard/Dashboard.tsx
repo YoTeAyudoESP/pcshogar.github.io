@@ -28,6 +28,7 @@ import BalanceTransferModal from './BalanceTransferModal';
 import ReportModal from './ReportModal';
 import BalanceDiscrepancyAlert from './BalanceDiscrepancyAlert';
 import type { Expense } from '../../types/finance';
+import { useTranslation } from '../../hooks/useTranslation';
 import type { Income } from '../../types/income';
 
 const renderReleaseNotes = (notes: string) => {
@@ -115,6 +116,8 @@ const Dashboard: React.FC = () => {
     const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
     const [show30DayReminder, setShow30DayReminder] = useState(false);
+    const { t } = useTranslation();
+
     const [showChangelog, setShowChangelog] = useState(false);
     const [changelogEntriesToShow, setChangelogEntriesToShow] = useState<any[]>([]);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -309,7 +312,7 @@ const Dashboard: React.FC = () => {
                     }}
                 >
                     <LayoutDashboard size={18} />
-                    Dashboard
+                    {t('Dashboard')}
                 </button>
                 <button
                     onClick={() => setCurrentView('settings')}
@@ -328,7 +331,7 @@ const Dashboard: React.FC = () => {
                     }}
                 >
                     <SettingsIcon size={18} />
-                    Gestión y Ajustes
+                    {t('Gestión y Ajustes')}
                 </button>
             </div>
 

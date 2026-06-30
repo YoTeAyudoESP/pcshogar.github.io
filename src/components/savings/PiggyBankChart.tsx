@@ -12,6 +12,7 @@ import {
 import { useFinance } from '../../contexts/FinanceContext';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import { formatMoney } from '../../utils/financeCalculations';
+import { getCurrencySymbol } from '../../utils/financeCalculations';
 
 const PiggyBankChart: React.FC = () => {
     const { savings, allocations } = useFinance();
@@ -121,7 +122,7 @@ const PiggyBankChart: React.FC = () => {
                         fontSize={12} 
                         tickLine={false} 
                         axisLine={false}
-                        tickFormatter={(value) => `${value}€`}
+                        tickFormatter={(value) => `${value}${getCurrencySymbol()}`}
                     />
                     
                     <Tooltip 

@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useAppSettings } from '../../contexts/AppSettingsContext';
 import { useFinance } from '../../contexts/FinanceContext';
+import { useTranslation } from '../../hooks/useTranslation';
 import { SyncService } from '../../services/syncService';
 import { incomeDB } from '../../services/db';
 import { DropboxService } from '../../services/dropboxService';
@@ -45,6 +46,8 @@ const AppSettingsView: React.FC = () => {
     const { settings, updateSettings, updateSyncSettings, activeProfile, activeEconomy, setProfilePin, setProfileBiometric } = useAppSettings();
     const { importData, refreshFinance } = useFinance();
     const { showToast } = useToast();
+    const { t } = useTranslation();
+    
     const [dropboxConnected, setDropboxConnected] = useState(() => DropboxService.isConnected());
     const [googleConnected, setGoogleConnected] = useState(() => GoogleDriveService.isConnected());
 
@@ -174,11 +177,11 @@ const AppSettingsView: React.FC = () => {
                (window as any).require;
     };
 
-    const handleExport = async () => {
+    const handleExportData = async () => {
         const data = await incomeDB.exportFullData();
         const dateStr = new Date().toISOString().split('T')[0];
         SyncService.exportToJSON(data, `pcshogar_backup_${dateStr}.json`);
-        showToast('Copia de seguridad exportada', 'success');
+        showToast(t('Copia de seguridad exportada'), 'success');
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -252,11 +255,11 @@ const AppSettingsView: React.FC = () => {
             
             {/* Zone 1: General Settings */}
             <section style={groupStyle}>
-                <h3 style={zoneTitleStyle}><Globe size={20} color="var(--color-primary)" /> Configuración General</h3>
+                <h3 style={zoneTitleStyle}><Globe size={20} color="var(--color-primary)" /> {t('Configuración General')}</h3>
                 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
                     <div>
-                        <label style={labelStyle}><Coins size={16} /> Moneda Principal</label>
+                        <label style={labelStyle}><Coins size={16} /> {t('Moneda Principal')}</label>
                         <select 
                             style={selectStyle} 
                             value={settings.currency}
@@ -268,7 +271,7 @@ const AppSettingsView: React.FC = () => {
                         </select>
                     </div>
                     <div>
-                        <label style={labelStyle}><Globe size={16} /> Idioma</label>
+                        <label style={labelStyle}><Globe size={16} /> {t('Idioma')}</label>
                         <select 
                             style={selectStyle}
                             value={settings.language}
@@ -282,7 +285,7 @@ const AppSettingsView: React.FC = () => {
                 </div>
 
                 <div>
-                    <label style={labelStyle}><Palette size={16} /> Tema Visual</label>
+                    <label style={labelStyle}><Palette size={16} /> {t('Tema Visual')}</label>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '1rem' }}>
                         {APP_THEMES.map(t => (
                             <button
@@ -432,7 +435,7 @@ const AppSettingsView: React.FC = () => {
                 
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
                     <button 
-                        onClick={handleExport}
+                        onClick={handleExportData}
                         style={{
                             background: 'rgba(var(--color-success-rgb), 0.1)',
                             border: '1px solid rgba(var(--color-success-rgb), 0.2)',
@@ -491,7 +494,7 @@ const AppSettingsView: React.FC = () => {
                         </div>
                         <div style={{ display: 'flex', gap: '0.75rem' }}>
                             <button onClick={confirmImport} style={{ flex: 1, padding: '0.6rem', border: 'none', borderRadius: '0.5rem', background: '#ef4444', color: 'var(--text-main)', fontWeight: 600, cursor: 'pointer' }}>Sí, Importar y Sobrescribir</button>
-                            <button onClick={() => setShowImportWarning(false)} style={{ flex: 1, padding: '0.6rem', border: '1px solid var(--panel-bg-3)', borderRadius: '0.5rem', background: 'transparent', color: 'var(--text-main)', cursor: 'pointer' }}>Cancelar</button>
+                            <button onClick={() => setShowImportWarning(false)} style={{ flex: 1, padding: '0.6rem', border: '1px solid var(--panel-bg-3)', borderRadius: '0.5rem', background: 'transparent', color: 'var(--text-main)', cursor: 'pointer' }}>{t('Cancelar')}</button>
                         </div>
                     </div>
                 )}

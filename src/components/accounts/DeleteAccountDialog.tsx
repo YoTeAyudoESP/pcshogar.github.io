@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import type { Account } from '../../types/finance';
 import { AlertTriangle, ArrowRightLeft, Trash2, Info } from 'lucide-react';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface DeleteAccountDialogProps {
     account: Account;
@@ -9,6 +10,7 @@ interface DeleteAccountDialogProps {
 }
 
 const DeleteAccountDialog: React.FC<DeleteAccountDialogProps> = ({ account, onClose }) => {
+    const { t } = useTranslation();
     const { accounts, cards, performTransfer, deleteAccount } = useFinance();
     const [targetAccountId, setTargetAccountId] = useState('');
     const [isDeleting, setIsDeleting] = useState(false);
@@ -162,7 +164,7 @@ const DeleteAccountDialog: React.FC<DeleteAccountDialogProps> = ({ account, onCl
                             cursor: 'pointer',
                             fontWeight: 600
                         }}
-                    >Cancelar</button>
+                    >{t('Cancelar')}</button>
                     <button 
                         onClick={handleDelete}
                         disabled={isDeleting || (hasBalance && !targetAccountId)}

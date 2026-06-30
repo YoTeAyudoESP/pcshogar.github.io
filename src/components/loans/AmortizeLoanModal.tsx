@@ -3,6 +3,7 @@ import { X, Check, CreditCard, DollarSign, Calendar, MessageSquare } from 'lucid
 import { useFinance } from '../../contexts/FinanceContext';
 import type { Loan } from '../../types/finance';
 import { formatMoney } from '../../utils/financeCalculations';
+import { getCurrencySymbol } from '../../utils/financeCalculations';
 
 interface AmortizeLoanModalProps {
     loan: Loan;
@@ -85,7 +86,7 @@ const AmortizeLoanModal: React.FC<AmortizeLoanModalProps> = ({ loan, onClose }) 
 
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        <label style={{ fontSize: '0.85rem', opacity: 0.6 }}>Importe a pagar (€)</label>
+                        <label style={{ fontSize: '0.85rem', opacity: 0.6 }}>Importe a pagar ({getCurrencySymbol()})</label>
                         <input 
                             autoFocus
                             type="number"

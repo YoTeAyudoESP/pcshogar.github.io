@@ -488,27 +488,52 @@ export function calculateCardCycleDates(card: CreditCard) {
     };
 }
 
+export function getCurrencySymbol(): string {
+    try {
+        const saved = localStorage.getItem('pcshogar_settings');
+        if (saved) {
+            const settings = JSON.parse(saved);
+            const currencyCode = settings.currency || 'EUR';
+            switch (currencyCode) {
+                case 'USD': return '$';
+                case 'GBP': return '£';
+                case 'JPY': return '¥';
+                case 'ARS': return '$';
+                case 'COP': return '$';
+                case 'MXN': return '$';
+                case 'CLP': return '$';
+                case 'PEN': return 'S/';
+                case 'BRL': return 'R$';
+                case 'EUR': default: return '€';
+            }
+        }
+    } catch(e) {}
+    return '€';
+}
+
 export function formatMoney(amount: number | undefined | null, includeSymbol: boolean = true): string {
+    const symbol = getCurrencySymbol();
     if (amount === undefined || amount === null || isNaN(amount)) {
-        return includeSymbol ? '0,00€' : '0,00';
+        return includeSymbol ? `0,00${symbol}` : '0,00';
     }
     const isNegative = amount < 0;
     const fixedVal = Math.abs(amount).toFixed(2);
     const [integerPart, decimalPart] = fixedVal.split('.');
     const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     const base = `${isNegative ? '-' : ''}${formattedInteger},${decimalPart}`;
-    return includeSymbol ? `${base}€` : base;
+    return includeSymbol ? `${base}${symbol}` : base;
 }
 
 export function formatMoneySigned(amount: number | undefined | null): string {
+    const symbol = getCurrencySymbol();
     if (amount === undefined || amount === null || isNaN(amount)) {
-        return '0,00€';
+        return `0,00${symbol}`;
     }
     const sign = amount > 0 ? '+' : amount < 0 ? '-' : '';
     const fixedVal = Math.abs(amount).toFixed(2);
     const [integerPart, decimalPart] = fixedVal.split('.');
     const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    return `${sign}${formattedInteger},${decimalPart}€`;
+    return `${sign}${formattedInteger},${decimalPart}${symbol}`;
 }
 
 /**

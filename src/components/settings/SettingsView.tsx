@@ -1,3 +1,4 @@
+import { useTranslation } from '../../hooks/useTranslation';
 import React, { useState, useEffect, useRef } from 'react';
 import AccountList from '../accounts/AccountList';
 import AccountForm from '../accounts/AccountForm';
@@ -46,6 +47,7 @@ interface SettingsViewProps {
 }
 
 const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) => {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState<any>(initialTab);
     const { showToast } = useToast();
     const { activeProfile } = useAppSettings();
@@ -186,15 +188,15 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
     };
 
     const tabs = [
-        { id: 'accounts', label: 'Cuentas y Tarjetas', icon: Wallet },
-        { id: 'savings', label: 'Huchas', icon: PiggyBank },
-        { id: 'recurring', label: 'Movimientos Fijos', icon: CalendarClock },
+        { id: 'accounts', label: t('Cuentas y Tarjetas'), icon: Wallet },
+        { id: 'savings', label: t('Huchas'), icon: PiggyBank },
+        { id: 'recurring', label: t('Movimientos Fijos'), icon: CalendarClock },
         { id: 'loans', label: 'Préstamos', icon: Landmark },
-        { id: 'categories', label: 'Categorías', icon: Tag },
-        { id: 'balance', label: 'Ajustes Saldo', icon: RefreshCw },
-        { id: 'app', label: 'Aplicación', icon: Monitor },
-        ...(isPrincipal ? [{ id: 'users', label: 'Gestión de Usuarios', icon: Users }] : []),
-        { id: 'about', label: 'Acerca de', icon: Heart },
+        { id: 'categories', label: t('Categorías'), icon: Tag },
+        { id: 'balance', label: t('Ajustes Saldo'), icon: RefreshCw },
+        { id: 'app', label: t('Aplicación'), icon: Monitor },
+        ...(isPrincipal ? [{ id: 'users', label: t('Gestión de Usuarios'), icon: Users }] : []),
+        { id: 'about', label: t('Acerca de'), icon: Heart },
     ] as const;
 
     return (

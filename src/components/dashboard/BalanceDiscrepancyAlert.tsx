@@ -3,6 +3,7 @@ import { useFinance } from '../../contexts/FinanceContext';
 import { AlertTriangle, TrendingDown, PiggyBank, ChevronDown, ChevronUp, Calendar, Check } from 'lucide-react';
 import { calculateBalanceDiscrepancy, calculateAvailableBalanceForMonth, formatMoney } from '../../utils/financeCalculations';
 import type { SavingGoal } from '../../types/finance';
+import { getCurrencySymbol } from '../../utils/financeCalculations';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -315,7 +316,7 @@ const BalanceDiscrepancyAlert: React.FC = () => {
                                                         setDistributions(prev => ({ ...prev, [goal.id]: Number(v.toFixed(2)) }));
                                                     }}
                                                     style={numInput} />
-                                                <span style={{ fontSize: '0.8rem', color: 'rgba(var(--color-rgb-light),0.4)' }}>€</span>
+                                                <span style={{ fontSize: '0.8rem', color: 'rgba(var(--color-rgb-light),0.4)' }}>${getCurrencySymbol()}</span>
                                             </div>
                                         </div>
                                     ))}
@@ -362,7 +363,7 @@ const BalanceDiscrepancyAlert: React.FC = () => {
                                                         setReductions(prev => ({ ...prev, [goal.id]: Number(v.toFixed(2)) }));
                                                     }}
                                                     style={numInput} />
-                                                <span style={{ fontSize: '0.8rem', color: 'rgba(var(--color-rgb-light),0.4)' }}>€</span>
+                                                <span style={{ fontSize: '0.8rem', color: 'rgba(var(--color-rgb-light),0.4)' }}>${getCurrencySymbol()}</span>
                                             </div>
                                         </div>
                                     ))}

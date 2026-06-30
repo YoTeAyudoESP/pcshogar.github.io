@@ -3,6 +3,8 @@ import { useFinance } from '../../contexts/FinanceContext';
 import { X, Calendar, Info, Clock, CheckCircle } from 'lucide-react';
 import { predictSettlementDate, formatMoney } from '../../utils/financeCalculations';
 import type { CreditCard } from '../../types/finance';
+import { getCurrencySymbol } from '../../utils/financeCalculations';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface ExpenseFormProps {
     onClose: () => void;
@@ -11,6 +13,7 @@ interface ExpenseFormProps {
 }
 
 const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, onNavigateToSettings }) => {
+    const { t } = useTranslation();
     const { addExpense, addRecurringExpense, accounts, cards, categories, savings } = useFinance();
     const expenseCategories = categories
         .filter(c => c.type === 'expense')
@@ -292,7 +295,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                     {/* Rows */}
                     <div style={{ display: 'flex', gap: '1rem' }}>
                         <div style={{ flex: 2 }}>
-                            <label style={labelStyle}>Concepto</label>
+                            <label style={labelStyle}>{t('Concepto')}</label>
                             <input 
                                 style={inputStyle} 
                                 value={description} 
@@ -302,7 +305,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                             />
                         </div>
                         <div style={{ flex: 1 }}>
-                            <label style={labelStyle}>{isRefund ? 'Importe Devolución (€)' : 'Importe (€)'}</label>
+                            <label style={labelStyle}>{isRefund ? 'Importe Devolución ({getCurrencySymbol()})' : 'Importe ({getCurrencySymbol()})'}</label>
                             <input 
                                 type="number" 
                                 step="0.01" 
@@ -317,7 +320,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
 
                     {type === 'puntual' ? (
                         <div>
-                            <label style={labelStyle}>Fecha</label>
+                            <label style={labelStyle}>{t('Fecha')}</label>
                             <div style={{ position: 'relative' }}>
                                 <input 
                                     type="date" 
@@ -363,7 +366,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
 
                     <div style={{ display: 'flex', gap: '1rem' }}>
                         <div style={{ flex: 1 }}>
-                            <label style={labelStyle}>Categoría</label>
+                            <label style={labelStyle}>{t('Categoría')}</label>
                             <select style={inputStyle} value={categoryId} onChange={e => setCategoryId(e.target.value)}>
                                 {expenseCategories.map(cat => (
                                     <option key={cat.id} value={cat.id}>{cat.name}</option>
@@ -675,7 +678,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                                                         boxSizing: 'border-box'
                                                     }}
                                                 />
-                                                <span style={{ position: 'absolute', right: '16px', top: '12px', color: 'rgba(var(--color-rgb-light),0.4)', fontSize: '1.1rem' }}>€</span>
+                                                <span style={{ position: 'absolute', right: '16px', top: '12px', color: 'rgba(var(--color-rgb-light),0.4)', fontSize: '1.1rem' }}>{getCurrencySymbol()}</span>
                                             </div>
                                             <button
                                                 type="button"

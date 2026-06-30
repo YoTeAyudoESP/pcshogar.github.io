@@ -4,6 +4,7 @@ import { useDateSelection } from '../../contexts/DateSelectionContext';
 import { CreditCard as CardIcon, CheckCircle2, Calendar, AlertCircle, X } from 'lucide-react';
 import type { CreditCard, Expense } from '../../types/finance';
 import { formatMoney, calculateCardCycleDates } from '../../utils/financeCalculations';
+import { getCurrencySymbol } from '../../utils/financeCalculations';
 
 const CreditCardSettlement: React.FC = () => {
     const { cards = [], expenses = [], settleCardCycle } = useFinance();
@@ -249,7 +250,7 @@ const CreditCardSettlement: React.FC = () => {
                         </h3>
 
                         <div style={{ marginBottom: '1.5rem' }}>
-                            <label style={{ display: 'block', color: 'rgba(var(--color-rgb-light),0.5)', fontSize: '0.85rem', marginBottom: '0.5rem' }}>Importe a pagar (€)</label>
+                            <label style={{ display: 'block', color: 'rgba(var(--color-rgb-light),0.5)', fontSize: '0.85rem', marginBottom: '0.5rem' }}>Importe a pagar ({getCurrencySymbol()})</label>
                             <input 
                                 type="number" 
                                 step="0.01" 

@@ -107,47 +107,18 @@
             </div>
         </section>
 
-<<<<<<< HEAD
-        <section class="changelog-section" style="max-width: 700px; margin: 2rem auto 4rem; text-align: left; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.06); padding: 2rem; border-radius: 20px; box-sizing: border-box; backdrop-filter: blur(10px);">
-            <h3 style="margin-top: 0; color: #ffffff; font-size: 1.3rem; display: flex; align-items: center; gap: 10px;">
-                🚀 Novedades de la Versión 1.4.2 (Estable)
-            </h3>
-            <p style="color: rgba(229, 231, 235, 0.7); font-size: 0.92rem; line-height: 1.6; margin-bottom: 1.5rem;">
-                ¡Ya está disponible la nueva versión 1.4.2 de PCSHogar con importantes mejoras en la personalización de perfiles, seguridad de acceso y compartición avanzada de economías!
-            </p>
-            
-            <ul style="color: rgba(229, 231, 235, 0.8); font-size: 0.88rem; line-height: 1.8; padding-left: 20px; display: flex; flex-direction: column; gap: 8px;">
-                <li>🎨 <strong>Personalización de Perfiles:</strong> Modifica tu nombre de usuario y elige entre 8 degradados premium o sube tu propia foto de perfil (optimizada localmente a 128x128px para proteger tu privacidad y almacenamiento).</li>
-                <li>🔗 <strong>Compartición de Entornos Avanzada:</strong> Mayor privacidad y control. Al crear una economía eres el propietario exclusivo; ahora puedes decidir con qué perfiles secundarios compartirla posteriormente desde Ajustes.</li>
-                <li>👤 <strong>Menú de Perfil Superior Premium:</strong> Accede de forma profesional a tus datos, edita tu perfil, gestiona tus entornos o cierra sesión con un solo clic pulsando sobre tu nuevo avatar en la cabecera derecha.</li>
-                <li>🔑 <strong>Pantalla de Bloqueo PIN Optimizada:</strong> Mayor claridad al mostrar el avatar y el nombre del perfil activo del que se solicita el PIN, junto con un botón "Cambiar de Usuario" destacado para facilitar la navegación.</li>
-                <li>🛡️ <strong>Integración con Google Drive y Dropbox:</strong> Mantén tus bases de datos financieras sincronizadas automáticamente en la nube utilizando tus propias cuentas personales.</li>
-                <li>🔒 <strong>Biometría Nativa (Android):</strong> Accede rápidamente a tu perfil mediante tu huella digital o reconocimiento facial de forma nativa.</li>
-                <li>📂 <strong>Copia de Seguridad y Compartición:</strong> Exporta y restaura backups en formato JSON. En Android, se abre el menú nativo para compartir (WhatsApp, Drive, etc.).</li>
-            </ul>
-        </section>
-=======
 
->>>>>>> bd4f7adba637efc8910787f6d0020360fdb3fe7c
 
         <section id="features" class="features">
             <h2 class="section-title">¿Por qué elegir PCS Hogar?</h2>
             <div class="feature-grid">
                 <div class="feature-card">
-<<<<<<< HEAD
-                    <div class="icon">🐷</div>
-=======
                     <div class="icon">💰</div>
->>>>>>> bd4f7adba637efc8910787f6d0020360fdb3fe7c
                     <h3>Huchas Virtuales</h3>
                     <p>Crea objetivos de ahorro, asigna dinero mensual y transfiere balances. La app detecta cuando llegas a tu meta para ayudarte a redireccionar tus ahorros.</p>
                 </div>
                 <div class="feature-card">
-<<<<<<< HEAD
-                    <div class="icon">📅</div>
-=======
                     <div class="icon">🗓️</div>
->>>>>>> bd4f7adba637efc8910787f6d0020360fdb3fe7c
                     <h3>Control Mensual Inteligente</h3>
                     <p>Cierre de mes asistido. El rollover pasa automáticamente tus balances positivos o negativos al mes siguiente evitando pérdidas de presupuesto.</p>
                 </div>
@@ -157,13 +128,7 @@
                     <p>Totalmente fuera de línea. TUS datos están en TU dispositivo. Sin cuentas, sin registros en la nube y sin publicidad molesta. 100% privacidad.</p>
                 </div>
                 <div class="feature-card">
-<<<<<<< HEAD
-                    <div class="icon">📋</div>
-                    <h3>Gastos Recurrentes</h3>
-                    <p>Registra ingresos y gastos que se repiten con frecuencias personalizadas, incluso detectando cuando un cobro mensual esperado no se ha materializado.</p>
-                </div>
-=======
-                    <div class="icon">📈</div>
+                    <div class="icon">💼</div>
                     <h3>Gastos Recurrentes</h3>
                     <p>Registra ingresos y gastos que se repiten con frecuencias personalizadas, incluso detectando cuando un cobro mensual esperado no se ha materializado.</p>
                 </div>
@@ -173,7 +138,7 @@
                     <p>Crea perfiles independientes para ti y otros miembros de la familia con avatares de diseño premium o fotos de perfil personalizadas.</p>
                 </div>
                 <div class="feature-card">
-                    <div class="icon">🏢</div>
+                    <div class="icon">🏘️</div>
                     <h3>Múltiples Entornos</h3>
                     <p>Administra diferentes entornos financieros (gastos personales, negocio propio, hogar vacacional) e intercambia de base de datos en un solo clic.</p>
                 </div>
@@ -187,7 +152,6 @@
                     <h3>Informes PDF Profesionales</h3>
                     <p>Genera y descarga informes en PDF formateados por páginas independientes con gráficos detallados, metas de ahorro y resúmenes de saldos.</p>
                 </div>
->>>>>>> bd4f7adba637efc8910787f6d0020360fdb3fe7c
             </div>
         </section>
 
@@ -237,25 +201,16 @@
                 const data = await response.json();
 
                 if (data.url) {
-<<<<<<< HEAD
-                    const filename = data.url.substring(data.url.lastIndexOf('/') + 1);
-                    document.getElementById('android-download').href = filename;
-=======
                     document.getElementById('android-download').href = data.url;
->>>>>>> bd4f7adba637efc8910787f6d0020360fdb3fe7c
                 }
 
                 if (data.version) {
                     document.getElementById('android-version').textContent = 'Versión v' + data.version;
-<<<<<<< HEAD
-                    document.getElementById('win-download').href = 'PCSHogar_Setup_v' + data.version + '.exe';
-=======
                     if (data.windowsUrl) {
                         document.getElementById('win-download').href = data.windowsUrl;
                     } else {
                         document.getElementById('win-download').href = 'https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v' + data.version + '/PCSHogar_Setup_v' + data.version + '.exe';
                     }
->>>>>>> bd4f7adba637efc8910787f6d0020360fdb3fe7c
                     document.getElementById('win-version').textContent = 'Descargar v' + data.version;
                 }
             } catch (error) {

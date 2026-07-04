@@ -1,0 +1,6 @@
+{
+  "version": "1.5.9",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.5.9.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.5.9.exe",
+  "releaseNotes": "Novedades v1.5.9:\n- 📊 Auditor Global: Corregido el cálculo del Descuadre Financiero para que siempre compare con el mes actual real, evitando falsas alertas al navegar a meses futuros.\n- ☁️ Sincronización en la Nube: Arreglado un problema visual por el que Dropbox o Google Drive seguían apareciendo conectados al cancelar la re-autenticación."
+}

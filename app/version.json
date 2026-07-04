@@ -1,6 +1,6 @@
 {
-  "version": "1.4.2",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_v1.4.2.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.4.2.exe",
-  "releaseNotes": "Novedades v1.4.2:\n- 🎨 Personalización de perfiles: Cambia tu nombre de usuario y elige entre 8 gradientes premium o sube tu propia foto de perfil.\n- 🔗 Compartición avanzada de entornos: Los usuarios ahora son propietarios de sus entornos creados y pueden elegir con quién compartirlos de forma posterior a su creación en los ajustes.\n- 🔑 Pantalla de bloqueo mejorada: Ahora muestra de forma clara el avatar y el nombre del usuario al pedir el PIN, y destaca visualmente el botón de cambio de usuario.\n- 👤 Menú de usuario superior: Sustituido el botón de bloqueo por un avatar interactivo con desplegable y accesos rápidos para editar perfil, gestionar entornos y cerrar sesión."
+  "version": "1.7.6",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.7.6/PCSHogar_Setup_v1.7.6.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.7.6/PCSHogar_Setup_v1.7.6.exe",
+  "releaseNotes": "- Nueva Modal de Remanente simplificada sin opciones de aplazar/ignorar\\n- Autoselección rápida para Cuentas/Tarjetas únicas\\n- Corrección del saldo y deuda de tarjetas en el menú Cuentas y Tarjetas\\n- Corrección visual del símbolo de moneda en formularios"
 }

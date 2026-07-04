@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="./logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PCSHogar</title>
+    <script>
+      // Force unregister any legacy service worker from the old site to clear cache
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          if (registrations.length > 0) {
+            for (let registration of registrations) {
+              registration.unregister().then(function(boolean) {
+                if (boolean) {
+                  console.log('SW desregistrado con exito.');
+                  const reloaded = sessionStorage.getItem('sw_reloaded');
+                  if (!reloaded) {
+                    sessionStorage.setItem('sw_reloaded', '1');
+                    window.location.reload();
+                  }
+                }
+              });
+            }
+          }
+        });
+      }
+
+      // Handle OAuth redirect back to the native Capacitor app
+      const hash = window.location.hash;
+      if (hash && hash.includes('access_token=')) {
+        const params = new URLSearchParams(hash.substring(1));
+        const state = params.get('state');
+        if (state === 'googledrive-android') {
+          window.location.href = 'com.pcshogar.app://auth/googledrive' + hash;
+        }
+      }
+    </script>
+    <script type="module" crossorigin src="./assets/index-DeYhgBGJ.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-C-yJPlWa.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

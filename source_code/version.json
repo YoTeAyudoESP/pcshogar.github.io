@@ -1,0 +1,6 @@
+{
+  "version": "1.7.3",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.7.3/PCSHogar_Setup_v1.7.3.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.7.3/PCSHogar_Setup_v1.7.3.exe",
+  "releaseNotes": "Novedades v1.7.3:\n- 📁 Creación de carpetas directamente en Google Drive y Dropbox.\n- 🌍 Traducción al inglés de los menús y la configuración.\n- 💵 Mejoras en el sistema multimoneda y conversión automática.\n- 🎨 Mejoras visuales en el tema claro y oscuro."
+}

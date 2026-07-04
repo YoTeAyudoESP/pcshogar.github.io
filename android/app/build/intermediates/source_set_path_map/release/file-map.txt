@@ -1,0 +1,58 @@
+com.pcshogar.app-core-splashscreen-1.0.1-0 C:\Users\pablo\.gradle\caches\transforms-3\02af67d3594ada2148314bae886ebee9\transformed\core-splashscreen-1.0.1\res
+com.pcshogar.app-transition-1.4.1-1 C:\Users\pablo\.gradle\caches\transforms-3\085a85d7599c21e03c5277140827906b\transformed\transition-1.4.1\res
+com.pcshogar.app-slidingpanelayout-1.2.0-2 C:\Users\pablo\.gradle\caches\transforms-3\08609f61b5e76d8ef0d15edc02b1cb4a\transformed\slidingpanelayout-1.2.0\res
+com.pcshogar.app-cardview-1.0.0-3 C:\Users\pablo\.gradle\caches\transforms-3\1ef749150016b292adc1e05584b45871\transformed\cardview-1.0.0\res
+com.pcshogar.app-lifecycle-livedata-2.6.1-4 C:\Users\pablo\.gradle\caches\transforms-3\1f19457a2094334ede033edaa680eac5\transformed\lifecycle-livedata-2.6.1\res
+com.pcshogar.app-core-runtime-2.2.0-5 C:\Users\pablo\.gradle\caches\transforms-3\25d31c664b03672e3208c0be7777f9e4\transformed\core-runtime-2.2.0\res
+com.pcshogar.app-startup-runtime-1.1.1-6 C:\Users\pablo\.gradle\caches\transforms-3\2b19c49b9055d666a310de3e6f33c8a9\transformed\startup-runtime-1.1.1\res
+com.pcshogar.app-lifecycle-runtime-ktx-2.6.1-7 C:\Users\pablo\.gradle\caches\transforms-3\356137b1db79227cdaf8dc16aa2d8629\transformed\lifecycle-runtime-ktx-2.6.1\res
+com.pcshogar.app-savedstate-1.2.1-8 C:\Users\pablo\.gradle\caches\transforms-3\3d3e07e4c9c329b75d857f1a545e7b19\transformed\savedstate-1.2.1\res
+com.pcshogar.app-coordinatorlayout-1.2.0-9 C:\Users\pablo\.gradle\caches\transforms-3\44b764ef4a0c2818774bd443073d6bc9\transformed\coordinatorlayout-1.2.0\res
+com.pcshogar.app-activity-ktx-1.8.0-10 C:\Users\pablo\.gradle\caches\transforms-3\48d46bede18a26f5364d238396fb2267\transformed\activity-ktx-1.8.0\res
+com.pcshogar.app-lifecycle-livedata-core-2.6.1-11 C:\Users\pablo\.gradle\caches\transforms-3\4c53b51485172d5b85fe5f785784822d\transformed\lifecycle-livedata-core-2.6.1\res
+com.pcshogar.app-appcompat-1.6.1-12 C:\Users\pablo\.gradle\caches\transforms-3\4ce7c60d257b8629ab4c81cf615a92a1\transformed\appcompat-1.6.1\res
+com.pcshogar.app-core-1.12.0-13 C:\Users\pablo\.gradle\caches\transforms-3\4f7b0d764f8b5d0d84c4d0344e1adc27\transformed\core-1.12.0\res
+com.pcshogar.app-lifecycle-viewmodel-ktx-2.6.1-14 C:\Users\pablo\.gradle\caches\transforms-3\5170322b1855c353dfcb250de764a82f\transformed\lifecycle-viewmodel-ktx-2.6.1\res
+com.pcshogar.app-emoji2-views-helper-1.2.0-15 C:\Users\pablo\.gradle\caches\transforms-3\53359f3038cb13de1318f37b05a9ec5d\transformed\emoji2-views-helper-1.2.0\res
+com.pcshogar.app-savedstate-ktx-1.2.1-16 C:\Users\pablo\.gradle\caches\transforms-3\55e731d2b5b0c7638f9f7a4fe75c2339\transformed\savedstate-ktx-1.2.1\res
+com.pcshogar.app-emoji2-1.2.0-17 C:\Users\pablo\.gradle\caches\transforms-3\61f606930917a64588c199b54d3d711a\transformed\emoji2-1.2.0\res
+com.pcshogar.app-navigation-fragment-2.5.3-18 C:\Users\pablo\.gradle\caches\transforms-3\6c23324ddc55c50a2a1a0315fcc4f119\transformed\navigation-fragment-2.5.3\res
+com.pcshogar.app-lifecycle-livedata-core-ktx-2.6.1-19 C:\Users\pablo\.gradle\caches\transforms-3\7463d0bbd61c5f491cb7a1914c900fe2\transformed\lifecycle-livedata-core-ktx-2.6.1\res
+com.pcshogar.app-navigation-ui-2.5.3-20 C:\Users\pablo\.gradle\caches\transforms-3\751396a77c3dfa95b12faa9f83847df7\transformed\navigation-ui-2.5.3\res
+com.pcshogar.app-lifecycle-process-2.6.1-21 C:\Users\pablo\.gradle\caches\transforms-3\7d158143758428a9a27e664e481c199e\transformed\lifecycle-process-2.6.1\res
+com.pcshogar.app-core-ktx-1.12.0-22 C:\Users\pablo\.gradle\caches\transforms-3\84d9786aaf5bcddfba07ca3ef005c797\transformed\core-ktx-1.12.0\res
+com.pcshogar.app-appcompat-resources-1.6.1-23 C:\Users\pablo\.gradle\caches\transforms-3\88a6080fbc42bac50aa5f58be10a395a\transformed\appcompat-resources-1.6.1\res
+com.pcshogar.app-lifecycle-viewmodel-2.6.1-24 C:\Users\pablo\.gradle\caches\transforms-3\8a0149cb8706549bf60addc48f773184\transformed\lifecycle-viewmodel-2.6.1\res
+com.pcshogar.app-material-1.9.0-25 C:\Users\pablo\.gradle\caches\transforms-3\9575760b99e7b7095a17d4bb66f23147\transformed\material-1.9.0\res
+com.pcshogar.app-navigation-common-2.5.3-26 C:\Users\pablo\.gradle\caches\transforms-3\9dc1f2e5b0b92d0ba99cc74d6ad65487\transformed\navigation-common-2.5.3\res
+com.pcshogar.app-window-1.0.0-27 C:\Users\pablo\.gradle\caches\transforms-3\a10b6c9ea0a558dd104b9867ec3ab4a6\transformed\window-1.0.0\res
+com.pcshogar.app-recyclerview-1.1.0-28 C:\Users\pablo\.gradle\caches\transforms-3\b0d4cf1d16556daabfb189ec579cffb6\transformed\recyclerview-1.1.0\res
+com.pcshogar.app-fragment-1.6.2-29 C:\Users\pablo\.gradle\caches\transforms-3\b7681978623fb5a34dc59f8ae14b69b9\transformed\fragment-1.6.2\res
+com.pcshogar.app-webkit-1.9.0-30 C:\Users\pablo\.gradle\caches\transforms-3\b948559cdc2cc7d0142d11d80ac027fd\transformed\webkit-1.9.0\res
+com.pcshogar.app-annotation-experimental-1.3.0-31 C:\Users\pablo\.gradle\caches\transforms-3\bd8e71c95da9a0410fe961116180ea2e\transformed\annotation-experimental-1.3.0\res
+com.pcshogar.app-drawerlayout-1.1.1-32 C:\Users\pablo\.gradle\caches\transforms-3\c2dd5b16a7279ded118e2ac1f1aa2675\transformed\drawerlayout-1.1.1\res
+com.pcshogar.app-profileinstaller-1.3.0-33 C:\Users\pablo\.gradle\caches\transforms-3\c4b6893a58c24e59df590ee54241c077\transformed\profileinstaller-1.3.0\res
+com.pcshogar.app-browser-1.7.0-34 C:\Users\pablo\.gradle\caches\transforms-3\c74e1431ec0812b16a35ea0039ce709a\transformed\browser-1.7.0\res
+com.pcshogar.app-biometric-1.1.0-35 C:\Users\pablo\.gradle\caches\transforms-3\cd7d1fd26ad48122cd7f304a204c643c\transformed\biometric-1.1.0\res
+com.pcshogar.app-constraintlayout-2.1.4-36 C:\Users\pablo\.gradle\caches\transforms-3\cfbf49bd22c4d246be42788c82bd760b\transformed\constraintlayout-2.1.4\res
+com.pcshogar.app-viewpager2-1.0.0-37 C:\Users\pablo\.gradle\caches\transforms-3\d4af2973284b2ae0e8f0136bd1b22ce4\transformed\viewpager2-1.0.0\res
+com.pcshogar.app-fragment-ktx-1.6.2-38 C:\Users\pablo\.gradle\caches\transforms-3\dcae92899804c835cad4bf25d7be7a42\transformed\fragment-ktx-1.6.2\res
+com.pcshogar.app-lifecycle-runtime-2.6.1-39 C:\Users\pablo\.gradle\caches\transforms-3\df72a2f8f860ffef94040cce25609171\transformed\lifecycle-runtime-2.6.1\res
+com.pcshogar.app-activity-1.8.0-40 C:\Users\pablo\.gradle\caches\transforms-3\e7c087e2e63ca40d4727b77d524bd515\transformed\activity-1.8.0\res
+com.pcshogar.app-lifecycle-viewmodel-savedstate-2.6.1-41 C:\Users\pablo\.gradle\caches\transforms-3\f1d278e9cc7f2bb6532c81f7b267fbc2\transformed\lifecycle-viewmodel-savedstate-2.6.1\res
+com.pcshogar.app-navigation-runtime-2.5.3-42 C:\Users\pablo\.gradle\caches\transforms-3\f656cdd9aebb6f3415dded261f87a533\transformed\navigation-runtime-2.5.3\res
+com.pcshogar.app-pngs-43 C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\build\generated\res\pngs\release
+com.pcshogar.app-resValues-44 C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\build\generated\res\resValues\release
+com.pcshogar.app-packageReleaseResources-45 C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\build\intermediates\incremental\release\packageReleaseResources\merged.dir
+com.pcshogar.app-packageReleaseResources-46 C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\build\intermediates\incremental\release\packageReleaseResources\stripped.dir
+com.pcshogar.app-merged_res-47 C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\build\intermediates\merged_res\release
+com.pcshogar.app-main-48 C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\main\res
+com.pcshogar.app-release-49 C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\app\src\release\res
+com.pcshogar.app-packaged_res-50 C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\android\capacitor-cordova-android-plugins\build\intermediates\packaged_res\release
+com.pcshogar.app-packaged_res-51 C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\node_modules\@capacitor-community\file-opener\android\build\intermediates\packaged_res\release
+com.pcshogar.app-packaged_res-52 C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\node_modules\@capacitor\android\capacitor\build\intermediates\packaged_res\release
+com.pcshogar.app-packaged_res-53 C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\node_modules\@capacitor\app\android\build\intermediates\packaged_res\release
+com.pcshogar.app-packaged_res-54 C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\node_modules\@capacitor\browser\android\build\intermediates\packaged_res\release
+com.pcshogar.app-packaged_res-55 C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\node_modules\@capacitor\filesystem\android\build\intermediates\packaged_res\release
+com.pcshogar.app-packaged_res-56 C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\node_modules\@capacitor\share\android\build\intermediates\packaged_res\release
+com.pcshogar.app-packaged_res-57 C:\Users\pablo\Documents\Proyecto Antigravity\.gemini\antigravity\node_modules\@capgo\capacitor-native-biometric\android\build\intermediates\packaged_res\release

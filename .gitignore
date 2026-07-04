@@ -1,0 +1,8 @@
+*.exe
+*.apk
+*.zip
+node_modules/
+dist/
+dist_electron/
+dist_android/
+.DS_Store

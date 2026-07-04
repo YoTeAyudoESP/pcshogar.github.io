@@ -83,19 +83,28 @@ const PendingActionsWidget: React.FC<PendingActionsWidgetProps> = ({ onEdit }) =
         return isRecurringActiveInMonth(inc.frequency, inc.paymentMonth, selectedMonth, selectedYear, start);
     });
 
-    // Calculate pending extra incomes
-    const pendingExtraIncomes = incomes.filter(inc => 
-        inc.type === 'extra' && 
-        inc.status === 'pending' && 
-        isItemInMonthAndYear(inc, selectedMonth, selectedYear)
-    );
-
-    // Calculate pending refunds (negative expenses with status pending)
     const today = new Date();
     const currentRealMonth = today.getMonth();
     const currentRealYear = today.getFullYear();
     const isViewedMonthCurrentRealMonth = selectedMonth === currentRealMonth && selectedYear === currentRealYear;
 
+    // Calculate pending extra incomes
+    const pendingExtraIncomes = incomes.filter(inc => {
+        if (inc.type !== 'extra' || inc.status !== 'pending') return false;
+
+        const d = new Date(inc.effectiveDate || inc.receivedDate || inc.createdAt || 0);
+        const incMonth = d.getMonth();
+        const incYear = d.getFullYear();
+
+        if (incMonth === selectedMonth && incYear === selectedYear) return true;
+
+        const isPast = (incYear < selectedYear) || (incYear === selectedYear && incMonth < selectedMonth);
+        if (isPast && isViewedMonthCurrentRealMonth) return true;
+
+        return false;
+    });
+
+    // Calculate pending refunds (negative expenses with status pending)
     const pendingRefunds = expenses.filter(exp => {
         if (!(exp.amount < 0 && exp.status === 'pending')) return false;
 

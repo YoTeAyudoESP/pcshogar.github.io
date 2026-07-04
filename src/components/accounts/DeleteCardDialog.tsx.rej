@@ -1,0 +1,33 @@
+diff a/src/components/accounts/DeleteCardDialog.tsx b/src/components/accounts/DeleteCardDialog.tsx	(rejected hunks)
+@@ -9,11 +9,20 @@ interface DeleteCardDialogProps {
+ }
+ 
+ const DeleteCardDialog: React.FC<DeleteCardDialogProps> = ({ card, onClose }) => {
+-    const { deleteCard } = useFinance();
++    const { deleteCard, expenses } = useFinance();
+     const [isDeleting, setIsDeleting] = useState(false);
+ 
+     // We block if it's credit and has debt (> 0)
+-    const hasDebt = card.type === 'credit' && card.currentBalance > 0;
++    const currentDebt = card.type === 'credit' ? expenses.filter(exp => {
++        if (!exp?.paymentMethod) return false;
++        const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === card.id;
++        if (!isCard) return false;
++        if (exp.isSettled) return false;
++        if (exp.amount < 0 && exp.status === 'pending') return false;
++        return true;
++    }).reduce((sum, exp) => sum + exp.amount, 0) : 0;
++
++    const hasDebt = card.type === 'credit' && currentDebt > 0;
+ 
+     const handleDelete = async () => {
+         setIsDeleting(true);
+@@ -79,7 +88,7 @@ const DeleteCardDialog: React.FC<DeleteCardDialogProps> = ({ card, onClose }) =>
+                     }}>
+                         <div style={{ display: 'flex', gap: '0.75rem', color: '#f87171' }}>
+                             <AlertCircle size={20} />
+-                            <span style={{ fontWeight: 600 }}>Deuda Pendiente: {card.currentBalance.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</span>
++                            <span style={{ fontWeight: 600 }}>Deuda Pendiente: {currentDebt.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</span>
+                         </div>
+                         <p style={{ margin: 0, fontSize: '0.9rem', opacity: 0.8 }}>
+                             Para poder eliminar esta tarjeta de cr├®dito, primero debes liquidar su saldo mediante el cierre de mes o un pago manual.

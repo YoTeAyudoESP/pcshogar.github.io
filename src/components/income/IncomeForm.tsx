@@ -57,6 +57,13 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData, onNavigat
         }
     }, [incomeCategories, categoryId, isEditing]);
 
+
+    useEffect(() => {
+        if (accounts.length === 1 && !linkedAccountId) {
+            setLinkedAccountId(accounts[0].id);
+        }
+    }, [accounts.length, linkedAccountId]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!name || !amount || hasNoAccounts) return;
@@ -260,7 +267,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData, onNavigat
                     </div>
 
                     {/* Common Fields */}
-                    <div style={{ display: 'flex', gap: '1rem' }}>
+                    <div className="form-row">
                         <div style={{ flex: 2 }}>
                             <label style={labelStyle}>Concepto / Fuente</label>
                             <input 
@@ -278,7 +285,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData, onNavigat
                     </div>
 
                     {/* Budget Period */}
-                    <div style={{ display: 'flex', gap: '1rem' }}>
+                    <div className="form-row">
                         <div style={{ flex: 1 }}>
                             <label style={labelStyle}>Mes de Presupuesto</label>
                             <select style={inputStyle} value={budgetMonth} onChange={e => setBudgetMonth(parseInt(e.target.value))}>
@@ -294,7 +301,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData, onNavigat
                     </div>
 
                     {type === 'fixed' ? (
-                        <div style={{ display: 'flex', gap: '1rem' }}>
+                        <div className="form-row">
                             <div style={{ flex: 1 }}>
                                 <label style={labelStyle}>Frecuencia</label>
                                 <select style={inputStyle} value={frequency} onChange={e => setFrequency(e.target.value as Frequency)}>
@@ -309,7 +316,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData, onNavigat
                             </div>
                         </div>
                     ) : (
-                        <div style={{ display: 'flex', gap: '1rem' }}>
+                        <div className="form-row">
                             <div style={{ flex: 1 }}>
                                 <label style={labelStyle}>{t('Categoría')}</label>
                                 <select style={inputStyle} value={categoryId} onChange={e => setCategoryId(e.target.value)}>
@@ -330,7 +337,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData, onNavigat
                         </div>
                     )}
 
-                    <div style={{ display: 'flex', gap: '1rem' }}>
+                    <div className="form-row">
                         <div style={{ flex: 1 }}>
                             <label style={labelStyle}>Banco / Método de Cobro</label>
                             <select style={inputStyle} value={linkedAccountId} onChange={e => setLinkedAccountId(e.target.value)}>

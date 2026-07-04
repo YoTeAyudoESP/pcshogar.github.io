@@ -1,0 +1,24 @@
+diff a/src/components/settings/FixedIncomeForm.tsx b/src/components/settings/FixedIncomeForm.tsx	(rejected hunks)
+@@ -50,6 +50,13 @@ const FixedIncomeForm: React.FC<FixedIncomeFormProps> = ({ editingIncome, onClos
+         return () => document.removeEventListener('app-back-pressed', handleBack);
+     }, [name, amount, frequency, paymentDay, paymentMonth, accountId, editingIncome, onClose]);
+ 
++    // Auto-select account if only one exists
++    useEffect(() => {
++        if (accounts.length === 1 && !accountId) {
++            setAccountId(accounts[0].id);
++        }
++    }, [accounts, accountId]);
++
+     const handleSubmit = async (e: React.FormEvent) => {
+         e.preventDefault();
+         if (!name || !amount) return;
+@@ -158,7 +165,7 @@ const FixedIncomeForm: React.FC<FixedIncomeFormProps> = ({ editingIncome, onClos
+             </div>
+ 
+             {/* Frecuencia y D├¡a de Cobro */}
+-            <div style={{ display: 'flex', gap: '1rem', ...containerStyle }}>
++            <div className="responsive-flex" style={{ display: 'flex', gap: '1rem', ...containerStyle }}>
+                 <div style={{ flex: 2 }}>
+                     <label style={labelStyle}>Frecuencia</label>
+                     <select 

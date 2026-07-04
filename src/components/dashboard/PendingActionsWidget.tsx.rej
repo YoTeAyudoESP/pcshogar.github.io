@@ -1,0 +1,134 @@
+diff a/src/components/dashboard/PendingActionsWidget.tsx b/src/components/dashboard/PendingActionsWidget.tsx	(rejected hunks)
+@@ -1,14 +1,14 @@
+ import React, { useState } from 'react';
+ import { useFinance } from '../../contexts/FinanceContext';
+ import { useDateSelection } from '../../contexts/DateSelectionContext';
+-import { CheckCircle, Clock, ArrowUpRight, ArrowDownLeft, ChevronRight } from 'lucide-react';
++import { CheckCircle, Clock, ArrowUpRight, ArrowDownLeft, ChevronRight, Pencil, Trash2, X } from 'lucide-react';
+ import { isRecurringActiveInMonth, formatMoney, isItemInMonthAndYear } from '../../utils/financeCalculations';
+ import ConfirmMovementModal from '../settings/ConfirmMovementModal';
+ 
+ const PendingActionsWidget: React.FC = () => {
+     const { 
+         recurringExpenses, fixedIncomes, expenses, incomes, 
+-        accounts 
++        accounts, deleteIncome, deleteExpense
+     } = useFinance();
+     const { selectedMonth, selectedYear } = useDateSelection();
+     
+@@ -18,45 +18,72 @@ const PendingActionsWidget: React.FC = () => {
+         item: any;
+     }>({ show: false, type: 'expense', item: null });
+ 
++    const [deleteModal, setDeleteModal] = useState<{
++        show: boolean;
++        type: 'income' | 'refund';
++        item: any;
++    }>({ show: false, type: 'income', item: null });
++
+     const period = `${selectedYear}-${(selectedMonth + 1).toString().padStart(2, '0')}`;
+     const monthStart = new Date(selectedYear, selectedMonth, 1).getTime();
+     const monthEnd = new Date(selectedYear, selectedMonth + 1, 0).getTime();
+ 
+-    // Calculate pending expenses
+-    const pendingExpenses = recurringExpenses.filter(re => {
+-        if (!re.active) return false;
+-        const start = re.updatedAt || 0;
+-        if (start > monthEnd) return false;
+-
+-        const isPaid = expenses.some(e => e.recurringExpenseId === re.id && e.period === period);
+-        const isIgnored = re.ignoredPeriods?.includes(period);
++    // Calculate pending expenses (including past months)
++    const pendingExpenses: any[] = [];
++    recurringExpenses.forEach(re => {
++        if (!re.active) return;
++        const start = new Date(re.updatedAt || 0);
++        let monthIter = new Date(start.getFullYear(), start.getMonth(), 1);
++        const endIter = new Date(selectedYear, selectedMonth, 1);
+         
+-        if (isPaid || isIgnored) return false;
+-        return isRecurringActiveInMonth(re.frequency, re.paymentMonth, selectedMonth, selectedYear, start);
++        while (monthIter <= endIter) {
++            const y = monthIter.getFullYear();
++            const m = monthIter.getMonth();
++            const periodStr = `${y}-${(m + 1).toString().padStart(2, '0')}`;
++            
++            const isPaid = expenses.some(e => e.recurringExpenseId === re.id && e.period === periodStr);
++            const isIgnored = re.ignoredPeriods?.includes(periodStr);
++            
++            if (!isPaid && !isIgnored && isRecurringActiveInMonth(re.frequency, re.paymentMonth, m, y, start.getTime())) {
++                pendingExpenses.push({ ...re, actionType: 'expense', targetPeriod: periodStr, originalMonth: m, originalYear: y });
++            }
++            monthIter.setMonth(monthIter.getMonth() + 1);
++        }
+     });
+ 
+-    // Calculate pending incomes
+-    const pendingIncomes = fixedIncomes.filter(inc => {
+-        if (!inc.active) return false;
+-        const start = inc.effectiveDate || inc.createdAt || 0;
++    // Calculate pending incomes (including past months)
++    const pendingIncomes: any[] = [];
++    fixedIncomes.forEach(inc => {
++        if (!inc.active) return;
++        const start = new Date(inc.effectiveDate || inc.createdAt || 0);
+         const end = inc.expirationDate || new Date(9999, 11, 31).getTime();
+-        const isIgnored = inc.ignoredPeriods?.includes(period);
+-
+-        if (start > monthEnd || end < monthStart || isIgnored) return false;
+-        if (inc.status === 'received') return false; // Already received (though fixedIncomes usually stay 'pending' and create extra incomes)
++        let monthIter = new Date(start.getFullYear(), start.getMonth(), 1);
++        const endIter = new Date(selectedYear, selectedMonth, 1);
+         
+-        const isConfirmed = incomes.some(ei => ei.fixedIncomeId === inc.id && ei.period === period);
+-        if (isConfirmed) return false;
+-
+-        return isRecurringActiveInMonth(inc.frequency, inc.paymentMonth, selectedMonth, selectedYear, start);
++        while (monthIter <= endIter) {
++            if (monthIter.getTime() > end) break;
++            const y = monthIter.getFullYear();
++            const m = monthIter.getMonth();
++            const periodStr = `${y}-${(m + 1).toString().padStart(2, '0')}`;
++            
++            const isConfirmed = incomes.some(ei => ei.fixedIncomeId === inc.id && ei.period === periodStr);
++            const isIgnored = inc.ignoredPeriods?.includes(periodStr);
++            
++            if (!isConfirmed && !isIgnored && isRecurringActiveInMonth(inc.frequency, inc.paymentMonth, m, y, start.getTime())) {
++                pendingIncomes.push({ ...inc, actionType: 'income', targetPeriod: periodStr, originalMonth: m, originalYear: y });
++            }
++            monthIter.setMonth(monthIter.getMonth() + 1);
++        }
+     });
+ 
+-    // Calculate pending extra incomes
+-    const pendingExtraIncomes = incomes.filter(inc => 
+-        inc.type === 'extra' && 
+-        inc.status === 'pending' && 
+-        isItemInMonthAndYear(inc, selectedMonth, selectedYear)
+-    );
++    // Calculate pending extra incomes (ALL pending, past and present viewed)
++    const pendingExtraIncomes = incomes.filter(inc => {
++        if (inc.type !== 'extra' || inc.status !== 'pending') return false;
++        const d = new Date(inc.receivedDate || inc.createdAt || 0);
++        const incYear = d.getFullYear();
++        const incMonth = d.getMonth();
++        return incYear < selectedYear || (incYear === selectedYear && incMonth <= selectedMonth);
++    });
+ 
+     // Calculate pending refunds (negative expenses with status pending)
+     const today = new Date();
+@@ -92,10 +119,10 @@ const PendingActionsWidget: React.FC = () => {
+     };
+ 
+     const allPending = [
+-        ...pendingIncomes.map(inc => ({ ...inc, actionType: 'income' as const })),
+-        ...pendingExtraIncomes.map(inc => ({ ...inc, actionType: 'income' as const, isExtraPending: true })),
+-        ...pendingExpenses.map(exp => ({ ...exp, actionType: 'expense' as const })),
+-        ...pendingRefunds.map(ref => ({ ...ref, actionType: 'refund' as const }))
++        ...pendingIncomes,
++        ...pendingExtraIncomes.map(inc => ({ ...inc, actionType: 'income' as const, isExtraPending: true, targetPeriod: inc.period })),
++        ...pendingExpenses,
++        ...pendingRefunds.map(ref => ({ ...ref, actionType: 'refund' as const, targetPeriod: ref.period }))
+     ].sort((a: any, b: any) => {
+         const getDay = (item: any) => {
+             if (item.actionType === 'refund') {

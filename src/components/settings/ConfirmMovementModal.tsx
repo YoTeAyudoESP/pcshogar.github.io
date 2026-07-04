@@ -39,6 +39,7 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
     const [allocationTarget, setAllocationTarget] = useState<'budget' | 'exclude' | 'hucha'>('budget');
     const [selectedSavingGoalId, setSelectedSavingGoalId] = useState('');
     const [duplicateOption, setDuplicateOption] = useState<'next' | 'current'>(isDuplicateIncome ? 'next' : 'current');
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     useEffect(() => {
         if (isDuplicateIncome) {
@@ -487,56 +488,94 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
                             </button>
                         )}
                         {type === 'refund' && (
-                            <button 
-                                type="button"
-                                onClick={handleDeleteRefund}
-                                style={{
-                                    width: '100%',
-                                    background: 'rgba(244, 63, 94, 0.12)',
-                                    border: '1px solid rgba(244, 63, 94, 0.2)',
-                                    padding: '1rem',
-                                    borderRadius: '1rem',
-                                    color: '#fb7185',
-                                    fontWeight: 700,
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '0.5rem',
-                                    transition: 'all 0.2s',
-                                    marginTop: '0.5rem'
-                                }}
-                                onMouseOver={e => e.currentTarget.style.background = 'rgba(244, 63, 94, 0.22)'}
-                                onMouseOut={e => e.currentTarget.style.background = 'rgba(244, 63, 94, 0.12)'}
-                            >
-                                Eliminar Devolución
-                            </button>
+                            showDeleteConfirm ? (
+                                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                                    <button 
+                                        type="button"
+                                        onClick={handleDeleteRefund}
+                                        style={{ flex: 1, background: '#ef4444', color: 'white', border: 'none', padding: '1rem', borderRadius: '1rem', fontWeight: 'bold', cursor: 'pointer' }}
+                                    >
+                                        ¿Seguro? Sí, eliminar
+                                    </button>
+                                    <button 
+                                        type="button"
+                                        onClick={() => setShowDeleteConfirm(false)}
+                                        style={{ flex: 1, background: 'var(--panel-bg-3)', color: 'var(--text-main)', border: 'none', padding: '1rem', borderRadius: '1rem', fontWeight: 'bold', cursor: 'pointer' }}
+                                    >
+                                        Cancelar
+                                    </button>
+                                </div>
+                            ) : (
+                                <button 
+                                    type="button"
+                                    onClick={() => setShowDeleteConfirm(true)}
+                                    style={{
+                                        width: '100%',
+                                        background: 'rgba(244, 63, 94, 0.12)',
+                                        border: '1px solid rgba(244, 63, 94, 0.2)',
+                                        padding: '1rem',
+                                        borderRadius: '1rem',
+                                        color: '#fb7185',
+                                        fontWeight: 700,
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '0.5rem',
+                                        transition: 'all 0.2s',
+                                        marginTop: '0.5rem'
+                                    }}
+                                    onMouseOver={e => e.currentTarget.style.background = 'rgba(244, 63, 94, 0.22)'}
+                                    onMouseOut={e => e.currentTarget.style.background = 'rgba(244, 63, 94, 0.12)'}
+                                >
+                                    Eliminar Devolución
+                                </button>
+                            )
                         )}
                         {isExtraIncomePending && (
-                            <button 
-                                type="button"
-                                onClick={handleDelete}
-                                style={{
-                                    width: '100%',
-                                    background: 'rgba(244, 63, 94, 0.12)',
-                                    border: '1px solid rgba(244, 63, 94, 0.2)',
-                                    padding: '1rem',
-                                    borderRadius: '1rem',
-                                    color: '#fb7185',
-                                    fontWeight: 700,
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '0.5rem',
-                                    transition: 'all 0.2s',
-                                    marginTop: '0.5rem'
-                                }}
-                                onMouseOver={e => e.currentTarget.style.background = 'rgba(244, 63, 94, 0.22)'}
-                                onMouseOut={e => e.currentTarget.style.background = 'rgba(244, 63, 94, 0.12)'}
-                            >
-                                Eliminar Ingreso
-                            </button>
+                            showDeleteConfirm ? (
+                                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+                                    <button 
+                                        type="button"
+                                        onClick={handleDelete}
+                                        style={{ flex: 1, background: '#ef4444', color: 'white', border: 'none', padding: '1rem', borderRadius: '1rem', fontWeight: 'bold', cursor: 'pointer' }}
+                                    >
+                                        ¿Seguro? Sí, eliminar
+                                    </button>
+                                    <button 
+                                        type="button"
+                                        onClick={() => setShowDeleteConfirm(false)}
+                                        style={{ flex: 1, background: 'var(--panel-bg-3)', color: 'var(--text-main)', border: 'none', padding: '1rem', borderRadius: '1rem', fontWeight: 'bold', cursor: 'pointer' }}
+                                    >
+                                        Cancelar
+                                    </button>
+                                </div>
+                            ) : (
+                                <button 
+                                    type="button"
+                                    onClick={() => setShowDeleteConfirm(true)}
+                                    style={{
+                                        width: '100%',
+                                        background: 'rgba(244, 63, 94, 0.12)',
+                                        border: '1px solid rgba(244, 63, 94, 0.2)',
+                                        padding: '1rem',
+                                        borderRadius: '1rem',
+                                        color: '#fb7185',
+                                        fontWeight: 700,
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '0.5rem',
+                                        transition: 'all 0.2s',
+                                        marginTop: '0.5rem'
+                                    }}
+                                    onMouseOver={e => e.currentTarget.style.background = 'rgba(244, 63, 94, 0.22)'}
+                                    onMouseOut={e => e.currentTarget.style.background = 'rgba(244, 63, 94, 0.12)'}
+                                >
+                                    Eliminar Ingreso
+                                </button>
+                            )
                         )}
                     </div>
                 </div>

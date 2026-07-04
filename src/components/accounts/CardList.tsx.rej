@@ -1,0 +1,13 @@
+diff a/src/components/accounts/CardList.tsx b/src/components/accounts/CardList.tsx	(rejected hunks)
+@@ -86,6 +99,11 @@ const CardList: React.FC<CardListProps> = ({ onEdit }) => {
+                                     Cierra el {card.cutoffDay} ÔÇó Paga el {card.paymentDay}
+                                 </div>
+                             )}
++                            {card.type === 'credit' && (
++                                <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', marginTop: '0.25rem' }}>
++                                    Deuda Pendiente: <span style={{ color: '#fbbf24', fontWeight: 700 }}>{formatMoney(getDebtForCard(card))}</span>
++                                </div>
++                            )}
+                             <div style={{ 
+                                 fontSize: '0.8rem', 
+                                 color: 'rgba(255,255,255,0.4)', 

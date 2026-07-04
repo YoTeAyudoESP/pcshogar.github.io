@@ -79,6 +79,15 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
         setSavingGoalFunding(prev => ({ ...prev, [goalId]: toAlloc.toFixed(2) }));
     };
 
+
+    useEffect(() => {
+        if (paymentMethodType === 'account' && accounts.length === 1 && !selectedMethodId) {
+            setSelectedMethodId(accounts[0].id);
+        } else if (paymentMethodType === 'card' && cards.length === 1 && !selectedMethodId) {
+            setSelectedMethodId(cards[0].id);
+        }
+    }, [paymentMethodType, accounts.length, cards.length, selectedMethodId]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!description || !amount || isFundingInvalid) return;
@@ -293,7 +302,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                     )}
 
                     {/* Rows */}
-                    <div style={{ display: 'flex', gap: '1rem' }}>
+                    <div className="form-row">
                         <div style={{ flex: 2 }}>
                             <label style={labelStyle}>{t('Concepto')}</label>
                             <input 
@@ -305,7 +314,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                             />
                         </div>
                         <div style={{ flex: 1 }}>
-                            <label style={labelStyle}>{isRefund ? 'Importe Devolución ({getCurrencySymbol()})' : 'Importe ({getCurrencySymbol()})'}</label>
+                            <label style={labelStyle}>{isRefund ? `Importe Devolución (${getCurrencySymbol()})` : `Importe (${getCurrencySymbol()})`}</label>
                             <input 
                                 type="number" 
                                 step="0.01" 
@@ -336,7 +345,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                             </div>
                         </div>
                     ) : (
-                        <div style={{ display: 'flex', gap: '1rem' }}>
+                        <div className="form-row">
                             <div style={{ flex: 1 }}>
                                 <label style={labelStyle}>Frecuencia</label>
                                 <select style={inputStyle} value={frequency} onChange={e => setFrequency(e.target.value)}>
@@ -364,7 +373,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                         </div>
                     )}
 
-                    <div style={{ display: 'flex', gap: '1rem' }}>
+                    <div className="form-row">
                         <div style={{ flex: 1 }}>
                             <label style={labelStyle}>{t('Categoría')}</label>
                             <select style={inputStyle} value={categoryId} onChange={e => setCategoryId(e.target.value)}>
@@ -386,7 +395,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                         </div>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '1rem' }}>
+                    <div className="form-row">
                         {paymentMethodType === 'card' && selectedMethodId && cards.find(c => c.id === selectedMethodId)?.type !== 'virtual' && (
                             <div style={{ flex: 1 }}>
                                 <label style={labelStyle}>Ajuste de Liquidación</label>

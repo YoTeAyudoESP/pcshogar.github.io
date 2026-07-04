@@ -55,6 +55,13 @@ const FixedIncomeForm: React.FC<FixedIncomeFormProps> = ({ editingIncome, onClos
         return () => document.removeEventListener('app-back-pressed', handleBack);
     }, [name, amount, frequency, paymentDay, paymentMonth, accountId, accountForNextMonth, editingIncome, onClose]);
 
+
+    useEffect(() => {
+        if (accounts.length === 1 && !accountId) {
+            setAccountId(accounts[0].id);
+        }
+    }, [accounts.length, accountId]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!name || !amount || hasNoAccounts) return;

@@ -146,6 +146,13 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
         setActiveTab(mode === 'basic' && activeTab === 0 ? 2 : activeTab + 1);
     };
 
+
+    useEffect(() => {
+        if (accounts.length === 1 && !linkedAccountId) {
+            setLinkedAccountId(accounts[0].id);
+        }
+    }, [accounts.length, linkedAccountId]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
@@ -353,7 +360,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
                     {/* TAB 0: General */}
                     {activeTab === 0 && (
                         <>
-                            <div style={{ display: 'flex', gap: '1rem' }}>
+                            <div className="form-row">
                                 <div style={{ flex: 2 }}>
                                     <label style={labelStyle}>Nombre del Préstamo</label>
                                     <input style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="Hipoteca, Préstamo Coche..." required />

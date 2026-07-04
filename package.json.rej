@@ -1,0 +1,14 @@
+diff a/package.json b/package.json	(rejected hunks)
+@@ -1,9 +1,9 @@
+ {
+   "name": "pcshogar",
+   "private": true,
+-  "version": "1.4.0",
+-  "versionCode": 170,
+-  "versionName": "1.4.0",
++  "version": "1.7.6",
++  "versionCode": 176,
++  "versionName": "1.7.6",
+   "type": "module",
+   "main": "electron/main.js",
+   "build": {

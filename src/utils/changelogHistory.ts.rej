@@ -1,0 +1,18 @@
+diff a/src/utils/changelogHistory.ts b/src/utils/changelogHistory.ts	(rejected hunks)
+@@ -4,6 +4,16 @@ export interface ChangelogEntry {
+ }
+ 
+ export const changelogHistory: ChangelogEntry[] = [
++  {
++    version: '1.7.6',
++    releaseNotes: `Novedades v1.7.6:
++- Dise├▒o M├│vil Mejorado: Inputs de Gastos, Pr├®stamos y dem├ís pantallas ahora se apilan en vertical para mayor comodidad y legibilidad en pantallas peque├▒as, incluyendo placeholders correctos (s├¡mbolo de moneda).
++- Eliminaci├│n Segura: Los elementos pendientes no fijos (ingresos extras, devoluciones) en el dashboard ahora tienen icono de papelera y requieren confirmaci├│n, igual que el resto, evitando eliminados accidentales.
++- Tarjetas Monedero: Se ha ajustado su funcionamiento para que sumen saldo al dinero disponible real y no contabilicen como deuda pendiente.
++- Autogesti├│n de Pendientes: Los movimientos pendientes de meses anteriores ahora se arrastran solos al mes actual en curso sin tener que arrastrarlos al cerrar el mes manualmente.
++- Deuda en Tiempo Real: El importe de la deuda en la tarjeta de cr├®dito se calcula din├ímicamente sumando todos tus gastos pendientes.
++- Autocompletado Eficiente: Al a├▒adir ingresos o gastos, si solo tienes una forma de cobro/pago (ej: solo 1 banco y cero monederos), se auto-seleccionar├í sin necesidad de abrir el desplegable.`
++  },
+   {
+     version: '1.4.0',
+     releaseNotes: `Novedades v1.4.0:

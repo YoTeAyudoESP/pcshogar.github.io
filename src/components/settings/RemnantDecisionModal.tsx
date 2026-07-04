@@ -113,51 +113,7 @@ const RemnantDecisionModal: React.FC<RemnantDecisionModalProps> = ({ closing, on
         }
 
         try {
-            for (const pe of pendingExpenses) {
-                const dec = expenseDecisions[pe.id] || 'none';
-                if (dec !== 'none') {
-                    await updateRecurringExpense({
-                        ...pe,
-                        ignoredPeriods: [...(pe.ignoredPeriods || []), period]
-                    });
-                    if (dec === 'postpone') {
-                        await addExpense({
-                            description: `(Aplazado) ${pe.description}`,
-                            amount: pe.amount,
-                            currency: pe.currency,
-                            date: Date.now(),
-                            categoryId: pe.categoryId || 'cat_other',
-                            paymentMethod: pe.paymentMethod || { type: 'cash' },
-                            isFixed: false,
-                            status: 'pending',
-                            period: nextPeriod
-                        });
-                    }
-                }
-            }
 
-            for (const pi of pendingIncomes) {
-                const dec = incomeDecisions[pi.id] || 'none';
-                if (dec !== 'none') {
-                    await updateIncome({
-                        ...pi,
-                        ignoredPeriods: [...(pi.ignoredPeriods || []), period]
-                    });
-                    if (dec === 'postpone') {
-                        await addExtraIncome({
-                            name: `(Aplazado) ${pi.name}`,
-                            amount: pi.amount,
-                            currency: pi.currency,
-                            receivedDate: Date.now(),
-                            effectiveDate: Date.now(),
-                            budgetMonth: nextMonthObj.getMonth(),
-                            budgetYear: nextMonthObj.getFullYear(),
-                            status: 'received',
-                            categoryId: pi.categoryId
-                        });
-                    }
-                }
-            }
 
             // Build the array
             const distArray: { type: 'next_month' | 'saving_goal', targetId?: string, amount: number }[] = [];
@@ -281,53 +237,6 @@ const RemnantDecisionModal: React.FC<RemnantDecisionModalProps> = ({ closing, on
                         PENDIENTE DE ASIGNAR: {formatCurrency(remainingAmount)}
                     </div>
                 </div>
-
-                {/* Pending Movements Section */}
-                {(pendingExpenses.length > 0 || pendingIncomes.length > 0) && (
-                    <div style={{ marginBottom: '1.5rem', background: 'rgba(var(--color-rgb-light),0.03)', padding: '1rem', borderRadius: '12px' }}>
-                        <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <AlertCircle size={18} color="#f59e0b" /> Movimientos Fijos Pendientes
-                        </h3>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            {pendingExpenses.map(pe => (
-                                <div key={pe.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem' }}>
-                                        <span>Gasto: {pe.description}</span>
-                                        <span style={{ color: '#ef4444', fontWeight: 600, whiteSpace: 'nowrap' }}>-{formatCurrency(pe.amount)}</span>
-                                    </div>
-                                    <select 
-                                        className="form-input" 
-                                        style={{ fontSize: '0.9rem', padding: '0.5rem' }}
-                                        value={expenseDecisions[pe.id] || 'none'}
-                                        onChange={e => setExpenseDecisions(prev => ({ ...prev, [pe.id]: e.target.value }))}
-                                    >
-                                        <option value="none">No hacer nada de momento</option>
-                                        <option value="ignore">Ignorar (Recuperar {formatCurrency(pe.amount)} al remanente)</option>
-                                        <option value="postpone">Aplazar al mes actual</option>
-                                    </select>
-                                </div>
-                            ))}
-                            {pendingIncomes.map(pi => (
-                                <div key={pi.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem' }}>
-                                        <span>Ingreso: {pi.name}</span>
-                                        <span style={{ color: '#10b881', fontWeight: 600, whiteSpace: 'nowrap' }}>+{formatCurrency(pi.amount)}</span>
-                                    </div>
-                                    <select 
-                                        className="form-input" 
-                                        style={{ fontSize: '0.9rem', padding: '0.5rem' }}
-                                        value={incomeDecisions[pi.id] || 'none'}
-                                        onChange={e => setIncomeDecisions(prev => ({ ...prev, [pi.id]: e.target.value }))}
-                                    >
-                                        <option value="none">No hacer nada de momento</option>
-                                        <option value="ignore">Ignorar (Restar {formatCurrency(pi.amount)} del remanente)</option>
-                                        <option value="postpone">Aplazar al mes actual</option>
-                                    </select>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '2rem' }}>
                     {/* Next Month Row */}

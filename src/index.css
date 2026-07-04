@@ -154,3 +154,7 @@ html[data-theme='light'] { --color-rgb-light: 17, 24, 39;
 
 :root { --panel-bg-1: rgba(255,255,255,0.02); --panel-bg-2: rgba(255,255,255,0.05); --panel-bg-3: rgba(255,255,255,0.1); --panel-border: rgba(255,255,255,0.1); }
 html[data-theme='light'] { --panel-bg-1: #ffffff; --panel-bg-2: #f9fafb; --panel-bg-3: #f3f4f6; --panel-border: rgba(0,0,0,0.1); }
+
+
+.form-row { display: flex; gap: 1rem; }
+@media (max-width: 600px) { .form-row { flex-direction: column; gap: 0.5rem; } }

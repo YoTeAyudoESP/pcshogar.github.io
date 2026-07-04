@@ -1,0 +1,19 @@
+diff a/src/index.css b/src/index.css	(rejected hunks)
+@@ -108,4 +108,15 @@ body {
+ @keyframes modalEnter {
+   from { opacity: 0; transform: translateY(20px); }
+   to { opacity: 1; transform: translateY(0); }
+-}
+\ No newline at end of file
++}
++@media (max-width: 768px) {
++  .responsive-flex {
++    flex-direction: column !important;
++  }
++}
++
++@media (max-width: 768px) {
++  .responsive-grid {
++    grid-template-columns: 1fr !important;
++  }
++}

@@ -1,0 +1,78 @@
+diff a/src/components/income/IncomeForm.tsx b/src/components/income/IncomeForm.tsx	(rejected hunks)
+@@ -52,6 +52,13 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData }) => {
+         }
+     }, [incomeCategories, categoryId, isEditing]);
+ 
++    // Auto-select account if only one exists
++    useEffect(() => {
++        if (accounts.length === 1 && !linkedAccountId) {
++            setLinkedAccountId(accounts[0].id);
++        }
++    }, [accounts, linkedAccountId]);
++
+     const handleSubmit = async (e: React.FormEvent) => {
+         e.preventDefault();
+         if (!name || !amount) return;
+@@ -182,7 +189,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData }) => {
+                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                     
+                     {/* Status & Type */}
+-                    <div style={{ display: 'flex', gap: '1rem' }}>
++                    <div className="responsive-flex" style={{ display: 'flex', gap: '1rem' }}>
+                         <div style={{ flex: 1 }}>
+                             <label style={labelStyle}>Estado</label>
+                             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.4rem' }}>
+@@ -208,7 +215,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData }) => {
+                     </div>
+ 
+                     {/* Common Fields */}
+-                    <div style={{ display: 'flex', gap: '1rem' }}>
++                    <div className="responsive-flex" style={{ display: 'flex', gap: '1rem' }}>
+                         <div style={{ flex: 2 }}>
+                             <label style={labelStyle}>Concepto / Fuente</label>
+                             <input 
+@@ -217,7 +224,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData }) => {
+                             />
+                         </div>
+                         <div style={{ flex: 1 }}>
+-                            <label style={labelStyle}>Importe (Ôé¼)</label>
++                            <label style={labelStyle}>{`Importe (\u20AC)`}</label>
+                             <input 
+                                 type="number" step="0.01" style={inputStyle} value={amount} 
+                                 onChange={e => setAmount(e.target.value)} placeholder="0.00" required 
+@@ -226,7 +233,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData }) => {
+                     </div>
+ 
+                     {/* Budget Period */}
+-                    <div style={{ display: 'flex', gap: '1rem' }}>
++                    <div className="responsive-flex" style={{ display: 'flex', gap: '1rem' }}>
+                         <div style={{ flex: 1 }}>
+                             <label style={labelStyle}>Mes de Presupuesto</label>
+                             <select style={inputStyle} value={budgetMonth} onChange={e => setBudgetMonth(parseInt(e.target.value))}>
+@@ -242,7 +249,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData }) => {
+                     </div>
+ 
+                     {type === 'fixed' ? (
+-                        <div style={{ display: 'flex', gap: '1rem' }}>
++                        <div className="responsive-flex" style={{ display: 'flex', gap: '1rem' }}>
+                             <div style={{ flex: 1 }}>
+                                 <label style={labelStyle}>Frecuencia</label>
+                                 <select style={inputStyle} value={frequency} onChange={e => setFrequency(e.target.value as Frequency)}>
+@@ -257,7 +264,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData }) => {
+                             </div>
+                         </div>
+                     ) : (
+-                        <div style={{ display: 'flex', gap: '1rem' }}>
++                        <div className="responsive-flex" style={{ display: 'flex', gap: '1rem' }}>
+                             <div style={{ flex: 1 }}>
+                                 <label style={labelStyle}>Categor├¡a</label>
+                                 <select style={inputStyle} value={categoryId} onChange={e => setCategoryId(e.target.value)}>
+@@ -271,7 +278,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData }) => {
+                         </div>
+                     )}
+ 
+-                    <div style={{ display: 'flex', gap: '1rem' }}>
++                    <div className="responsive-flex" style={{ display: 'flex', gap: '1rem' }}>
+                         <div style={{ flex: 1 }}>
+                             <label style={labelStyle}>Banco / M├®todo de Cobro</label>
+                             <select style={inputStyle} value={linkedAccountId} onChange={e => setLinkedAccountId(e.target.value)}>

@@ -1,0 +1,1103 @@
+﻿diff --git a/package-lock.json b/package-lock.json
+index df4e00f..97e22d6 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -1,12 +1,12 @@
+ {
+   "name": "pcshogar",
+-  "version": "1.2.9",
++  "version": "1.7.6",
+   "lockfileVersion": 3,
+   "requires": true,
+   "packages": {
+     "": {
+       "name": "pcshogar",
+-      "version": "1.2.9",
++      "version": "1.7.6",
+       "dependencies": {
+         "@capacitor-community/file-opener": "^6.0.1"
+       },
+diff --git a/package.json b/package.json
+index d7a1e70..8e85ff3 100644
+--- a/package.json
++++ b/package.json
+@@ -1,9 +1,9 @@
+ {
+   "name": "pcshogar",
+   "private": true,
+-  "version": "1.4.0",
+-  "versionCode": 170,
+-  "versionName": "1.4.0",
++  "version": "1.7.6",
++  "versionCode": 176,
++  "versionName": "1.7.6",
+   "type": "module",
+   "main": "electron/main.js",
+   "build": {
+diff --git a/public/version.json b/public/version.json
+index a89601f..07d4a1a 100644
+--- a/public/version.json
++++ b/public/version.json
+@@ -1,6 +1,6 @@
+ {
+-  "version": "1.4.0",
+-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.4.0.apk",
+-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.4.0.exe",
+-  "releaseNotes": "Novedades v1.4.0:\n- Informes PDF Profesionales: Corregido el problema de corte de contenido. Ahora las secciones (Resumen de Saldos, Desglose por Categor├¡as, Metas de Ahorro y Mayores Gastos) se organizan en p├íginas independientes para evitar desbordes y cortes.\n- Numeraci├│n Din├ímica: A├▒adida numeraci├│n secuencial 'P├ígina X de Y' en todos los informes.\n- Agrupaci├│n Inteligente: Las categor├¡as adicionales se agrupan autom├íticamente bajo 'Otras categor├¡as' en la primera p├ígina para un formato m├ís limpio y profesional."
++  "version": "1.7.6",
++  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.7.6.apk",
++  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/raw/main/PCSHogar_Setup_v1.7.6.exe",
++  "releaseNotes": "Novedades v1.7.6:\n- **Dise├▒o M├│vil Mejorado**: Inputs de Gastos, Pr├®stamos y dem├ís pantallas ahora se apilan en vertical para mayor comodidad y legibilidad en pantallas peque├▒as, incluyendo placeholders correctos (s├¡mbolo de moneda).\n- **Eliminaci├│n Segura**: Los elementos pendientes no fijos (ingresos extras, devoluciones) en el dashboard ahora tienen icono de papelera y requieren confirmaci├│n, igual que el resto, evitando eliminados accidentales.\n- **Tarjetas Monedero**: Se ha ajustado su funcionamiento para que sumen saldo al dinero disponible real y no contabilicen como deuda pendiente.\n- **Autogesti├│n de Pendientes**: Los movimientos pendientes de meses anteriores ahora se arrastran solos al mes actual en curso sin tener que arrastrarlos al cerrar el mes manualmente.\n- **Deuda en Tiempo Real**: El importe de la deuda en la tarjeta de cr├®dito se calcula din├ímicamente sumando todos tus gastos pendientes.\n- **Autocompletado Eficiente**: Al a├▒adir ingresos o gastos, si solo tienes una forma de cobro/pago (ej: solo 1 banco y cero monederos), se auto-seleccionar├í sin necesidad de abrir el desplegable."
+ }
+diff --git a/src/components/accounts/CardList.tsx b/src/components/accounts/CardList.tsx
+index 20b8ac3..9f93261 100644
+--- a/src/components/accounts/CardList.tsx
++++ b/src/components/accounts/CardList.tsx
+@@ -27,6 +27,19 @@ const CardList: React.FC<CardListProps> = ({ onEdit }) => {
+         return cardExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+     };
+ 
++    const getDebtForCard = (card: CreditCard) => {
++        if (card.type !== 'credit') return 0;
++        const cardExpenses = expenses.filter(exp => {
++            if (!exp?.paymentMethod) return false;
++            const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === card.id;
++            if (!isCard) return false;
++            if (exp.isSettled) return false;
++            if (exp.amount < 0 && exp.status === 'pending') return false;
++            return true;
++        });
++        return cardExpenses.reduce((sum, exp) => sum + exp.amount, 0);
++    };
++
+     const handleDeleteClick = (card: CreditCard) => {
+         setCardToDelete(card);
+     };
+@@ -86,6 +99,11 @@ const CardList: React.FC<CardListProps> = ({ onEdit }) => {
+                                     Cierra el {card.cutoffDay} ÔÇó Paga el {card.paymentDay}
+                                 </div>
+                             )}
++                            {card.type === 'credit' && (
++                                <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', marginTop: '0.25rem' }}>
++                                    Deuda Pendiente: <span style={{ color: '#fbbf24', fontWeight: 700 }}>{formatMoney(getDebtForCard(card))}</span>
++                                </div>
++                            )}
+                             <div style={{ 
+                                 fontSize: '0.8rem', 
+                                 color: 'rgba(255,255,255,0.4)', 
+diff --git a/src/components/accounts/DeleteCardDialog.tsx b/src/components/accounts/DeleteCardDialog.tsx
+index 8077ef4..3be1147 100644
+--- a/src/components/accounts/DeleteCardDialog.tsx
++++ b/src/components/accounts/DeleteCardDialog.tsx
+@@ -9,11 +9,20 @@ interface DeleteCardDialogProps {
+ }
+ 
+ const DeleteCardDialog: React.FC<DeleteCardDialogProps> = ({ card, onClose }) => {
+-    const { deleteCard } = useFinance();
++    const { deleteCard, expenses } = useFinance();
+     const [isDeleting, setIsDeleting] = useState(false);
+ 
+     // We block if it's credit and has debt (> 0)
+-    const hasDebt = card.type === 'credit' && card.currentBalance > 0;
++    const currentDebt = card.type === 'credit' ? expenses.filter(exp => {
++        if (!exp?.paymentMethod) return false;
++        const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === card.id;
++        if (!isCard) return false;
++        if (exp.isSettled) return false;
++        if (exp.amount < 0 && exp.status === 'pending') return false;
++        return true;
++    }).reduce((sum, exp) => sum + exp.amount, 0) : 0;
++
++    const hasDebt = card.type === 'credit' && currentDebt > 0;
+ 
+     const handleDelete = async () => {
+         setIsDeleting(true);
+@@ -79,7 +88,7 @@ const DeleteCardDialog: React.FC<DeleteCardDialogProps> = ({ card, onClose }) =>
+                     }}>
+                         <div style={{ display: 'flex', gap: '0.75rem', color: '#f87171' }}>
+                             <AlertCircle size={20} />
+-                            <span style={{ fontWeight: 600 }}>Deuda Pendiente: {card.currentBalance.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</span>
++                            <span style={{ fontWeight: 600 }}>Deuda Pendiente: {currentDebt.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</span>
+                         </div>
+                         <p style={{ margin: 0, fontSize: '0.9rem', opacity: 0.8 }}>
+                             Para poder eliminar esta tarjeta de cr├®dito, primero debes liquidar su saldo mediante el cierre de mes o un pago manual.
+diff --git a/src/components/dashboard/PendingActionsWidget.tsx b/src/components/dashboard/PendingActionsWidget.tsx
+index 9d08757..152d4e1 100644
+--- a/src/components/dashboard/PendingActionsWidget.tsx
++++ b/src/components/dashboard/PendingActionsWidget.tsx
+@@ -1,14 +1,14 @@
+ import React, { useState } from 'react';
+ import { useFinance } from '../../contexts/FinanceContext';
+ import { useDateSelection } from '../../contexts/DateSelectionContext';
+-import { CheckCircle, Clock, ArrowUpRight, ArrowDownLeft, ChevronRight } from 'lucide-react';
++import { CheckCircle, Clock, ArrowUpRight, ArrowDownLeft, ChevronRight, Pencil, Trash2, X } from 'lucide-react';
+ import { isRecurringActiveInMonth, formatMoney, isItemInMonthAndYear } from '../../utils/financeCalculations';
+ import ConfirmMovementModal from '../settings/ConfirmMovementModal';
+ 
+ const PendingActionsWidget: React.FC = () => {
+     const { 
+         recurringExpenses, fixedIncomes, expenses, incomes, 
+-        accounts 
++        accounts, deleteIncome, deleteExpense
+     } = useFinance();
+     const { selectedMonth, selectedYear } = useDateSelection();
+     
+@@ -18,45 +18,72 @@ const PendingActionsWidget: React.FC = () => {
+         item: any;
+     }>({ show: false, type: 'expense', item: null });
+ 
++    const [deleteModal, setDeleteModal] = useState<{
++        show: boolean;
++        type: 'income' | 'refund';
++        item: any;
++    }>({ show: false, type: 'income', item: null });
++
+     const period = `${selectedYear}-${(selectedMonth + 1).toString().padStart(2, '0')}`;
+     const monthStart = new Date(selectedYear, selectedMonth, 1).getTime();
+     const monthEnd = new Date(selectedYear, selectedMonth + 1, 0).getTime();
+ 
+-    // Calculate pending expenses
+-    const pendingExpenses = recurringExpenses.filter(re => {
+-        if (!re.active) return false;
+-        const start = re.updatedAt || 0;
+-        if (start > monthEnd) return false;
+-
+-        const isPaid = expenses.some(e => e.recurringExpenseId === re.id && e.period === period);
+-        const isIgnored = re.ignoredPeriods?.includes(period);
++    // Calculate pending expenses (including past months)
++    const pendingExpenses: any[] = [];
++    recurringExpenses.forEach(re => {
++        if (!re.active) return;
++        const start = new Date(re.updatedAt || 0);
++        let monthIter = new Date(start.getFullYear(), start.getMonth(), 1);
++        const endIter = new Date(selectedYear, selectedMonth, 1);
+         
+-        if (isPaid || isIgnored) return false;
+-        return isRecurringActiveInMonth(re.frequency, re.paymentMonth, selectedMonth, selectedYear, start);
++        while (monthIter <= endIter) {
++            const y = monthIter.getFullYear();
++            const m = monthIter.getMonth();
++            const periodStr = `${y}-${(m + 1).toString().padStart(2, '0')}`;
++            
++            const isPaid = expenses.some(e => e.recurringExpenseId === re.id && e.period === periodStr);
++            const isIgnored = re.ignoredPeriods?.includes(periodStr);
++            
++            if (!isPaid && !isIgnored && isRecurringActiveInMonth(re.frequency, re.paymentMonth, m, y, start.getTime())) {
++                pendingExpenses.push({ ...re, actionType: 'expense', targetPeriod: periodStr, originalMonth: m, originalYear: y });
++            }
++            monthIter.setMonth(monthIter.getMonth() + 1);
++        }
+     });
+ 
+-    // Calculate pending incomes
+-    const pendingIncomes = fixedIncomes.filter(inc => {
+-        if (!inc.active) return false;
+-        const start = inc.effectiveDate || inc.createdAt || 0;
++    // Calculate pending incomes (including past months)
++    const pendingIncomes: any[] = [];
++    fixedIncomes.forEach(inc => {
++        if (!inc.active) return;
++        const start = new Date(inc.effectiveDate || inc.createdAt || 0);
+         const end = inc.expirationDate || new Date(9999, 11, 31).getTime();
+-        const isIgnored = inc.ignoredPeriods?.includes(period);
+-
+-        if (start > monthEnd || end < monthStart || isIgnored) return false;
+-        if (inc.status === 'received') return false; // Already received (though fixedIncomes usually stay 'pending' and create extra incomes)
++        let monthIter = new Date(start.getFullYear(), start.getMonth(), 1);
++        const endIter = new Date(selectedYear, selectedMonth, 1);
+         
+-        const isConfirmed = incomes.some(ei => ei.fixedIncomeId === inc.id && ei.period === period);
+-        if (isConfirmed) return false;
+-
+-        return isRecurringActiveInMonth(inc.frequency, inc.paymentMonth, selectedMonth, selectedYear, start);
++        while (monthIter <= endIter) {
++            if (monthIter.getTime() > end) break;
++            const y = monthIter.getFullYear();
++            const m = monthIter.getMonth();
++            const periodStr = `${y}-${(m + 1).toString().padStart(2, '0')}`;
++            
++            const isConfirmed = incomes.some(ei => ei.fixedIncomeId === inc.id && ei.period === periodStr);
++            const isIgnored = inc.ignoredPeriods?.includes(periodStr);
++            
++            if (!isConfirmed && !isIgnored && isRecurringActiveInMonth(inc.frequency, inc.paymentMonth, m, y, start.getTime())) {
++                pendingIncomes.push({ ...inc, actionType: 'income', targetPeriod: periodStr, originalMonth: m, originalYear: y });
++            }
++            monthIter.setMonth(monthIter.getMonth() + 1);
++        }
+     });
+ 
+-    // Calculate pending extra incomes
+-    const pendingExtraIncomes = incomes.filter(inc => 
+-        inc.type === 'extra' && 
+-        inc.status === 'pending' && 
+-        isItemInMonthAndYear(inc, selectedMonth, selectedYear)
+-    );
++    // Calculate pending extra incomes (ALL pending, past and present viewed)
++    const pendingExtraIncomes = incomes.filter(inc => {
++        if (inc.type !== 'extra' || inc.status !== 'pending') return false;
++        const d = new Date(inc.receivedDate || inc.createdAt || 0);
++        const incYear = d.getFullYear();
++        const incMonth = d.getMonth();
++        return incYear < selectedYear || (incYear === selectedYear && incMonth <= selectedMonth);
++    });
+ 
+     // Calculate pending refunds (negative expenses with status pending)
+     const today = new Date();
+@@ -92,10 +119,10 @@ const PendingActionsWidget: React.FC = () => {
+     };
+ 
+     const allPending = [
+-        ...pendingIncomes.map(inc => ({ ...inc, actionType: 'income' as const })),
+-        ...pendingExtraIncomes.map(inc => ({ ...inc, actionType: 'income' as const, isExtraPending: true })),
+-        ...pendingExpenses.map(exp => ({ ...exp, actionType: 'expense' as const })),
+-        ...pendingRefunds.map(ref => ({ ...ref, actionType: 'refund' as const }))
++        ...pendingIncomes,
++        ...pendingExtraIncomes.map(inc => ({ ...inc, actionType: 'income' as const, isExtraPending: true, targetPeriod: inc.period })),
++        ...pendingExpenses,
++        ...pendingRefunds.map(ref => ({ ...ref, actionType: 'refund' as const, targetPeriod: ref.period }))
+     ].sort((a: any, b: any) => {
+         const getDay = (item: any) => {
+             if (item.actionType === 'refund') {
+@@ -214,6 +241,11 @@ const PendingActionsWidget: React.FC = () => {
+                         }}>
+                             {item.description || item.name}
+                         </div>
++                        {item.targetPeriod && item.targetPeriod !== period && (
++                            <div style={{ fontSize: '0.75rem', color: '#f59e0b', marginBottom: '4px' }}>
++                                Atrasado ({item.targetPeriod})
++                            </div>
++                        )}
+                         
+                         <div style={{ 
+                             fontSize: '1.2rem', 
+@@ -227,12 +259,59 @@ const PendingActionsWidget: React.FC = () => {
+                             marginTop: '1rem', 
+                             display: 'flex', 
+                             alignItems: 'center', 
++                            justifyContent: 'space-between',
+                             gap: '4px',
+-                            color: '#6366f1',
+-                            fontSize: '0.8rem',
+-                            fontWeight: 700
+                         }}>
+-                            Confirmar <ChevronRight size={14} />
++                            <div style={{
++                                color: '#6366f1',
++                                fontSize: '0.8rem',
++                                fontWeight: 700,
++                                display: 'flex',
++                                alignItems: 'center'
++                            }}>
++                                Confirmar <ChevronRight size={14} />
++                            </div>
++                            
++                            {(item.isExtraPending || item.actionType === 'refund') && (
++                                <div style={{ display: 'flex', gap: '0.4rem' }} onClick={(e) => e.stopPropagation()}>
++                                    <button 
++                                        onClick={() => handleConfirm(item)}
++                                        style={{ 
++                                            width: '28px', 
++                                            height: '28px', 
++                                            borderRadius: '50%', 
++                                            background: 'transparent', 
++                                            border: '1px solid rgba(129, 140, 248, 0.2)', 
++                                            color: '#818cf8', 
++                                            display: 'flex', 
++                                            alignItems: 'center', 
++                                            justifyContent: 'center',
++                                            cursor: 'pointer'
++                                        }}
++                                        title="Editar y Confirmar"
++                                    >
++                                        <Pencil size={12} />
++                                    </button>
++                                    <button 
++                                        onClick={() => setDeleteModal({ show: true, type: item.actionType, item })}
++                                        style={{ 
++                                            width: '28px', 
++                                            height: '28px', 
++                                            borderRadius: '50%', 
++                                            background: 'transparent', 
++                                            border: '1px solid rgba(244, 63, 94, 0.2)', 
++                                            color: '#f43f5e', 
++                                            display: 'flex', 
++                                            alignItems: 'center', 
++                                            justifyContent: 'center',
++                                            cursor: 'pointer'
++                                        }}
++                                        title="Eliminar"
++                                    >
++                                        <Trash2 size={12} />
++                                    </button>
++                                </div>
++                            )}
+                         </div>
+                     </div>
+                 ))}
+@@ -246,6 +325,87 @@ const PendingActionsWidget: React.FC = () => {
+                     onClose={() => setConfirmModal({ show: false, type: 'expense', item: null })}
+                 />
+             )}
++
++            {/* Custom Delete Confirmation Modal for Pending Items */}
++            {deleteModal.show && deleteModal.item && (
++                <div className="modal-overlay" onClick={() => setDeleteModal({ show: false, type: 'income', item: null })}>
++                    <div 
++                        className="modal-container glass-panel" 
++                        style={{ padding: '2rem', maxWidth: '400px', width: '90%', textAlign: 'center', background: '#12141c' }}
++                        onClick={e => e.stopPropagation()}
++                    >
++                        <div style={{
++                            width: '50px',
++                            height: '50px',
++                            borderRadius: '50%',
++                            background: 'rgba(244, 63, 94, 0.15)',
++                            display: 'flex',
++                            alignItems: 'center',
++                            justifyContent: 'center',
++                            color: '#f43f5e',
++                            margin: '0 auto 1.5rem auto'
++                        }}>
++                            <Trash2 size={24} />
++                        </div>
++
++                        <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'white', margin: '0 0 0.75rem 0' }}>
++                            {deleteModal.type === 'income' ? '┬┐Eliminar Ingreso Pendiente?' : '┬┐Eliminar Devoluci├│n Pendiente?'}
++                        </h3>
++                        
++                        <div style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)', lineHeight: '1.4', margin: '0 0 1.5rem 0' }}>
++                            ┬┐Seguro que deseas eliminar definitivamente el movimiento <strong>"{deleteModal.item.description || deleteModal.item.name}"</strong> por importe de <strong>{formatMoney(Math.abs(deleteModal.item.amount))}</strong>?
++                        </div>
++
++                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
++                            <button
++                                onClick={async () => {
++                                    if (deleteModal.type === 'income') {
++                                        await deleteIncome(deleteModal.item.id);
++                                    } else {
++                                        await deleteExpense(deleteModal.item.id);
++                                    }
++                                    setDeleteModal({ show: false, type: 'income', item: null });
++                                }}
++                                style={{
++                                    width: '100%',
++                                    background: '#f43f5e',
++                                    border: 'none',
++                                    padding: '1rem',
++                                    borderRadius: '1rem',
++                                    color: 'white',
++                                    fontWeight: 700,
++                                    cursor: 'pointer',
++                                    boxShadow: '0 4px 15px rgba(244, 63, 94, 0.3)',
++                                    transition: 'all 0.2s'
++                                }}
++                                onMouseOver={e => e.currentTarget.style.background = '#e11d48'}
++                                onMouseOut={e => e.currentTarget.style.background = '#f43f5e'}
++                            >
++                                S├¡, eliminar
++                            </button>
++                            
++                            <button
++                                onClick={() => setDeleteModal({ show: false, type: 'income', item: null })}
++                                style={{
++                                    width: '100%',
++                                    background: 'rgba(255, 255, 255, 0.05)',
++                                    border: '1px solid rgba(255, 255, 255, 0.1)',
++                                    padding: '1rem',
++                                    borderRadius: '1rem',
++                                    color: 'white',
++                                    fontWeight: 600,
++                                    cursor: 'pointer',
++                                    transition: 'all 0.2s'
++                                }}
++                                onMouseOver={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
++                                onMouseOut={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'}
++                            >
++                                Cancelar
++                            </button>
++                        </div>
++                    </div>
++                </div>
++            )}
+         </div>
+     );
+ };
+diff --git a/src/components/expenses/ExpenseForm.tsx b/src/components/expenses/ExpenseForm.tsx
+index 930c4c4..f117fbb 100644
+--- a/src/components/expenses/ExpenseForm.tsx
++++ b/src/components/expenses/ExpenseForm.tsx
+@@ -35,6 +35,15 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false })
+         }
+     }, [expenseCategories, categoryId]);
+ 
++    // Auto-select method if only one exists
++    useEffect(() => {
++        if (paymentMethodType === 'account' && accounts.length === 1 && !selectedMethodId) {
++            setSelectedMethodId(accounts[0].id);
++        } else if (paymentMethodType === 'card' && cards.length === 1 && !selectedMethodId) {
++            setSelectedMethodId(cards[0].id);
++        }
++    }, [paymentMethodType, accounts, cards]);
++
+     const expenseTotal = parseFloat(amount) || 0;
+ 
+     const totalAllocated = Object.entries(savingGoalFunding)
+@@ -160,7 +169,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false })
+                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                     
+                     {/* Rows */}
+-                    <div style={{ display: 'flex', gap: '1rem' }}>
++                    <div className="responsive-flex" style={{ display: 'flex', gap: '1rem' }}>
+                         <div style={{ flex: 2 }}>
+                             <label style={labelStyle}>Concepto</label>
+                             <input 
+@@ -172,7 +181,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false })
+                             />
+                         </div>
+                         <div style={{ flex: 1 }}>
+-                            <label style={labelStyle}>{isRefund ? 'Importe Devoluci├│n (Ôé¼)' : 'Importe (Ôé¼)'}</label>
++                            <label style={labelStyle}>{isRefund ? `Importe Devoluci├│n (\u20AC)` : `Importe (\u20AC)`}</label>
+                             <input 
+                                 type="number" 
+                                 step="0.01" 
+@@ -202,7 +211,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false })
+                         </div>
+                     </div>
+ 
+-                    <div style={{ display: 'flex', gap: '1rem' }}>
++                    <div className="responsive-flex" style={{ display: 'flex', gap: '1rem' }}>
+                         <div style={{ flex: 1 }}>
+                             <label style={labelStyle}>Categor├¡a</label>
+                             <select style={inputStyle} value={categoryId} onChange={e => setCategoryId(e.target.value)}>
+@@ -224,7 +233,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false })
+                         </div>
+                     </div>
+ 
+-                    <div style={{ display: 'flex', gap: '1rem' }}>
++                    <div className="responsive-flex" style={{ display: 'flex', gap: '1rem' }}>
+                         <div style={{ flex: 1 }}>
+                             <label style={labelStyle}>Estado</label>
+                             <select 
+diff --git a/src/components/expenses/RecurringExpenseForm.tsx b/src/components/expenses/RecurringExpenseForm.tsx
+index 9bd6489..5b1a10b 100644
+--- a/src/components/expenses/RecurringExpenseForm.tsx
++++ b/src/components/expenses/RecurringExpenseForm.tsx
+@@ -65,6 +65,15 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
+         return () => document.removeEventListener('app-back-pressed', handleBack);
+     }, [description, amount, frequency, paymentDay, paymentMonth, categoryId, pmType, pmId, editingExpense, onClose]);
+ 
++    // Auto-select method if only one exists
++    useEffect(() => {
++        if (pmType === 'account' && accounts.length === 1 && !pmId) {
++            setPmId(accounts[0].id);
++        } else if (pmType === 'card' && cards.length === 1 && !pmId) {
++            setPmId(cards[0].id);
++        }
++    }, [pmType, accounts, cards, pmId]);
++
+     const handleSubmit = async (e: React.FormEvent) => {
+         e.preventDefault();
+         if (!description || !amount) return;
+@@ -147,7 +156,7 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
+             </div>
+ 
+             {/* Monto y Frecuencia */}
+-            <div style={{ display: 'flex', gap: '1rem', ...containerStyle }}>
++            <div className="responsive-flex" style={{ display: 'flex', gap: '1rem', ...containerStyle }}>
+                 <div style={{ flex: 1 }}>
+                     <label style={labelStyle}>Monto</label>
+                     <input 
+@@ -185,7 +194,7 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
+             </div>
+ 
+             {/* D├¡a y Mes de Pago */}
+-            <div style={{ display: 'flex', gap: '1rem', ...containerStyle }}>
++            <div className="responsive-flex" style={{ display: 'flex', gap: '1rem', ...containerStyle }}>
+                 <div style={{ flex: 1 }}>
+                     <label style={labelStyle}>D├¡a de Pago</label>
+                     <input 
+diff --git a/src/components/income/IncomeForm.tsx b/src/components/income/IncomeForm.tsx
+index 334b064..88c867b 100644
+--- a/src/components/income/IncomeForm.tsx
++++ b/src/components/income/IncomeForm.tsx
+@@ -52,6 +52,13 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData }) => {
+         }
+     }, [incomeCategories, categoryId, isEditing]);
+ 
++    // Auto-select account if only one exists
++    useEffect(() => {
++        if (accounts.length === 1 && !linkedAccountId) {
++            setLinkedAccountId(accounts[0].id);
++        }
++    }, [accounts, linkedAccountId]);
++
+     const handleSubmit = async (e: React.FormEvent) => {
+         e.preventDefault();
+         if (!name || !amount) return;
+@@ -182,7 +189,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData }) => {
+                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                     
+                     {/* Status & Type */}
+-                    <div style={{ display: 'flex', gap: '1rem' }}>
++                    <div className="responsive-flex" style={{ display: 'flex', gap: '1rem' }}>
+                         <div style={{ flex: 1 }}>
+                             <label style={labelStyle}>Estado</label>
+                             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.4rem' }}>
+@@ -208,7 +215,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData }) => {
+                     </div>
+ 
+                     {/* Common Fields */}
+-                    <div style={{ display: 'flex', gap: '1rem' }}>
++                    <div className="responsive-flex" style={{ display: 'flex', gap: '1rem' }}>
+                         <div style={{ flex: 2 }}>
+                             <label style={labelStyle}>Concepto / Fuente</label>
+                             <input 
+@@ -217,7 +224,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData }) => {
+                             />
+                         </div>
+                         <div style={{ flex: 1 }}>
+-                            <label style={labelStyle}>Importe (Ôé¼)</label>
++                            <label style={labelStyle}>{`Importe (\u20AC)`}</label>
+                             <input 
+                                 type="number" step="0.01" style={inputStyle} value={amount} 
+                                 onChange={e => setAmount(e.target.value)} placeholder="0.00" required 
+@@ -226,7 +233,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData }) => {
+                     </div>
+ 
+                     {/* Budget Period */}
+-                    <div style={{ display: 'flex', gap: '1rem' }}>
++                    <div className="responsive-flex" style={{ display: 'flex', gap: '1rem' }}>
+                         <div style={{ flex: 1 }}>
+                             <label style={labelStyle}>Mes de Presupuesto</label>
+                             <select style={inputStyle} value={budgetMonth} onChange={e => setBudgetMonth(parseInt(e.target.value))}>
+@@ -242,7 +249,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData }) => {
+                     </div>
+ 
+                     {type === 'fixed' ? (
+-                        <div style={{ display: 'flex', gap: '1rem' }}>
++                        <div className="responsive-flex" style={{ display: 'flex', gap: '1rem' }}>
+                             <div style={{ flex: 1 }}>
+                                 <label style={labelStyle}>Frecuencia</label>
+                                 <select style={inputStyle} value={frequency} onChange={e => setFrequency(e.target.value as Frequency)}>
+@@ -257,7 +264,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData }) => {
+                             </div>
+                         </div>
+                     ) : (
+-                        <div style={{ display: 'flex', gap: '1rem' }}>
++                        <div className="responsive-flex" style={{ display: 'flex', gap: '1rem' }}>
+                             <div style={{ flex: 1 }}>
+                                 <label style={labelStyle}>Categor├¡a</label>
+                                 <select style={inputStyle} value={categoryId} onChange={e => setCategoryId(e.target.value)}>
+@@ -271,7 +278,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData }) => {
+                         </div>
+                     )}
+ 
+-                    <div style={{ display: 'flex', gap: '1rem' }}>
++                    <div className="responsive-flex" style={{ display: 'flex', gap: '1rem' }}>
+                         <div style={{ flex: 1 }}>
+                             <label style={labelStyle}>Banco / M├®todo de Cobro</label>
+                             <select style={inputStyle} value={linkedAccountId} onChange={e => setLinkedAccountId(e.target.value)}>
+diff --git a/src/components/loans/LoanForm.tsx b/src/components/loans/LoanForm.tsx
+index 96e1136..f4b567e 100644
+--- a/src/components/loans/LoanForm.tsx
++++ b/src/components/loans/LoanForm.tsx
+@@ -134,7 +134,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose
+ 
+                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                     {/* Basic Info */}
+-                    <div style={{ display: 'flex', gap: '1rem' }}>
++                    <div className="responsive-flex" style={{ display: 'flex', gap: '1rem' }}>
+                         <div style={{ flex: 2 }}>
+                             <label style={labelStyle}>Nombre del Pr├®stamo</label>
+                             <input style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="Hipoteca, Pr├®stamo Coche..." required />
+@@ -145,7 +145,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose
+                         </div>
+                     </div>
+ 
+-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
++                    <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                         <div>
+                             <label style={labelStyle}><DollarSign size={14} /> Importe Solicitado (Ôé¼)</label>
+                             <input type="number" step="0.01" style={inputStyle} value={totalAmount} onChange={e => setTotalAmount(e.target.value)} placeholder="0.00" required />
+@@ -156,7 +156,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose
+                         </div>
+                     </div>
+ 
+-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
++                    <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                         <div>
+                             <label style={labelStyle}><Calendar size={14} /> Fecha de Inicio</label>
+                             <input type="date" style={inputStyle} value={startDate} onChange={e => setStartDate(e.target.value)} required />
+@@ -171,7 +171,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose
+                         <h4 style={{ margin: '0 0 1rem 0', fontSize: '0.9rem', color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                             <Info size={16} /> Detalles de Cuotas
+                         </h4>
+-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
++                        <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                             <div>
+                                 <label style={{ ...labelStyle, fontSize: '0.75rem' }}>Cuota Normal</label>
+                                 <input type="number" step="0.01" style={{ ...inputStyle, padding: '0.5rem' }} value={monthlyPayment} onChange={e => setMonthlyPayment(e.target.value)} placeholder="0.00" />
+diff --git a/src/components/settings/ConfirmMovementModal.tsx b/src/components/settings/ConfirmMovementModal.tsx
+index bc0bcd5..c1fe940 100644
+--- a/src/components/settings/ConfirmMovementModal.tsx
++++ b/src/components/settings/ConfirmMovementModal.tsx
+@@ -35,15 +35,18 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
+     const [allocationTarget, setAllocationTarget] = useState<'budget' | 'exclude' | 'hucha'>('budget');
+     const [selectedSavingGoalId, setSelectedSavingGoalId] = useState('');
+     const [duplicateOption, setDuplicateOption] = useState<'next' | 'current'>('next');
++    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+ 
+     useEffect(() => {
+         if (isDuplicateIncome) {
+             setBudgetPeriod(nextMonthPeriod);
+             setDuplicateOption('next');
++        } else if (item.targetPeriod) {
++            setBudgetPeriod(item.targetPeriod);
+         } else {
+             setBudgetPeriod(currentRealPeriod);
+         }
+-    }, [isDuplicateIncome]);
++    }, [isDuplicateIncome, item.targetPeriod]);
+ 
+     const handleDuplicateOptionChange = (option: 'next' | 'current') => {
+         setDuplicateOption(option);
+@@ -468,56 +471,146 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
+                             </button>
+                         )}
+                         {type === 'refund' && (
+-                            <button 
+-                                type="button"
+-                                onClick={handleDeleteRefund}
+-                                style={{
+-                                    width: '100%',
+-                                    background: 'rgba(244, 63, 94, 0.12)',
+-                                    border: '1px solid rgba(244, 63, 94, 0.2)',
+-                                    padding: '1rem',
+-                                    borderRadius: '1rem',
+-                                    color: '#fb7185',
+-                                    fontWeight: 700,
+-                                    cursor: 'pointer',
+-                                    display: 'flex',
+-                                    alignItems: 'center',
+-                                    justifyContent: 'center',
+-                                    gap: '0.5rem',
+-                                    transition: 'all 0.2s',
+-                                    marginTop: '0.5rem'
+-                                }}
+-                                onMouseOver={e => e.currentTarget.style.background = 'rgba(244, 63, 94, 0.22)'}
+-                                onMouseOut={e => e.currentTarget.style.background = 'rgba(244, 63, 94, 0.12)'}
+-                            >
+-                                Eliminar Devoluci├│n
+-                            </button>
++                            showDeleteConfirm ? (
++                                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
++                                    <button 
++                                        type="button"
++                                        onClick={handleDeleteRefund}
++                                        style={{
++                                            flex: 1,
++                                            background: '#f43f5e',
++                                            border: 'none',
++                                            padding: '1rem',
++                                            borderRadius: '1rem',
++                                            color: 'white',
++                                            fontWeight: 700,
++                                            cursor: 'pointer',
++                                            display: 'flex',
++                                            alignItems: 'center',
++                                            justifyContent: 'center',
++                                            transition: 'all 0.2s'
++                                        }}
++                                    >
++                                        S├¡, eliminar
++                                    </button>
++                                    <button 
++                                        type="button"
++                                        onClick={() => setShowDeleteConfirm(false)}
++                                        style={{
++                                            flex: 1,
++                                            background: 'rgba(255, 255, 255, 0.05)',
++                                            border: '1px solid rgba(255, 255, 255, 0.1)',
++                                            padding: '1rem',
++                                            borderRadius: '1rem',
++                                            color: 'white',
++                                            fontWeight: 600,
++                                            cursor: 'pointer',
++                                            display: 'flex',
++                                            alignItems: 'center',
++                                            justifyContent: 'center',
++                                            transition: 'all 0.2s'
++                                        }}
++                                    >
++                                        Cancelar
++                                    </button>
++                                </div>
++                            ) : (
++                                <button 
++                                    type="button"
++                                    onClick={() => setShowDeleteConfirm(true)}
++                                    style={{
++                                        width: '100%',
++                                        background: 'rgba(244, 63, 94, 0.12)',
++                                        border: '1px solid rgba(244, 63, 94, 0.2)',
++                                        padding: '1rem',
++                                        borderRadius: '1rem',
++                                        color: '#fb7185',
++                                        fontWeight: 700,
++                                        cursor: 'pointer',
++                                        display: 'flex',
++                                        alignItems: 'center',
++                                        justifyContent: 'center',
++                                        gap: '0.5rem',
++                                        transition: 'all 0.2s',
++                                        marginTop: '0.5rem'
++                                    }}
++                                    onMouseOver={e => e.currentTarget.style.background = 'rgba(244, 63, 94, 0.22)'}
++                                    onMouseOut={e => e.currentTarget.style.background = 'rgba(244, 63, 94, 0.12)'}
++                                >
++                                    Eliminar Devoluci├│n
++                                </button>
++                            )
+                         )}
+                         {isExtraIncomePending && (
+-                            <button 
+-                                type="button"
+-                                onClick={handleDelete}
+-                                style={{
+-                                    width: '100%',
+-                                    background: 'rgba(244, 63, 94, 0.12)',
+-                                    border: '1px solid rgba(244, 63, 94, 0.2)',
+-                                    padding: '1rem',
+-                                    borderRadius: '1rem',
+-                                    color: '#fb7185',
+-                                    fontWeight: 700,
+-                                    cursor: 'pointer',
+-                                    display: 'flex',
+-                                    alignItems: 'center',
+-                                    justifyContent: 'center',
+-                                    gap: '0.5rem',
+-                                    transition: 'all 0.2s',
+-                                    marginTop: '0.5rem'
+-                                }}
+-                                onMouseOver={e => e.currentTarget.style.background = 'rgba(244, 63, 94, 0.22)'}
+-                                onMouseOut={e => e.currentTarget.style.background = 'rgba(244, 63, 94, 0.12)'}
+-                            >
+-                                Eliminar Ingreso
+-                            </button>
++                            showDeleteConfirm ? (
++                                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
++                                    <button 
++                                        type="button"
++                                        onClick={handleDelete}
++                                        style={{
++                                            flex: 1,
++                                            background: '#f43f5e',
++                                            border: 'none',
++                                            padding: '1rem',
++                                            borderRadius: '1rem',
++                                            color: 'white',
++                                            fontWeight: 700,
++                                            cursor: 'pointer',
++                                            display: 'flex',
++                                            alignItems: 'center',
++                                            justifyContent: 'center',
++                                            transition: 'all 0.2s'
++                                        }}
++                                    >
++                                        S├¡, eliminar
++                                    </button>
++                                    <button 
++                                        type="button"
++                                        onClick={() => setShowDeleteConfirm(false)}
++                                        style={{
++                                            flex: 1,
++                                            background: 'rgba(255, 255, 255, 0.05)',
++                                            border: '1px solid rgba(255, 255, 255, 0.1)',
++                                            padding: '1rem',
++                                            borderRadius: '1rem',
++                                            color: 'white',
++                                            fontWeight: 600,
++                                            cursor: 'pointer',
++                                            display: 'flex',
++                                            alignItems: 'center',
++                                            justifyContent: 'center',
++                                            transition: 'all 0.2s'
++                                        }}
++                                    >
++                                        Cancelar
++                                    </button>
++                                </div>
++                            ) : (
++                                <button 
++                                    type="button"
++                                    onClick={() => setShowDeleteConfirm(true)}
++                                    style={{
++                                        width: '100%',
++                                        background: 'rgba(244, 63, 94, 0.12)',
++                                        border: '1px solid rgba(244, 63, 94, 0.2)',
++                                        padding: '1rem',
++                                        borderRadius: '1rem',
++                                        color: '#fb7185',
++                                        fontWeight: 700,
++                                        cursor: 'pointer',
++                                        display: 'flex',
++                                        alignItems: 'center',
++                                        justifyContent: 'center',
++                                        gap: '0.5rem',
++                                        transition: 'all 0.2s',
++                                        marginTop: '0.5rem'
++                                    }}
++                                    onMouseOver={e => e.currentTarget.style.background = 'rgba(244, 63, 94, 0.22)'}
++                                    onMouseOut={e => e.currentTarget.style.background = 'rgba(244, 63, 94, 0.12)'}
++                                >
++                                    Eliminar Ingreso
++                                </button>
++                            )
+                         )}
+                     </div>
+                 </div>
+diff --git a/src/components/settings/FixedIncomeForm.tsx b/src/components/settings/FixedIncomeForm.tsx
+index 4b822bd..9332fda 100644
+--- a/src/components/settings/FixedIncomeForm.tsx
++++ b/src/components/settings/FixedIncomeForm.tsx
+@@ -50,6 +50,13 @@ const FixedIncomeForm: React.FC<FixedIncomeFormProps> = ({ editingIncome, onClos
+         return () => document.removeEventListener('app-back-pressed', handleBack);
+     }, [name, amount, frequency, paymentDay, paymentMonth, accountId, editingIncome, onClose]);
+ 
++    // Auto-select account if only one exists
++    useEffect(() => {
++        if (accounts.length === 1 && !accountId) {
++            setAccountId(accounts[0].id);
++        }
++    }, [accounts, accountId]);
++
+     const handleSubmit = async (e: React.FormEvent) => {
+         e.preventDefault();
+         if (!name || !amount) return;
+@@ -130,7 +137,7 @@ const FixedIncomeForm: React.FC<FixedIncomeFormProps> = ({ editingIncome, onClos
+             </div>
+ 
+             {/* Monto y Moneda */}
+-            <div style={{ display: 'flex', gap: '1rem', ...containerStyle }}>
++            <div className="responsive-flex" style={{ display: 'flex', gap: '1rem', ...containerStyle }}>
+                 <div style={{ flex: 2 }}>
+                     <label style={labelStyle}>Monto</label>
+                     <input 
+@@ -158,7 +165,7 @@ const FixedIncomeForm: React.FC<FixedIncomeFormProps> = ({ editingIncome, onClos
+             </div>
+ 
+             {/* Frecuencia y D├¡a de Cobro */}
+-            <div style={{ display: 'flex', gap: '1rem', ...containerStyle }}>
++            <div className="responsive-flex" style={{ display: 'flex', gap: '1rem', ...containerStyle }}>
+                 <div style={{ flex: 2 }}>
+                     <label style={labelStyle}>Frecuencia</label>
+                     <select 
+diff --git a/src/components/settings/RemnantDecisionModal.tsx b/src/components/settings/RemnantDecisionModal.tsx
+index 894503f..505674e 100644
+--- a/src/components/settings/RemnantDecisionModal.tsx
++++ b/src/components/settings/RemnantDecisionModal.tsx
+@@ -26,55 +26,11 @@ const RemnantDecisionModal: React.FC<RemnantDecisionModalProps> = ({ closing, on
+     const [customBalance, setCustomBalance] = useState<number | null>(null);
+     const [isEditingBalance, setIsEditingBalance] = useState(false);
+ 
+-    const [expenseDecisions, setExpenseDecisions] = useState<Record<string, string>>({});
+-    const [incomeDecisions, setIncomeDecisions] = useState<Record<string, string>>({});
+-
+     const period = `${closing.year}-${(closing.month + 1).toString().padStart(2, '0')}`;
+     const nextMonthObj = new Date(closing.year, closing.month + 1, 1);
+     const nextPeriod = `${nextMonthObj.getFullYear()}-${(nextMonthObj.getMonth() + 1).toString().padStart(2, '0')}`;
+ 
+-    const pendingExpenses = useMemo(() => {
+-        return recurringExpenses.filter(re => {
+-            if (!re.active) return false;
+-            const isIgnored = re.ignoredPeriods?.includes(period);
+-            if (isIgnored) return false;
+-            const isPaid = expenses.some(e => e.recurringExpenseId === re.id && isItemInMonthAndYear(e, closing.month, closing.year));
+-            if (isPaid) return false;
+-            
+-            const start = re.updatedAt || 0;
+-            return isRecurringActiveInMonth(re.frequency, re.paymentMonth, closing.month, closing.year, start);
+-        });
+-    }, [recurringExpenses, expenses, closing, period]);
+-
+-    const pendingIncomes = useMemo(() => {
+-        return fixedIncomes.filter(inc => {
+-            const isIgnored = inc.ignoredPeriods?.includes(period);
+-            if (isIgnored) return false;
+-            const start = inc.effectiveDate || inc.createdAt || 0;
+-            const end = inc.expirationDate || new Date(9999, 11, 31).getTime();
+-            const monthStart = new Date(closing.year, closing.month, 1).getTime();
+-            const monthEnd = new Date(closing.year, closing.month + 1, 0).getTime();
+-            
+-            if (start <= monthEnd && end >= monthStart) {
+-                return isRecurringActiveInMonth(inc.frequency, inc.paymentMonth, closing.month, closing.year, start);
+-            }
+-            return false;
+-        });
+-    }, [fixedIncomes, closing, period]);
+-
+     let derivedFinalBalance = closing.finalBalance;
+-    pendingExpenses.forEach(pe => {
+-        const dec = expenseDecisions[pe.id] || 'none';
+-        if (dec !== 'none') {
+-            derivedFinalBalance += pe.amount;
+-        }
+-    });
+-    pendingIncomes.forEach(pi => {
+-        const dec = incomeDecisions[pi.id] || 'none';
+-        if (dec !== 'none') {
+-            derivedFinalBalance -= pi.amount;
+-        }
+-    });
+ 
+     const formatCurrency = (val: number) => {
+         const isNegative = val < 0;
+@@ -112,51 +68,6 @@ const RemnantDecisionModal: React.FC<RemnantDecisionModalProps> = ({ closing, on
+         }
+ 
+         try {
+-            for (const pe of pendingExpenses) {
+-                const dec = expenseDecisions[pe.id] || 'none';
+-                if (dec !== 'none') {
+-                    await updateRecurringExpense({
+-                        ...pe,
+-                        ignoredPeriods: [...(pe.ignoredPeriods || []), period]
+-                    });
+-                    if (dec === 'postpone') {
+-                        await addExpense({
+-                            description: `(Aplazado) ${pe.description}`,
+-                            amount: pe.amount,
+-                            currency: pe.currency,
+-                            date: Date.now(),
+-                            categoryId: pe.categoryId || 'cat_other',
+-                            paymentMethod: pe.paymentMethod || { type: 'cash' },
+-                            isFixed: false,
+-                            status: 'pending',
+-                            period: nextPeriod
+-                        });
+-                    }
+-                }
+-            }
+-
+-            for (const pi of pendingIncomes) {
+-                const dec = incomeDecisions[pi.id] || 'none';
+-                if (dec !== 'none') {
+-                    await updateIncome({
+-                        ...pi,
+-                        ignoredPeriods: [...(pi.ignoredPeriods || []), period]
+-                    });
+-                    if (dec === 'postpone') {
+-                        await addExtraIncome({
+-                            name: `(Aplazado) ${pi.name}`,
+-                            amount: pi.amount,
+-                            currency: pi.currency,
+-                            receivedDate: Date.now(),
+-                            effectiveDate: Date.now(),
+-                            budgetMonth: nextMonthObj.getMonth(),
+-                            budgetYear: nextMonthObj.getFullYear(),
+-                            status: 'received',
+-                            categoryId: pi.categoryId
+-                        });
+-                    }
+-                }
+-            }
+ 
+             // Build the array
+             const distArray: { type: 'next_month' | 'saving_goal', targetId?: string, amount: number }[] = [];
+@@ -281,52 +192,7 @@ const RemnantDecisionModal: React.FC<RemnantDecisionModalProps> = ({ closing, on
+                     </div>
+                 </div>
+ 
+-                {/* Pending Movements Section */}
+-                {(pendingExpenses.length > 0 || pendingIncomes.length > 0) && (
+-                    <div style={{ marginBottom: '1.5rem', background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '12px' }}>
+-                        <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+-                            <AlertCircle size={18} color="#f59e0b" /> Movimientos Fijos Pendientes
+-                        </h3>
+-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+-                            {pendingExpenses.map(pe => (
+-                                <div key={pe.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+-                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem' }}>
+-                                        <span>Gasto: {pe.description}</span>
+-                                        <span style={{ color: '#ef4444', fontWeight: 600, whiteSpace: 'nowrap' }}>-{formatCurrency(pe.amount)}</span>
+-                                    </div>
+-                                    <select 
+-                                        className="form-input" 
+-                                        style={{ fontSize: '0.9rem', padding: '0.5rem' }}
+-                                        value={expenseDecisions[pe.id] || 'none'}
+-                                        onChange={e => setExpenseDecisions(prev => ({ ...prev, [pe.id]: e.target.value }))}
+-                                    >
+-                                        <option value="none">No hacer nada de momento</option>
+-                                        <option value="ignore">Ignorar (Recuperar {formatCurrency(pe.amount)} al remanente)</option>
+-                                        <option value="postpone">Aplazar al mes actual</option>
+-                                    </select>
+-                                </div>
+-                            ))}
+-                            {pendingIncomes.map(pi => (
+-                                <div key={pi.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+-                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem' }}>
+-                                        <span>Ingreso: {pi.name}</span>
+-                                        <span style={{ color: '#10b881', fontWeight: 600, whiteSpace: 'nowrap' }}>+{formatCurrency(pi.amount)}</span>
+-                                    </div>
+-                                    <select 
+-                                        className="form-input" 
+-                                        style={{ fontSize: '0.9rem', padding: '0.5rem' }}
+-                                        value={incomeDecisions[pi.id] || 'none'}
+-                                        onChange={e => setIncomeDecisions(prev => ({ ...prev, [pi.id]: e.target.value }))}
+-                                    >
+-                                        <option value="none">No hacer nada de momento</option>
+-                                        <option value="ignore">Ignorar (Restar {formatCurrency(pi.amount)} del remanente)</option>
+-                                        <option value="postpone">Aplazar al mes actual</option>
+-                                    </select>
+-                                </div>
+-                            ))}
+-                        </div>
+-                    </div>
+-                )}
++                {/* Movimientos pendientes section removed */}
+ 
+                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '2rem' }}>
+                     {/* Next Month Row */}
+diff --git a/src/index.css b/src/index.css
+index 56c6ca1..576dfad 100644
+--- a/src/index.css
++++ b/src/index.css
+@@ -108,4 +108,15 @@ body {
+ @keyframes modalEnter {
+   from { opacity: 0; transform: translateY(20px); }
+   to { opacity: 1; transform: translateY(0); }
+-}
+\ No newline at end of file
++}
++@media (max-width: 768px) {
++  .responsive-flex {
++    flex-direction: column !important;
++  }
++}
++
++@media (max-width: 768px) {
++  .responsive-grid {
++    grid-template-columns: 1fr !important;
++  }
++}
+diff --git a/src/utils/changelogHistory.ts b/src/utils/changelogHistory.ts
+index db6f288..d0d4a84 100644
+--- a/src/utils/changelogHistory.ts
++++ b/src/utils/changelogHistory.ts
+@@ -4,6 +4,16 @@ export interface ChangelogEntry {
+ }
+ 
+ export const changelogHistory: ChangelogEntry[] = [
++  {
++    version: '1.7.6',
++    releaseNotes: `Novedades v1.7.6:
++- Dise├▒o M├│vil Mejorado: Inputs de Gastos, Pr├®stamos y dem├ís pantallas ahora se apilan en vertical para mayor comodidad y legibilidad en pantallas peque├▒as, incluyendo placeholders correctos (s├¡mbolo de moneda).
++- Eliminaci├│n Segura: Los elementos pendientes no fijos (ingresos extras, devoluciones) en el dashboard ahora tienen icono de papelera y requieren confirmaci├│n, igual que el resto, evitando eliminados accidentales.
++- Tarjetas Monedero: Se ha ajustado su funcionamiento para que sumen saldo al dinero disponible real y no contabilicen como deuda pendiente.
++- Autogesti├│n de Pendientes: Los movimientos pendientes de meses anteriores ahora se arrastran solos al mes actual en curso sin tener que arrastrarlos al cerrar el mes manualmente.
++- Deuda en Tiempo Real: El importe de la deuda en la tarjeta de cr├®dito se calcula din├ímicamente sumando todos tus gastos pendientes.
++- Autocompletado Eficiente: Al a├▒adir ingresos o gastos, si solo tienes una forma de cobro/pago (ej: solo 1 banco y cero monederos), se auto-seleccionar├í sin necesidad de abrir el desplegable.`
++  },
+   {
+     version: '1.4.0',
+     releaseNotes: `Novedades v1.4.0:

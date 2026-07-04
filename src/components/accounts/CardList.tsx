@@ -3,7 +3,7 @@ import { useFinance } from '../../contexts/FinanceContext';
 import type { CreditCard } from '../../types/finance';
 import { Edit2, Trash2 } from 'lucide-react';
 import DeleteCardDialog from './DeleteCardDialog';
-import { formatMoney } from '../../utils/financeCalculations';
+import { formatMoney, calculateCardCycleDates } from '../../utils/financeCalculations';
 
 interface CardListProps {
     onEdit?: (card: CreditCard) => void;
@@ -27,6 +27,25 @@ const CardList: React.FC<CardListProps> = ({ onEdit }) => {
         return cardExpenses.reduce((sum, exp) => sum + exp.amount, 0);
     };
 
+    const getDebtForCard = (card: CreditCard) => {
+        if (card.type !== 'credit') return 0;
+        const cycleDates = calculateCardCycleDates(card);
+        const cardExpenses = expenses.filter(exp => {
+            if (!exp?.paymentMethod) return false;
+            const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === card.id;
+            if (!isCard || exp.isSettled) return false;
+            if (exp.status === 'pending') return false;
+            
+            const d = new Date(exp.date || Date.now());
+            const adjustment = (exp.paymentMethod as any)?.settlementAdjustment || 0;
+            if (adjustment !== 0) d.setMonth(d.getMonth() + adjustment);
+            
+            const isActive = d >= cycleDates.active.start && d <= cycleDates.active.cutoff;
+            const isPending = d >= cycleDates.pending.start && d <= cycleDates.pending.cutoff;
+            return isActive || isPending;
+        });
+        return cardExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+    };
     const handleDeleteClick = (card: CreditCard) => {
         setCardToDelete(card);
     };
@@ -86,19 +105,11 @@ const CardList: React.FC<CardListProps> = ({ onEdit }) => {
                                     Cierra el {card.cutoffDay} • Paga el {card.paymentDay}
                                 </div>
                             )}
-                            {card.type === 'credit' && (() => {
-                                const pendingDebt = card.currentBalance || 0;
-
-                                if (pendingDebt > 0) {
-                                    return (
-                                        <div style={{ fontSize: '0.85rem', color: 'rgba(var(--color-rgb-light),0.5)', marginTop: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <span>Deuda pendiente:</span>
-                                            <span style={{ color: '#ef4444', fontWeight: 600 }}>{formatMoney(pendingDebt)}</span>
-                                        </div>
-                                    );
-                                }
-                                return null;
-                            })()}
+                            {card.type === 'credit' && (
+                                <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', marginTop: '0.25rem' }}>
+                                    Deuda Pendiente: <span style={{ color: '#fbbf24', fontWeight: 700 }}>{formatMoney(getDebtForCard(card))}</span>
+                                </div>
+                            )}
                             <div style={{ 
                                 fontSize: '0.8rem', 
                                 color: 'rgba(var(--color-rgb-light),0.4)', 

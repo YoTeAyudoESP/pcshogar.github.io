@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
-import { CheckCircle, Clock, ArrowUpRight, ArrowDownLeft, ChevronRight, Edit2 } from 'lucide-react';
+import { CheckCircle, Clock, ArrowUpRight, ArrowDownLeft, ChevronRight, Edit2, Trash2, Pencil } from 'lucide-react';
 import { isRecurringActiveInMonth, formatMoney, isItemInMonthAndYear } from '../../utils/financeCalculations';
 import ConfirmMovementModal from '../settings/ConfirmMovementModal';
 
@@ -12,11 +12,17 @@ interface PendingActionsWidgetProps {
 const PendingActionsWidget: React.FC<PendingActionsWidgetProps> = ({ onEdit }) => {
     const { 
         recurringExpenses, fixedIncomes, expenses, incomes, 
-        accounts 
+        accounts, deleteIncome, deleteExpense
     } = useFinance();
     const { selectedMonth, selectedYear } = useDateSelection();
     
     const [confirmModal, setConfirmModal] = useState<{
+        show: boolean;
+        type: 'income' | 'expense' | 'refund';
+        item: any;
+    }>({ show: false, type: 'expense', item: null });
+
+    const [deleteModal, setDeleteModal] = useState<{
         show: boolean;
         type: 'income' | 'expense' | 'refund';
         item: any;
@@ -267,6 +273,11 @@ const PendingActionsWidget: React.FC<PendingActionsWidgetProps> = ({ onEdit }) =
                         }}>
                             {item.description || item.name}
                         </div>
+                        {item.targetPeriod && item.targetPeriod !== period && (
+                            <div style={{ fontSize: '0.75rem', color: '#f59e0b', marginBottom: '4px' }}>
+                                Atrasado ({item.targetPeriod})
+                            </div>
+                        )}
                         
                         <div style={{ 
                             fontSize: '1.2rem', 
@@ -280,12 +291,59 @@ const PendingActionsWidget: React.FC<PendingActionsWidgetProps> = ({ onEdit }) =
                             marginTop: '1rem', 
                             display: 'flex', 
                             alignItems: 'center', 
+                            justifyContent: 'space-between',
                             gap: '4px',
-                            color: '#6366f1',
-                            fontSize: '0.8rem',
-                            fontWeight: 700
                         }}>
-                            Confirmar <ChevronRight size={14} />
+                            <div style={{
+                                color: '#6366f1',
+                                fontSize: '0.8rem',
+                                fontWeight: 700,
+                                display: 'flex',
+                                alignItems: 'center'
+                            }}>
+                                Confirmar <ChevronRight size={14} />
+                            </div>
+                            
+                            {(item.isExtraPending || item.actionType === 'refund') && (
+                                <div style={{ display: 'flex', gap: '0.4rem' }} onClick={(e) => e.stopPropagation()}>
+                                    <button 
+                                        onClick={() => handleConfirm(item)}
+                                        style={{ 
+                                            width: '28px', 
+                                            height: '28px', 
+                                            borderRadius: '50%', 
+                                            background: 'transparent', 
+                                            border: '1px solid rgba(129, 140, 248, 0.2)', 
+                                            color: '#818cf8', 
+                                            display: 'flex', 
+                                            alignItems: 'center', 
+                                            justifyContent: 'center',
+                                            cursor: 'pointer'
+                                        }}
+                                        title="Editar y Confirmar"
+                                    >
+                                        <Pencil size={12} />
+                                    </button>
+                                    <button 
+                                        onClick={() => setDeleteModal({ show: true, type: item.actionType, item })}
+                                        style={{ 
+                                            width: '28px', 
+                                            height: '28px', 
+                                            borderRadius: '50%', 
+                                            background: 'transparent', 
+                                            border: '1px solid rgba(244, 63, 94, 0.2)', 
+                                            color: '#f43f5e', 
+                                            display: 'flex', 
+                                            alignItems: 'center', 
+                                            justifyContent: 'center',
+                                            cursor: 'pointer'
+                                        }}
+                                        title="Eliminar"
+                                    >
+                                        <Trash2 size={12} />
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 ))}
@@ -298,6 +356,87 @@ const PendingActionsWidget: React.FC<PendingActionsWidgetProps> = ({ onEdit }) =
                     item={confirmModal.item}
                     onClose={() => setConfirmModal({ show: false, type: 'expense', item: null })}
                 />
+            )}
+
+            {/* Custom Delete Confirmation Modal for Pending Items */}
+            {deleteModal.show && deleteModal.item && (
+                <div className="modal-overlay" onClick={() => setDeleteModal({ show: false, type: 'income', item: null })}>
+                    <div 
+                        className="modal-container glass-panel" 
+                        style={{ padding: '2rem', maxWidth: '400px', width: '90%', textAlign: 'center', background: '#12141c' }}
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div style={{
+                            width: '50px',
+                            height: '50px',
+                            borderRadius: '50%',
+                            background: 'rgba(244, 63, 94, 0.15)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#f43f5e',
+                            margin: '0 auto 1.5rem auto'
+                        }}>
+                            <Trash2 size={24} />
+                        </div>
+
+                        <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'white', margin: '0 0 0.75rem 0' }}>
+                            {deleteModal.type === 'income' ? '┬┐Eliminar Ingreso Pendiente?' : '┬┐Eliminar Devoluci├│n Pendiente?'}
+                        </h3>
+                        
+                        <div style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.6)', lineHeight: '1.4', margin: '0 0 1.5rem 0' }}>
+                            ┬┐Seguro que deseas eliminar definitivamente el movimiento <strong>"{deleteModal.item.description || deleteModal.item.name}"</strong> por importe de <strong>{formatMoney(Math.abs(deleteModal.item.amount))}</strong>?
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            <button
+                                onClick={async () => {
+                                    if (deleteModal.type === 'income') {
+                                        await deleteIncome(deleteModal.item.id);
+                                    } else {
+                                        await deleteExpense(deleteModal.item.id);
+                                    }
+                                    setDeleteModal({ show: false, type: 'income', item: null });
+                                }}
+                                style={{
+                                    width: '100%',
+                                    background: '#f43f5e',
+                                    border: 'none',
+                                    padding: '1rem',
+                                    borderRadius: '1rem',
+                                    color: 'white',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    boxShadow: '0 4px 15px rgba(244, 63, 94, 0.3)',
+                                    transition: 'all 0.2s'
+                                }}
+                                onMouseOver={e => e.currentTarget.style.background = '#e11d48'}
+                                onMouseOut={e => e.currentTarget.style.background = '#f43f5e'}
+                            >
+                                S├¡, eliminar
+                            </button>
+                            
+                            <button
+                                onClick={() => setDeleteModal({ show: false, type: 'income', item: null })}
+                                style={{
+                                    width: '100%',
+                                    background: 'rgba(255, 255, 255, 0.05)',
+                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                    padding: '1rem',
+                                    borderRadius: '1rem',
+                                    color: 'white',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s'
+                                }}
+                                onMouseOver={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'}
+                                onMouseOut={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'}
+                            >
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

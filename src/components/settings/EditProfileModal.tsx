@@ -4,6 +4,13 @@ import { X, Camera, Lock, Check, Key, Trash2, ShieldAlert } from 'lucide-react';
 import UserAvatar, { AVATAR_GRADIENTS } from '../common/UserAvatar';
 import { useToast } from '../../contexts/ToastContext';
 
+const DEFAULT_AVATARS = [
+    { id: '/avatars/cat.png', label: 'Gato' },
+    { id: '/avatars/dog.png', label: 'Perro' },
+    { id: '/avatars/fox.png', label: 'Zorro' },
+    { id: '/avatars/panda.png', label: 'Panda' }
+];
+
 interface EditProfileModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -193,6 +200,35 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose, pr
                                 style={inputStyle}
                                 required
                             />
+                        </div>
+
+                        {/* Predefined Avatars */}
+                        <div style={inputGroupStyle}>
+                            <label style={labelStyle}>Avatares Genéricos</label>
+                            <div style={avatarGridStyle}>
+                                {DEFAULT_AVATARS.map(avatar => {
+                                    const isSelected = selectedAvatar === avatar.id;
+                                    return (
+                                        <button
+                                            key={avatar.id}
+                                            type="button"
+                                            onClick={() => handleAvatarSelect(avatar.id)}
+                                            style={{
+                                                ...avatarOptionStyle,
+                                                backgroundImage: `url(${avatar.id})`,
+                                                backgroundSize: 'cover',
+                                                backgroundPosition: 'center',
+                                                border: isSelected ? '2px solid #ffffff' : '1px solid var(--panel-border)',
+                                                boxShadow: isSelected ? '0 0 12px rgba(99, 102, 241, 0.6)' : 'none',
+                                                transform: isSelected ? 'scale(1.1)' : 'scale(1)'
+                                            }}
+                                            title={avatar.label}
+                                        >
+                                            {isSelected && <Check size={16} color="#ffffff" style={checkmarkOverlayStyle} />}
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         </div>
 
                         {/* Predefined Gradients */}

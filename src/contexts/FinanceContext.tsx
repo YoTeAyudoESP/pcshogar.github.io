@@ -250,10 +250,10 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
             setIncomes(activeIncomes);
 
             // Auto-rollover pending expenses from past months
-            let activeExpenses = [...exps];
+            let activeExpenses = [...repairedExps];
             let didExpenseRollover = false;
-            for (let i = 0; i < exps.length; i++) {
-                const exp = exps[i];
+            for (let i = 0; i < repairedExps.length; i++) {
+                const exp = repairedExps[i];
                 if (exp.status === 'pending') {
                     const expPeriod = exp.period ?? `${new Date(exp.date).getFullYear()}-${String(new Date(exp.date).getMonth() + 1).padStart(2, '0')}`;
                     const currentPeriod = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
@@ -283,6 +283,43 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
             }
             if (didExpenseRollover) {
                 setExpenses(activeExpenses);
+            }
+
+            // Auto-rollover pending extra incomes from past months
+            let didIncomeRollover = false;
+            for (let i = 0; i < activeIncomes.length; i++) {
+                const inc = activeIncomes[i];
+                if (inc.type === 'extra' && inc.status === 'pending') {
+                    const incDate = inc.effectiveDate || inc.receivedDate || inc.createdAt || Date.now();
+                    const incPeriod = inc.period ?? `${new Date(incDate).getFullYear()}-${String(new Date(incDate).getMonth() + 1).padStart(2, '0')}`;
+                    const currentPeriod = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+                    
+                    if (incPeriod < currentPeriod) {
+                        didIncomeRollover = true;
+                        
+                        // Change date to 1st of current month
+                        const newDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1).getTime();
+                        let newName = inc.name;
+                        if (!newName.includes('[Atrasado]')) {
+                            newName = `[Atrasado] ${newName}`;
+                        }
+                        
+                        const updatedInc = {
+                            ...inc,
+                            name: newName,
+                            effectiveDate: newDate,
+                            receivedDate: newDate,
+                            period: currentPeriod,
+                            updatedAt: Date.now()
+                        };
+                        
+                        await incomeDB.updateIncome(updatedInc);
+                        activeIncomes[i] = updatedInc;
+                    }
+                }
+            }
+            if (didIncomeRollover) {
+                setIncomes(activeIncomes);
             }
             
             // Split incomes for convenience

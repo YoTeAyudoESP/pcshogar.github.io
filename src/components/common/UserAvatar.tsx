@@ -43,7 +43,7 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ avatar, name, size = 40, fontSi
         ...style
     };
 
-    if (avatar && avatar.startsWith('data:image/')) {
+    if (avatar && (avatar.startsWith('data:image/') || avatar.startsWith('/avatars/'))) {
         return (
             <img 
                 src={avatar} 

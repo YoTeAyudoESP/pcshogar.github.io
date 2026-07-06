@@ -250,24 +250,6 @@ const PendingActionsWidget: React.FC<PendingActionsWidgetProps> = ({ onEdit }) =
                                 <div style={{ fontSize: '0.75rem', color: 'rgba(var(--color-rgb-light),0.4)', fontWeight: 600 }}>
                                     Día {item.actionType === 'refund' || item.isPunctualPending ? (isRollover(item) ? '1' : new Date(item.date).getDate()) : (item.paymentDay || (item.receivedDate ? new Date(item.receivedDate).getDate() : new Date(item.date || item.createdAt).getDate()))}
                                 </div>
-                                {(item.isExtraPending || item.isPunctualPending) && onEdit && (
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onEdit(item, item.actionType === 'income' ? 'income' : 'expense');
-                                        }}
-                                        style={{
-                                            background: 'transparent',
-                                            border: 'none',
-                                            color: 'rgba(var(--color-rgb-light),0.4)',
-                                            cursor: 'pointer',
-                                            padding: '4px'
-                                        }}
-                                        className="hover:text-white transition-colors"
-                                    >
-                                        <Edit2 size={14} />
-                                    </button>
-                                )}
                             </div>
                         </div>
 

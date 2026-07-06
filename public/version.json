@@ -1,6 +1,6 @@
 {
-  "version": "1.7.6",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.7.6/PCSHogar_Setup_v1.7.6.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.7.6/PCSHogar_Setup_v1.7.6.exe",
-  "releaseNotes": "- Nueva Modal de Remanente simplificada sin opciones de aplazar/ignorar\\n- Autoselección rápida para Cuentas/Tarjetas únicas\\n- Corrección del saldo y deuda de tarjetas en el menú Cuentas y Tarjetas\\n- Corrección visual del símbolo de moneda en formularios"
+  "version": "1.7.7",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.7.7/PCSHogar_Setup_v1.7.7.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.7.7/PCSHogar_Setup_v1.7.7.exe",
+  "releaseNotes": "- Avatares genéricos generados por IA (Gato, Perro, Zorro, Panda)\\n- Traslado automático de ingresos y gastos extra pendientes vencidos al nuevo mes."
 }

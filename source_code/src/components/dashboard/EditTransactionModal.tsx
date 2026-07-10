@@ -4,6 +4,7 @@ import type { Expense, Category, PaymentMethod, CreditCard } from '../../types/f
 import type { Income } from '../../types/income';
 import { X, Calendar, Info } from 'lucide-react';
 import { predictSettlementDate, formatMoney } from '../../utils/financeCalculations';
+import FinanceCardModal from './FinanceCardModal';
 
 interface EditTransactionModalProps {
     transaction: Expense | Income;
@@ -46,6 +47,7 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction
     const [status, setStatus] = useState<'paid' | 'pending'>(
         type === 'expense' ? (transaction as Expense).status : 'paid'
     );
+    const [showFinanceModal, setShowFinanceModal] = useState(false);
     const [isFinancedByHucha, setIsFinancedByHucha] = useState(() => {
         if (type !== 'expense') return false;
         const exp = transaction as Expense;
@@ -366,14 +368,49 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction
                                     <label style={labelStyle}>
                                         {paymentMethodType === 'account' ? 'Seleccionar Cuenta' : 'Seleccionar Tarjeta'}
                                     </label>
-                                    <select style={inputStyle} value={selectedMethodId} onChange={e => setSelectedMethodId(e.target.value)} required>
-                                        <option value="">Seleccione...</option>
-                                        {paymentMethodType === 'account'
-                                            ? accounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name} ({formatMoney(acc.balance)})</option>)
-                                            : cards.map(c => <option key={c.id} value={c.id}>{c.name} {c.type === 'virtual' ? `(${formatMoney(c.currentBalance)})` : ''}</option>)
-                                        }
-                                    </select>
+                                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                        <select style={{ ...inputStyle, flex: 1 }} value={selectedMethodId} onChange={e => setSelectedMethodId(e.target.value)} required>
+                                            <option value="">Seleccione...</option>
+                                            {paymentMethodType === 'account'
+                                                ? accounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name} ({formatMoney(acc.balance)})</option>)
+                                                : cards.map(c => <option key={c.id} value={c.id}>{c.name} {c.type === 'virtual' ? `(${formatMoney(c.currentBalance)})` : ''}</option>)
+                                            }
+                                        </select>
+                                        {paymentMethodType === 'card' && selectedMethodId && cards.find(c => c.id === selectedMethodId)?.type !== 'virtual' && (
+                                            <button 
+                                                type="button"
+                                                onClick={() => setShowFinanceModal(true)}
+                                                style={{
+                                                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    padding: '0.75rem 1rem',
+                                                    borderRadius: '10px',
+                                                    fontWeight: 700,
+                                                    cursor: 'pointer',
+                                                    whiteSpace: 'nowrap',
+                                                    boxShadow: '0 2px 10px rgba(16, 185, 129, 0.2)'
+                                                }}
+                                            >
+                                                Financiar Gasto
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
+                            )}
+
+                            {showFinanceModal && selectedMethodId && amount && (
+                                <FinanceCardModal
+                                    isOpen={showFinanceModal}
+                                    onClose={() => setShowFinanceModal(false)}
+                                    cardId={selectedMethodId}
+                                    amount={Number(amount)}
+                                    expenseId={transaction.id}
+                                    onSuccess={() => {
+                                        setShowFinanceModal(false);
+                                        onClose(); // Close the modal
+                                    }}
+                                />
                             )}
 
                              {/* Hucha Financing */}

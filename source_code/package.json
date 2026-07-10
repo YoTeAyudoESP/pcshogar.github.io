@@ -1,10 +1,10 @@
 {
     "name":  "pcshogar",
     "private":  true,
-    "version":  "1.8.0",
+    "version":  "1.8.1",
     "description":  "Control de Gastos",
     "versionCode":  193,
-    "versionName":  "1.8.0",
+    "versionName":  "1.8.1",
     "type":  "module",
     "main":  "electron/main.js",
     "build":  {

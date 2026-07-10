@@ -1,6 +1,6 @@
 {
-    "releaseNotes":  "🎉 Novedades: Restaurada y mejorada la versión con Préstamos Avanzados y Financiación de Tarjetas.\n- Interfaz del Desajuste de Balance corregida para Android.\n- Opción de Disponible Libre incorporada.\n- Símbolo de moneda corregido en entradas numéricas.",
-    "url": "https://pcshogar.es/PCSHogar_Setup_v1.8.0.apk",
-    "version": "1.8.0",
-    "windowsUrl": "https://pcshogar.es/PCSHogar_Setup_v1.8.0.exe"
+    "releaseNotes": "🎉 Novedades (v1.8.1): Ahora puedes financiar directamente los pagos pendientes de la tarjeta y convertir movimientos puntuales de tarjeta en préstamos a plazos.",
+    "url": "https://pcshogar.es/PCSHogar_Setup_v1.8.1.apk",
+    "version": "1.8.1",
+    "windowsUrl": "https://pcshogar.es/PCSHogar_Setup_v1.8.1.exe"
 }

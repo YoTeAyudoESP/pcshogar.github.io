@@ -238,25 +238,51 @@ const CreditCardSettlement: React.FC = () => {
                                         <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)' }}>
                                             Cerrado el {formatDate(cycleDates.pending.cutoff)} • Pago: {formatDate(cycleDates.pending.payment)}
                                         </div>
-                                         <button 
-                                            onClick={() => handleSettleStart(card, pendingTotal, { start: cycleDates.pending.start.getTime(), end: cycleDates.pending.cutoff.getTime() })}
-                                            style={{
-                                                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                                                color: 'white',
-                                                border: 'none',
-                                                padding: '0.5rem 1rem',
-                                                borderRadius: '0.75rem',
-                                                fontSize: '0.8rem',
-                                                fontWeight: 800,
-                                                cursor: 'pointer',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '0.4rem',
-                                                boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)'
-                                            }}
-                                        >
-                                            <CheckCircle2 size={14} /> LIQUIDAR
-                                        </button>
+                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                            <button 
+                                                onClick={() => {
+                                                    setFinanceCardId(card.id);
+                                                    setFinanceAmount(pendingTotal);
+                                                }}
+                                                style={{
+                                                    background: 'rgba(255,255,255,0.1)',
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    padding: '0.5rem 1rem',
+                                                    borderRadius: '0.75rem',
+                                                    fontSize: '0.8rem',
+                                                    fontWeight: 800,
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '0.4rem',
+                                                    transition: 'all 0.2s ease',
+                                                }}
+                                                onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+                                                onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                                            >
+                                                FINANCIAR
+                                            </button>
+                                            <button 
+                                                onClick={() => handleSettleStart(card, pendingTotal, { start: cycleDates.pending.start.getTime(), end: cycleDates.pending.cutoff.getTime() })}
+                                                style={{
+                                                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    padding: '0.5rem 1rem',
+                                                    borderRadius: '0.75rem',
+                                                    fontSize: '0.8rem',
+                                                    fontWeight: 800,
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '0.4rem',
+                                                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)'
+                                                }}
+                                            >
+                                                <CheckCircle2 size={14} /> LIQUIDAR
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             )}

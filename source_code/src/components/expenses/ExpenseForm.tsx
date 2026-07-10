@@ -3,6 +3,7 @@ import { useFinance } from '../../contexts/FinanceContext';
 import { X, Calendar, Info, Clock, CheckCircle } from 'lucide-react';
 import { predictSettlementDate, formatMoney } from '../../utils/financeCalculations';
 import type { CreditCard } from '../../types/finance';
+import FinanceCardModal from '../dashboard/FinanceCardModal';
 
 interface ExpenseFormProps {
     onClose: () => void;
@@ -24,6 +25,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
     const [paymentMethodType, setPaymentMethodType] = useState<'account' | 'card' | 'cash'>('account');
     const [selectedMethodId, setSelectedMethodId] = useState('');
     const [status, setStatus] = useState<'paid' | 'pending'>('paid');
+    const [showFinanceModal, setShowFinanceModal] = useState(false);
     
     // Fixed specific
     const [frequency, setFrequency] = useState<any>('monthly');
@@ -429,15 +431,18 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                             <label style={labelStyle}>
                                 {paymentMethodType === 'account' ? 'Seleccionar Cuenta' : 'Seleccionar Tarjeta'}
                             </label>
-                            <select style={inputStyle} value={selectedMethodId} onChange={e => setSelectedMethodId(e.target.value)} required>
-                                <option value="">Seleccione...</option>
-                                {paymentMethodType === 'account'
-                                    ? accounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name} ({formatMoney(acc.balance)})</option>)
-                                    : cards.map(c => <option key={c.id} value={c.id}>{c.name} {c.type === 'virtual' ? `(${formatMoney(c.currentBalance)})` : ''}</option>)
-                                }
-                            </select>
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                <select style={{ ...inputStyle, flex: 1 }} value={selectedMethodId} onChange={e => setSelectedMethodId(e.target.value)} required>
+                                    <option value="">Seleccione...</option>
+                                    {paymentMethodType === 'account'
+                                        ? accounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name} ({formatMoney(acc.balance)})</option>)
+                                        : cards.map(c => <option key={c.id} value={c.id}>{c.name} {c.type === 'virtual' ? `(${formatMoney(c.currentBalance)})` : ''}</option>)
+                                    }
+                                </select>
+                            </div>
                         </div>
                     )}
+
 
                     {/* Hucha Financing (Only for Puntual) */}
                     {type === 'puntual' && !isRefund && (

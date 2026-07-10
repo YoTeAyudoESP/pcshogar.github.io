@@ -4,7 +4,7 @@ Write-Output "Parsed version: $version"
 
 git checkout main
 git fetch origin main
-git reset --hard origin/main
+# Removed git reset --hard origin/main to prevent losing local uncommitted work
 # Clean the app directory, but first check if it exists and is a file. If it's a file, remove it first.
 if (Test-Path -Path app -PathType Leaf) {
     Remove-Item -Path app -Force

@@ -1,0 +1,8 @@
+version: 1.8.1
+files:
+  - url: PCSHogar_Setup_v1.8.1.exe
+    sha512: rFnH04XGA5EXclhlDJhPoZQL9oWNSQ7JHUNv+nGSP3R/d77c8lcUfnIqIIU79d/lUuDbdlWM1f9jDeb2sWe/9A==
+    size: 98346127
+path: PCSHogar_Setup_v1.8.1.exe
+sha512: rFnH04XGA5EXclhlDJhPoZQL9oWNSQ7JHUNv+nGSP3R/d77c8lcUfnIqIIU79d/lUuDbdlWM1f9jDeb2sWe/9A==
+releaseDate: '2026-07-10T20:54:34.845Z'

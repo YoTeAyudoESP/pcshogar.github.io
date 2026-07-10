@@ -285,12 +285,12 @@ const FinanceCardModal: React.FC<FinanceCardModalProps> = ({ isOpen, onClose, ca
     const overlayStyle: React.CSSProperties = {
         position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
         backgroundColor: 'rgba(0, 0, 0, 0.85)', zIndex: 3000,
-        display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '16px'
+        display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '16px', overflowY: 'auto'
     };
     const modalStyle: React.CSSProperties = {
         backgroundColor: '#1e1e2d', borderRadius: '16px', padding: '24px',
         width: '100%', maxWidth: '450px', display: 'flex', flexDirection: 'column', gap: '20px',
-        boxShadow: '0 20px 40px rgba(0,0,0,0.5)', maxHeight: '90vh', overflowY: 'auto'
+        boxShadow: '0 20px 40px rgba(0,0,0,0.5)', margin: 'auto'
     };
     const inputStyle: React.CSSProperties = {
         backgroundColor: 'rgba(0, 0, 0, 0.2)', border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -409,6 +409,7 @@ const FinanceCardModal: React.FC<FinanceCardModalProps> = ({ isOpen, onClose, ca
 
                 <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '16px' }}>
                     <button 
+                        type="button"
                         onClick={() => setShowAdvanced(!showAdvanced)}
                         style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', fontSize: '0.85rem' }}
                     >

@@ -240,9 +240,7 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction
             <div className="modal-container glass-panel" style={{ 
                 padding: '2rem', 
                 maxWidth: '500px', 
-                width: '95%',
-                maxHeight: '90vh',
-                overflowY: 'auto'
+                width: '95%'
             }} onClick={e => e.stopPropagation()}>
                 <button 
                     onClick={onClose}
@@ -376,25 +374,6 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction
                                                 : cards.map(c => <option key={c.id} value={c.id}>{c.name} {c.type === 'virtual' ? `(${formatMoney(c.currentBalance)})` : ''}</option>)
                                             }
                                         </select>
-                                        {paymentMethodType === 'card' && selectedMethodId && cards.find(c => c.id === selectedMethodId)?.type !== 'virtual' && (
-                                            <button 
-                                                type="button"
-                                                onClick={() => setShowFinanceModal(true)}
-                                                style={{
-                                                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                                                    color: 'white',
-                                                    border: 'none',
-                                                    padding: '0.75rem 1rem',
-                                                    borderRadius: '10px',
-                                                    fontWeight: 700,
-                                                    cursor: 'pointer',
-                                                    whiteSpace: 'nowrap',
-                                                    boxShadow: '0 2px 10px rgba(16, 185, 129, 0.2)'
-                                                }}
-                                            >
-                                                Financiar Gasto
-                                            </button>
-                                        )}
                                     </div>
                                 </div>
                             )}
@@ -518,6 +497,30 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction
                                  )}
                              </div>
                         </>
+                    )}
+
+                    {paymentMethodType === 'card' && selectedMethodId && cards.find(c => c.id === selectedMethodId)?.type !== 'virtual' && (
+                        <button 
+                            type="button"
+                            onClick={() => setShowFinanceModal(true)}
+                            style={{
+                                width: '100%',
+                                padding: '1.1rem',
+                                borderRadius: '16px',
+                                border: '1px solid rgba(16, 185, 129, 0.5)',
+                                background: 'rgba(16, 185, 129, 0.1)',
+                                color: '#10b981',
+                                fontWeight: 700,
+                                fontSize: '1.1rem',
+                                cursor: 'pointer',
+                                marginTop: '1.5rem',
+                                transition: 'all 0.2s ease'
+                            }}
+                            onMouseOver={e => e.currentTarget.style.background = 'rgba(16, 185, 129, 0.2)'}
+                            onMouseOut={e => e.currentTarget.style.background = 'rgba(16, 185, 129, 0.1)'}
+                        >
+                            Financiar Gasto
+                        </button>
                     )}
 
                     <button type="submit" disabled={isFundingInvalid} style={{

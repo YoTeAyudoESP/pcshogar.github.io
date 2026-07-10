@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
-import { CreditCard as CardIcon, CheckCircle2, Calendar, AlertCircle, X } from 'lucide-react';
+import { CreditCard as CardIcon, CheckCircle2, Calendar, AlertCircle, X, Zap } from 'lucide-react';
 import type { CreditCard, Expense } from '../../types/finance';
 import { formatMoney } from '../../utils/financeCalculations';
 import FinanceCardModal from './FinanceCardModal';
@@ -68,12 +68,15 @@ const CreditCardSettlement: React.FC = () => {
         };
     };
 
-    const creditCards = useMemo(() => {
-        return (cards || []).filter(c => {
-            if (!c || c.type !== 'credit') return false;
+    // Separar tarjetas en uso de las disponibles (sin gasto actual)
+    const { activeCards, availableCards } = useMemo(() => {
+        const creditOnly = (cards || []).filter(c => c && c.type === 'credit');
+        const active: CreditCard[] = [];
+        const available: CreditCard[] = [];
 
+        creditOnly.forEach(c => {
             const cycleDates = calculateDates(c);
-            
+
             const activeExpenses = (expenses || []).filter(exp => {
                 if (!exp?.paymentMethod) return false;
                 const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === c.id;
@@ -94,8 +97,14 @@ const CreditCardSettlement: React.FC = () => {
             });
             const pendingTotal = pendingExpenses.reduce((sum, exp) => sum + exp.amount, 0);
 
-            return activeTotal > 0.009 || pendingTotal > 0.009;
+            if (activeTotal > 0.009 || pendingTotal > 0.009) {
+                active.push(c);
+            } else {
+                available.push(c);
+            }
         });
+
+        return { activeCards: active, availableCards: available };
     }, [cards, expenses]);
 
     const formatDate = (date: Date) => {
@@ -135,7 +144,41 @@ const CreditCardSettlement: React.FC = () => {
         setSettlingCard(null);
     };
 
-    if (creditCards.length === 0) return null;
+    // Componente de barra de progreso reutilizable
+    const UsageBar = ({ used, limit, color }: { used: number, limit: number, color: string }) => {
+        const pct = limit > 0 ? Math.min(100, (used / limit) * 100) : 0;
+        const barColor = pct >= 85 ? '#ef4444' : pct >= 60 ? '#f59e0b' : pct >= 30 ? color : '#10b981';
+        return (
+            <div style={{ width: '100%' }}>
+                <div style={{
+                    width: '100%',
+                    height: '6px',
+                    background: 'rgba(255,255,255,0.07)',
+                    borderRadius: '99px',
+                    overflow: 'hidden'
+                }}>
+                    <div style={{
+                        width: `${pct}%`,
+                        height: '100%',
+                        background: barColor,
+                        borderRadius: '99px',
+                        transition: 'width 0.6s ease',
+                        boxShadow: `0 0 8px ${barColor}55`
+                    }} />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.3rem' }}>
+                    <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.35)' }}>
+                        {pct.toFixed(0)}% usado
+                    </span>
+                    <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.35)' }}>
+                        Límite: {formatMoney(limit)}
+                    </span>
+                </div>
+            </div>
+        );
+    };
+
+    if (activeCards.length === 0 && availableCards.length === 0) return null;
 
     return (
         <section style={{ marginBottom: 'var(--space-md)' }}>
@@ -151,166 +194,278 @@ const CreditCardSettlement: React.FC = () => {
                 <CardIcon size={20} /> Liquidación y Ciclos
             </h3>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                {creditCards.map((card: CreditCard) => {
-                    const cycleDates = calculateDates(card);
-                    
-                    const activeExpenses = (expenses || []).filter(exp => {
-                        if (!exp?.paymentMethod) return false;
-                        const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === card.id;
-                        if (!isCard || exp.isSettled) return false;
-                        if (exp.amount < 0 && exp.status === 'pending') return false;
-                        const expDate = getEffectiveSettlementDate(exp);
-                        return expDate >= cycleDates.active.start && expDate <= cycleDates.active.cutoff;
-                    });
-                    const activeTotal = activeExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+            {/* Tarjetas en uso */}
+            {activeCards.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    {activeCards.map((card: CreditCard) => {
+                        const cycleDates = calculateDates(card);
+                        const limit = card.limit || 0;
+                        
+                        const activeExpenses = (expenses || []).filter(exp => {
+                            if (!exp?.paymentMethod) return false;
+                            const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === card.id;
+                            if (!isCard || exp.isSettled) return false;
+                            if (exp.amount < 0 && exp.status === 'pending') return false;
+                            const expDate = getEffectiveSettlementDate(exp);
+                            return expDate >= cycleDates.active.start && expDate <= cycleDates.active.cutoff;
+                        });
+                        const activeTotal = activeExpenses.reduce((sum, exp) => sum + exp.amount, 0);
 
-                    const pendingExpenses = (expenses || []).filter(exp => {
-                        if (!exp?.paymentMethod) return false;
-                        const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === card.id;
-                        if (!isCard || exp.isSettled) return false;
-                        if (exp.amount < 0 && exp.status === 'pending') return false;
-                        const expDate = getEffectiveSettlementDate(exp);
-                        return expDate >= cycleDates.pending.start && expDate <= cycleDates.pending.cutoff;
-                    });
-                    const pendingTotal = pendingExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+                        const pendingExpenses = (expenses || []).filter(exp => {
+                            if (!exp?.paymentMethod) return false;
+                            const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === card.id;
+                            if (!isCard || exp.isSettled) return false;
+                            if (exp.amount < 0 && exp.status === 'pending') return false;
+                            const expDate = getEffectiveSettlementDate(exp);
+                            return expDate >= cycleDates.pending.start && expDate <= cycleDates.pending.cutoff;
+                        });
+                        const pendingTotal = pendingExpenses.reduce((sum, exp) => sum + exp.amount, 0);
 
-                    const yearExpenses = (expenses || []).filter(exp => {
-                        if (!exp?.paymentMethod) return false;
-                        const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === card.id;
-                        if (!isCard) return false;
-                        if (exp.amount < 0 && exp.status === 'pending') return false;
-                        const expDate = getEffectiveSettlementDate(exp);
-                        return expDate.getFullYear() === selectedYear;
-                    });
-                    const yearTotal = yearExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+                        const yearExpenses = (expenses || []).filter(exp => {
+                            if (!exp?.paymentMethod) return false;
+                            const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === card.id;
+                            if (!isCard) return false;
+                            if (exp.amount < 0 && exp.status === 'pending') return false;
+                            const expDate = getEffectiveSettlementDate(exp);
+                            return expDate.getFullYear() === selectedYear;
+                        });
+                        const yearTotal = yearExpenses.reduce((sum, exp) => sum + exp.amount, 0);
 
-                    return (
-                        <div key={card.id} className="glass-panel" style={{ 
-                            padding: '1.5rem', 
-                            borderLeft: `4px solid ${card.color || '#fbbf24'}`,
-                            position: 'relative',
-                            overflow: 'hidden',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '1.25rem'
-                        }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                <div>
-                                    <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                        TARJETA DE CRÉDITO
+                        // Disponible = límite - gasto ciclo ACTUAL (no se cuenta el pendiente anterior)
+                        const available = limit > 0 ? Math.max(0, limit - activeTotal) : null;
+
+                        return (
+                            <div key={card.id} className="glass-panel" style={{ 
+                                padding: '1.5rem', 
+                                borderLeft: `4px solid ${card.color || '#fbbf24'}`,
+                                position: 'relative',
+                                overflow: 'hidden',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '1.25rem'
+                            }}>
+                                {/* Cabecera: nombre + total ciclo actual */}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                    <div>
+                                        <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                            TARJETA DE CRÉDITO
+                                        </div>
+                                        <div style={{ fontSize: '1.3rem', fontWeight: 800, color: card.color || '#fbbf24', marginTop: '0.15rem' }}>
+                                            {card.name.toUpperCase()}
+                                        </div>
                                     </div>
-                                    <div style={{ fontSize: '1.3rem', fontWeight: 800, color: card.color || '#fbbf24', marginTop: '0.15rem' }}>
-                                        {card.name.toUpperCase()}
+                                    <div style={{ textAlign: 'right' }}>
+                                        <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'white' }}>
+                                            {formatMoney(activeTotal)}
+                                        </div>
+                                        <div style={{ fontSize: '0.7rem', fontWeight: 700, color: card.color || '#fbbf24', textTransform: 'uppercase' }}>
+                                            CICLO ACTUAL (EN CURSO)
+                                        </div>
+                                        {available !== null && (
+                                            <div style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 600, marginTop: '0.15rem' }}>
+                                                {formatMoney(available)} disponible
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
-                                <div style={{ textAlign: 'right' }}>
-                                    <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'white' }}>
-                                        {formatMoney(activeTotal)}
+
+                                {/* Barra de progreso visual */}
+                                {limit > 0 && (
+                                    <UsageBar used={activeTotal} limit={limit} color={card.color || '#fbbf24'} />
+                                )}
+
+                                {/* Botón financiar ciclo actual */}
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setFinanceCardId(card.id);
+                                        setFinanceAmount(activeTotal);
+                                    }}
+                                    disabled={activeTotal <= 0}
+                                    style={{
+                                        background: activeTotal > 0 ? 'rgba(99, 102, 241, 0.12)' : 'rgba(255,255,255,0.04)',
+                                        color: activeTotal > 0 ? '#818cf8' : 'rgba(255,255,255,0.2)',
+                                        border: `1px solid ${activeTotal > 0 ? 'rgba(99, 102, 241, 0.4)' : 'rgba(255,255,255,0.06)'}`,
+                                        padding: '0.6rem 1rem',
+                                        borderRadius: '0.75rem',
+                                        fontSize: '0.8rem',
+                                        fontWeight: 800,
+                                        cursor: activeTotal > 0 ? 'pointer' : 'default',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.4rem',
+                                        transition: 'all 0.2s ease',
+                                        width: '100%',
+                                        justifyContent: 'center'
+                                    }}
+                                    onMouseOver={e => { if (activeTotal > 0) e.currentTarget.style.background = 'rgba(99, 102, 241, 0.22)'; }}
+                                    onMouseOut={e => { if (activeTotal > 0) e.currentTarget.style.background = 'rgba(99, 102, 241, 0.12)'; }}
+                                >
+                                    <Zap size={14} />
+                                    FINANCIAR CICLO ACTUAL {activeTotal > 0 ? `(${formatMoney(activeTotal)})` : '— Sin gastos'}
+                                </button>
+
+                                {/* Liquidación pendiente (ciclo anterior) */}
+                                {pendingTotal > 0 && (
+                                    <div style={{ 
+                                        background: 'rgba(255,255,255,0.03)', 
+                                        borderRadius: '1rem', 
+                                        padding: '1rem',
+                                        border: '1px solid rgba(255,255,255,0.05)',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: '0.75rem'
+                                    }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <AlertCircle size={14} style={{ color: '#fbbf24' }} />
+                                                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'rgba(255,255,255,0.7)' }}>LIQUIDACIÓN PENDIENTE</span>
+                                            </div>
+                                            <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'white' }}>
+                                                {formatMoney(pendingTotal)}
+                                            </div>
+                                        </div>
+
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.25rem' }}>
+                                            <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)' }}>
+                                                Cerrado el {formatDate(cycleDates.pending.cutoff)} • Pago: {formatDate(cycleDates.pending.payment)}
+                                            </div>
+                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                <button 
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setFinanceCardId(card.id);
+                                                        setFinanceAmount(pendingTotal);
+                                                    }}
+                                                    style={{
+                                                        background: 'rgba(255,255,255,0.1)',
+                                                        color: 'white',
+                                                        border: 'none',
+                                                        padding: '0.5rem 1rem',
+                                                        borderRadius: '0.75rem',
+                                                        fontSize: '0.8rem',
+                                                        fontWeight: 800,
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '0.4rem',
+                                                        transition: 'all 0.2s ease',
+                                                    }}
+                                                    onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+                                                    onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                                                >
+                                                    FINANCIAR
+                                                </button>
+                                                <button 
+                                                    type="button"
+                                                    onClick={() => handleSettleStart(card, pendingTotal, { start: cycleDates.pending.start.getTime(), end: cycleDates.pending.cutoff.getTime() })}
+                                                    style={{
+                                                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                                        color: 'white',
+                                                        border: 'none',
+                                                        padding: '0.5rem 1rem',
+                                                        borderRadius: '0.75rem',
+                                                        fontSize: '0.8rem',
+                                                        fontWeight: 800,
+                                                        cursor: 'pointer',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '0.4rem',
+                                                        boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)'
+                                                    }}
+                                                >
+                                                    <CheckCircle2 size={14} /> LIQUIDAR
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div style={{ fontSize: '0.7rem', fontWeight: 700, color: card.color || '#fbbf24', textTransform: 'uppercase' }}>
-                                        CICLO ACTUAL (EN CURSO)
+                                )}
+
+                                {/* Uso anual */}
+                                <div style={{ 
+                                    display: 'flex', 
+                                    justifyContent: 'space-between', 
+                                    alignItems: 'center',
+                                    paddingTop: '0.75rem',
+                                    borderTop: '1px solid rgba(255,255,255,0.05)',
+                                    marginTop: '0.25rem'
+                                }}>
+                                    <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                        <Calendar size={12} />
+                                        Uso total en {selectedYear}
+                                    </div>
+                                    <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'rgba(255,255,255,0.5)' }}>
+                                        {formatMoney(yearTotal)}
                                     </div>
                                 </div>
                             </div>
+                        );
+                    })}
+                </div>
+            )}
 
-                            {pendingTotal > 0 && (
-                                <div style={{ 
-                                    background: 'rgba(255,255,255,0.03)', 
-                                    borderRadius: '1rem', 
-                                    padding: '1rem',
-                                    border: '1px solid rgba(255,255,255,0.05)',
+            {/* Sección: Tarjetas Disponibles (sin uso en ciclo actual) */}
+            {availableCards.length > 0 && (
+                <div style={{ marginTop: activeCards.length > 0 ? '2rem' : '0' }}>
+                    <div style={{
+                        fontSize: '0.7rem',
+                        fontWeight: 700,
+                        color: 'rgba(255,255,255,0.3)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.08em',
+                        marginBottom: '0.75rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem'
+                    }}>
+                        <CheckCircle2 size={13} style={{ color: '#10b981' }} />
+                        Tarjetas Disponibles
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        {availableCards.map((card: CreditCard) => {
+                            const limit = card.limit || 0;
+                            return (
+                                <div key={card.id} className="glass-panel" style={{
+                                    padding: '1rem 1.25rem',
+                                    borderLeft: `3px solid ${card.color || '#10b981'}`,
                                     display: 'flex',
                                     flexDirection: 'column',
                                     gap: '0.75rem'
                                 }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                            <AlertCircle size={14} style={{ color: '#fbbf24' }} />
-                                            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'rgba(255,255,255,0.7)' }}>LIQUIDACIÓN PENDIENTE</span>
+                                        <div>
+                                            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase' }}>
+                                                TARJETA DISPONIBLE
+                                            </div>
+                                            <div style={{ fontSize: '1rem', fontWeight: 800, color: card.color || '#10b981' }}>
+                                                {card.name.toUpperCase()}
+                                            </div>
                                         </div>
-                                        <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'white' }}>
-                                            {formatMoney(pendingTotal)}
-                                        </div>
-                                    </div>
-
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.25rem' }}>
-                                        <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)' }}>
-                                            Cerrado el {formatDate(cycleDates.pending.cutoff)} • Pago: {formatDate(cycleDates.pending.payment)}
-                                        </div>
-                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                            <button 
-                                                onClick={() => {
-                                                    setFinanceCardId(card.id);
-                                                    setFinanceAmount(pendingTotal);
-                                                }}
-                                                style={{
-                                                    background: 'rgba(255,255,255,0.1)',
-                                                    color: 'white',
-                                                    border: 'none',
-                                                    padding: '0.5rem 1rem',
-                                                    borderRadius: '0.75rem',
-                                                    fontSize: '0.8rem',
-                                                    fontWeight: 800,
-                                                    cursor: 'pointer',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '0.4rem',
-                                                    transition: 'all 0.2s ease',
-                                                }}
-                                                onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
-                                                onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-                                            >
-                                                FINANCIAR
-                                            </button>
-                                            <button 
-                                                onClick={() => handleSettleStart(card, pendingTotal, { start: cycleDates.pending.start.getTime(), end: cycleDates.pending.cutoff.getTime() })}
-                                                style={{
-                                                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                                                    color: 'white',
-                                                    border: 'none',
-                                                    padding: '0.5rem 1rem',
-                                                    borderRadius: '0.75rem',
-                                                    fontSize: '0.8rem',
-                                                    fontWeight: 800,
-                                                    cursor: 'pointer',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '0.4rem',
-                                                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)'
-                                                }}
-                                            >
-                                                <CheckCircle2 size={14} /> LIQUIDAR
-                                            </button>
+                                        <div style={{ textAlign: 'right' }}>
+                                            <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#10b981' }}>
+                                                {limit > 0 ? formatMoney(limit) : '—'}
+                                            </div>
+                                            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#10b981', textTransform: 'uppercase', opacity: 0.7 }}>
+                                                100% disponible
+                                            </div>
                                         </div>
                                     </div>
+                                    {limit > 0 && (
+                                        <UsageBar used={0} limit={limit} color={card.color || '#10b981'} />
+                                    )}
                                 </div>
-                            )}
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
 
-                            <div style={{ 
-                                display: 'flex', 
-                                justifyContent: 'space-between', 
-                                alignItems: 'center',
-                                paddingTop: '0.75rem',
-                                borderTop: '1px solid rgba(255,255,255,0.05)',
-                                marginTop: '0.25rem'
-                            }}>
-                                <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                                    <Calendar size={12} />
-                                    Uso total en {selectedYear}
-                                </div>
-                                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'rgba(255,255,255,0.5)' }}>
-                                    {formatMoney(yearTotal)}
-                                </div>
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
+            {/* Modal de confirmación de liquidación */}
             {settlingCard && (
                 <div className="modal-overlay" onClick={() => setSettlingCard(null)}>
                     <div className="modal-container glass-panel" style={{ padding: '2rem', maxWidth: '400px' }} onClick={e => e.stopPropagation()}>
                         <button 
+                            type="button"
                             onClick={() => setSettlingCard(null)}
                             style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer' }}
                         >
@@ -366,6 +521,7 @@ const CreditCardSettlement: React.FC = () => {
                         </div>
 
                         <button 
+                            type="button"
                             onClick={confirmSettle}
                             style={{
                                 width: '100%',

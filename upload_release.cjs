@@ -2,10 +2,10 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 
-const TOKEN = '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';
+const TOKEN = process.env.GITHUB_TOKEN;
 const OWNER = 'YoTeAyudoESP';
 const REPO = 'pcshogar.github.io';
-const TAG = 'v1.7.1';
+const TAG = 'v1.7.9';
 
 function request(method, url, data = null, headers = {}) {
     return new Promise((resolve, reject) => {
@@ -84,14 +84,14 @@ async function main() {
 
     const uploadUrl = res.upload_url;
     
-    const apkPath = path.resolve(__dirname, 'source_code/dist_android', `PCSHogar_Setup_${TAG}.apk`);
+    const apkPath = path.resolve(__dirname, 'source_code', 'dist_android', `PCSHogar_Setup_${TAG}.apk`);
     if (fs.existsSync(apkPath)) {
         await uploadAsset(uploadUrl, apkPath, `PCSHogar_Setup_${TAG}.apk`);
     } else {
         console.log('APK not found!');
     }
     
-    const exePath = path.resolve(__dirname, 'source_code/dist_electron', `PCSHogar_Setup_${TAG}.exe`);
+    const exePath = path.resolve(__dirname, 'source_code', 'dist_electron', `PCSHogar_Setup_${TAG}.exe`);
     if (fs.existsSync(exePath)) {
         await uploadAsset(uploadUrl, exePath, `PCSHogar_Setup_${TAG}.exe`);
     } else {

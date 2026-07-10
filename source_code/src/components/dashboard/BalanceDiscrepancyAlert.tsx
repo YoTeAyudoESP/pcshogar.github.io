@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
-import { AlertTriangle, TrendingDown, PiggyBank, ChevronDown, ChevronUp, Calendar, Check } from 'lucide-react';
+import { AlertTriangle, TrendingDown, PiggyBank, ChevronDown, ChevronUp, Calendar, Check, Wallet } from 'lucide-react';
 import { calculateBalanceDiscrepancy, calculateAvailableBalanceForMonth, formatMoney } from '../../utils/financeCalculations';
 import type { SavingGoal } from '../../types/finance';
 
@@ -144,10 +144,14 @@ const BalanceDiscrepancyAlert: React.FC = () => {
         setDistributing(true);
         try {
             for (const [goalId, amount] of Object.entries(distributions)) {
+                if (goalId === 'disponible') continue;
                 if (amount > 0) {
                     const src = accounts.find(a => a.type === 'bank') || accounts[0];
-                    if (src) await adjustSavings(goalId, amount, src.id, false);
+                    if (src) await adjustSavings(goalId, amount, src.id, false, undefined, undefined, undefined, 'adjustment');
                 }
+            }
+            if ((distributions['disponible'] || 0) > 0 || totalDistributed >= desajuste - 0.005) {
+                handleDismissNextMonth();
             }
             setDistributions({});
             setExpanded(false);
@@ -160,7 +164,7 @@ const BalanceDiscrepancyAlert: React.FC = () => {
         setReducing(true);
         try {
             for (const [goalId, amount] of Object.entries(reductions)) {
-                if (amount > 0) await adjustSavings(goalId, -amount, undefined, false);
+                if (amount > 0) await adjustSavings(goalId, -amount, undefined, false, undefined, undefined, undefined, 'adjustment');
             }
             setReductions({});
             setExpanded(false);
@@ -301,24 +305,45 @@ const BalanceDiscrepancyAlert: React.FC = () => {
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                                     <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>ASIGNAR A HUCHAS</div>
                                     {savings.map((goal: SavingGoal) => (
-                                        <div key={goal.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                        <div key={goal.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
                                             <PiggyBank size={16} color="#818cf8" style={{ flexShrink: 0 }} />
                                             <span style={{ flex: 1, fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)' }}>{goal.name}</span>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                <input type="number" min={0} max={desajuste} step={0.01} value={distributions[goal.id] ?? ''} placeholder="0,00"
+                                            <div style={inputWrapper}>
+                                                <input type="text" inputMode="decimal" value={distributions[goal.id] ?? ''} placeholder="0,00"
                                                     onChange={e => {
-                                                        let v = parseFloat(e.target.value) || 0;
+                                                        const raw = e.target.value.replace(',', '.');
+                                                        if (raw !== '' && isNaN(Number(raw))) return;
+                                                        let v = parseFloat(raw) || 0;
                                                         const currentOthers = Object.entries(distributions).filter(([k]) => k !== goal.id).reduce((s, [_, val]) => s + val, 0);
                                                         if (currentOthers + v > desajuste) {
                                                             v = Math.max(0, desajuste - currentOthers);
                                                         }
-                                                        setDistributions(prev => ({ ...prev, [goal.id]: Number(v.toFixed(2)) }));
+                                                        setDistributions(prev => ({ ...prev, [goal.id]: raw === '' ? undefined : Number(v.toFixed(2)) } as any));
                                                     }}
                                                     style={numInput} />
-                                                <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>€</span>
+                                                <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', fontWeight: 600 }}>€</span>
                                             </div>
                                         </div>
                                     ))}
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0, marginTop: '4px', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: '10px' }}>
+                                        <Wallet size={16} color="#f59e0b" style={{ flexShrink: 0 }} />
+                                        <span style={{ flex: 1, fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)' }}>Dejar en Disponible libre</span>
+                                        <div style={inputWrapper}>
+                                            <input type="text" inputMode="decimal" value={distributions['disponible'] ?? ''} placeholder="0,00"
+                                                onChange={e => {
+                                                    const raw = e.target.value.replace(',', '.');
+                                                    if (raw !== '' && isNaN(Number(raw))) return;
+                                                    let v = parseFloat(raw) || 0;
+                                                    const currentOthers = Object.entries(distributions).filter(([k]) => k !== 'disponible').reduce((s, [_, val]) => s + val, 0);
+                                                    if (currentOthers + v > desajuste) {
+                                                        v = Math.max(0, desajuste - currentOthers);
+                                                    }
+                                                    setDistributions(prev => ({ ...prev, 'disponible': raw === '' ? undefined : Number(v.toFixed(2)) } as any));
+                                                }}
+                                                style={numInput} />
+                                            <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', fontWeight: 600 }}>€</span>
+                                        </div>
+                                    </div>
                                 </div>
                             ) : (
                                 <p style={{ margin: 0, fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)', fontStyle: 'italic' }}>No tienes huchas configuradas. Ve a Gestión y Ajustes → Huchas para crear una.</p>
@@ -343,26 +368,28 @@ const BalanceDiscrepancyAlert: React.FC = () => {
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                                     <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>REDUCIR HUCHAS</div>
                                     {savings.filter(s => s.currentAmount > 0).map((goal: SavingGoal) => (
-                                        <div key={goal.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                        <div key={goal.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
                                             <PiggyBank size={16} color="#818cf8" style={{ flexShrink: 0 }} />
                                             <div style={{ flex: 1 }}>
                                                 <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)' }}>{goal.name}</div>
                                                 <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.35)' }}>Saldo actual: {formatMoney(goal.currentAmount)}</div>
                                             </div>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                <input type="number" min={0} max={goal.currentAmount} step={0.01} value={reductions[goal.id] ?? ''} placeholder="0,00"
+                                            <div style={inputWrapper}>
+                                                <input type="text" inputMode="decimal" value={reductions[goal.id] ?? ''} placeholder="0,00"
                                                     onChange={e => {
-                                                        let v = parseFloat(e.target.value) || 0;
+                                                        const raw = e.target.value.replace(',', '.');
+                                                        if (raw !== '' && isNaN(Number(raw))) return;
+                                                        let v = parseFloat(raw) || 0;
                                                         const currentOthers = Object.entries(reductions).filter(([k]) => k !== goal.id).reduce((s, [_, val]) => s + val, 0);
                                                         const needed = Math.abs(desajuste);
                                                         if (currentOthers + v > needed) {
                                                             v = Math.max(0, needed - currentOthers);
                                                         }
                                                         if (v > goal.currentAmount) v = goal.currentAmount;
-                                                        setReductions(prev => ({ ...prev, [goal.id]: Number(v.toFixed(2)) }));
+                                                        setReductions(prev => ({ ...prev, [goal.id]: raw === '' ? undefined : Number(v.toFixed(2)) } as any));
                                                     }}
                                                     style={numInput} />
-                                                <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>€</span>
+                                                <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', fontWeight: 600 }}>€</span>
                                             </div>
                                         </div>
                                     ))}
@@ -415,7 +442,8 @@ const statBox: React.CSSProperties = { background: 'rgba(255,255,255,0.03)', bor
 const statLabel: React.CSSProperties = { fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', fontWeight: 500 };
 const statValue: React.CSSProperties = { fontSize: '1.1rem', fontWeight: 800 };
 const linkButton: React.CSSProperties = { background: 'none', border: 'none', color: 'rgba(255,255,255,0.55)', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px', padding: 0, textDecoration: 'underline', textDecorationColor: 'rgba(255,255,255,0.25)', textUnderlineOffset: '3px' };
-const numInput: React.CSSProperties = { width: '80px', padding: '6px 8px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: 'white', fontSize: '0.85rem', textAlign: 'right', outline: 'none' };
+const inputWrapper: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', padding: '0 10px', flexShrink: 0 };
+const numInput: React.CSSProperties = { width: '65px', padding: '8px 0', border: 'none', background: 'transparent', color: 'white', fontSize: '0.9rem', textAlign: 'right', outline: 'none' };
 const applyButton: React.CSSProperties = { width: '100%', padding: '0.85rem', borderRadius: '12px', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s ease', marginTop: '0.25rem' };
 const dismissButton: React.CSSProperties = { flex: 1, padding: '0.5rem', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'rgba(255,255,255,0.7)', fontSize: '0.8rem', cursor: 'pointer', transition: 'all 0.2s ease' };
 

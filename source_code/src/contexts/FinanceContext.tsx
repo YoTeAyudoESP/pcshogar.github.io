@@ -52,7 +52,7 @@ interface FinanceContextType {
     addSavingGoal: (goal: Omit<SavingGoal, 'id'>) => Promise<void>;
     allocateSavings: (goalId: string, sourceAccountId: string, amount: number, date?: number, description?: string, budgetMonth?: number, budgetYear?: number) => Promise<void>;
     transferSavings: (fromGoalId: string, toGoalId: string, amount: number) => Promise<void>;
-    adjustSavings: (goalId: string, amount: number, accountId?: string, isBudgetAdjustment?: boolean, date?: number, budgetMonth?: number, budgetYear?: number) => Promise<void>;
+    adjustSavings: (goalId: string, amount: number, accountId?: string, isBudgetAdjustment?: boolean, date?: number, budgetMonth?: number, budgetYear?: number, customType?: 'manual' | 'automatic' | 'transfer_in' | 'transfer_out' | 'adjustment', customDescription?: string) => Promise<void>;
     deleteSavingGoal: (id: string) => Promise<void>;
     addRecurringExpense: (expense: Omit<RecurringExpense, 'id'>) => Promise<string>;
     updateRecurringExpense: (expense: RecurringExpense) => Promise<void>;
@@ -610,7 +610,6 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         await incomeDB.transferSavingsWithTransaction(fromGoalId, toGoalId, amount);
         await refreshFinance();
     };
-
     const adjustSavings = async (
         goalId: string, 
         amount: number, 
@@ -618,9 +617,11 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         isBudgetAdjustment: boolean = true, 
         date?: number, 
         budgetMonth?: number, 
-        budgetYear?: number
+        budgetYear?: number,
+        customType?: 'manual' | 'automatic' | 'transfer_in' | 'transfer_out' | 'adjustment',
+        customDescription?: string
     ) => {
-        await incomeDB.adjustSavingGoalWithTransaction(goalId, amount, accountId, isBudgetAdjustment, date, budgetMonth, budgetYear);
+        await incomeDB.adjustSavingGoalWithTransaction(goalId, amount, accountId, isBudgetAdjustment, date, budgetMonth, budgetYear, customType, customDescription);
         await refreshFinance();
     };
 

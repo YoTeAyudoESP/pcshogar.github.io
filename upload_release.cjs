@@ -5,7 +5,7 @@ const https = require('https');
 const TOKEN = process.env.GITHUB_TOKEN;
 const OWNER = 'YoTeAyudoESP';
 const REPO = 'pcshogar.github.io';
-const TAG = 'v1.8.0';
+const TAG = 'v1.8.1';
 
 function request(method, url, data = null, headers = {}) {
     return new Promise((resolve, reject) => {

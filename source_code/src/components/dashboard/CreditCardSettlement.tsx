@@ -3,11 +3,15 @@ import { useFinance } from '../../contexts/FinanceContext';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import { CreditCard as CardIcon, CheckCircle2, Calendar, AlertCircle, X } from 'lucide-react';
 import type { CreditCard, Expense } from '../../types/finance';
-import { formatMoney, calculateCardCycleDates } from '../../utils/financeCalculations';
+import { formatMoney } from '../../utils/financeCalculations';
+import FinanceCardModal from './FinanceCardModal';
 
 const CreditCardSettlement: React.FC = () => {
     const { cards = [], expenses = [], settleCardCycle } = useFinance();
     const { selectedYear } = useDateSelection();
+    
+    const [financeCardId, setFinanceCardId] = useState<string | null>(null);
+    const [financeAmount, setFinanceAmount] = useState<number>(0);
 
     const getEffectiveSettlementDate = (exp: Expense) => {
         if (!exp) return new Date();
@@ -19,19 +23,62 @@ const CreditCardSettlement: React.FC = () => {
         return d;
     };
 
+    const calculateDates = (card: CreditCard) => {
+        const cutoffDay = card.cutoffDay || 1;
+        const paymentDay = card.paymentDay || 1;
+        
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = today.getMonth();
+        const day = today.getDate();
 
+        let activeCutoff: Date;
+        let activeStart: Date;
+        let activePayment: Date;
+
+        let pendingCutoff: Date;
+        let pendingStart: Date;
+        let pendingPayment: Date;
+
+        if (day > cutoffDay) {
+            activeCutoff = new Date(year, month + 1, cutoffDay, 23, 59, 59);
+            activeStart = new Date(year, month, cutoffDay + 1, 0, 0, 0);
+            activePayment = new Date(year, month + 1, paymentDay, 12, 0, 0);
+            if (paymentDay <= cutoffDay) activePayment = new Date(year, month + 2, paymentDay, 12, 0, 0);
+
+            pendingCutoff = new Date(year, month, cutoffDay, 23, 59, 59);
+            pendingStart = new Date(year, month - 1, cutoffDay + 1, 0, 0, 0);
+            pendingPayment = new Date(year, month, paymentDay, 12, 0, 0);
+            if (paymentDay <= cutoffDay) pendingPayment = new Date(year, month + 1, paymentDay, 12, 0, 0);
+        } else {
+            activeCutoff = new Date(year, month, cutoffDay, 23, 59, 59);
+            activeStart = new Date(year, month - 1, cutoffDay + 1, 0, 0, 0);
+            activePayment = new Date(year, month, paymentDay, 12, 0, 0);
+            if (paymentDay <= cutoffDay) activePayment = new Date(year, month + 1, paymentDay, 12, 0, 0);
+
+            pendingCutoff = new Date(year, month - 1, cutoffDay, 23, 59, 59);
+            pendingStart = new Date(year, month - 2, cutoffDay + 1, 0, 0, 0);
+            pendingPayment = new Date(year, month - 1, paymentDay, 12, 0, 0);
+            if (paymentDay <= cutoffDay) pendingPayment = new Date(year, month, paymentDay, 12, 0, 0);
+        }
+
+        return {
+            active: { start: activeStart, cutoff: activeCutoff, payment: activePayment },
+            pending: { start: pendingStart, cutoff: pendingCutoff, payment: pendingPayment }
+        };
+    };
 
     const creditCards = useMemo(() => {
         return (cards || []).filter(c => {
             if (!c || c.type !== 'credit') return false;
 
-            const cycleDates = calculateCardCycleDates(c);
+            const cycleDates = calculateDates(c);
             
             const activeExpenses = (expenses || []).filter(exp => {
                 if (!exp?.paymentMethod) return false;
                 const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === c.id;
                 if (!isCard || exp.isSettled) return false;
-                if (exp.status === 'pending') return false;
+                if (exp.amount < 0 && exp.status === 'pending') return false;
                 const expDate = getEffectiveSettlementDate(exp);
                 return expDate >= cycleDates.active.start && expDate <= cycleDates.active.cutoff;
             });
@@ -41,7 +88,7 @@ const CreditCardSettlement: React.FC = () => {
                 if (!exp?.paymentMethod) return false;
                 const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === c.id;
                 if (!isCard || exp.isSettled) return false;
-                if (exp.status === 'pending') return false;
+                if (exp.amount < 0 && exp.status === 'pending') return false;
                 const expDate = getEffectiveSettlementDate(exp);
                 return expDate >= cycleDates.pending.start && expDate <= cycleDates.pending.cutoff;
             });
@@ -106,13 +153,13 @@ const CreditCardSettlement: React.FC = () => {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 {creditCards.map((card: CreditCard) => {
-                    const cycleDates = calculateCardCycleDates(card);
+                    const cycleDates = calculateDates(card);
                     
                     const activeExpenses = (expenses || []).filter(exp => {
                         if (!exp?.paymentMethod) return false;
                         const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === card.id;
                         if (!isCard || exp.isSettled) return false;
-                        if (exp.status === 'pending') return false;
+                        if (exp.amount < 0 && exp.status === 'pending') return false;
                         const expDate = getEffectiveSettlementDate(exp);
                         return expDate >= cycleDates.active.start && expDate <= cycleDates.active.cutoff;
                     });
@@ -122,7 +169,7 @@ const CreditCardSettlement: React.FC = () => {
                         if (!exp?.paymentMethod) return false;
                         const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === card.id;
                         if (!isCard || exp.isSettled) return false;
-                        if (exp.status === 'pending') return false;
+                        if (exp.amount < 0 && exp.status === 'pending') return false;
                         const expDate = getEffectiveSettlementDate(exp);
                         return expDate >= cycleDates.pending.start && expDate <= cycleDates.pending.cutoff;
                     });
@@ -132,7 +179,7 @@ const CreditCardSettlement: React.FC = () => {
                         if (!exp?.paymentMethod) return false;
                         const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === card.id;
                         if (!isCard) return false;
-                        if (exp.status === 'pending') return false;
+                        if (exp.amount < 0 && exp.status === 'pending') return false;
                         const expDate = getEffectiveSettlementDate(exp);
                         return expDate.getFullYear() === selectedYear;
                     });
@@ -310,6 +357,22 @@ const CreditCardSettlement: React.FC = () => {
                         </button>
                     </div>
                 </div>
+            )}
+            
+            {financeCardId && (
+                <FinanceCardModal
+                    isOpen={!!financeCardId}
+                    onClose={() => {
+                        setFinanceCardId(null);
+                        setFinanceAmount(0);
+                    }}
+                    cardId={financeCardId}
+                    amount={financeAmount}
+                    onSuccess={() => {
+                        setFinanceCardId(null);
+                        setFinanceAmount(0);
+                    }}
+                />
             )}
         </section>
     );

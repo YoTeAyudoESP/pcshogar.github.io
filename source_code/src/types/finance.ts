@@ -22,6 +22,9 @@ export interface CreditCard {
     currentBalance: number;
     color?: string;
     updatedAt?: number;
+    tin?: number;
+    tae?: number;
+    openingFee?: number;
 }
 
 export type PaymentMethod =
@@ -121,6 +124,11 @@ export interface Loan {
     paymentDay?: number;
     categoryId?: string;
     paymentMethod?: PaymentMethod;
+    tin?: number;
+    tae?: number;
+    grantDate?: number;
+    openingFee?: number;
+    earlyAmortizationFee?: number;
     linkedAccountId?: string;
     linkedRecurringExpenseId?: string;
     status: 'active' | 'paid';

@@ -1,6 +1,6 @@
 {
-    "releaseNotes":  "🚀 Novedades v1.8.5:\n- Las casillas de Gastos del panel resumen ahora cuadran con la suma directa de la lista de gastos.\n- Se agrupan los gastos de tarjetas de dbito correctamente en la casilla de Tarjetas.\n- Nueva sección de gestión de descuadres en Ajustes de Saldo con botón para restaurar la alerta en el Dashboard.",
-    "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.8.5/PCSHogar_Setup_v1.8.5.apk",
-    "version": "1.8.5",
-    "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.8.5/PCSHogar_Setup_v1.8.5.exe"
+    "releaseNotes":  "🚀 Novedades v1.8.6:\n- Solucionado error interno donde los gastos en carteras de efectivo se sumaban a Gastos Cuentas en el panel superior.\n- .\n- Nueva sección de gestión de descuadres en Ajustes de Saldo con botón para restaurar la alerta en el Dashboard.",
+    "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.8.6/PCSHogar_Setup_v1.8.6.apk",
+    "version": "1.8.6",
+    "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.8.6/PCSHogar_Setup_v1.8.6.exe"
 }

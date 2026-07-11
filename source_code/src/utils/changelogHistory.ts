@@ -4,6 +4,24 @@ export interface ChangelogEntry {
 }
 
 export const changelogHistory: ChangelogEntry[] = [
+    {
+        version: '1.8.6',
+        releaseNotes: `Novedades v1.8.6:
+- 🛠 Solucionado error interno donde los gastos en carteras de efectivo se sumaban a Gastos Cuentas en el panel superior.`
+    },
+  {
+    version: '1.8.5',
+    releaseNotes: `Novedades v1.8.5:
+- 🚀 Las casillas de "Gastos Cuentas", "Gastos Tarjetas" y "Gastos Efectivo" del panel resumen ahora cuadran 1:1 con la suma directa de la lista de gastos de abajo.
+- 💳 Se agrupan los gastos de tarjetas de débito correctamente en la casilla de Tarjetas en vez de Cuentas.`
+  },
+  {
+    version: '1.8.4',
+    releaseNotes: `Novedades v1.8.4:
+- 🚀 El informativo de gastos en el Dashboard ahora refleja los gastos reales brutos del mes natural.
+- 🛠 Solucionado error donde el ajuste de descuadre hacia el "Disponible" no sumaba el importe.
+- ⚙️ Nueva sección de gestión de descuadres en Ajustes de Saldo con botón para restaurar la alerta.`
+  },
   {
     version: '1.8.3',
     releaseNotes: `Novedades v1.8.3:

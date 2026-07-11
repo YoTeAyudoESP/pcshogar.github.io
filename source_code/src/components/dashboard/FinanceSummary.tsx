@@ -7,7 +7,7 @@ import { calculateAvailableBalanceForMonth } from '../../utils/financeCalculatio
 
 const FinanceSummary: React.FC = () => {
     const { 
-        expenses, allocations, overrides, cards, 
+        expenses, allocations, overrides, cards, accounts,
         fixedIncomes, extraIncomes, recurringExpenses, savings
     } = useFinance();
     const { selectedMonth, selectedYear } = useDateSelection();
@@ -24,9 +24,6 @@ const FinanceSummary: React.FC = () => {
     const {
         availableToSpend,
         totalMonthIncome,
-        totalAccountExpenses,
-        totalCardExpenses,
-        totalCashExpenses,
         remanente,
         pendingFixedExpenses
     } = useMemo(() => {
@@ -45,6 +42,40 @@ const FinanceSummary: React.FC = () => {
         fixedIncomes, extraIncomes, expenses, allocations, savings,
         recurringExpenses, overrides, cards
     ]);
+
+    const { totalAccountExpenses, totalCardExpenses, totalCashExpenses } = useMemo(() => {
+        let acc = 0;
+        let card = 0;
+        let cash = 0;
+
+        expenses.forEach(exp => {
+            let inMonth = false;
+            if (exp.period && typeof exp.period === 'string') {
+                const [y, m] = exp.period.split('-').map(Number);
+                inMonth = (y === selectedYear && (m - 1) === selectedMonth);
+            } else {
+                const timestamp = exp.date;
+                if (timestamp) {
+                    const d = new Date(timestamp);
+                    inMonth = (d.getFullYear() === selectedYear && d.getMonth() === selectedMonth);
+                }
+            }
+
+            if (inMonth) {
+                const method = exp.paymentMethod || { type: 'cash' };
+                const mType = typeof method === 'string' ? method : method.type;
+                if (mType === 'account') {
+                    const isCash = accounts.find(a => a.id === (method as any).accountId)?.type === 'cash';
+                    if (isCash) cash += exp.amount;
+                    else acc += exp.amount;
+                }
+                else if (mType === 'card') card += exp.amount;
+                else if (mType === 'cash') cash += exp.amount;
+            }
+        });
+
+        return { totalAccountExpenses: acc, totalCardExpenses: card, totalCashExpenses: cash };
+    }, [expenses, selectedMonth, selectedYear, accounts]);
 
     const formatCurrency = (val: number, includeSymbol: boolean = true) => {
         const isNegative = val < 0;

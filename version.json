@@ -1,6 +1,6 @@
 {
-    "releaseNotes":  "🚀 Novedades de v1.8.3:\n- Restablecida la funcionalidad de edición y eliminación de ingresos y gastos pendientes.\n- Los gastos financiados ahora se indican claramente y liberan el crédito mensual correctamente.\n- Ajustes de Gastos Tarjeta/Banco ahora reflejan la fecha real independientemente del periodo.\n- Removida 'Financiación de Huchas' del ingreso disponible para evitar confusión.\n- Solucionado error donde Gastos Efectivo mostraba 0.0€.",
-    "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.8.3/PCSHogar_Setup_v1.8.3.apk",
-    "version": "1.8.3",
-    "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.8.3/PCSHogar_Setup_v1.8.3.exe"
+    "releaseNotes":  "🚀 Novedades v1.8.4:\n- El informativo de gastos en el Dashboard refleja ahora los gastos reales brutos del mes natural.\n- Solucionado error en el ajuste del descuadre hacia el 'Disponible'.\n- Nueva sección de gestión de descuadres en Ajustes de Saldo con botón para restaurar la alerta en el Dashboard.",
+    "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.8.4/PCSHogar_Setup_v1.8.4.apk",
+    "version": "1.8.4",
+    "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.8.4/PCSHogar_Setup_v1.8.4.exe"
 }

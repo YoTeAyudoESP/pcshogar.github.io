@@ -125,7 +125,35 @@ const BalanceDiscrepancyAlert: React.FC = () => {
 
     // ── Guard ─────────────────────────────────────────────────────────────────
     if (!isOverdraft && !hasSignificantDiscrepancy) return null;
-    if (Date.now() < dismissedUntil) return null;
+    
+    if (Date.now() < dismissedUntil) {
+        return (
+            <div 
+                onClick={() => {
+                    localStorage.removeItem('balanceDiscrepancyDismissed');
+                    setDismissedUntil(0);
+                }}
+                style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '6px', 
+                    padding: '6px 12px', 
+                    background: 'rgba(255,255,255,0.05)', 
+                    border: '1px solid rgba(255,255,255,0.1)', 
+                    borderRadius: '20px', 
+                    marginBottom: '1rem',
+                    cursor: 'pointer',
+                    width: 'fit-content',
+                    fontSize: '0.8rem',
+                    color: 'rgba(255,255,255,0.6)',
+                    transition: 'all 0.2s'
+                }}
+            >
+                <AlertTriangle size={14} color="rgba(255,255,255,0.5)" />
+                <span>1 Alerta de descuadre oculta (Toca para mostrar)</span>
+            </div>
+        );
+    }
 
     const isUnassigned  = !isOverdraft && desajuste > 0;
     const isNegativeGap = !isOverdraft && desajuste < 0;

@@ -43,6 +43,7 @@ export interface Expense {
     isFixed: boolean;
     status: 'pending' | 'paid';
     isSettled?: boolean;
+    isFinanced?: boolean;
     excludeFromBudget?: boolean;
     isSettlement?: boolean;
     settlementMetadata?: {

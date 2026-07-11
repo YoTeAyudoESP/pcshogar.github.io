@@ -70,7 +70,7 @@ const CreditCardSettlement: React.FC = () => {
 
     // Separar tarjetas en uso de las disponibles (sin gasto actual)
     const { activeCards, availableCards } = useMemo(() => {
-        const creditOnly = (cards || []).filter(c => c && c.type === 'credit');
+        const creditOnly = (cards || []).filter(c => c && c.type === 'credit' && c.limit > 0);
         const active: CreditCard[] = [];
         const available: CreditCard[] = [];
 

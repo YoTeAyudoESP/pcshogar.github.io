@@ -5,6 +5,28 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '1.8.3',
+    releaseNotes: `Novedades v1.8.3:
+- 🚀 Restablecida la funcionalidad de edición y eliminación de ingresos y gastos pendientes.
+- 💳 Los gastos financiados ahora se indican claramente y liberan el crédito mensual correctamente.
+- 📅 Ajustes de Gastos Tarjeta/Banco ahora reflejan la fecha real independientemente del periodo.
+- 🛠 Removida 'Financiación de Huchas' del ingreso disponible para evitar confusión.
+- ✅ Solucionado error donde Gastos Efectivo mostraba 0.0€.`
+  },
+  {
+    version: '1.8.2',
+    releaseNotes: `Novedades v1.8.2:
+- 🐞 Corrección en el cálculo de totales del dashboard.`
+  },
+  {
+    version: '1.8.0',
+    releaseNotes: `Novedades v1.8.0:
+- 🎉 Restaurada y mejorada la versión con Préstamos Avanzados y Financiación de Tarjetas.
+- 🛠 Interfaz del Desajuste de Balance corregida para Android.
+- 💰 Opción de Disponible Libre incorporada.
+- 💲 Símbolo de moneda corregido en entradas numéricas.`
+  },
+  {
     version: '1.6.5',
     releaseNotes: `Novedades v1.6.5:
 - 📁 Integración total con Google Drive: Ahora puedes explorar y seleccionar la carpeta exacta donde guardar tus datos, usando una interfaz idéntica a la de Dropbox.

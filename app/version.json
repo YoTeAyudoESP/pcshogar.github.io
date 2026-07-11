@@ -1,6 +1,6 @@
 {
-    "releaseNotes": "🎉 Novedades (v1.8.2): Mejoras en tarjetas de crédito: crédito disponible visible, barra de progreso de uso del ciclo, botón de financiar en el ciclo actual, sección de tarjetas disponibles sin uso, y correcciones de usabilidad en ventanas emergentes.",
-    "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.8.2/PCSHogar_Setup_v1.8.2.apk",
-    "version": "1.8.2",
-    "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.8.2/PCSHogar_Setup_v1.8.2.exe"
+    "releaseNotes":  "🚀 Novedades de v1.8.3:\n- Restablecida la funcionalidad de edición y eliminación de ingresos y gastos pendientes.\n- Los gastos financiados ahora se indican claramente y liberan el crédito mensual correctamente.\n- Ajustes de Gastos Tarjeta/Banco ahora reflejan la fecha real independientemente del periodo.\n- Removida 'Financiación de Huchas' del ingreso disponible para evitar confusión.\n- Solucionado error donde Gastos Efectivo mostraba 0.0€.",
+    "url": "https://pcshogar.es/PCSHogar_Setup_v1.8.3.apk",
+    "version": "1.8.3",
+    "windowsUrl": "https://pcshogar.es/PCSHogar_Setup_v1.8.3.exe"
 }

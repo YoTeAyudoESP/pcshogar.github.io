@@ -19,11 +19,20 @@ export const AVATAR_GRADIENTS = [
     { id: 'gradient:8', background: 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)' }  // Purple-Pink
 ];
 
+export const AVATAR_ANIMALS = [
+    { id: 'animal:cat', src: '/avatars/cat.png', name: 'Gato' },
+    { id: 'animal:dog', src: '/avatars/dog.png', name: 'Perro' },
+    { id: 'animal:fox', src: '/avatars/fox.png', name: 'Zorro' },
+    { id: 'animal:panda', src: '/avatars/panda.png', name: 'Panda' }
+];
+
 const UserAvatar: React.FC<UserAvatarProps> = ({ avatar, name, size = 40, fontSize, style }) => {
     const initial = name ? name.trim().charAt(0).toUpperCase() : '?';
 
     // Check if avatar is a gradient preset
     const gradientPreset = AVATAR_GRADIENTS.find(g => g.id === avatar);
+    // Check if avatar is an animal preset
+    const animalPreset = AVATAR_ANIMALS.find(a => a.id === avatar);
 
     const baseStyle: React.CSSProperties = {
         width: `${size}px`,
@@ -48,6 +57,20 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ avatar, name, size = 40, fontSi
             <img 
                 src={avatar} 
                 alt={`${name} Avatar`} 
+                style={{ 
+                    ...baseStyle, 
+                    objectFit: 'cover', 
+                    border: '1.5px solid rgba(255, 255, 255, 0.15)' 
+                }} 
+            />
+        );
+    }
+
+    if (animalPreset) {
+        return (
+            <img 
+                src={animalPreset.src} 
+                alt={animalPreset.name} 
                 style={{ 
                     ...baseStyle, 
                     objectFit: 'cover', 

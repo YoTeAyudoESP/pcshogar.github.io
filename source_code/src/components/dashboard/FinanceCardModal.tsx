@@ -30,7 +30,7 @@ const FinanceCardModal: React.FC<FinanceCardModalProps> = ({ isOpen, onClose, ca
     const [monthlyQuota, setMonthlyQuota] = useState<number | ''>('');
     const [months, setMonths] = useState<number | ''>('');
     const [tin, setTin] = useState<number | ''>('');
-    const [firstQuotaMonth, setFirstQuotaMonth] = useState<'this_month' | 'next_month'>('next_month');
+    const [firstQuotaDate, setFirstQuotaDate] = useState<string>('');
     
     // Advanced settings
     const [showAdvanced, setShowAdvanced] = useState(false);
@@ -42,7 +42,12 @@ const FinanceCardModal: React.FC<FinanceCardModalProps> = ({ isOpen, onClose, ca
     useEffect(() => {
         if (!isOpen) return;
         const foundCard = cards.find(c => c.id === cardId);
-        if (foundCard) setCard(foundCard);
+        if (foundCard) {
+            setCard(foundCard);
+            const now = new Date();
+            const nextMonthDate = new Date(now.getFullYear(), now.getMonth() + 1, foundCard.paymentDay || 1);
+            setFirstQuotaDate(nextMonthDate.toISOString().split('T')[0]);
+        }
 
         const foundLoan = loans.find(l => l.linkedAccountId === cardId && l.status === 'active');
         if (foundLoan) {
@@ -196,7 +201,13 @@ const FinanceCardModal: React.FC<FinanceCardModalProps> = ({ isOpen, onClose, ca
             if (expenseId) {
                 const expense = expenses.find(e => e.id === expenseId);
                 if (expense) {
-                    await updateExpense({ ...expense, excludeFromBudget: true, updatedAt: Date.now() });
+                    await updateExpense({ 
+                        ...expense, 
+                        excludeFromBudget: true, 
+                        isFinanced: true,
+                        isSettled: true,
+                        updatedAt: Date.now() 
+                    });
                 }
             }
 
@@ -229,11 +240,10 @@ const FinanceCardModal: React.FC<FinanceCardModalProps> = ({ isOpen, onClose, ca
                 // Create new revolving loan for this card
                 const now = new Date();
                 let startDate = now.getTime();
-                let nextPaymentDate = new Date(now.getFullYear(), now.getMonth(), card?.paymentDay || 1).getTime();
                 
-                if (firstQuotaMonth === 'next_month') {
-                    const nextMonthDate = new Date(now.getFullYear(), now.getMonth() + 1, card?.paymentDay || 1);
-                    nextPaymentDate = nextMonthDate.getTime();
+                let nextPaymentDate = now.getTime();
+                if (firstQuotaDate) {
+                    nextPaymentDate = new Date(firstQuotaDate).getTime();
                 }
 
                 const recData: Omit<RecurringExpense, 'id'> = {
@@ -445,15 +455,13 @@ const FinanceCardModal: React.FC<FinanceCardModalProps> = ({ isOpen, onClose, ca
 
                 {!existingLoan && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <label style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)' }}>¿Cuándo pagas la primera cuota?</label>
-                        <select 
-                            style={{ ...inputStyle, appearance: 'auto' }}
-                            value={firstQuotaMonth}
-                            onChange={(e) => setFirstQuotaMonth(e.target.value as any)}
-                        >
-                            <option value="next_month">El próximo mes (Habitual)</option>
-                            <option value="this_month">Este mismo mes</option>
-                        </select>
+                        <label style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)' }}>¿Cuándo se cobrará la primera cuota?</label>
+                        <input 
+                            type="date"
+                            style={inputStyle}
+                            value={firstQuotaDate}
+                            onChange={(e) => setFirstQuotaDate(e.target.value)}
+                        />
                     </div>
                 )}
 

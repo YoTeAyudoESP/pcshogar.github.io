@@ -190,18 +190,38 @@ export function calculateAvailableBalanceForMonth(
                 variableExpensesPaid += netAmount;
             }
 
-            // Do not add pending expenses to specific payment method totals
-            if (exp.status === 'pending') return;
+        });
+
+    // Calculate method totals based on real date
+    expenses
+        .filter(exp => {
+            if (exp.excludeFromBudget) return false;
+            if (exp.amount < 0 && exp.status === 'pending') return false;
+            const d = new Date(exp.date);
+            return d.getMonth() === month && d.getFullYear() === year;
+        })
+        .forEach(exp => {
+            let fundedAmount = 0;
+            if (exp.savingGoalFunding && exp.savingGoalFunding.length > 0) {
+                fundedAmount = exp.savingGoalFunding.reduce((sum, f) => sum + f.amount, 0);
+            } else if (exp.linkedSavingGoalId) {
+                fundedAmount = exp.amount;
+            }
+
+            const netAmount = exp.amount - fundedAmount;
 
             const method = exp.paymentMethod || { type: 'cash' };
-            if (method.type === 'cash') {
+            const methodType = typeof method === 'string' ? method : method.type;
+            
+            if (methodType === 'cash') {
                 totalCashExpenses += netAmount;
                 grossCashExpenses += exp.amount;
-            } else if (method.type === 'account') {
+            } else if (methodType === 'account') {
                 totalAccountExpenses += netAmount;
                 grossAccountExpenses += exp.amount;
-            } else if (method.type === 'card') {
-                const card = (cards || []).find(c => c.id === (method as any).cardId);
+            } else if (methodType === 'card') {
+                const cardId = typeof method === 'string' ? null : (method as any).cardId;
+                const card = cardId ? (cards || []).find(c => c.id === cardId) : null;
                 if (card && card.type === 'debit') {
                     totalAccountExpenses += netAmount;
                     grossAccountExpenses += exp.amount;

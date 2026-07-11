@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAppSettings } from '../../contexts/AppSettingsContext';
 import { X, Camera, Lock, Check, Key, Trash2, ShieldAlert } from 'lucide-react';
-import UserAvatar, { AVATAR_GRADIENTS } from '../common/UserAvatar';
+import UserAvatar, { AVATAR_GRADIENTS, AVATAR_ANIMALS } from '../common/UserAvatar';
 import { useToast } from '../../contexts/ToastContext';
 
 interface EditProfileModalProps {
@@ -209,6 +209,36 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose, pr
                                             style={{
                                                 ...avatarOptionStyle,
                                                 background: gradient.background,
+                                                border: isSelected ? '2px solid #ffffff' : '1px solid rgba(255,255,255,0.08)',
+                                                boxShadow: isSelected ? '0 0 12px rgba(99, 102, 241, 0.6)' : 'none',
+                                                transform: isSelected ? 'scale(1.1)' : 'scale(1)'
+                                            }}
+                                        >
+                                            {isSelected && <Check size={16} color="#ffffff" style={checkmarkOverlayStyle} />}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Predefined Animals */}
+                        <div style={inputGroupStyle}>
+                            <label style={labelStyle}>Avatares de Animales</label>
+                            <div style={avatarGridStyle}>
+                                {AVATAR_ANIMALS.map(animal => {
+                                    const isSelected = selectedAvatar === animal.id;
+                                    return (
+                                        <button
+                                            key={animal.id}
+                                            type="button"
+                                            onClick={() => handleAvatarSelect(animal.id)}
+                                            title={animal.name}
+                                            style={{
+                                                ...avatarOptionStyle,
+                                                backgroundImage: `url(${animal.src})`,
+                                                backgroundSize: 'cover',
+                                                backgroundPosition: 'center',
+                                                backgroundColor: '#1e293b',
                                                 border: isSelected ? '2px solid #ffffff' : '1px solid rgba(255,255,255,0.08)',
                                                 boxShadow: isSelected ? '0 0 12px rgba(99, 102, 241, 0.6)' : 'none',
                                                 transform: isSelected ? 'scale(1.1)' : 'scale(1)'

@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
-import { CheckCircle, Clock, ArrowUpRight, ArrowDownLeft, ChevronRight, Edit2 } from 'lucide-react';
+import { CheckCircle, Clock, ArrowUpRight, ArrowDownLeft, ChevronRight, Edit2, Trash2 } from 'lucide-react';
 import { isRecurringActiveInMonth, formatMoney, isItemInMonthAndYear } from '../../utils/financeCalculations';
 import ConfirmMovementModal from '../settings/ConfirmMovementModal';
+import DeletePendingItemModal from './DeletePendingItemModal';
 
 interface PendingActionsWidgetProps {
-    onEdit?: (item: any, type: 'income' | 'expense') => void;
+    onEdit?: (item: any, type: 'income' | 'expense', isFromPendingWidget?: boolean) => void;
 }
 
 const PendingActionsWidget: React.FC<PendingActionsWidgetProps> = ({ onEdit }) => {
@@ -21,6 +22,8 @@ const PendingActionsWidget: React.FC<PendingActionsWidgetProps> = ({ onEdit }) =
         type: 'income' | 'expense' | 'refund';
         item: any;
     }>({ show: false, type: 'expense', item: null });
+
+    const [deleteModal, setDeleteModal] = useState<{ show: boolean, item: any }>({ show: false, item: null });
 
     const period = `${selectedYear}-${(selectedMonth + 1).toString().padStart(2, '0')}`;
     const monthStart = new Date(selectedYear, selectedMonth, 1).getTime();
@@ -235,24 +238,6 @@ const PendingActionsWidget: React.FC<PendingActionsWidgetProps> = ({ onEdit }) =
                                 <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>
                                     Día {item.actionType === 'refund' || item.isPunctualPending ? (isRollover(item) ? '1' : new Date(item.date).getDate()) : (item.paymentDay || (item.receivedDate ? new Date(item.receivedDate).getDate() : new Date(item.date || item.createdAt).getDate()))}
                                 </div>
-                                {(item.isExtraPending || item.isPunctualPending) && onEdit && (
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onEdit(item, item.actionType === 'income' ? 'income' : 'expense');
-                                        }}
-                                        style={{
-                                            background: 'transparent',
-                                            border: 'none',
-                                            color: 'rgba(255,255,255,0.4)',
-                                            cursor: 'pointer',
-                                            padding: '4px'
-                                        }}
-                                        className="hover:text-white transition-colors"
-                                    >
-                                        <Edit2 size={14} />
-                                    </button>
-                                )}
                             </div>
                         </div>
 
@@ -280,12 +265,61 @@ const PendingActionsWidget: React.FC<PendingActionsWidgetProps> = ({ onEdit }) =
                             marginTop: '1rem', 
                             display: 'flex', 
                             alignItems: 'center', 
-                            gap: '4px',
+                            justifyContent: 'space-between',
                             color: '#6366f1',
                             fontSize: '0.8rem',
                             fontWeight: 700
                         }}>
-                            Confirmar <ChevronRight size={14} />
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                Confirmar <ChevronRight size={14} />
+                            </div>
+
+                            {(item.isExtraPending || item.isPunctualPending) && onEdit && (
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onEdit(item, item.actionType === 'income' ? 'income' : 'expense', true);
+                                        }}
+                                        style={{
+                                            background: 'rgba(255,255,255,0.1)',
+                                            border: 'none',
+                                            color: 'white',
+                                            cursor: 'pointer',
+                                            padding: '6px',
+                                            borderRadius: '6px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center'
+                                        }}
+                                        className="hover-scale"
+                                        title="Editar"
+                                    >
+                                        <Edit2 size={14} />
+                                    </button>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setDeleteModal({ show: true, item });
+                                        }}
+                                        style={{
+                                            background: 'rgba(239, 68, 68, 0.1)',
+                                            border: 'none',
+                                            color: '#ef4444',
+                                            cursor: 'pointer',
+                                            padding: '6px',
+                                            borderRadius: '6px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center'
+                                        }}
+                                        className="hover-scale"
+                                        title="Eliminar"
+                                    >
+                                        <Trash2 size={14} />
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 ))}
@@ -297,6 +331,14 @@ const PendingActionsWidget: React.FC<PendingActionsWidgetProps> = ({ onEdit }) =
                     type={confirmModal.type}
                     item={confirmModal.item}
                     onClose={() => setConfirmModal({ show: false, type: 'expense', item: null })}
+                />
+            )}
+
+            {/* Delete Modal */}
+            {deleteModal.show && deleteModal.item && (
+                <DeletePendingItemModal
+                    item={deleteModal.item}
+                    onClose={() => setDeleteModal({ show: false, item: null })}
                 />
             )}
         </div>

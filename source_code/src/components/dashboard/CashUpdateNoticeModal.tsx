@@ -151,7 +151,7 @@ const CashUpdateNoticeModal: React.FC<CashUpdateNoticeModalProps> = ({ onClose }
                         </p>
                     </div>
                     <p style={{ marginTop: '1.5rem', fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', textAlign: 'center' }}>
-                        Si tienes dudas, contáctanos en contacto@pcshogar.com
+                        Si tienes dudas, contáctanos en yoayudo2020@gmail.com
                     </p>
                     <button onClick={handleAcknowledge} style={buttonStyle}>Entendido</button>
                 </div>

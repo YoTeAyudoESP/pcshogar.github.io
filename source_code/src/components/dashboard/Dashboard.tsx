@@ -125,8 +125,9 @@ const Dashboard: React.FC = () => {
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     
     // Edit state
-    const [editingTx, setEditingTx] = useState<Expense | Income | null>(null);
-    const [editingType, setEditingType] = useState<'expense' | 'income'>('expense');
+    const [editingTx, setEditingTx] = useState<any>(null);
+    const [editingType, setEditingType] = useState<'income' | 'expense'>('expense');
+    const [isEditingFromPendingWidget, setIsEditingFromPendingWidget] = useState(false);
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -439,7 +440,7 @@ const Dashboard: React.FC = () => {
                     <UnlinkedLoanAlert />
                     <BalanceDiscrepancyAlert />
                     <FinanceSummary />
-                    <PendingActionsWidget onEdit={(item, type) => { setEditingTx(item); setEditingType(type); }} />
+                    <PendingActionsWidget onEdit={(item, type, isFromPending) => { setEditingTx(item); setEditingType(type); setIsEditingFromPendingWidget(!!isFromPending); }} />
                     <FinanceGlobalSummary />
                     <CreditCardSettlement />
 
@@ -464,11 +465,11 @@ const Dashboard: React.FC = () => {
                     }}>
                         <div>
                             <h2 style={{ fontSize: '1.7rem', fontWeight: 800, marginBottom: '1.5rem', color: '#ffffff' }}>Ingresos Cobrados</h2>
-                            <IncomeList onEdit={(income) => { setEditingTx(income); setEditingType('income'); }} />
+                            <IncomeList onEdit={(income) => { setEditingTx(income); setEditingType('income'); setIsEditingFromPendingWidget(false); }} />
                         </div>
                         <div>
                             <h2 style={{ fontSize: '1.7rem', fontWeight: 800, marginBottom: '1.5rem', color: '#ffffff' }}>Últimos Gastos</h2>
-                            <ExpenseList onEdit={(expense) => { setEditingTx(expense); setEditingType('expense'); }} />
+                            <ExpenseList onEdit={(expense) => { setEditingTx(expense); setEditingType('expense'); setIsEditingFromPendingWidget(false); }} />
                         </div>
                     </div>
                 </div>
@@ -484,11 +485,15 @@ const Dashboard: React.FC = () => {
                 />
             )}
             
-            {editingTx && editingType === 'expense' && (
-                <EditTransactionModal 
+            {editingTx && (
+                <EditTransactionModal
                     transaction={editingTx}
-                    type="expense"
-                    onClose={() => setEditingTx(null)}
+                    type={editingType}
+                    lockStatusToPending={isEditingFromPendingWidget}
+                    onClose={() => {
+                        setEditingTx(null);
+                        setIsEditingFromPendingWidget(false);
+                    }}
                 />
             )}
             

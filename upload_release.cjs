@@ -5,7 +5,9 @@ const https = require('https');
 const TOKEN = process.env.GITHUB_TOKEN;
 const OWNER = 'YoTeAyudoESP';
 const REPO = 'pcshogar.github.io';
-const TAG = 'v1.8.7';
+const TAG = 'v1.8.8';
+const RELEASE_NAME = 'PCS Hogar v1.8.8';
+const RELEASE_BODY = '🚀 Novedades v1.8.8:\n- Añadida la funcionalidad para editar y eliminar gastos e ingresos pendientes directamente desde la tarjeta principal.\n- Mejoras en la interfaz de usuario.\n- Correcciones menores.';
 
 function request(method, url, data = null, headers = {}) {
     return new Promise((resolve, reject) => {
@@ -42,13 +44,13 @@ function request(method, url, data = null, headers = {}) {
     });
 }
 
-async function uploadAsset(uploadUrl, filePath, name) {
+async function uploadAsset(uploadUrl, filePath, name, mimeType = 'application/octet-stream') {
     console.log(`Uploading ${name}...`);
     const data = fs.readFileSync(filePath);
     const url = uploadUrl.replace('{?name,label}', `?name=${encodeURIComponent(name)}`);
     
     const res = await request('POST', url, data, {
-        'Content-Type': 'application/octet-stream',
+        'Content-Type': mimeType,
         'Content-Length': data.length
     });
     console.log(`Uploaded ${name}:`, res.id ? 'Success' : res);
@@ -59,8 +61,8 @@ async function main() {
     const releaseData = {
         tag_name: TAG,
         target_commitish: 'main',
-        name: `Release ${TAG}`,
-        body: `Release ${TAG}`,
+        name: RELEASE_NAME,
+        body: RELEASE_BODY,
         draft: false,
         prerelease: false,
         generate_release_notes: false
@@ -84,18 +86,17 @@ async function main() {
 
     const uploadUrl = res.upload_url;
     
-    const apkPath = path.resolve(__dirname, 'source_code', 'dist_android', `PCSHogar_Setup_${TAG}.apk`);
-    if (fs.existsSync(apkPath)) {
-        await uploadAsset(uploadUrl, apkPath, `PCSHogar_Setup_${TAG}.apk`);
-    } else {
-        console.log('APK not found!');
-    }
-    
-    const exePath = path.resolve(__dirname, 'source_code', 'dist_electron', `PCSHogar_Setup_${TAG}.exe`);
-    if (fs.existsSync(exePath)) {
-        await uploadAsset(uploadUrl, exePath, `PCSHogar_Setup_${TAG}.exe`);
-    } else {
-        console.log('EXE not found!');
+    const FILES_TO_UPLOAD = [
+        { path: path.resolve(__dirname, 'source_code', 'dist_electron', `PCSHogar_Setup_${TAG}.exe`), name: `PCSHogar_Setup_${TAG}.exe`, mime: 'application/x-msdownload' },
+        { path: path.resolve(__dirname, 'source_code', 'dist_android', `PCSHogar_Setup_${TAG}.apk`), name: `PCSHogar_Setup_${TAG}.apk`, mime: 'application/vnd.android.package-archive' }
+    ];
+
+    for (const file of FILES_TO_UPLOAD) {
+        if (fs.existsSync(file.path)) {
+            await uploadAsset(uploadUrl, file.path, file.name, file.mime);
+        } else {
+            console.log(`${file.name} not found!`);
+        }
     }
     
     console.log('All done!');

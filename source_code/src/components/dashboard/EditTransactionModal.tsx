@@ -9,10 +9,11 @@ import FinanceCardModal from './FinanceCardModal';
 interface EditTransactionModalProps {
     transaction: Expense | Income;
     type: 'expense' | 'income';
+    lockStatusToPending?: boolean;
     onClose: () => void;
 }
 
-const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction, type, onClose }) => {
+const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction, type, lockStatusToPending, onClose }) => {
     const { updateIncome, updateExpense, accounts, cards, categories, savings } = useFinance();
     
     const isRefund = type === 'expense' && (transaction as Expense).amount < 0;
@@ -45,7 +46,7 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction
         type === 'expense' ? ((transaction as Expense).paymentMethod as any).settlementAdjustment || 0 : 0
     );
     const [status, setStatus] = useState<'paid' | 'pending'>(
-        type === 'expense' ? (transaction as Expense).status : 'paid'
+        lockStatusToPending ? 'pending' : (type === 'expense' ? (transaction as Expense).status : 'paid')
     );
     const [showFinanceModal, setShowFinanceModal] = useState(false);
     const [isFinancedByHucha, setIsFinancedByHucha] = useState(() => {
@@ -310,18 +311,20 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction
                     {type === 'expense' && (
                         <>
                             <div style={{ display: 'flex', gap: '1rem' }}>
-                                <div style={{ flex: 1 }}>
-                                    <label style={labelStyle}>Estado</label>
-                                    <select style={inputStyle} value={status} onChange={e => setStatus(e.target.value as any)}>
-                                        <option value="paid">
-                                            {isRefund 
-                                                ? `Recibida (${paymentMethodType === 'account' ? 'Banco' : paymentMethodType === 'card' ? 'Tarjeta' : 'Efectivo'})`
-                                                : `Pagado (${paymentMethodType === 'account' ? 'Banco' : paymentMethodType === 'card' ? 'Tarjeta' : 'Efectivo'})`
-                                            }
-                                        </option>
-                                        <option value="pending">{isRefund ? 'Pendiente de recibir' : 'Pendiente'}</option>
-                                    </select>
-                                </div>
+                                {!lockStatusToPending && (
+                                    <div style={{ flex: 1 }}>
+                                        <label style={labelStyle}>Estado</label>
+                                        <select style={inputStyle} value={status} onChange={e => setStatus(e.target.value as any)}>
+                                            <option value="paid">
+                                                {isRefund 
+                                                    ? `Recibida (${paymentMethodType === 'account' ? 'Banco' : paymentMethodType === 'card' ? 'Tarjeta' : 'Efectivo'})`
+                                                    : `Pagado (${paymentMethodType === 'account' ? 'Banco' : paymentMethodType === 'card' ? 'Tarjeta' : 'Efectivo'})`
+                                                }
+                                            </option>
+                                            <option value="pending">{isRefund ? 'Pendiente de recibir' : 'Pendiente'}</option>
+                                        </select>
+                                    </div>
+                                )}
                                 {paymentMethodType === 'card' && selectedMethodId && cards.find(c => c.id === selectedMethodId)?.type !== 'virtual' && (
                                     <div style={{ flex: 1 }}>
                                         <label style={labelStyle}>Ajuste de Liquidación</label>

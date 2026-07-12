@@ -450,7 +450,7 @@ class IncomeDB {
             if (expense.paymentMethod.type === 'account' || expense.paymentMethod.type === 'cash') {
                 targetAccountId = expense.paymentMethod.type === 'account'
                     ? expense.paymentMethod.accountId
-                    : null;
+                    : (expense.paymentMethod.accountId || null);
 
                 if (targetAccountId) {
                     const account = await accountStore.get(targetAccountId);
@@ -908,12 +908,18 @@ class IncomeDB {
         if (!expense) return;
 
         if (expense.status === 'paid') {
-            if (expense.paymentMethod.type === 'account') {
-                const account = await accountStore.get(expense.paymentMethod.accountId);
-                if (account) {
-                    account.balance += expense.amount;
-                    account.updatedAt = Date.now();
-                    await accountStore.put(account);
+            if (expense.paymentMethod.type === 'account' || expense.paymentMethod.type === 'cash') {
+                const targetId = expense.paymentMethod.type === 'account' 
+                    ? expense.paymentMethod.accountId 
+                    : (expense.paymentMethod.accountId || null);
+                    
+                if (targetId) {
+                    const account = await accountStore.get(targetId);
+                    if (account) {
+                        account.balance += expense.amount;
+                        account.updatedAt = Date.now();
+                        await accountStore.put(account);
+                    }
                 }
             } else if (expense.paymentMethod.type === 'card') {
                 const card = await cardStore.get(expense.paymentMethod.cardId);
@@ -982,12 +988,17 @@ class IncomeDB {
         // 1. REVERT OLD EFFECTS
         if (oldExpense.status === 'paid') {
             // Revert bank/cash balance
-            if (oldExpense.paymentMethod.type === 'account') {
-                const account = await accountStore.get(oldExpense.paymentMethod.accountId);
-                if (account) {
-                    account.balance += oldExpense.amount;
-                    account.updatedAt = Date.now();
-                    await accountStore.put(account);
+            if (oldExpense.paymentMethod.type === 'account' || oldExpense.paymentMethod.type === 'cash') {
+                const targetId = oldExpense.paymentMethod.type === 'account' 
+                    ? oldExpense.paymentMethod.accountId 
+                    : (oldExpense.paymentMethod.accountId || null);
+                if (targetId) {
+                    const account = await accountStore.get(targetId);
+                    if (account) {
+                        account.balance += oldExpense.amount;
+                        account.updatedAt = Date.now();
+                        await accountStore.put(account);
+                    }
                 }
             } else if (oldExpense.paymentMethod.type === 'card') {
                 const card = await cardStore.get(oldExpense.paymentMethod.cardId);
@@ -1044,13 +1055,17 @@ class IncomeDB {
         if (updatedExpense.status === 'paid') {
             let targetAccountId: string | null = null;
 
-            if (updatedExpense.paymentMethod.type === 'account') {
-                targetAccountId = updatedExpense.paymentMethod.accountId;
-                const account = await accountStore.get(targetAccountId);
-                if (account) {
-                    account.balance -= updatedExpense.amount;
-                    account.updatedAt = Date.now();
-                    await accountStore.put(account);
+            if (updatedExpense.paymentMethod.type === 'account' || updatedExpense.paymentMethod.type === 'cash') {
+                targetAccountId = updatedExpense.paymentMethod.type === 'account' 
+                    ? updatedExpense.paymentMethod.accountId 
+                    : (updatedExpense.paymentMethod.accountId || null);
+                if (targetAccountId) {
+                    const account = await accountStore.get(targetAccountId);
+                    if (account) {
+                        account.balance -= updatedExpense.amount;
+                        account.updatedAt = Date.now();
+                        await accountStore.put(account);
+                    }
                 }
             } else if (updatedExpense.paymentMethod.type === 'card') {
                 const card = await cardStore.get(updatedExpense.paymentMethod.cardId);

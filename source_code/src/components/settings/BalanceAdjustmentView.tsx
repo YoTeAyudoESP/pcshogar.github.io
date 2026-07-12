@@ -31,6 +31,22 @@ const BalanceAdjustmentView: React.FC = () => {
     const [amount, setAmount] = useState('');
     const [showIgnored, setShowIgnored] = useState(false);
     const [editingClosing, setEditingClosing] = useState<MonthClosing | null>(null);
+    const [dismissedUntil, setDismissedUntil] = useState<number>(0);
+
+    React.useEffect(() => {
+        try {
+            const saved = localStorage.getItem('balanceDiscrepancyDismissed');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (parsed.untilDate) setDismissedUntil(parsed.untilDate);
+            }
+        } catch (e) {}
+    }, []);
+
+    const handleRestoreAlert = () => {
+        localStorage.removeItem('balanceDiscrepancyDismissed');
+        setDismissedUntil(0);
+    };
 
     // Derived data
     const activeAdjustments = useMemo(() => {
@@ -174,6 +190,40 @@ const BalanceAdjustmentView: React.FC = () => {
                 >
                     Aplicar Ajuste
                 </button>
+            </div>
+
+            {/* 1.5. Discrepancy Alert Status */}
+            <div>
+                <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', opacity: 0.8 }}>Estado del Cuadre de Saldos</h3>
+                <div className="glass-panel" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', background: 'rgba(245, 158, 11, 0.05)', border: '1px solid rgba(245, 158, 11, 0.2)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <AlertTriangle size={24} color="#f59e0b" />
+                        <div>
+                            <h4 style={{ margin: 0, color: '#f59e0b', fontSize: '1.05rem' }}>Alertas de Descuadre</h4>
+                            <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)' }}>
+                                Si hay diferencias entre tu dinero real y el dinero asignado, el sistema te avisa en el Dashboard.
+                            </p>
+                        </div>
+                    </div>
+                    {Date.now() < dismissedUntil ? (
+                        <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                                <strong style={{ display: 'block', marginBottom: '4px' }}>Tienes una alerta oculta actualmente.</strong>
+                                <span style={{ fontSize: '0.85rem', opacity: 0.6 }}>Estará oculta hasta: {new Date(dismissedUntil).toLocaleDateString()}</span>
+                            </div>
+                            <button 
+                                onClick={handleRestoreAlert}
+                                style={{ background: '#f59e0b', color: 'black', border: 'none', padding: '0.6rem 1.2rem', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer' }}
+                            >
+                                Restaurar en Dashboard
+                            </button>
+                        </div>
+                    ) : (
+                        <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '0.5rem' }}>
+                            <span style={{ fontSize: '0.9rem', opacity: 0.8 }}>No tienes ninguna alerta de descuadre oculta. Si hay descuadre, lo verás en tu Dashboard.</span>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* 2. Active Adjustments List */}

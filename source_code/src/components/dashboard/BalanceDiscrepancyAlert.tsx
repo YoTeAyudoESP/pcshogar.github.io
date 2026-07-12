@@ -52,11 +52,11 @@ const BreakdownRow: React.FC<{
 // ─────────────────────────────────────────────────────────────────────────────
 
 const BalanceDiscrepancyAlert: React.FC = () => {
-    const { accounts, savings, expenses, cards, fixedIncomes, recurringExpenses, incomes, allocations, overrides, adjustSavings } = useFinance();
+    const { accounts, savings, expenses, cards, fixedIncomes, recurringExpenses, incomes, allocations, overrides, adjustSavings, setMonthOverride } = useFinance();
 
     const result = useMemo(() => {
         const now = new Date();
-        const { availableToSpend } = calculateAvailableBalanceForMonth(now.getFullYear(), now.getMonth(), {
+        const autoAvailable = calculateAvailableBalanceForMonth(now.getFullYear(), now.getMonth(), {
             fixedIncomes: (incomes || []).filter((i: any) => i.type === 'fixed') as any[],
             extraIncomes: incomes?.filter(i => i.type === 'extra' || i.type === 'rollover') || [],
             expenses,
@@ -67,13 +67,16 @@ const BalanceDiscrepancyAlert: React.FC = () => {
             cards
         });
 
-        return calculateBalanceDiscrepancy(accounts, savings, expenses, cards, recurringExpenses, availableToSpend);
+        return {
+            ...calculateBalanceDiscrepancy(accounts, savings, expenses, cards, recurringExpenses, autoAvailable.availableToSpend),
+            baseAvailableToSpend: autoAvailable.availableToSpend
+        };
     }, [accounts, savings, expenses, cards, recurringExpenses, incomes, allocations, overrides]);
 
     const {
         dineroReal, dineroLibreReal, compromisoGastos, compromisoTarjetas,
         compromisos, dineroEnHuchas, desajuste, isOverdraft,
-        hasSignificantDiscrepancy, mesActual
+        hasSignificantDiscrepancy, mesActual, baseAvailableToSpend
     } = result;
 
     const [expanded, setExpanded] = useState(false);
@@ -136,21 +139,23 @@ const BalanceDiscrepancyAlert: React.FC = () => {
                 style={{ 
                     display: 'flex', 
                     alignItems: 'center', 
-                    gap: '6px', 
-                    padding: '6px 12px', 
-                    background: 'rgba(255,255,255,0.05)', 
-                    border: '1px solid rgba(255,255,255,0.1)', 
-                    borderRadius: '20px', 
+                    gap: '8px', 
+                    padding: '8px 16px', 
+                    background: 'linear-gradient(135deg, rgba(245,158,11,0.2) 0%, rgba(245,158,11,0.05) 100%)', 
+                    border: '1px solid rgba(245,158,11,0.3)', 
+                    borderRadius: '24px', 
                     marginBottom: '1rem',
                     cursor: 'pointer',
                     width: 'fit-content',
-                    fontSize: '0.8rem',
-                    color: 'rgba(255,255,255,0.6)',
-                    transition: 'all 0.2s'
+                    fontSize: '0.85rem',
+                    color: '#f59e0b',
+                    fontWeight: 600,
+                    transition: 'all 0.2s',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                 }}
             >
-                <AlertTriangle size={14} color="rgba(255,255,255,0.5)" />
-                <span>1 Alerta de descuadre oculta (Toca para mostrar)</span>
+                <AlertTriangle size={16} color="#f59e0b" />
+                <span>Descuadre de saldos oculto (Toca para restaurar)</span>
             </div>
         );
     }
@@ -177,6 +182,11 @@ const BalanceDiscrepancyAlert: React.FC = () => {
                     const src = accounts.find(a => a.type === 'bank') || accounts[0];
                     if (src) await adjustSavings(goalId, amount, src.id, false, undefined, undefined, undefined, 'adjustment');
                 }
+            }
+            if ((distributions['disponible'] || 0) > 0) {
+                const now = new Date();
+                // To ADD to available, we just set the new absolute value to (baseAvailableToSpend + distributions['disponible'])
+                await setMonthOverride(now.getFullYear(), now.getMonth(), baseAvailableToSpend + distributions['disponible']);
             }
             if ((distributions['disponible'] || 0) > 0 || totalDistributed >= desajuste - 0.005) {
                 handleDismissNextMonth();

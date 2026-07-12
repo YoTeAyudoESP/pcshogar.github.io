@@ -77,9 +77,14 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
 
         let paymentMethod: PaymentMethod = { type: 'cash' };
         if (pmType === 'account') {
+            if (!pmId) return;
             paymentMethod = { type: 'account', accountId: pmId };
         } else if (pmType === 'card') {
+            if (!pmId) return;
             paymentMethod = { type: 'card', cardId: pmId };
+        } else if (pmType === 'cash') {
+            if (!pmId) return;
+            paymentMethod = { type: 'cash', accountId: pmId };
         }
 
         const expenseData = {
@@ -336,7 +341,11 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
                     <option value="cash">Efectivo</option>
                 </select>
 
-                {pmType !== 'cash' && (
+                {pmType === 'cash' && accounts.filter(a => a.type === 'cash').length === 0 ? (
+                    <p style={{ color: '#ef4444', fontSize: '0.9rem', margin: 0, padding: '0.8rem 0' }}>
+                        No tienes carteras de efectivo. Crea una en Ajustes.
+                    </p>
+                ) : (
                     <select 
                         style={{ ...inputStyle, appearance: 'none', backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'rgba(255,255,255,0.4)\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpath d=\'m6 9 6 6 6-6\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center' }} 
                         value={pmId} 
@@ -345,12 +354,16 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
                     >
                         <option value="">Seleccionar...</option>
                         {pmType === 'account' ? (
-                            accounts.map(acc => (
+                            accounts.filter(a => a.type === 'bank').map(acc => (
                                 <option key={acc.id} value={acc.id}>{acc.name} ({acc.balance.toFixed(2)} €)</option>
                             ))
-                        ) : (
+                        ) : pmType === 'card' ? (
                             cards.map(card => (
                                 <option key={card.id} value={card.id}>{card.name} (Límite: {card.limit} €)</option>
+                            ))
+                        ) : (
+                            accounts.filter(a => a.type === 'cash').map(acc => (
+                                <option key={acc.id} value={acc.id}>{acc.name} ({acc.balance.toFixed(2)} €)</option>
                             ))
                         )}
                     </select>

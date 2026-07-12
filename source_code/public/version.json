@@ -1,6 +1,7 @@
 {
-    "releaseNotes":  "🚀 Novedades v1.8.6:\n- Solucionado error interno donde los gastos en carteras de efectivo se sumaban a Gastos Cuentas en el panel superior.\n- .\n- Nueva sección de gestión de descuadres en Ajustes de Saldo con botón para restaurar la alerta en el Dashboard.",
-    "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.8.6/PCSHogar_Setup_v1.8.6.apk",
-    "version": "1.8.6",
-    "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.8.6/PCSHogar_Setup_v1.8.6.exe"
+    "releaseNotes": "Novedades en 1.8.7:\n* Nueva gestión de pagos en Efectivo, vinculados siempre a una cartera.\n* Migración automática de gastos antiguos no vinculados a carteras de efectivo.\n* Mejoras de rendimiento en cálculos de balance.",
+    "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.8.7/PCSHogar_Setup_v1.8.7.apk",
+    "version": "1.8.7",
+    "versionCode": 199,
+    "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.8.7/PCSHogar_Setup_v1.8.7.exe"
 }

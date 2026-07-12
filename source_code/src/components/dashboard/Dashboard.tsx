@@ -27,6 +27,7 @@ import EditTransactionModal from './EditTransactionModal';
 import BalanceTransferModal from './BalanceTransferModal';
 import ReportModal from './ReportModal';
 import BalanceDiscrepancyAlert from './BalanceDiscrepancyAlert';
+import CashUpdateNoticeModal from './CashUpdateNoticeModal';
 import type { Expense } from '../../types/finance';
 import type { Income } from '../../types/income';
 
@@ -117,6 +118,10 @@ const Dashboard: React.FC = () => {
     const [show30DayReminder, setShow30DayReminder] = useState(false);
     const [showChangelog, setShowChangelog] = useState(false);
     const [changelogEntriesToShow, setChangelogEntriesToShow] = useState<any[]>([]);
+    
+    // Cash update modal state
+    const [showCashUpdateNotice, setShowCashUpdateNotice] = useState(false);
+
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     
     // Edit state
@@ -165,7 +170,7 @@ const Dashboard: React.FC = () => {
 
         window.addEventListener('app-back-pressed', handleBack);
         return () => window.removeEventListener('app-back-pressed', handleBack);
-    }, [editingTx, isIncomeFormOpen, isExpenseModalOpen, isRefundModalOpen, isHuchaModalOpen, isTransferModalOpen, show30DayReminder, showChangelog, currentView]);
+    }, [editingTx, isIncomeFormOpen, isExpenseModalOpen, isRefundModalOpen, isHuchaModalOpen, isTransferModalOpen, show30DayReminder, showChangelog, currentView, showCashUpdateNotice]);
 
     useEffect(() => {
         if (loading) return;
@@ -233,6 +238,13 @@ const Dashboard: React.FC = () => {
                 setShowChangelog(true);
             }
         }
+
+        // Show cash update notice if not seen and there are cash expenses
+        const cashNoticeSeen = localStorage.getItem('cashUpdateNoticeSeen');
+        if (!cashNoticeSeen) {
+            setShowCashUpdateNotice(true);
+        }
+
     }, [loading, accounts.length, cards.length]);
 
     const actionButtonStyle: React.CSSProperties = {
@@ -630,6 +642,10 @@ const Dashboard: React.FC = () => {
                     </div>
                 );
             })()}
+
+            {showCashUpdateNotice && (
+                <CashUpdateNoticeModal onClose={() => setShowCashUpdateNotice(false)} />
+            )}
 
             {showChangelog && (
                 <div className="modal-overlay" onClick={() => {

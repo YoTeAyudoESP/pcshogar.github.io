@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import type { SavingGoal } from '../../types/finance';
 import ColorPicker from '../common/ColorPicker';
@@ -12,6 +12,7 @@ interface PiggyBankFormProps {
 
 const PiggyBankForm: React.FC<PiggyBankFormProps> = ({ editingGoal, onCancelEdit, onClose }) => {
     const { addSavingGoal, updateSavingGoal, accounts, fixedIncomes } = useFinance();
+    const formRef = useRef<HTMLFormElement>(null);
     const [name, setName] = useState('');
     const [target, setTarget] = useState('');
     const [current, setCurrent] = useState('');
@@ -45,6 +46,13 @@ const PiggyBankForm: React.FC<PiggyBankFormProps> = ({ editingGoal, onCancelEdit
             setCreatedAtDate(new Date().toISOString().split('T')[0]);
         }
     }, [editingGoal]);
+
+    useEffect(() => {
+        // Al abrir el modal, auto-scroll hacia arriba
+        if (formRef.current) {
+            formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }, []);
 
     useEffect(() => {
         const handleBack = (e: Event) => {
@@ -120,13 +128,15 @@ const PiggyBankForm: React.FC<PiggyBankFormProps> = ({ editingGoal, onCancelEdit
     };
 
     return (
-        <form onSubmit={handleSubmit} className="glass-panel" style={{ padding: '2rem', borderRadius: '1.5rem', background: 'rgba(30,32,47,0.98)' }}>
+        <form ref={formRef} onSubmit={handleSubmit} className="glass-panel" style={{ padding: '2rem', borderRadius: '1.5rem', background: 'rgba(30,32,47,0.98)' }}>
             <h3 style={{ marginBottom: '1.5rem', fontSize: '1.5rem', fontWeight: 700 }}>
                 {editingGoal ? 'Editar Hucha' : 'Nueva Hucha'}
             </h3>
 
             <div>
-                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Nombre del Objetivo</label>
+                <label style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>
+                    Nombre del Objetivo <span style={{ color: '#ef4444' }}>*</span>
+                </label>
                 <input style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="Ej. Viaje a Japón" required />
             </div>
 
@@ -209,17 +219,17 @@ const PiggyBankForm: React.FC<PiggyBankFormProps> = ({ editingGoal, onCancelEdit
                 <button type="button" onClick={onCancelEdit || onClose} style={{
                     flex: 1, padding: '1rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'white', cursor: 'pointer', fontWeight: 600
                 }}>Cancelar</button>
-                <button type="submit" style={{
+                <button type="submit" disabled={!name.trim()} style={{
                     flex: 1.5,
                     padding: '1rem',
                     borderRadius: '12px',
                     border: 'none',
-                    background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                    color: 'white',
+                    background: name.trim() ? 'linear-gradient(135deg, #6366f1, #8b5cf6)' : 'rgba(255,255,255,0.1)',
+                    color: name.trim() ? 'white' : 'rgba(255,255,255,0.3)',
                     fontWeight: 700,
                     fontSize: '1.05rem',
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 15px rgba(99, 102, 241, 0.4)'
+                    cursor: name.trim() ? 'pointer' : 'not-allowed',
+                    boxShadow: name.trim() ? '0 4px 15px rgba(99, 102, 241, 0.4)' : 'none'
                 }}>
                     {editingGoal ? 'Guardar Cambios' : 'Crear Hucha'}
                 </button>

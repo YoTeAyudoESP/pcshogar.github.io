@@ -5,6 +5,15 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
     {
+        version: '1.9.0',
+        releaseNotes: `Novedades v1.9.0:
+- 🛠 Se han redondeado todos los importes a 2 decimales en toda la app.
+- 🚀 Sugerencias Inteligentes: Avisos de pagos de gastos fijos pendientes o próximos.
+- 💳 Se han filtrado los ingresos pendientes de las sumas de las cuentas.
+- 🏦 Nueva funcionalidad: Financiar Gastos Fijos usando el saldo de tus Huchas.
+- 📅 Movimientos pendientes se arrastran ahora al día 1 del mes nuevo.`
+    },
+    {
         version: '1.8.6',
         releaseNotes: `Novedades v1.8.6:
 - 🛠 Solucionado error interno donde los gastos en carteras de efectivo se sumaban a Gastos Cuentas en el panel superior.`

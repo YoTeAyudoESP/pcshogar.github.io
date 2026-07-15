@@ -508,6 +508,8 @@ export function calculateCardCycleDates(card: CreditCard) {
     };
 }
 
+export const round2 = (num: number) => Math.round(num * 100) / 100;
+
 export function formatMoney(amount: number | undefined | null, includeSymbol: boolean = true): string {
     if (amount === undefined || amount === null || isNaN(amount)) {
         return includeSymbol ? '0,00€' : '0,00';

@@ -98,6 +98,7 @@ export interface RecurringExpense {
     amount: number;
     currency: Currency;
     frequency: 'weekly' | 'monthly' | 'bi-monthly' | 'quarterly' | 'four-monthly' | 'five-monthly' | 'semi-annually' | 'seven-monthly' | 'eight-monthly' | 'nine-monthly' | 'ten-monthly' | 'eleven-monthly' | 'yearly';
+    financingSavingGoalId?: string; // Point 4: Link to saving goal
     paymentDay: number; // Day of month
     paymentMonth?: number; // For yearly/bi-monthly/quarterly/etc. (1-indexed)
     active: boolean;

@@ -124,7 +124,7 @@ const RemnantDecisionModal: React.FC<RemnantDecisionModalProps> = ({ closing, on
                             description: `(Aplazado) ${pe.description}`,
                             amount: pe.amount,
                             currency: pe.currency,
-                            date: Date.now(),
+                            date: nextMonthObj.getTime(), // SET TO 1ST OF NEXT MONTH
                             categoryId: pe.categoryId || 'cat_other',
                             paymentMethod: pe.paymentMethod || { type: 'cash' },
                             isFixed: false,

@@ -13,7 +13,7 @@ import {
 import { incomeDB } from '../services/db';
 import { SyncService } from '../services/syncService';
 import { useAppSettings } from './AppSettingsContext';
-import { calculateAvailableBalanceForMonth } from '../utils/financeCalculations';
+import { calculateAvailableBalanceForMonth, round2 } from '../utils/financeCalculations';
 import { DropboxService } from '../services/dropboxService';
 import { GoogleDriveService } from '../services/googleDriveService';
 import { useToast } from './ToastContext';
@@ -518,7 +518,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
             id: uuidv4(),
             name,
             type,
-            balance: initialBalance,
+            balance: round2(initialBalance),
             currency: 'EUR',
             isMain: accounts.length === 0,
             color,
@@ -548,6 +548,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
     const addExpense = async (expenseData: Omit<Expense, 'id'>) => {
         const newExpense: Expense = {
             ...expenseData,
+            amount: round2(expenseData.amount),
             id: uuidv4(),
             updatedAt: Date.now()
         };
@@ -632,6 +633,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const addRecurringExpense = async (data: Omit<RecurringExpense, 'id'>): Promise<string> => {
+        if (data.amount !== undefined) data.amount = round2(data.amount);
         const newRec: RecurringExpense = {
             ...data,
             id: (data as any).id || uuidv4(),
@@ -643,6 +645,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const updateRecurringExpense = async (expense: RecurringExpense) => {
+        if (expense.amount !== undefined) expense.amount = round2(expense.amount);
         await incomeDB.updateRecurringExpense({ ...expense, updatedAt: Date.now() });
         await refreshFinance();
     };
@@ -697,6 +700,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const addExtraIncome = async (data: Omit<ExtraIncome, 'id' | 'type' | 'createdAt'>) => {
+        if (data.amount !== undefined) data.amount = round2(data.amount);
         const now = Date.now();
         const newIncome: any = {
             ...data,
@@ -744,6 +748,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const updateIncome = async (income: Income) => {
+        if (income.amount !== undefined) income.amount = round2(income.amount);
         await incomeDB.updateIncomeWithTransaction({ ...income, updatedAt: Date.now() });
         await refreshFinance();
     };
@@ -793,10 +798,11 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
             }
         } else {
             const isCard = cards.some(c => c.id === accountId);
+            const recTemplate = recurringExpenses.find(r => r.id === fixedId);
             const newExpense: Expense = {
                 id: uuidv4(),
                 description,
-                amount,
+                amount: round2(amount),
                 currency: 'EUR',
                 date,
                 categoryId: categoryId || 'cat_other',
@@ -805,6 +811,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                 status: 'paid',
                 period,
                 recurringExpenseId: fixedId,
+                linkedSavingGoalId: recTemplate?.financingSavingGoalId,
                 updatedAt: Date.now()
             };
             await incomeDB.addExpenseWithTransaction(newExpense);
@@ -1020,6 +1027,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const updateExpense = async (expense: Expense) => {
+        if (expense.amount !== undefined) expense.amount = round2(expense.amount);
         await incomeDB.updateExpense({ ...expense, updatedAt: Date.now() });
         await refreshFinance();
     };

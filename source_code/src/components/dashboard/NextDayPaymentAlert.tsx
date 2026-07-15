@@ -33,7 +33,8 @@ const NextDayPaymentAlert: React.FC = () => {
         if (!re.active) return false;
         const start = re.updatedAt || 0;
         if (start > monthEnd) return false;
-        if (re.paymentDay !== tomorrowDay) return false;
+        // Include tomorrow, today, and past due (if not paid)
+        if (re.paymentDay > tomorrowDay) return false;
 
         const isPaid = expenses.some(e => e.recurringExpenseId === re.id && e.period === period);
         const isIgnored = re.ignoredPeriods?.includes(period);

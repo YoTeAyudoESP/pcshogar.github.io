@@ -5,9 +5,9 @@ const https = require('https');
 const TOKEN = process.env.GITHUB_TOKEN;
 const OWNER = 'YoTeAyudoESP';
 const REPO = 'pcshogar.github.io';
-const TAG = 'v1.8.9';
-const RELEASE_NAME = 'PCS Hogar v1.8.9';
-const RELEASE_BODY = '?? Novedades v1.8.9:\n- Solucionado el problema de visualización en la creación de huchas en pantallas pequeñas.\n- Mejoras de usabilidad con autoscroll y validación de campos obligatorios.';
+const TAG = 'v1.9.0';
+const RELEASE_NAME = 'PCS Hogar v1.9.0';
+const RELEASE_BODY = '?? Novedades v1.9.0:\n- Solucionado el problema de visualizaciï¿½n en la creaciï¿½n de huchas en pantallas pequeï¿½as.\n- Mejoras de usabilidad con autoscroll y validaciï¿½n de campos obligatorios.';
 
 function request(method, url, data = null, headers = {}) {
     return new Promise((resolve, reject) => {
@@ -81,8 +81,8 @@ async function main() {
 
     const uploadUrl = res.upload_url;
     
-    await uploadAsset(uploadUrl, path.resolve(__dirname, 'source_code', 'dist_electron', 'PCSHogar_Setup_v1.8.9.exe'), 'PCSHogar_Setup_v1.8.9.exe', 'application/x-msdownload');
-    await uploadAsset(uploadUrl, path.resolve(__dirname, 'source_code', 'dist_android', 'PCSHogar_Setup_v1.8.9.apk'), 'PCSHogar_Setup_v1.8.9.apk', 'application/vnd.android.package-archive');
+    await uploadAsset(uploadUrl, path.resolve(__dirname, 'source_code', 'dist_electron', 'PCSHogar_Setup_v1.9.0.exe'), 'PCSHogar_Setup_v1.9.0.exe', 'application/x-msdownload');
+    await uploadAsset(uploadUrl, path.resolve(__dirname, 'source_code', 'dist_android', 'PCSHogar_Setup_v1.9.0.apk'), 'PCSHogar_Setup_v1.9.0.apk', 'application/vnd.android.package-archive');
 }
 
 main();

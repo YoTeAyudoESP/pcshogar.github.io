@@ -34,7 +34,7 @@ const IncomeList: React.FC<IncomeListProps> = ({ onEdit }) => {
 
     const currentMonthIncomes = useMemo(() => {
         return extraIncomes
-            .filter(inc => inc.type !== 'rollover')
+            .filter(inc => inc.type !== 'rollover' && inc.status !== 'pending')
             .filter(isItemInSelectedMonth)
             .sort((a, b) => {
                 const dateA = new Date(a.effectiveDate || a.createdAt).getTime();

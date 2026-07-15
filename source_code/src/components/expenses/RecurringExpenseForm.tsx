@@ -10,7 +10,7 @@ interface RecurringExpenseFormProps {
 }
 
 const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpense, onClose, onNavigateToSettings }) => {
-    const { addRecurringExpense, updateRecurringExpense, accounts, cards, categories, loans } = useFinance();
+    const { addRecurringExpense, updateRecurringExpense, accounts, cards, categories, loans, savings } = useFinance();
     const expenseCategories = categories
         .filter(c => c.type === 'expense')
         .sort((a, b) => a.name.localeCompare(b.name, 'es', { sensitivity: 'base' }));
@@ -22,6 +22,7 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
     const [paymentDay, setPaymentDay] = useState(editingExpense?.paymentDay?.toString() || '1');
     const [paymentMonth, setPaymentMonth] = useState(editingExpense?.paymentMonth?.toString() || '1');
     const [categoryId, setCategoryId] = useState(editingExpense?.categoryId || expenseCategories[0]?.id || '');
+    const [financingSavingGoalId, setFinancingSavingGoalId] = useState(editingExpense?.financingSavingGoalId || '');
     
     // Payment Method State
     const [pmType, setPmType] = useState<'account' | 'card' | 'cash'>(
@@ -40,7 +41,7 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
     useEffect(() => {
         const handleBack = (e: Event) => {
             e.preventDefault();
-            const isDirty = description !== '' || amount !== '' || frequency !== 'monthly' || paymentDay !== '1';
+            const isDirty = description !== '' || amount !== '' || frequency !== 'monthly' || paymentDay !== '1' || financingSavingGoalId !== '';
             if (!editingExpense && isDirty) {
                 if (window.confirm('Tienes cambios sin guardar. ¿Deseas descartarlos y volver?')) {
                     onClose();
@@ -52,6 +53,7 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
                     paymentDay !== (editingExpense.paymentDay?.toString() || '1') ||
                     paymentMonth !== (editingExpense.paymentMonth?.toString() || '1') ||
                     categoryId !== (editingExpense.categoryId || '') ||
+                    financingSavingGoalId !== (editingExpense.financingSavingGoalId || '') ||
                     pmType !== (editingExpense.paymentMethod?.type || 'account') ||
                     (pmType === 'account' && pmId !== (editingExpense.paymentMethod as any).accountId) ||
                     (pmType === 'card' && pmId !== (editingExpense.paymentMethod as any).cardId);

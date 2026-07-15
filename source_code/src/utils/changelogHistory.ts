@@ -4,6 +4,13 @@ export interface ChangelogEntry {
 }
 
 export const changelogHistory: ChangelogEntry[] = [
+  {
+    version: '1.9.1',
+    releaseNotes: `Novedades 1.9.1:
+- Huchas: Soporte para financiar gastos fijos desde huchas.
+- Préstamos y Financiación: Calculadora bidireccional (puedes introducir TAE y te calcula la comisión).
+- Dashboard: Alerta visual para gastos fijos atrasados o pendientes de confirmación.`
+  },
     {
         version: '1.9.0',
         releaseNotes: `Novedades v1.9.0:

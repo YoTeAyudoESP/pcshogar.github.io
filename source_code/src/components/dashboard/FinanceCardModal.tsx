@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { X, RefreshCw, Calculator, ChevronDown, ChevronUp } from 'lucide-react';
 import { useFinance } from '../../contexts/FinanceContext';
-import { formatMoney } from '../../utils/financeCalculations';
+import { formatMoney, computeTae, computeCommissionsFromTae } from '../../utils/financeCalculations';
 import type { CreditCard, Loan, RecurringExpense } from '../../types/finance';
 
 
@@ -36,6 +36,8 @@ const FinanceCardModal: React.FC<FinanceCardModalProps> = ({ isOpen, onClose, ca
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [overrideFirstQuota, setOverrideFirstQuota] = useState<number | ''>('');
     const [overrideLastQuota, setOverrideLastQuota] = useState<number | ''>('');
+    const [openingFee, setOpeningFee] = useState<number | ''>('');
+    const [tae, setTae] = useState<number | ''>('');
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -190,6 +192,38 @@ const FinanceCardModal: React.FC<FinanceCardModalProps> = ({ isOpen, onClose, ca
     }, [amount, existingLoan, calculationMode, monthlyQuota, months, tin, overrideFirstQuota]);
 
 
+
+    const handleOpeningFeeChange = (val: string) => {
+        const fee = val ? Number(val) : '';
+        setOpeningFee(fee);
+        const totalAmount = amount + (existingLoan?.currentDebt || 0);
+        if (fee !== '' && totalAmount && tin !== '' && results?.months) {
+            setTae(computeTae(Number(totalAmount), results.months, Number(tin), Number(fee)));
+        } else {
+            setTae('');
+        }
+    };
+
+    const handleTaeChange = (val: string) => {
+        const t = val ? Number(val) : '';
+        setTae(t);
+        const totalAmount = amount + (existingLoan?.currentDebt || 0);
+        if (t !== '' && totalAmount && tin !== '' && results?.months) {
+            setOpeningFee(computeCommissionsFromTae(Number(totalAmount), results.months, Number(tin), Number(t)));
+        } else {
+            setOpeningFee('');
+        }
+    };
+
+    useEffect(() => {
+        const totalAmount = amount + (existingLoan?.currentDebt || 0);
+        if (openingFee !== '' && totalAmount && tin !== '' && results?.months) {
+            setTae(computeTae(Number(totalAmount), results.months, Number(tin), Number(openingFee)));
+        } else {
+            setTae('');
+        }
+    }, [amount, existingLoan, tin, results?.months]); 
+
     const handleFinance = async () => {
         if (!results || 'error' in results) return;
         setIsSubmitting(true);
@@ -224,6 +258,7 @@ const FinanceCardModal: React.FC<FinanceCardModalProps> = ({ isOpen, onClose, ca
                     monthlyInstallment: targetQuota,
                     monthlyPayment: targetQuota,
                     tin: Number(tin) || 0,
+                    openingFee: openingFee !== '' ? Number(openingFee) : undefined,
                     firstInstallmentAmount: overrideFirstQuota !== '' ? Number(overrideFirstQuota) : undefined,
                     lastInstallmentAmount: overrideLastQuota !== '' ? Number(overrideLastQuota) : results.lastQuota,
                     updatedAt: Date.now()
@@ -273,6 +308,7 @@ const FinanceCardModal: React.FC<FinanceCardModalProps> = ({ isOpen, onClose, ca
                     linkedAccountId: cardId,
                     linkedRecurringExpenseId: recId,
                     tin: Number(tin) || 0,
+                    openingFee: openingFee !== '' ? Number(openingFee) : undefined,
                     firstInstallmentAmount: overrideFirstQuota !== '' ? Number(overrideFirstQuota) : undefined,
                     lastInstallmentAmount: overrideLastQuota !== '' ? Number(overrideLastQuota) : results.lastQuota,
                     updatedAt: Date.now()
@@ -412,6 +448,13 @@ const FinanceCardModal: React.FC<FinanceCardModalProps> = ({ isOpen, onClose, ca
                                     <span style={{ color: 'rgba(255,255,255, 0.7)', fontSize: '0.9rem' }}>Intereses Totales</span>
                                     <span style={{ color: '#ef4444', fontSize: '1rem', fontWeight: 500 }}>{formatMoney(results.totalInterest)}</span>
                                 </div>
+                                <div style={{ height: '1px', backgroundColor: 'rgba(255, 255, 255, 0.1)' }} />
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span style={{ color: 'rgba(255,255,255, 0.7)', fontSize: '0.9rem' }}>Total a pagar (Importe + Int. + Com.)</span>
+                                    <span style={{ color: '#ffffff', fontSize: '1.2rem', fontWeight: 700 }}>
+                                        {formatMoney((amount + (existingLoan?.currentDebt || 0)) + results.totalInterest + (openingFee !== '' ? Number(openingFee) : 0))}
+                                    </span>
+                                </div>
                             </>
                         )}
                     </div>
@@ -424,30 +467,30 @@ const FinanceCardModal: React.FC<FinanceCardModalProps> = ({ isOpen, onClose, ca
                         style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', fontSize: '0.85rem' }}
                     >
                         {showAdvanced ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                        Ajuste Manual de Cuotas (Opcional)
+                        Ajustes Avanzados de Banco (Opcional)
                     </button>
 
                     {showAdvanced && (
-                        <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
-                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                <label style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>1ª Cuota (Ej. Comisión)</label>
-                                <input 
-                                    type="number" 
-                                    style={{ ...inputStyle, padding: '8px' }} 
-                                    value={overrideFirstQuota} 
-                                    onChange={e => setOverrideFirstQuota(e.target.value !== '' ? Number(e.target.value) : '')} 
-                                    placeholder="Auto" 
-                                />
+                        <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div>
+                                    <label style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>Comisiones / Gastos extra (€)</label>
+                                    <input type="number" step="0.01" style={{...inputStyle, padding: '8px'}} value={openingFee} onChange={e => handleOpeningFeeChange(e.target.value)} placeholder="Ej. 15" />
+                                </div>
+                                <div>
+                                    <label style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>TAE Real (%)</label>
+                                    <input type="number" step="0.01" style={{...inputStyle, padding: '8px', color: '#10b981', fontWeight: 'bold'}} value={tae} onChange={e => handleTaeChange(e.target.value)} placeholder="Ej. 24" />
+                                </div>
                             </div>
-                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                <label style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>Última Cuota</label>
-                                <input 
-                                    type="number" 
-                                    style={{ ...inputStyle, padding: '8px' }} 
-                                    value={overrideLastQuota} 
-                                    onChange={e => setOverrideLastQuota(e.target.value !== '' ? Number(e.target.value) : '')} 
-                                    placeholder="Auto" 
-                                />
+                            <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div>
+                                    <label style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>Fijar 1ª Cuota</label>
+                                    <input type="number" step="0.01" style={{...inputStyle, padding: '8px'}} value={overrideFirstQuota} onChange={e => setOverrideFirstQuota(e.target.value ? Number(e.target.value) : '')} placeholder="Auto" />
+                                </div>
+                                <div>
+                                    <label style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>Fijar Última Cuota</label>
+                                    <input type="number" step="0.01" style={{...inputStyle, padding: '8px'}} value={overrideLastQuota} onChange={e => setOverrideLastQuota(e.target.value ? Number(e.target.value) : '')} placeholder="Auto" />
+                                </div>
                             </div>
                         </div>
                     )}

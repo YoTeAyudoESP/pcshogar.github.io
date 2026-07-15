@@ -81,8 +81,9 @@ async function main() {
 
     const uploadUrl = res.upload_url;
     
-    await uploadAsset(uploadUrl, path.resolve(__dirname, 'source_code', 'dist_electron', 'PCSHogar_Setup_v1.9.0.exe'), 'PCSHogar_Setup_v1.9.0.exe', 'application/x-msdownload');
-    await uploadAsset(uploadUrl, path.resolve(__dirname, 'source_code', 'dist_android', 'PCSHogar_Setup_v1.9.0.apk'), 'PCSHogar_Setup_v1.9.0.apk', 'application/vnd.android.package-archive');
+    
+    await uploadAsset(uploadUrl, path.resolve(__dirname, 'latest.yml'), 'latest.yml', 'text/yaml');
+    await uploadAsset(uploadUrl, path.resolve(__dirname, 'PCSHogar_Setup_v1.9.0.exe.blockmap'), 'PCSHogar_Setup_v1.9.0.exe.blockmap', 'application/octet-stream');
 }
 
 main();

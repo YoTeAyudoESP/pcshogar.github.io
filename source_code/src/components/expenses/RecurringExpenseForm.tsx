@@ -99,6 +99,7 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
             active: true,
             categoryId,
             paymentMethod,
+            financingSavingGoalId: financingSavingGoalId || undefined,
             updatedAt: Date.now(),
             createdAt: editingExpense?.createdAt || Date.now(),
             ignoredPeriods: editingExpense?.ignoredPeriods || []
@@ -369,6 +370,26 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
                             ))
                         )}
                     </select>
+                )}
+            </div>
+
+            {/* Hucha */}
+            <div style={{ marginBottom: '1.25rem', padding: '1rem', background: 'rgba(255, 255, 255, 0.02)', borderRadius: '1rem', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                <label style={{ display: 'block', marginBottom: '0.65rem', fontSize: '0.9rem', color: 'rgba(255, 255, 255, 0.7)', fontWeight: 500 }}>¿Financiar este gasto fijo con una Hucha?</label>
+                <select 
+                    style={{ background: 'rgba(25, 27, 34, 0.4)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '0.75rem', padding: '0.875rem', color: 'white', width: '100%', fontSize: '1rem', outline: 'none', transition: 'border-color 0.2s', appearance: 'none', backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'rgba(255,255,255,0.4)\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpath d=\'m6 9 6 6 6-6\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center' }} 
+                    value={financingSavingGoalId} 
+                    onChange={e => setFinancingSavingGoalId(e.target.value)}
+                >
+                    <option value="">No financiar con Hucha</option>
+                    {savings.map(goal => (
+                        <option key={goal.id} value={goal.id}>{goal.name} (Saldo: {goal.currentAmount.toFixed(2)} €)</option>
+                    ))}
+                </select>
+                {financingSavingGoalId && (
+                    <p style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)' }}>
+                        Se intentará descontar el importe de esta hucha al pagarse.
+                    </p>
                 )}
             </div>
 

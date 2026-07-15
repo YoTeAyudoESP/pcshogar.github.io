@@ -6,6 +6,7 @@ import ExpenseList from '../expenses/ExpenseList';
 import FinanceSummary from './FinanceSummary';
 import PendingActionsWidget from './PendingActionsWidget';
 import NextDayPaymentAlert from './NextDayPaymentAlert';
+import OverdueFixedExpenseAlert from './OverdueFixedExpenseAlert';
 import UnlinkedLoanAlert from './UnlinkedLoanAlert';
 import FinanceGlobalSummary from './FinanceGlobalSummary';
 import CreditCardSettlement from './CreditCardSettlement';
@@ -436,6 +437,7 @@ const Dashboard: React.FC = () => {
                         </button>
                     </div>
 
+                    <OverdueFixedExpenseAlert />
                     <NextDayPaymentAlert />
                     <UnlinkedLoanAlert />
                     <BalanceDiscrepancyAlert />

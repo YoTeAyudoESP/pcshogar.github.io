@@ -641,7 +641,7 @@ export function calculateBalanceDiscrepancy(
     return {
         dineroReal,
         dineroLibreReal,
-        compromisoGastos,
+    compromisoGastos,
         compromisoTarjetas,
         compromisos,
         dineroEnHuchas,
@@ -650,4 +650,88 @@ export function calculateBalanceDiscrepancy(
         hasSignificantDiscrepancy,
         mesActual
     };
+}
+
+/**
+ * Calculates the TAE given the TIN (%), the borrowed amount, the duration in months, 
+ * and the total upfront commissions/expenses (€).
+ */
+export function computeTae(amount: number, months: number, tin: number, commissions: number): number {
+    if (amount <= 0 || months <= 0 || tin < 0 || commissions < 0 || commissions >= amount) {
+        return 0;
+    }
+    
+    // Formula cuota mensual sistema francés
+    const monthlyRate = (tin / 100) / 12;
+    let pmt = 0;
+    if (monthlyRate === 0) {
+        pmt = amount / months;
+    } else {
+        pmt = amount * (monthlyRate / (1 - Math.pow(1 + monthlyRate, -months)));
+    }
+    
+    const netReceived = amount - commissions;
+    
+    // Búsqueda binaria de la TIR mensual
+    let low = 0;
+    let high = 1.0; // 100% mensual
+    let iter = 0;
+    let r = 0;
+    
+    while (low <= high && iter < 100) {
+        r = (low + high) / 2;
+        // Calcula el valor presente de los pagos con tasa r
+        let pv = 0;
+        if (r === 0) {
+            pv = pmt * months;
+        } else {
+            pv = pmt * ((1 - Math.pow(1 + r, -months)) / r);
+        }
+        
+        if (Math.abs(pv - netReceived) < 0.001) {
+            break;
+        }
+        
+        if (pv > netReceived) {
+            // Tasa demasiado baja (pv muy alto)
+            low = r;
+        } else {
+            // Tasa demasiado alta (pv muy bajo)
+            high = r;
+        }
+        iter++;
+    }
+    
+    const tae = (Math.pow(1 + r, 12) - 1) * 100;
+    return round2(tae);
+}
+
+/**
+ * Calculates the upfront commissions given the TIN (%), TAE (%), 
+ * the borrowed amount, and the duration in months.
+ */
+export function computeCommissionsFromTae(amount: number, months: number, tin: number, tae: number): number {
+    if (amount <= 0 || months <= 0 || tin < 0 || tae < tin) {
+        return 0;
+    }
+    
+    const monthlyRate = (tin / 100) / 12;
+    let pmt = 0;
+    if (monthlyRate === 0) {
+        pmt = amount / months;
+    } else {
+        pmt = amount * (monthlyRate / (1 - Math.pow(1 + monthlyRate, -months)));
+    }
+    
+    const r = Math.pow(1 + tae / 100, 1 / 12) - 1;
+    
+    let pv = 0;
+    if (r === 0) {
+        pv = pmt * months;
+    } else {
+        pv = pmt * ((1 - Math.pow(1 + r, -months)) / r);
+    }
+    
+    const commissions = amount - pv;
+    return round2(Math.max(0, commissions));
 }

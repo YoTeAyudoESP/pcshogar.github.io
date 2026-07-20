@@ -1,7 +1,7 @@
 {
-  "releaseNotes": "🚀 Novedades v1.9.3:\n- Préstamos: Añadido campo de 'Capital amortizado' para un mejor control.\n- Préstamos: Mejorado el formulario de edición y visualización de cuotas simuladas.\n- Préstamos: Ajuste de capital pendiente más preciso y TIN opcional al editar.",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.9.3/PCSHogar_Setup_v1.9.3.apk",
-  "version": "1.9.3",
-  "versionCode": 205,
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.9.3/PCSHogar_Setup_v1.9.3.exe"
+  "releaseNotes": "🚀 Novedades v1.9.4:\n- Mejora de UI: El porcentaje de uso de las tarjetas de crédito ahora tiene en cuenta el capital de los préstamos asociados.\n- Responsive UI: Diseño mejorado en el formulario de creación/edición de préstamos para pantallas pequeñas.\n- UX: Modales mejorados sin scroll interno y con foco automático en la parte superior para evitar doble scroll en dispositivos.",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.9.4/PCSHogar_Setup_v1.9.4.apk",
+  "version": "1.9.4",
+  "versionCode": 206,
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.9.4/PCSHogar_Setup_v1.9.4.exe"
 }

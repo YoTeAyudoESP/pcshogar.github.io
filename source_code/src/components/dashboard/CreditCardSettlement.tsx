@@ -7,7 +7,7 @@ import { formatMoney } from '../../utils/financeCalculations';
 import FinanceCardModal from './FinanceCardModal';
 
 const CreditCardSettlement: React.FC = () => {
-    const { cards = [], expenses = [], settleCardCycle } = useFinance();
+    const { cards = [], expenses = [], loans = [], settleCardCycle } = useFinance();
     const { selectedYear } = useDateSelection();
     
     const [financeCardId, setFinanceCardId] = useState<string | null>(null);
@@ -70,7 +70,7 @@ const CreditCardSettlement: React.FC = () => {
 
     // Separar tarjetas en uso de las disponibles (sin gasto actual)
     const { activeCards, availableCards } = useMemo(() => {
-        const creditOnly = (cards || []).filter(c => c && c.type === 'credit');
+        const creditOnly = (cards || []).filter(c => c && c.type === 'credit' && c.limit > 0);
         const active: CreditCard[] = [];
         const available: CreditCard[] = [];
 
@@ -81,7 +81,7 @@ const CreditCardSettlement: React.FC = () => {
                 if (!exp?.paymentMethod) return false;
                 const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === c.id;
                 if (!isCard || exp.isSettled) return false;
-                if (exp.amount < 0 && exp.status === 'pending') return false;
+                if (exp.status === 'pending') return false;
                 const expDate = getEffectiveSettlementDate(exp);
                 return expDate >= cycleDates.active.start && expDate <= cycleDates.active.cutoff;
             });
@@ -91,14 +91,28 @@ const CreditCardSettlement: React.FC = () => {
                 if (!exp?.paymentMethod) return false;
                 const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === c.id;
                 if (!isCard || exp.isSettled) return false;
-                if (exp.amount < 0 && exp.status === 'pending') return false;
+                if (exp.status === 'pending') return false;
                 const expDate = getEffectiveSettlementDate(exp);
                 return expDate >= cycleDates.pending.start && expDate <= cycleDates.pending.cutoff;
             });
             const pendingTotal = pendingExpenses.reduce((sum, exp) => sum + exp.amount, 0);
 
-            if (activeTotal > 0.009 || pendingTotal > 0.009) {
-                active.push(c);
+            const nextCycleExpenses = (expenses || []).filter(exp => {
+                if (!exp?.paymentMethod) return false;
+                const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === c.id;
+                if (!isCard || exp.isSettled) return false;
+                if (exp.status === 'pending') return false;
+                // If it's forced to next month explicitly
+                const adjustment = (exp.paymentMethod as any)?.settlementAdjustment || 0;
+                if (adjustment !== 1) return false;
+                // Its original date was in the active cycle, but effective date pushed it out
+                const origDate = new Date(exp.date || Date.now());
+                return origDate >= cycleDates.active.start && origDate <= cycleDates.active.cutoff;
+            });
+            const nextCycleTotal = nextCycleExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+
+            if (activeTotal > 0.009 || pendingTotal > 0.009 || nextCycleTotal > 0.009) {
+                active.push({ ...c, _activeTotal: activeTotal, _pendingTotal: pendingTotal, _nextCycleTotal: nextCycleTotal } as any);
             } else {
                 available.push(c);
             }
@@ -205,7 +219,7 @@ const CreditCardSettlement: React.FC = () => {
                             if (!exp?.paymentMethod) return false;
                             const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === card.id;
                             if (!isCard || exp.isSettled) return false;
-                            if (exp.amount < 0 && exp.status === 'pending') return false;
+                            if (exp.status === 'pending') return false;
                             const expDate = getEffectiveSettlementDate(exp);
                             return expDate >= cycleDates.active.start && expDate <= cycleDates.active.cutoff;
                         });
@@ -215,24 +229,47 @@ const CreditCardSettlement: React.FC = () => {
                             if (!exp?.paymentMethod) return false;
                             const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === card.id;
                             if (!isCard || exp.isSettled) return false;
-                            if (exp.amount < 0 && exp.status === 'pending') return false;
+                            if (exp.status === 'pending') return false;
                             const expDate = getEffectiveSettlementDate(exp);
                             return expDate >= cycleDates.pending.start && expDate <= cycleDates.pending.cutoff;
                         });
                         const pendingTotal = pendingExpenses.reduce((sum, exp) => sum + exp.amount, 0);
 
+                        const nextCycleExpenses = (expenses || []).filter(exp => {
+                            if (!exp?.paymentMethod) return false;
+                            const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === card.id;
+                            if (!isCard || exp.isSettled) return false;
+                            if (exp.status === 'pending') return false;
+                            const adjustment = (exp.paymentMethod as any)?.settlementAdjustment || 0;
+                            if (adjustment !== 1) return false;
+                            const origDate = new Date(exp.date || Date.now());
+                            return origDate >= cycleDates.active.start && origDate <= cycleDates.active.cutoff;
+                        });
+                        const nextCycleTotal = nextCycleExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+
                         const yearExpenses = (expenses || []).filter(exp => {
                             if (!exp?.paymentMethod) return false;
                             const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === card.id;
                             if (!isCard) return false;
-                            if (exp.amount < 0 && exp.status === 'pending') return false;
+                            if (exp.status === 'pending') return false;
                             const expDate = getEffectiveSettlementDate(exp);
                             return expDate.getFullYear() === selectedYear;
                         });
                         const yearTotal = yearExpenses.reduce((sum, exp) => sum + exp.amount, 0);
 
-                        // Disponible = límite - gasto ciclo ACTUAL (no se cuenta el pendiente anterior)
-                        const available = limit > 0 ? Math.max(0, limit - activeTotal) : null;
+                        // Préstamos soportados por esta tarjeta
+                        const supportedLoansCapital = loans
+                            .filter(l => l.status === 'active' && l.supportedByCardId === card.id)
+                            .reduce((sum, l) => sum + (l.currentDebt || 0), 0);
+
+                        // Disponible = límite - gasto ciclo ACTUAL - prestamos (si no hay limite de financiacion separado)
+                        const limitToDeductFromRegular = card.hasAdditionalFinanceLimit ? 0 : supportedLoansCapital;
+                        const available = limit > 0 ? Math.max(0, limit - activeTotal - limitToDeductFromRegular) : null;
+                        
+                        // Disponible Financiación (si tiene límite separado)
+                        const availableFinance = card.hasAdditionalFinanceLimit && card.financeLimit !== undefined 
+                            ? Math.max(0, card.financeLimit - supportedLoansCapital) 
+                            : null;
 
                         return (
                             <div key={card.id} className="glass-panel" style={{ 
@@ -263,7 +300,12 @@ const CreditCardSettlement: React.FC = () => {
                                         </div>
                                         {available !== null && (
                                             <div style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 600, marginTop: '0.15rem' }}>
-                                                {formatMoney(available)} disponible
+                                                {formatMoney(available)} disp. mensual
+                                            </div>
+                                        )}
+                                        {availableFinance !== null && (
+                                            <div style={{ fontSize: '0.75rem', color: '#3b82f6', fontWeight: 600, marginTop: '0.15rem' }}>
+                                                {formatMoney(availableFinance)} disp. a plazos
                                             </div>
                                         )}
                                     </div>
@@ -273,6 +315,26 @@ const CreditCardSettlement: React.FC = () => {
                                 {limit > 0 && (
                                     <UsageBar used={activeTotal} limit={limit} color={card.color || '#fbbf24'} />
                                 )}
+
+                                {/* Gastos forzados al ciclo siguiente */}
+                                {nextCycleTotal > 0 && (
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        background: 'rgba(59, 130, 246, 0.15)',
+                                        border: '1px solid rgba(59, 130, 246, 0.3)',
+                                        padding: '0.6rem 1rem',
+                                        borderRadius: '0.75rem',
+                                        marginTop: '0.5rem'
+                                    }}>
+                                        <AlertCircle size={16} color="#60a5fa" />
+                                        <span style={{ fontSize: '0.85rem', color: '#93c5fd', fontWeight: 500 }}>
+                                            Forzados al próximo ciclo: +{formatMoney(nextCycleTotal)}
+                                        </span>
+                                    </div>
+                                )}
+
 
                                 {/* Botón financiar ciclo actual */}
                                 <button
@@ -424,6 +486,21 @@ const CreditCardSettlement: React.FC = () => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                         {availableCards.map((card: CreditCard) => {
                             const limit = card.limit || 0;
+                            
+                            // Préstamos soportados por esta tarjeta
+                            const supportedLoansCapital = loans
+                                .filter(l => l.status === 'active' && l.supportedByCardId === card.id)
+                                .reduce((sum, l) => sum + (l.currentDebt || 0), 0);
+
+                            // Disponible = límite - prestamos (si no hay limite de financiacion separado)
+                            const limitToDeductFromRegular = card.hasAdditionalFinanceLimit ? 0 : supportedLoansCapital;
+                            const available = limit > 0 ? Math.max(0, limit - limitToDeductFromRegular) : null;
+                            
+                            // Disponible Financiación (si tiene límite separado)
+                            const availableFinance = card.hasAdditionalFinanceLimit && card.financeLimit !== undefined 
+                                ? Math.max(0, card.financeLimit - supportedLoansCapital) 
+                                : null;
+
                             return (
                                 <div key={card.id} className="glass-panel" style={{
                                     padding: '1rem 1.25rem',
@@ -443,15 +520,20 @@ const CreditCardSettlement: React.FC = () => {
                                         </div>
                                         <div style={{ textAlign: 'right' }}>
                                             <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#10b981' }}>
-                                                {limit > 0 ? formatMoney(limit) : '—'}
+                                                {(available || 0) > 0 ? formatMoney(available as number) : '—'}
                                             </div>
                                             <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#10b981', textTransform: 'uppercase', opacity: 0.7 }}>
-                                                100% disponible
+                                                {(available || 0) > 0 ? 'disp. mensual' : '100% gastado'}
                                             </div>
+                                            {availableFinance !== null && (
+                                                <div style={{ fontSize: '0.75rem', color: '#3b82f6', fontWeight: 600, marginTop: '0.15rem' }}>
+                                                    {formatMoney(availableFinance)} disp. a plazos
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                     {limit > 0 && (
-                                        <UsageBar used={0} limit={limit} color={card.color || '#10b981'} />
+                                        <UsageBar used={limitToDeductFromRegular} limit={limit} color={card.color || '#10b981'} />
                                     )}
                                 </div>
                             );

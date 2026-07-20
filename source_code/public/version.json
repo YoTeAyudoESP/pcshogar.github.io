@@ -1,6 +1,7 @@
 {
-    "releaseNotes":  "🎉 Novedades: Restaurada y mejorada la versión con Préstamos Avanzados y Financiación de Tarjetas.\n- Interfaz del Desajuste de Balance corregida para Android.\n- Opción de Disponible Libre incorporada.\n- Símbolo de moneda corregido en entradas numéricas.",
-    "url": "https://pcshogar.es/PCSHogar_Setup_v1.8.0.apk",
-    "version": "1.8.0",
-    "windowsUrl": "https://pcshogar.es/PCSHogar_Setup_v1.8.0.exe"
+  "releaseNotes": "🚀 Novedades v1.9.3:\n- Préstamos: Añadido campo de 'Capital amortizado' para un mejor control.\n- Préstamos: Mejorado el formulario de edición y visualización de cuotas simuladas.\n- Préstamos: Ajuste de capital pendiente más preciso y TIN opcional al editar.",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.9.3/PCSHogar_Setup_v1.9.3.apk",
+  "version": "1.9.3",
+  "versionCode": 205,
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.9.3/PCSHogar_Setup_v1.9.3.exe"
 }

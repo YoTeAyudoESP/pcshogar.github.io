@@ -18,6 +18,8 @@ const CardForm: React.FC<CardFormProps> = ({ onClose, editingCard, onCancelEdit 
     const [cutoffDay, setCutoffDay] = useState('20');
     const [paymentDay, setPaymentDay] = useState('5');
     const [color, setColor] = useState('#f87171');
+    const [hasAdditionalFinanceLimit, setHasAdditionalFinanceLimit] = useState(false);
+    const [financeLimit, setFinanceLimit] = useState('');
 
     useEffect(() => {
         if (editingCard) {
@@ -28,6 +30,8 @@ const CardForm: React.FC<CardFormProps> = ({ onClose, editingCard, onCancelEdit 
             setCutoffDay(editingCard.cutoffDay.toString());
             setPaymentDay(editingCard.paymentDay.toString());
             setColor(editingCard.color || '#f87171');
+            setHasAdditionalFinanceLimit(editingCard.hasAdditionalFinanceLimit || false);
+            setFinanceLimit(editingCard.financeLimit ? editingCard.financeLimit.toString() : '');
         } else {
             // Reset form when not editing
             setName('');
@@ -37,6 +41,8 @@ const CardForm: React.FC<CardFormProps> = ({ onClose, editingCard, onCancelEdit 
             setCutoffDay('20');
             setPaymentDay('5');
             setColor('#f87171');
+            setHasAdditionalFinanceLimit(false);
+            setFinanceLimit('');
         }
     }, [editingCard]);
 
@@ -54,19 +60,35 @@ const CardForm: React.FC<CardFormProps> = ({ onClose, editingCard, onCancelEdit 
                 cutoffDay: type === 'virtual' ? 0 : parseInt(cutoffDay),
                 paymentDay: type === 'virtual' ? 0 : parseInt(paymentDay),
                 currentBalance: type === 'virtual' ? (parseFloat(limit) || 0) : editingCard.currentBalance,
-                color
+                color,
+                hasAdditionalFinanceLimit: type === 'credit' ? hasAdditionalFinanceLimit : false,
+                financeLimit: (type === 'credit' && hasAdditionalFinanceLimit) ? (parseFloat(financeLimit) || 0) : undefined
             });
             if (onCancelEdit) onCancelEdit();
         } else {
-            await addCard(
+            const newCard = {
                 name,
-                type === 'virtual' ? '' : linkedAccountId,
-                type === 'virtual' ? 0 : (parseFloat(limit) || 0),
-                type === 'virtual' ? 0 : parseInt(cutoffDay),
-                type === 'virtual' ? 0 : parseInt(paymentDay),
+                linkedAccountId: type === 'virtual' ? '' : linkedAccountId,
+                limit: type === 'virtual' ? 0 : (parseFloat(limit) || 0),
+                cutoffDay: type === 'virtual' ? 0 : parseInt(cutoffDay),
+                paymentDay: type === 'virtual' ? 0 : parseInt(paymentDay),
                 type,
                 color,
-                type === 'virtual' ? (parseFloat(limit) || 0) : 0
+                currentBalance: type === 'virtual' ? (parseFloat(limit) || 0) : 0,
+                hasAdditionalFinanceLimit: type === 'credit' ? hasAdditionalFinanceLimit : false,
+                financeLimit: (type === 'credit' && hasAdditionalFinanceLimit) ? (parseFloat(financeLimit) || 0) : undefined
+            } as CreditCard;
+            await addCard(
+                newCard.name,
+                newCard.linkedAccountId || '',
+                newCard.limit,
+                newCard.cutoffDay,
+                newCard.paymentDay,
+                newCard.type,
+                newCard.color || '',
+                newCard.currentBalance,
+                newCard.hasAdditionalFinanceLimit,
+                newCard.financeLimit
             );
         }
 
@@ -196,6 +218,28 @@ const CardForm: React.FC<CardFormProps> = ({ onClose, editingCard, onCancelEdit 
                             <label style={{ display: 'block', marginBottom: '0.75rem', color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.9rem' }}>Día Pago</label>
                             <input type="number" min="1" max="31" style={inputStyle} value={paymentDay} onChange={e => setPaymentDay(e.target.value)} />
                         </div>
+                    </div>
+                    
+                    <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '1rem', border: '1px solid rgba(255,255,255,0.05)', marginTop: '0.5rem' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', marginBottom: hasAdditionalFinanceLimit ? '1rem' : '0' }}>
+                            <input 
+                                type="checkbox" 
+                                checked={hasAdditionalFinanceLimit}
+                                onChange={e => setHasAdditionalFinanceLimit(e.target.checked)}
+                                style={{ width: '18px', height: '18px', accentColor: 'var(--color-primary)' }}
+                            />
+                            <span style={{ fontSize: '0.9rem', color: 'white' }}>Tiene límite adicional de crédito a plazos</span>
+                        </label>
+                        
+                        {hasAdditionalFinanceLimit && (
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.75rem', color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.9rem' }}>Límite de Financiación Adicional (€)</label>
+                                <input type="number" step="0.01" style={inputStyle} value={financeLimit} onChange={e => setFinanceLimit(e.target.value)} placeholder="Ej. 1500" />
+                                <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)', marginTop: '-0.5rem' }}>
+                                    Las financiaciones de esta tarjeta restarán de este límite sin afectar al límite del ciclo normal.
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </>
             )}

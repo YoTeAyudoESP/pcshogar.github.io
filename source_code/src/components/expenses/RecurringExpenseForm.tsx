@@ -10,7 +10,7 @@ interface RecurringExpenseFormProps {
 }
 
 const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpense, onClose, onNavigateToSettings }) => {
-    const { addRecurringExpense, updateRecurringExpense, accounts, cards, categories, loans } = useFinance();
+    const { addRecurringExpense, updateRecurringExpense, accounts, cards, categories, loans, savings } = useFinance();
     const expenseCategories = categories
         .filter(c => c.type === 'expense')
         .sort((a, b) => a.name.localeCompare(b.name, 'es', { sensitivity: 'base' }));
@@ -22,6 +22,7 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
     const [paymentDay, setPaymentDay] = useState(editingExpense?.paymentDay?.toString() || '1');
     const [paymentMonth, setPaymentMonth] = useState(editingExpense?.paymentMonth?.toString() || '1');
     const [categoryId, setCategoryId] = useState(editingExpense?.categoryId || expenseCategories[0]?.id || '');
+    const [financingSavingGoalId, setFinancingSavingGoalId] = useState(editingExpense?.financingSavingGoalId || '');
     
     // Payment Method State
     const [pmType, setPmType] = useState<'account' | 'card' | 'cash'>(
@@ -40,7 +41,7 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
     useEffect(() => {
         const handleBack = (e: Event) => {
             e.preventDefault();
-            const isDirty = description !== '' || amount !== '' || frequency !== 'monthly' || paymentDay !== '1';
+            const isDirty = description !== '' || amount !== '' || frequency !== 'monthly' || paymentDay !== '1' || financingSavingGoalId !== '';
             if (!editingExpense && isDirty) {
                 if (window.confirm('Tienes cambios sin guardar. ¿Deseas descartarlos y volver?')) {
                     onClose();
@@ -52,6 +53,7 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
                     paymentDay !== (editingExpense.paymentDay?.toString() || '1') ||
                     paymentMonth !== (editingExpense.paymentMonth?.toString() || '1') ||
                     categoryId !== (editingExpense.categoryId || '') ||
+                    financingSavingGoalId !== (editingExpense.financingSavingGoalId || '') ||
                     pmType !== (editingExpense.paymentMethod?.type || 'account') ||
                     (pmType === 'account' && pmId !== (editingExpense.paymentMethod as any).accountId) ||
                     (pmType === 'card' && pmId !== (editingExpense.paymentMethod as any).cardId);
@@ -77,9 +79,14 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
 
         let paymentMethod: PaymentMethod = { type: 'cash' };
         if (pmType === 'account') {
+            if (!pmId) return;
             paymentMethod = { type: 'account', accountId: pmId };
         } else if (pmType === 'card') {
+            if (!pmId) return;
             paymentMethod = { type: 'card', cardId: pmId };
+        } else if (pmType === 'cash') {
+            if (!pmId) return;
+            paymentMethod = { type: 'cash', accountId: pmId };
         }
 
         const expenseData = {
@@ -92,6 +99,7 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
             active: true,
             categoryId,
             paymentMethod,
+            financingSavingGoalId: financingSavingGoalId || undefined,
             updatedAt: Date.now(),
             createdAt: editingExpense?.createdAt || Date.now(),
             ignoredPeriods: editingExpense?.ignoredPeriods || []
@@ -336,7 +344,11 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
                     <option value="cash">Efectivo</option>
                 </select>
 
-                {pmType !== 'cash' && (
+                {pmType === 'cash' && accounts.filter(a => a.type === 'cash').length === 0 ? (
+                    <p style={{ color: '#ef4444', fontSize: '0.9rem', margin: 0, padding: '0.8rem 0' }}>
+                        No tienes carteras de efectivo. Crea una en Ajustes.
+                    </p>
+                ) : (
                     <select 
                         style={{ ...inputStyle, appearance: 'none', backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'rgba(255,255,255,0.4)\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpath d=\'m6 9 6 6 6-6\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center' }} 
                         value={pmId} 
@@ -345,15 +357,39 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
                     >
                         <option value="">Seleccionar...</option>
                         {pmType === 'account' ? (
-                            accounts.map(acc => (
+                            accounts.filter(a => a.type === 'bank').map(acc => (
                                 <option key={acc.id} value={acc.id}>{acc.name} ({acc.balance.toFixed(2)} €)</option>
                             ))
-                        ) : (
+                        ) : pmType === 'card' ? (
                             cards.map(card => (
                                 <option key={card.id} value={card.id}>{card.name} (Límite: {card.limit} €)</option>
                             ))
+                        ) : (
+                            accounts.filter(a => a.type === 'cash').map(acc => (
+                                <option key={acc.id} value={acc.id}>{acc.name} ({acc.balance.toFixed(2)} €)</option>
+                            ))
                         )}
                     </select>
+                )}
+            </div>
+
+            {/* Hucha */}
+            <div style={{ marginBottom: '1.25rem', padding: '1rem', background: 'rgba(255, 255, 255, 0.02)', borderRadius: '1rem', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                <label style={{ display: 'block', marginBottom: '0.65rem', fontSize: '0.9rem', color: 'rgba(255, 255, 255, 0.7)', fontWeight: 500 }}>¿Financiar este gasto fijo con una Hucha?</label>
+                <select 
+                    style={{ background: 'rgba(25, 27, 34, 0.4)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '0.75rem', padding: '0.875rem', color: 'white', width: '100%', fontSize: '1rem', outline: 'none', transition: 'border-color 0.2s', appearance: 'none', backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'rgba(255,255,255,0.4)\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpath d=\'m6 9 6 6 6-6\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center' }} 
+                    value={financingSavingGoalId} 
+                    onChange={e => setFinancingSavingGoalId(e.target.value)}
+                >
+                    <option value="">No financiar con Hucha</option>
+                    {savings.map(goal => (
+                        <option key={goal.id} value={goal.id}>{goal.name} (Saldo: {goal.currentAmount.toFixed(2)} €)</option>
+                    ))}
+                </select>
+                {financingSavingGoalId && (
+                    <p style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)' }}>
+                        Se intentará descontar el importe de esta hucha al pagarse.
+                    </p>
                 )}
             </div>
 

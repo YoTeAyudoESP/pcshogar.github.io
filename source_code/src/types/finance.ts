@@ -25,12 +25,14 @@ export interface CreditCard {
     tin?: number;
     tae?: number;
     openingFee?: number;
+    hasAdditionalFinanceLimit?: boolean;
+    financeLimit?: number;
 }
 
 export type PaymentMethod =
     | { type: 'account'; accountId: string; settlementAdjustment?: number }
     | { type: 'card'; cardId: string; settlementAdjustment?: number }
-    | { type: 'cash' };
+    | { type: 'cash'; accountId?: string };
 
 export interface Expense {
     id: string;
@@ -43,6 +45,7 @@ export interface Expense {
     isFixed: boolean;
     status: 'pending' | 'paid';
     isSettled?: boolean;
+    isFinanced?: boolean;
     excludeFromBudget?: boolean;
     isSettlement?: boolean;
     settlementMetadata?: {
@@ -97,6 +100,7 @@ export interface RecurringExpense {
     amount: number;
     currency: Currency;
     frequency: 'weekly' | 'monthly' | 'bi-monthly' | 'quarterly' | 'four-monthly' | 'five-monthly' | 'semi-annually' | 'seven-monthly' | 'eight-monthly' | 'nine-monthly' | 'ten-monthly' | 'eleven-monthly' | 'yearly';
+    financingSavingGoalId?: string; // Point 4: Link to saving goal
     paymentDay: number; // Day of month
     paymentMonth?: number; // For yearly/bi-monthly/quarterly/etc. (1-indexed)
     active: boolean;
@@ -130,6 +134,7 @@ export interface Loan {
     openingFee?: number;
     earlyAmortizationFee?: number;
     linkedAccountId?: string;
+    supportedByCardId?: string;
     linkedRecurringExpenseId?: string;
     status: 'active' | 'paid';
     isPaid?: boolean;          // Convenience flag

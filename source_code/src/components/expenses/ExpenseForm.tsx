@@ -89,8 +89,9 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
         } else if (paymentMethodType === 'card') {
             if (!selectedMethodId) return;
             paymentMethod = { type: 'card', cardId: selectedMethodId, settlementAdjustment };
-        } else {
-            paymentMethod = { type: 'cash' };
+        } else if (paymentMethodType === 'cash') {
+            if (!selectedMethodId) return;
+            paymentMethod = { type: 'cash', accountId: selectedMethodId };
         }
 
         const parsedAmount = parseFloat(amount);
@@ -426,22 +427,28 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                         </div>
                     )}
 
-                    {paymentMethodType !== 'cash' && (
-                        <div>
-                            <label style={labelStyle}>
-                                {paymentMethodType === 'account' ? 'Seleccionar Cuenta' : 'Seleccionar Tarjeta'}
-                            </label>
-                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                                <select style={{ ...inputStyle, flex: 1 }} value={selectedMethodId} onChange={e => setSelectedMethodId(e.target.value)} required>
+                    <div style={{ marginBottom: '1rem' }}>
+                        <label style={labelStyle}>
+                            {paymentMethodType === 'account' ? 'Seleccionar Cuenta' : paymentMethodType === 'card' ? 'Seleccionar Tarjeta' : 'Seleccionar Cartera Efectivo'}
+                        </label>
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                            {paymentMethodType === 'cash' && accounts.filter(a => a.type === 'cash').length === 0 ? (
+                                <p style={{ color: '#ef4444', fontSize: '0.9rem', margin: 0, padding: '0.8rem 0' }}>
+                                    No tienes carteras de efectivo. Crea una en Ajustes.
+                                </p>
+                            ) : (
+                                <select style={{ ...inputStyle, flex: 1, marginTop: 0 }} value={selectedMethodId} onChange={e => setSelectedMethodId(e.target.value)} required>
                                     <option value="">Seleccione...</option>
                                     {paymentMethodType === 'account'
-                                        ? accounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name} ({formatMoney(acc.balance)})</option>)
-                                        : cards.map(c => <option key={c.id} value={c.id}>{c.name} {c.type === 'virtual' ? `(${formatMoney(c.currentBalance)})` : ''}</option>)
+                                        ? accounts.filter(a => a.type === 'bank').map(acc => <option key={acc.id} value={acc.id}>{acc.name} ({formatMoney(acc.balance)})</option>)
+                                        : paymentMethodType === 'card'
+                                            ? cards.map(c => <option key={c.id} value={c.id}>{c.name} {c.type === 'virtual' ? `(${formatMoney(c.currentBalance)})` : ''}</option>)
+                                            : accounts.filter(a => a.type === 'cash').map(acc => <option key={acc.id} value={acc.id}>{acc.name} ({formatMoney(acc.balance)})</option>)
                                     }
                                 </select>
-                            </div>
+                            )}
                         </div>
-                    )}
+                    </div>
 
 
                     {/* Hucha Financing (Only for Puntual) */}

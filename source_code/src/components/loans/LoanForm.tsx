@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import { X, Calculator, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 import type { Loan } from '../../types/finance';
-import { formatMoney } from '../../utils/financeCalculations';
+import { formatMoney, computeTae, computeCommissionsFromTae } from '../../utils/financeCalculations';
 import { v4 as uuidv4 } from 'uuid';
 
 interface LoanFormProps {
@@ -12,14 +12,16 @@ interface LoanFormProps {
 }
 
 const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose }) => {
-    const { addLoan, updateLoan, accounts, addRecurringExpense } = useFinance();
+    const { addLoan, updateLoan, accounts, cards = [], addRecurringExpense } = useFinance();
     
     // Basic Details
     const [name, setName] = useState('');
     const [linkedAccountId, setLinkedAccountId] = useState(accounts.find(a => a.isMain)?.id || accounts[0]?.id || '');
+    const [supportedByCardId, setSupportedByCardId] = useState<string>('');
     
     // Mathematics
     const [amount, setAmount] = useState<number | ''>('');
+    const [amortizedAmount, setAmortizedAmount] = useState<number | ''>('');
     const [tin, setTin] = useState<number | ''>('');
     
     // Dates
@@ -37,12 +39,14 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
     const [overrideFirstQuota, setOverrideFirstQuota] = useState<number | ''>('');
     const [overrideLastQuota, setOverrideLastQuota] = useState<number | ''>('');
     const [openingFee, setOpeningFee] = useState<number | ''>('');
+    const [tae, setTae] = useState<number | ''>('');
     const [earlyAmortizationFee, setEarlyAmortizationFee] = useState<number | ''>('');
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const overlayRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        window.scrollTo(0, 0);
         if (overlayRef.current) {
             overlayRef.current.scrollTop = 0;
         }
@@ -52,7 +56,9 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
         if (editingLoan) {
             setName(editingLoan.name || '');
             setLinkedAccountId(editingLoan.linkedAccountId || '');
+            setSupportedByCardId(editingLoan.supportedByCardId || '');
             setAmount(editingLoan.totalAmount || '');
+            setAmortizedAmount((editingLoan.totalAmount || 0) - (editingLoan.remainingAmount || 0));
             setTin(editingLoan.tin !== undefined ? editingLoan.tin : '');
             
             if (editingLoan.grantDate) {
@@ -77,7 +83,9 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
         } else {
             setName('');
             setLinkedAccountId(accounts.find(a => a.isMain)?.id || accounts[0]?.id || '');
+            setSupportedByCardId('');
             setAmount('');
+            setAmortizedAmount('');
             setTin('');
             setGrantDate(today);
             setStartDate(nextMonth);
@@ -103,9 +111,10 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
 
     const results = useMemo(() => {
         let P = Number(amount);
-        if (!P || tin === '') return null;
+        const actualTin = tin === '' ? 0 : Number(tin);
+        if (!P) return null;
         
-        const annualRate = Number(tin) / 100;
+        const annualRate = actualTin / 100;
         const monthlyRate = annualRate / 12;
         
         let daysToFirstPayment = 30; // Default if dates are missing or invalid
@@ -235,35 +244,64 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
         return null;
     }, [amount, tin, calculationMode, monthlyQuota, months, overrideFirstQuota, grantDate, startDate]);
 
+
+    const handleOpeningFeeChange = (val: string) => {
+        const fee = val ? Number(val) : '';
+        setOpeningFee(fee);
+        if (fee !== '' && amount && tin !== '' && results?.months) {
+            setTae(computeTae(Number(amount), results.months, Number(tin), Number(fee)));
+        } else {
+            setTae('');
+        }
+    };
+
+    const handleTaeChange = (val: string) => {
+        const t = val ? Number(val) : '';
+        setTae(t);
+        if (t !== '' && amount && tin !== '' && results?.months) {
+            setOpeningFee(computeCommissionsFromTae(Number(amount), results.months, Number(tin), Number(t)));
+        } else {
+            setOpeningFee('');
+        }
+    };
+
+    useEffect(() => {
+        if (openingFee !== '' && amount && tin !== '' && results?.months) {
+            setTae(computeTae(Number(amount), results.months, Number(tin), Number(openingFee)));
+        } else {
+            setTae('');
+        }
+    }, [amount, tin, results?.months]); // Auto-sync when loan parameters change
+
     const handleSubmit = async () => {
         if (!name.trim()) return;
         if (!amount || Number(amount) <= 0) return;
-        if (tin === '') return;
+        
         if (!results || results.error) return;
 
         setIsSubmitting(true);
         
         try {
-            const P = Number(amount);
-            const loanData: Partial<Loan> = {
+            const loanData = {
                 name,
-                totalAmount: P,
-                currentDebt: P,
-                remainingAmount: P,
-                monthlyPayment: results.quota,
-                monthlyInstallment: results.quota,
+                totalAmount: Number(amount),
+                remainingAmount: Number(amount) - (amortizedAmount === '' ? 0 : Number(amortizedAmount)),
+                currentDebt: Number(amount) - (amortizedAmount === '' ? 0 : Number(amortizedAmount)),
+                monthlyInstallment: results.quota as number,
+                monthlyPayment: results.quota as number,
                 firstInstallmentAmount: overrideFirstQuota !== '' ? Number(overrideFirstQuota) : undefined,
                 lastInstallmentAmount: overrideLastQuota !== '' ? Number(overrideLastQuota) : undefined,
-                grantDate: grantDate ? new Date(grantDate).getTime() : undefined,
-                startDate: startDate ? new Date(startDate).getTime() : Date.now(),
-                linkedAccountId,
+                startDate: new Date(startDate).getTime(),
                 currency: 'EUR',
+                paymentDay: new Date(startDate).getDate(),
                 status: 'active',
-                isPaid: false,
-                color: '#10b981',
-                tin: Number(tin),
+                tin: tin === '' ? 0 : Number(tin),
+                tae: tae !== '' ? Number(tae) : undefined,
+                grantDate: grantDate ? new Date(grantDate).getTime() : undefined,
                 openingFee: openingFee !== '' ? Number(openingFee) : undefined,
                 earlyAmortizationFee: earlyAmortizationFee !== '' ? Number(earlyAmortizationFee) : undefined,
+                linkedAccountId,
+                supportedByCardId: supportedByCardId || undefined,
                 updatedAt: Date.now()
             };
 
@@ -309,9 +347,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
                 padding: '2rem',
                 boxShadow: '0 20px 50px rgba(0,0,0,0.4)',
                 border: '1px solid var(--panel-border)',
-                position: 'relative',
-                maxHeight: '90vh',
-                overflowY: 'auto'
+                position: 'relative'
             }}>
                 <button 
                     type="button" 
@@ -341,13 +377,34 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
                     </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                    <div>
+                        <label style={labelStyle}>Tarjeta que financia (Opcional)</label>
+                        <select style={inputStyle} value={supportedByCardId} onChange={e => setSupportedByCardId(e.target.value)}>
+                            <option value="">-- Ninguna --</option>
+                            {cards.filter(c => c.type === 'credit').map(c => (
+                                <option key={c.id} value={c.id}>{c.name}</option>
+                            ))}
+                        </select>
+                        <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>
+                            Si seleccionas una, el capital pendiente de este préstamo restará del límite de la tarjeta.
+                        </div>
+                    </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: editingLoan ? '1fr 1fr 1fr' : '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
                     <div>
                         <label style={labelStyle}>Importe a Financiar (€){requiredSpan}</label>
                         <input type="number" step="0.01" style={inputStyle} value={amount} onChange={e => setAmount(e.target.value ? Number(e.target.value) : '')} placeholder="Ej. 15000" />
                     </div>
+                    {editingLoan && (
+                        <div>
+                            <label style={labelStyle}>Capital amortizado (€)</label>
+                            <input type="number" step="0.01" style={inputStyle} value={amortizedAmount} onChange={e => setAmortizedAmount(e.target.value !== '' ? Number(e.target.value) : '')} placeholder="Ej. 2500" />
+                        </div>
+                    )}
                     <div>
-                        <label style={labelStyle}>TIN Anual (%){requiredSpan}</label>
+                        <label style={labelStyle}>TIN Anual (%)</label>
                         <input type="number" step="0.01" style={inputStyle} value={tin} onChange={e => setTin(e.target.value !== '' ? Number(e.target.value) : '')} placeholder="Ej. 6.5" />
                     </div>
                 </div>
@@ -410,24 +467,34 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
                     {results?.error ? (
                         <div style={{ color: '#ef4444' }}>{results.error}</div>
                     ) : results ? (
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                            <div>
-                                <div style={{ fontSize: '0.85rem', color: 'rgba(var(--color-rgb-light), 0.7)', marginBottom: '0.2rem' }}>Cuota Normal (Redondeada)</div>
-                                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'white' }}>{formatMoney(results.quota)}</div>
+                        <>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div>
+                                    <div style={{ fontSize: '0.85rem', color: 'rgba(var(--color-rgb-light), 0.7)', marginBottom: '0.2rem' }}>Cuota Normal (Redondeada)</div>
+                                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'white' }}>{formatMoney(results.quota)}</div>
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: '0.85rem', color: 'rgba(var(--color-rgb-light), 0.7)', marginBottom: '0.2rem' }}>Plazo Total</div>
+                                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'white' }}>{results.months} meses</div>
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: '0.85rem', color: 'rgba(var(--color-rgb-light), 0.7)', marginBottom: '0.2rem' }}>Última Cuota (Ajuste Final)</div>
+                                    <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#10b981' }}>{overrideLastQuota !== '' ? formatMoney(Number(overrideLastQuota)) + ' (Manual)' : formatMoney(results.lastQuota)}</div>
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: '0.85rem', color: 'rgba(var(--color-rgb-light), 0.7)', marginBottom: '0.2rem' }}>Intereses Totales al Banco</div>
+                                    <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#ef4444' }}>{formatMoney(results.totalInterest)}</div>
+                                </div>
                             </div>
-                            <div>
-                                <div style={{ fontSize: '0.85rem', color: 'rgba(var(--color-rgb-light), 0.7)', marginBottom: '0.2rem' }}>Plazo Total</div>
-                                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'white' }}>{results.months} meses</div>
+                            <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem' }}>
+                                    Total a pagar (Importe + Intereses + Comisiones)
+                                </div>
+                                <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'white' }}>
+                                    {formatMoney(Number(amount) + (results.totalInterest || 0) + (openingFee !== '' ? Number(openingFee) : 0))}
+                                </div>
                             </div>
-                            <div>
-                                <div style={{ fontSize: '0.85rem', color: 'rgba(var(--color-rgb-light), 0.7)', marginBottom: '0.2rem' }}>Última Cuota (Ajuste Final)</div>
-                                <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#10b981' }}>{overrideLastQuota !== '' ? formatMoney(Number(overrideLastQuota)) + ' (Manual)' : formatMoney(results.lastQuota)}</div>
-                            </div>
-                            <div>
-                                <div style={{ fontSize: '0.85rem', color: 'rgba(var(--color-rgb-light), 0.7)', marginBottom: '0.2rem' }}>Intereses Totales al Banco</div>
-                                <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#ef4444' }}>{formatMoney(results.totalInterest)}</div>
-                            </div>
-                        </div>
+                        </>
                     ) : (
                         <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem' }}>Introduce el importe y el TIN para ver la simulación en tiempo real.</div>
                     )}
@@ -444,10 +511,14 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
                     
                     {showAdvanced && (
                         <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
                                 <div>
-                                    <label style={labelStyle}>Comisión de Apertura (€)</label>
-                                    <input type="number" step="0.01" style={{...inputStyle, background: 'var(--panel-bg)'}} value={openingFee} onChange={e => setOpeningFee(e.target.value ? Number(e.target.value) : '')} placeholder="Ej. 150" />
+                                    <label style={labelStyle}>Comisiones / Gastos extra (€)</label>
+                                    <input type="number" step="0.01" style={{...inputStyle, background: 'var(--panel-bg)'}} value={openingFee} onChange={e => handleOpeningFeeChange(e.target.value)} placeholder="Ej. 150" />
+                                </div>
+                                <div>
+                                    <label style={labelStyle}>TAE Real (%)</label>
+                                    <input type="number" step="0.01" style={{...inputStyle, background: 'var(--panel-bg)', color: '#10b981', fontWeight: 'bold'}} value={tae} onChange={e => handleTaeChange(e.target.value)} placeholder="Ej. 6.8" />
                                 </div>
                                 <div>
                                     <label style={labelStyle}>Penalización Amort. Anticipada (%)</label>
@@ -472,14 +543,14 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
                     <button 
                         type="button" 
                         onClick={() => { if (onCancelEdit) onCancelEdit(); if (onClose) onClose(); }}
-                        style={{ flex: 1, padding: '1rem', borderRadius: '1rem', border: '1px solid var(--panel-border)', background: 'transparent', color: 'white', fontWeight: 600, cursor: 'pointer' }}
+                        style={{ flex: 1, padding: '1rem', borderRadius: '1rem', border: '1px solid var(--panel-border)', background: 'rgba(255,255,255,0.05)', color: 'white', fontWeight: 600, cursor: 'pointer' }}
                     >
                         Cerrar (Sólo Simulación)
                     </button>
                     <button 
                         onClick={handleSubmit}
-                        disabled={!name || !amount || tin === '' || !results || !!results.error || isSubmitting}
-                        style={{ flex: 1, padding: '1rem', borderRadius: '1rem', border: 'none', background: (!name || !amount || tin === '' || !results || !!results.error || isSubmitting) ? 'var(--panel-border)' : 'var(--primary-color)', color: 'white', fontWeight: 600, cursor: (!name || !amount || tin === '' || !results || !!results.error || isSubmitting) ? 'not-allowed' : 'pointer' }}
+                        disabled={!name || !amount || !results || !!results.error || isSubmitting}
+                        style={{ flex: 1, padding: '1rem', borderRadius: '1rem', border: 'none', background: (!name || !amount || !results || !!results.error || isSubmitting) ? 'var(--panel-border)' : 'var(--color-primary)', color: 'white', fontWeight: 600, cursor: (!name || !amount || !results || !!results.error || isSubmitting) ? 'not-allowed' : 'pointer' }}
                     >
                         {isSubmitting ? 'Guardando...' : 'Confirmar Préstamo'}
                     </button>

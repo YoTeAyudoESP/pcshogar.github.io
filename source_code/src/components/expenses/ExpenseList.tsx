@@ -32,7 +32,6 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ onEdit }) => {
     const currentMonthExpenses = useMemo(() => {
         return expenses
             .filter(isItemInSelectedMonth)
-            .filter(exp => exp.status !== 'pending')
             .sort((a, b) => {
                 const dateA = new Date(a.date).getTime();
                 const dateB = new Date(b.date).getTime();
@@ -170,8 +169,28 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ onEdit }) => {
                                             <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', fontWeight: 500 }}>
                                                 {categories.find(c => c.id === expense.categoryId)?.name || 'Sin Categoría'}
                                             </div>
-                                            <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.35)' }}>
-                                                {new Date(expense.date).toLocaleDateString()}
+                                            <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.35)', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                                <span>{new Date(expense.date).toLocaleDateString()}</span>
+                                                {expense.status === 'pending' && (
+                                                    <span style={{ 
+                                                        background: 'rgba(245, 158, 11, 0.15)', 
+                                                        color: '#f59e0b', 
+                                                        padding: '2px 6px', 
+                                                        borderRadius: '4px',
+                                                        fontWeight: 600,
+                                                        fontSize: '0.6rem'
+                                                    }}>Pendiente</span>
+                                                )}
+                                                {expense.isFinanced && (
+                                                    <span style={{ 
+                                                        background: 'rgba(59, 130, 246, 0.15)', 
+                                                        color: '#60a5fa', 
+                                                        padding: '2px 6px', 
+                                                        borderRadius: '4px',
+                                                        fontWeight: 600,
+                                                        fontSize: '0.6rem'
+                                                    }}>Financiado</span>
+                                                )}
                                             </div>
                                         </div>
 

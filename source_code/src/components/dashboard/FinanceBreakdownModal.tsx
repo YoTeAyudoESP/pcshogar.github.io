@@ -81,7 +81,7 @@ const FinanceBreakdownModal: React.FC<FinanceBreakdownModalProps> = ({ isOpen, o
             return sum + funded;
         }, 0);
 
-    const ingresosTotales = fijosRecibidos + fijosProyectados + extrasRecibidos + remanente + financiadoHuchas;
+    const ingresosTotales = fijosRecibidos + fijosProyectados + extrasRecibidos + remanente;
 
     // 2. Gastos del Mes
     const pagados = expenses
@@ -233,10 +233,6 @@ const FinanceBreakdownModal: React.FC<FinanceBreakdownModalProps> = ({ isOpen, o
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                 <span>Extras Recibidos</span>
                                 <span style={{ whiteSpace: 'nowrap', marginLeft: '8px' }}>{formatCurrency(extrasRecibidos)}</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', color: '#6366f1' }}>
-                                <span>Financiado de Huchas</span>
-                                <span style={{ whiteSpace: 'nowrap', marginLeft: '8px' }}>{formatCurrency(financiadoHuchas)}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                 <span>Remanente mes anterior</span>

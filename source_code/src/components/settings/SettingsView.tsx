@@ -366,7 +366,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
                                     boxShadow: '0 4px 15px rgba(245, 158, 11, 0.4)'
                                 }}
                             >
-                                <Plus size={20} /> Nuevo Préstamo
+                                <Plus size={20} /> Simular y crear préstamo
                             </button>
                         </div>
 

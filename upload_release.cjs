@@ -5,100 +5,84 @@ const https = require('https');
 const TOKEN = process.env.GITHUB_TOKEN;
 const OWNER = 'YoTeAyudoESP';
 const REPO = 'pcshogar.github.io';
-const TAG = 'v1.8.1';
+const TAG = 'v1.9.0';
+const RELEASE_NAME = 'PCS Hogar v1.9.0';
+const RELEASE_BODY = '?? Novedades v1.9.0:\n- Solucionado el problema de visualizaci�n en la creaci�n de huchas en pantallas peque�as.\n- Mejoras de usabilidad con autoscroll y validaci�n de campos obligatorios.';
 
 function request(method, url, data = null, headers = {}) {
     return new Promise((resolve, reject) => {
-        const req = https.request(url, {
-            method,
+        const { URL } = require('url');
+        const parsedUrl = new URL(url);
+        const options = {
+            hostname: parsedUrl.hostname,
+            path: parsedUrl.pathname + parsedUrl.search,
+            method: method,
             headers: {
-                'Authorization': `Bearer ${TOKEN}`,
-                'User-Agent': 'NodeJS',
-                'Accept': 'application/vnd.github.v3+json',
+                'User-Agent': 'Node.js',
+                'Authorization': 'token ' + TOKEN,
                 ...headers
-            }
-        }, res => {
+            },
+            timeout: 1000000
+        };
+
+        const req = https.request(options, (res) => {
             let body = '';
-            res.on('data', chunk => body += chunk);
+            res.on('data', (chunk) => body += chunk);
             res.on('end', () => {
-                try {
-                    resolve(JSON.parse(body));
-                } catch(e) {
-                    resolve(body);
-                }
+                try { resolve(JSON.parse(body)); } catch(e) { resolve(body); }
             });
         });
-        
         req.on('error', reject);
-        
-        if (data) {
-            if (Buffer.isBuffer(data)) {
-                req.write(data);
-            } else {
-                req.write(JSON.stringify(data));
-            }
-        }
+        if (data) req.write(data);
         req.end();
     });
 }
 
-async function uploadAsset(uploadUrl, filePath, name) {
-    console.log(`Uploading ${name}...`);
+async function uploadAsset(uploadUrl, filePath, name, mimeType) {
+    console.log('Uploading ' + name + '...');
     const data = fs.readFileSync(filePath);
-    const url = uploadUrl.replace('{?name,label}', `?name=${encodeURIComponent(name)}`);
-    
-    const res = await request('POST', url, data, {
-        'Content-Type': 'application/octet-stream',
-        'Content-Length': data.length
-    });
-    console.log(`Uploaded ${name}:`, res.id ? 'Success' : res);
+    const url = uploadUrl.replace('{?name,label}', '') + '?name=' + encodeURIComponent(name);
+    try {
+        const res = await request('POST', url, data, {
+            'Content-Type': mimeType,
+            'Content-Length': data.length
+        });
+        console.log('Uploaded ' + name + ':', res.id ? 'Success' : res);
+    } catch (e) {
+        console.error('Failed to upload ' + name + ':', e);
+    }
 }
 
 async function main() {
     console.log('Creating release...');
     const releaseData = {
         tag_name: TAG,
-        target_commitish: 'main',
-        name: `Release ${TAG}`,
-        body: `Release ${TAG}`,
+        name: RELEASE_NAME,
+        body: RELEASE_BODY,
         draft: false,
-        prerelease: false,
-        generate_release_notes: false
+        prerelease: false
     };
 
-    const res = await request('POST', `https://api.github.com/repos/${OWNER}/${REPO}/releases`, releaseData);
+    let res = await request('POST', 'https://api.github.com/repos/' + OWNER + '/' + REPO + '/releases', JSON.stringify(releaseData), {
+        'Content-Type': 'application/json'
+    });
     
-    console.log('RES:', JSON.stringify(res, null, 2));
+    if (res.errors && res.errors[0] && res.errors[0].code === 'already_exists') {
+        console.log('Release already exists, getting it...');
+        res = await request('GET', 'https://api.github.com/repos/' + OWNER + '/' + REPO + '/releases/tags/' + TAG);
+    } else {
+        console.log('RES:', res);
+    }
 
-    if (res.errors || res.message === "Validation Failed") {
-        console.error('Error creating release:', res);
-        // Maybe it already exists? Let's try to get it
-        const getRes = await request('GET', `https://api.github.com/repos/${OWNER}/${REPO}/releases/tags/${TAG}`);
-        if (getRes.upload_url) {
-            console.log('Release already exists. Uploading to existing release...');
-            res.upload_url = getRes.upload_url;
-        } else {
-            return;
-        }
+    if (!res.upload_url) {
+        console.error('Failed to get upload URL', res);
+        return;
     }
 
     const uploadUrl = res.upload_url;
     
-    const apkPath = path.resolve(__dirname, 'source_code', 'dist_android', `PCSHogar_Setup_${TAG}.apk`);
-    if (fs.existsSync(apkPath)) {
-        await uploadAsset(uploadUrl, apkPath, `PCSHogar_Setup_${TAG}.apk`);
-    } else {
-        console.log('APK not found!');
-    }
-    
-    const exePath = path.resolve(__dirname, 'source_code', 'dist_electron', `PCSHogar_Setup_${TAG}.exe`);
-    if (fs.existsSync(exePath)) {
-        await uploadAsset(uploadUrl, exePath, `PCSHogar_Setup_${TAG}.exe`);
-    } else {
-        console.log('EXE not found!');
-    }
-    
-    console.log('All done!');
+    await uploadAsset(uploadUrl, path.resolve(__dirname, 'source_code', 'dist_electron', 'PCSHogar_Setup_v1.9.0.exe'), 'PCSHogar_Setup_v1.9.0.exe', 'application/x-msdownload');
+    await uploadAsset(uploadUrl, path.resolve(__dirname, 'source_code', 'dist_android', 'PCSHogar_Setup_v1.9.0.apk'), 'PCSHogar_Setup_v1.9.0.apk', 'application/vnd.android.package-archive');
 }
 
-main().catch(console.error);
+main();

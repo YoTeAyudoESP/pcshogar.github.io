@@ -5,6 +5,62 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '1.9.1',
+    releaseNotes: `Novedades 1.9.1:
+- Huchas: Soporte para financiar gastos fijos desde huchas.
+- Préstamos y Financiación: Calculadora bidireccional (puedes introducir TAE y te calcula la comisión).
+- Dashboard: Alerta visual para gastos fijos atrasados o pendientes de confirmación.`
+  },
+    {
+        version: '1.9.0',
+        releaseNotes: `Novedades v1.9.0:
+- 🛠 Se han redondeado todos los importes a 2 decimales en toda la app.
+- 🚀 Sugerencias Inteligentes: Avisos de pagos de gastos fijos pendientes o próximos.
+- 💳 Se han filtrado los ingresos pendientes de las sumas de las cuentas.
+- 🏦 Nueva funcionalidad: Financiar Gastos Fijos usando el saldo de tus Huchas.
+- 📅 Movimientos pendientes se arrastran ahora al día 1 del mes nuevo.`
+    },
+    {
+        version: '1.8.6',
+        releaseNotes: `Novedades v1.8.6:
+- 🛠 Solucionado error interno donde los gastos en carteras de efectivo se sumaban a Gastos Cuentas en el panel superior.`
+    },
+  {
+    version: '1.8.5',
+    releaseNotes: `Novedades v1.8.5:
+- 🚀 Las casillas de "Gastos Cuentas", "Gastos Tarjetas" y "Gastos Efectivo" del panel resumen ahora cuadran 1:1 con la suma directa de la lista de gastos de abajo.
+- 💳 Se agrupan los gastos de tarjetas de débito correctamente en la casilla de Tarjetas en vez de Cuentas.`
+  },
+  {
+    version: '1.8.4',
+    releaseNotes: `Novedades v1.8.4:
+- 🚀 El informativo de gastos en el Dashboard ahora refleja los gastos reales brutos del mes natural.
+- 🛠 Solucionado error donde el ajuste de descuadre hacia el "Disponible" no sumaba el importe.
+- ⚙️ Nueva sección de gestión de descuadres en Ajustes de Saldo con botón para restaurar la alerta.`
+  },
+  {
+    version: '1.8.3',
+    releaseNotes: `Novedades v1.8.3:
+- 🚀 Restablecida la funcionalidad de edición y eliminación de ingresos y gastos pendientes.
+- 💳 Los gastos financiados ahora se indican claramente y liberan el crédito mensual correctamente.
+- 📅 Ajustes de Gastos Tarjeta/Banco ahora reflejan la fecha real independientemente del periodo.
+- 🛠 Removida 'Financiación de Huchas' del ingreso disponible para evitar confusión.
+- ✅ Solucionado error donde Gastos Efectivo mostraba 0.0€.`
+  },
+  {
+    version: '1.8.2',
+    releaseNotes: `Novedades v1.8.2:
+- 🐞 Corrección en el cálculo de totales del dashboard.`
+  },
+  {
+    version: '1.8.0',
+    releaseNotes: `Novedades v1.8.0:
+- 🎉 Restaurada y mejorada la versión con Préstamos Avanzados y Financiación de Tarjetas.
+- 🛠 Interfaz del Desajuste de Balance corregida para Android.
+- 💰 Opción de Disponible Libre incorporada.
+- 💲 Símbolo de moneda corregido en entradas numéricas.`
+  },
+  {
     version: '1.6.5',
     releaseNotes: `Novedades v1.6.5:
 - 📁 Integración total con Google Drive: Ahora puedes explorar y seleccionar la carpeta exacta donde guardar tus datos, usando una interfaz idéntica a la de Dropbox.

@@ -5,6 +5,7 @@ import { useToast } from '../../contexts/ToastContext';
 import type { FixedIncome } from '../../types/income';
 import type { RecurringExpense, Account } from '../../types/finance';
 import { formatMoney } from '../../utils/financeCalculations';
+import ModalPortal from '../common/ModalPortal';
 
 interface ConfirmMovementModalProps {
     type: 'income' | 'expense' | 'refund';
@@ -204,7 +205,7 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
     };
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
+        <ModalPortal><div className="modal-overlay" onClick={onClose}>
             <div className="modal-container glass-panel" style={{ padding: '2rem', maxWidth: '450px' }} onClick={e => e.stopPropagation()}>
                 <button 
                     onClick={onClose}
@@ -541,7 +542,7 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
                     </div>
                 </div>
             </div>
-        </div>
+        </div></ModalPortal>
     );
 };
 

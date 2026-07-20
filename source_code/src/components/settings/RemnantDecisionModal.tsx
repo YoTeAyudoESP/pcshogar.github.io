@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import type { MonthClosing } from '../../types/finance';
 import { isItemInMonthAndYear, isRecurringActiveInMonth } from '../../utils/financeCalculations';
+import ModalPortal from '../common/ModalPortal';
 
 interface RemnantDecisionModalProps {
     closing: MonthClosing;
@@ -183,7 +184,7 @@ const RemnantDecisionModal: React.FC<RemnantDecisionModalProps> = ({ closing, on
     const nextMonthName = new Date(closing.year, closing.month + 1).toLocaleString('es-ES', { month: 'long' });
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
+        <ModalPortal><div className="modal-overlay" onClick={onClose}>
             <div className="modal-container glass-panel" style={{ padding: '2rem' }} onClick={e => e.stopPropagation()}>
                 <button onClick={onClose} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
                     <X size={24} />
@@ -404,7 +405,7 @@ const RemnantDecisionModal: React.FC<RemnantDecisionModalProps> = ({ closing, on
                     </button>
                 </div>
             </div>
-        </div>
+        </div></ModalPortal>
     );
 };
 

@@ -32,6 +32,7 @@ import BalanceDiscrepancyAlert from './BalanceDiscrepancyAlert';
 import CashUpdateNoticeModal from './CashUpdateNoticeModal';
 import type { Expense } from '../../types/finance';
 import type { Income } from '../../types/income';
+import ModalPortal from '../common/ModalPortal';
 
 const renderReleaseNotes = (notes: string) => {
     if (!notes) return null;
@@ -555,7 +556,7 @@ const Dashboard: React.FC = () => {
             {show30DayReminder && (() => {
                 const currentCount = parseInt(localStorage.getItem('pcshogar_reminder_count') || '0');
                 return (
-                    <div className="modal-overlay" onClick={() => setShow30DayReminder(false)}>
+                    <ModalPortal><div className="modal-overlay" onClick={() => setShow30DayReminder(false)}>
                         <div className="modal-container glass-panel" style={{ padding: '2.5rem 2rem', maxWidth: '440px', width: '95%', textAlign: 'center', position: 'relative' }} onClick={e => e.stopPropagation()}>
                             <div style={{
                                 width: '70px',
@@ -647,7 +648,7 @@ const Dashboard: React.FC = () => {
                                 {currentCount >= 3 ? 'Cerrar y no volver a mostrar' : 'Cerrar'}
                             </button>
                         </div>
-                    </div>
+                    </div></ModalPortal>
                 );
             })()}
 
@@ -656,7 +657,7 @@ const Dashboard: React.FC = () => {
             )}
 
             {showChangelog && (
-                <div className="modal-overlay" onClick={() => {
+                <ModalPortal><div className="modal-overlay" onClick={() => {
                     localStorage.setItem('pcshogar_last_version', version);
                     setShowChangelog(false);
                 }}>
@@ -741,7 +742,7 @@ const Dashboard: React.FC = () => {
                             ¡Entendido, a disfrutar!
                         </button>
                     </div>
-                </div>
+                </div></ModalPortal>
             )}
         </div>
     );

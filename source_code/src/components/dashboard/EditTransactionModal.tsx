@@ -5,6 +5,7 @@ import type { Income } from '../../types/income';
 import { X, Calendar, Info } from 'lucide-react';
 import { predictSettlementDate, formatMoney } from '../../utils/financeCalculations';
 import FinanceCardModal from './FinanceCardModal';
+import ModalPortal from '../common/ModalPortal';
 
 interface EditTransactionModalProps {
     transaction: Expense | Income;
@@ -238,7 +239,7 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction
 
     return (
         <>
-        <div className="modal-overlay" onClick={onClose}>
+        <ModalPortal><div className="modal-overlay" onClick={onClose}>
             <div className="modal-container glass-panel" style={{ 
                 padding: '2rem', 
                 maxWidth: '500px', 
@@ -559,7 +560,7 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction
                     </button>
                 </form>
             </div>
-        </div>
+        </div></ModalPortal>
 
         {/* Fullscreen config overlay modal for Huchas */}
         {isHuchaConfigOpen && (

@@ -4,6 +4,7 @@ import { X, Calculator, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 import type { Loan } from '../../types/finance';
 import { formatMoney, computeTae, computeCommissionsFromTae } from '../../utils/financeCalculations';
 import { v4 as uuidv4 } from 'uuid';
+import ModalPortal from '../common/ModalPortal';
 
 interface LoanFormProps {
     editingLoan?: Loan;
@@ -334,7 +335,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
     const requiredSpan = <span style={{ color: '#ef4444', marginLeft: '4px' }}>*</span>;
 
     return (
-        <div className="modal-overlay">
+        <ModalPortal><div className="modal-overlay">
             <div className="modal-container" style={{ maxWidth: '650px', padding: '2rem' }} onClick={e => e.stopPropagation()}>
                 <button 
                     type="button" 
@@ -543,7 +544,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
                     </button>
                 </div>
             </div>
-        </div>
+        </div></ModalPortal>
     );
 };
 

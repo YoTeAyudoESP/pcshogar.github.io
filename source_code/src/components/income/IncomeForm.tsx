@@ -4,6 +4,7 @@ import { useFinance } from '../../contexts/FinanceContext';
 import { X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, PiggyBank } from 'lucide-react';
 import type { Income, FixedIncome, ExtraIncome, Frequency } from '../../types/income';
 import { formatMoney } from '../../utils/financeCalculations';
+import ModalPortal from '../common/ModalPortal';
 
 interface IncomeFormProps {
     onClose: () => void;
@@ -163,7 +164,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData, onNavigat
     const years = [currentYear - 1, currentYear, currentYear + 1];
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
+        <ModalPortal><div className="modal-overlay" onClick={onClose}>
             <div className="modal-container" style={{ padding: '2rem', maxWidth: '650px' }} onClick={e => e.stopPropagation()}>
                 
                 <button onClick={onClose} style={{
@@ -397,7 +398,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData, onNavigat
                     </button>
                 </form>
             </div>
-        </div>
+        </div></ModalPortal>
     );
 };
 

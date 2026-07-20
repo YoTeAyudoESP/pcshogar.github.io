@@ -3,6 +3,7 @@ import { X, Info, ChevronRight, TrendingUp, TrendingDown, Target, Wallet } from 
 import { useFinance } from '../../contexts/FinanceContext';
 import { useDateSelection } from '../../contexts/DateSelectionContext';
 import { isRecurringActiveInMonth, calculateAvailableBalanceForMonth, calculateCardCycleDates, getEffectiveSettlementDate } from '../../utils/financeCalculations';
+import ModalPortal from '../common/ModalPortal';
 
 interface FinanceBreakdownModalProps {
     isOpen: boolean;
@@ -179,7 +180,7 @@ const FinanceBreakdownModal: React.FC<FinanceBreakdownModalProps> = ({ isOpen, o
     };
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
+        <ModalPortal><div className="modal-overlay" onClick={onClose}>
             <div className="modal-container glass-panel" style={{ padding: '1.5rem', background: '#12141c', maxWidth: '450px' }} onClick={e => e.stopPropagation()}>
                 {/* Header */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
@@ -358,7 +359,7 @@ const FinanceBreakdownModal: React.FC<FinanceBreakdownModalProps> = ({ isOpen, o
                     </span>
                 </div>
             </div>
-        </div>
+        </div></ModalPortal>
     );
 };
 

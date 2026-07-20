@@ -5,6 +5,7 @@ import { CreditCard as CardIcon, CheckCircle2, Calendar, AlertCircle, X, Zap } f
 import type { CreditCard, Expense } from '../../types/finance';
 import { formatMoney } from '../../utils/financeCalculations';
 import FinanceCardModal from './FinanceCardModal';
+import ModalPortal from '../common/ModalPortal';
 
 const CreditCardSettlement: React.FC = () => {
     const { cards = [], expenses = [], loans = [], settleCardCycle } = useFinance();
@@ -544,7 +545,7 @@ const CreditCardSettlement: React.FC = () => {
 
             {/* Modal de confirmación de liquidación */}
             {settlingCard && (
-                <div className="modal-overlay" onClick={() => setSettlingCard(null)}>
+                <ModalPortal><div className="modal-overlay" onClick={() => setSettlingCard(null)}>
                     <div className="modal-container glass-panel" style={{ padding: '2rem', maxWidth: '400px' }} onClick={e => e.stopPropagation()}>
                         <button 
                             type="button"
@@ -620,7 +621,7 @@ const CreditCardSettlement: React.FC = () => {
                             REALIZAR PAGO
                         </button>
                     </div>
-                </div>
+                </div></ModalPortal>
             )}
             
             {financeCardId && (

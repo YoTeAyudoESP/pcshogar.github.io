@@ -16,6 +16,7 @@ import {
     Monitor
 } from 'lucide-react';
 import type { MonthClosing, MonthOverride } from '../../types/finance';
+import ModalPortal from '../common/ModalPortal';
 
 const BalanceAdjustmentView: React.FC = () => {
     const { 
@@ -452,7 +453,7 @@ const BalanceAdjustmentView: React.FC = () => {
             </div>
 
             {editingClosing && (
-                <div className="modal-overlay" onClick={() => setEditingClosing(null)}>
+                <ModalPortal><div className="modal-overlay" onClick={() => setEditingClosing(null)}>
                     <div className="modal-container glass-panel" style={{ padding: '2rem', maxWidth: '400px' }} onClick={e => e.stopPropagation()}>
                         <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '1.5rem', color: 'white' }}>
                             Editar Importe de Cierre
@@ -507,7 +508,7 @@ const BalanceAdjustmentView: React.FC = () => {
                             </button>
                         </div>
                     </div>
-                </div>
+                </div></ModalPortal>
             )}
         </div>
     );

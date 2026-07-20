@@ -4,6 +4,7 @@ import { useDateSelection } from '../../contexts/DateSelectionContext';
 import { X, ArrowRightLeft, Info, AlertTriangle } from 'lucide-react';
 import { formatMoney, calculateAvailableBalanceForMonth } from '../../utils/financeCalculations';
 import { useToast } from '../../contexts/ToastContext';
+import ModalPortal from '../common/ModalPortal';
 
 interface BalanceTransferModalProps {
     onClose: () => void;
@@ -181,7 +182,7 @@ const BalanceTransferModal: React.FC<BalanceTransferModalProps> = ({ onClose, on
     };
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
+        <ModalPortal><div className="modal-overlay" onClick={onClose}>
             <div className="modal-container glass-panel" style={{ 
                 padding: '2rem',
                 maxWidth: '480px',
@@ -713,7 +714,7 @@ const BalanceTransferModal: React.FC<BalanceTransferModalProps> = ({ onClose, on
                 </form>
 
             </div>
-        </div>
+        </div></ModalPortal>
     );
 };
 

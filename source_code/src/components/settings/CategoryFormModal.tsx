@@ -32,6 +32,7 @@ import {
     Wallet
 } from 'lucide-react';
 import type { Category } from '../../types/finance';
+import ModalPortal from '../common/ModalPortal';
 
 interface CategoryFormModalProps {
     category?: Category;
@@ -117,7 +118,7 @@ const CategoryFormModal: React.FC<CategoryFormModalProps> = ({ category, onClose
     };
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
+        <ModalPortal><div className="modal-overlay" onClick={onClose}>
             <div className="modal-container glass-panel" style={{ padding: '2rem', maxWidth: '450px' }} onClick={e => e.stopPropagation()}>
                 <button 
                     onClick={onClose}
@@ -305,7 +306,7 @@ const CategoryFormModal: React.FC<CategoryFormModalProps> = ({ category, onClose
                     </div>
                 </form>
             </div>
-        </div>
+        </div></ModalPortal>
     );
 };
 

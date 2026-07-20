@@ -1,7 +1,7 @@
 {
-  "version": "1.9.6",
-  "releaseNotes": "Mejoras versión 1.9.6:\n- UX: El formulario de préstamos ahora funciona igual que el resto de modales - sin scroll encapsulado, los botones son siempre accesibles.",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.9.6/PCSHogar_Setup_v1.9.6.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.9.6/PCSHogar_Setup_v1.9.6.exe",
-  "versionCode": 209
+  "version": "1.9.7",
+  "releaseNotes": "Mejoras versión 1.9.7:\n- UX: Modales renderizados mediante React Portals para evitar que backdrop-filter o transformaciones CSS bloqueen el posicionamiento y scroll de las ventanas emergentes.",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.9.7/PCSHogar_Setup_v1.9.7.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.9.7/PCSHogar_Setup_v1.9.7.exe",
+  "versionCode": 210
 }

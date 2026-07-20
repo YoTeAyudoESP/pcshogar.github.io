@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AlertTriangle, X, Info } from 'lucide-react';
+import ModalPortal from './ModalPortal';
 
 interface NoticeData {
     id: string;
@@ -56,7 +57,7 @@ const DeveloperNotice: React.FC = () => {
     const Icon = (isError || isWarning) ? AlertTriangle : Info;
 
     return (
-        <div className="modal-overlay" style={{ zIndex: 9999, alignItems: 'center' }}>
+        <ModalPortal><div className="modal-overlay" style={{ zIndex: 9999, alignItems: 'center' }}>
             <div className="modal-container" style={{ maxWidth: '450px', background: '#1a1f2e', overflow: 'hidden' }}>
                 <div style={{ background: bgColor, padding: '1.5rem', display: 'flex', alignItems: 'flex-start', gap: '1rem', color: 'white' }}>
                     <Icon size={28} style={{ flexShrink: 0, marginTop: '2px' }} />
@@ -94,7 +95,7 @@ const DeveloperNotice: React.FC = () => {
                     </button>
                 </div>
             </div>
-        </div>
+        </div></ModalPortal>
     );
 };
 

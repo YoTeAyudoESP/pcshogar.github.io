@@ -4,6 +4,7 @@ import { useDateSelection } from '../../contexts/DateSelectionContext';
 import type { Expense } from '../../types/finance';
 import { Pencil, Trash2, Minus, Plus, ChevronDown, ChevronRight } from 'lucide-react';
 import { formatMoney } from '../../utils/financeCalculations';
+import ModalPortal from '../common/ModalPortal';
 
 interface ExpenseListProps {
     onEdit?: (expense: Expense) => void;
@@ -252,7 +253,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ onEdit }) => {
 
             {/* Custom Delete Confirmation Modal */}
             {deleteModal.show && deleteModal.expense && (
-                <div className="modal-overlay" onClick={() => setDeleteModal({ show: false, expense: null })}>
+                <ModalPortal><div className="modal-overlay" onClick={() => setDeleteModal({ show: false, expense: null })}>
                     <div 
                         className="modal-container glass-panel" 
                         style={{ padding: '2rem', maxWidth: '400px', width: '90%', textAlign: 'center', background: '#12141c' }}
@@ -387,7 +388,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ onEdit }) => {
                             </button>
                         </div>
                     </div>
-                </div>
+                </div></ModalPortal>
             )}
         </div>
     );

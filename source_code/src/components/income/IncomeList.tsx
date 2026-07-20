@@ -4,6 +4,7 @@ import { useDateSelection } from '../../contexts/DateSelectionContext';
 import type { Income, ExtraIncome } from '../../types/income';
 import { Pencil, Trash2, Plus, ChevronDown, ChevronRight } from 'lucide-react';
 import { formatMoney } from '../../utils/financeCalculations';
+import ModalPortal from '../common/ModalPortal';
 
 interface IncomeListProps {
     onEdit?: (income: Income) => void;
@@ -234,7 +235,7 @@ const IncomeList: React.FC<IncomeListProps> = ({ onEdit }) => {
 
             {/* Custom Delete Confirmation Modal */}
             {deleteModal.show && deleteModal.income && (
-                <div className="modal-overlay" onClick={() => setDeleteModal({ show: false, income: null })}>
+                <ModalPortal><div className="modal-overlay" onClick={() => setDeleteModal({ show: false, income: null })}>
                     <div 
                         className="modal-container glass-panel" 
                         style={{ padding: '2rem', maxWidth: '400px', width: '90%', textAlign: 'center', background: '#12141c' }}
@@ -369,7 +370,7 @@ const IncomeList: React.FC<IncomeListProps> = ({ onEdit }) => {
                             </button>
                         </div>
                     </div>
-                </div>
+                </div></ModalPortal>
             )}
         </div>
     );

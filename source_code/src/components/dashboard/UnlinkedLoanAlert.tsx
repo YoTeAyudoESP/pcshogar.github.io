@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import { Link2, X, AlertCircle, Search, Sparkles } from 'lucide-react';
 import { formatMoney } from '../../utils/financeCalculations';
+import ModalPortal from '../common/ModalPortal';
 
 const UnlinkedLoanAlert: React.FC = () => {
     const { loans, recurringExpenses, updateLoan, updateRecurringExpense } = useFinance();
@@ -191,7 +192,7 @@ const UnlinkedLoanAlert: React.FC = () => {
 
             {/* Quick Linking Modal */}
             {isModalOpen && (
-                <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
+                <ModalPortal><div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
                     <div className="modal-container glass-panel" style={{ padding: '2rem', maxWidth: '480px', width: '95%' }} onClick={e => e.stopPropagation()}>
                         <button 
                             onClick={() => setIsModalOpen(false)}
@@ -329,7 +330,7 @@ const UnlinkedLoanAlert: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                </div>
+                </div></ModalPortal>
             )}
         </>
     );

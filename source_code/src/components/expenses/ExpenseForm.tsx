@@ -4,6 +4,7 @@ import { X, Calendar, Info, Clock, CheckCircle } from 'lucide-react';
 import { predictSettlementDate, formatMoney } from '../../utils/financeCalculations';
 import type { CreditCard } from '../../types/finance';
 import FinanceCardModal from '../dashboard/FinanceCardModal';
+import ModalPortal from '../common/ModalPortal';
 
 interface ExpenseFormProps {
     onClose: () => void;
@@ -191,7 +192,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
 
     return (
         <>
-        <div className="modal-overlay" onClick={onClose}>
+        <ModalPortal><div className="modal-overlay" onClick={onClose}>
             <div className="modal-container" style={{ padding: '2rem' }} onClick={e => e.stopPropagation()}>
                 
                 {/* Header with Close X */}
@@ -575,7 +576,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                     </button>
                 </form>
             </div>
-        </div>
+        </div></ModalPortal>
 
         {/* Fullscreen config overlay modal for Huchas */}
         {isHuchaConfigOpen && (

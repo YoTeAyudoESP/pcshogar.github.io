@@ -3,6 +3,7 @@ import { X, RefreshCw, Calculator, ChevronDown, ChevronUp } from 'lucide-react';
 import { useFinance } from '../../contexts/FinanceContext';
 import { formatMoney, computeTae, computeCommissionsFromTae } from '../../utils/financeCalculations';
 import type { CreditCard, Loan, RecurringExpense } from '../../types/finance';
+import ModalPortal from '../common/ModalPortal';
 
 
 interface FinanceCardModalProps {
@@ -352,7 +353,7 @@ const FinanceCardModal: React.FC<FinanceCardModalProps> = ({ isOpen, onClose, ca
     });
 
     return (
-        <div className="modal-overlay" style={{ zIndex: 3000 }}>
+        <ModalPortal><div className="modal-overlay" style={{ zIndex: 3000 }}>
             <div style={modalStyle}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', paddingBottom: '16px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -527,7 +528,7 @@ const FinanceCardModal: React.FC<FinanceCardModalProps> = ({ isOpen, onClose, ca
                     Confirmar Financiación
                 </button>
             </div>
-        </div>
+        </div></ModalPortal>
     );
 };
 

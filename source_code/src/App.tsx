@@ -47,6 +47,18 @@ function AppContent() {
 
 function App() {
   useEffect(() => {
+    // Scroll Lock for Modals
+    const checkModals = () => {
+      if (document.querySelector('.modal-overlay')) {
+        document.body.classList.add('body-no-scroll');
+      } else {
+        document.body.classList.remove('body-no-scroll');
+      }
+    };
+    checkModals();
+    const observer = new MutationObserver(checkModals);
+    observer.observe(document.body, { childList: true, subtree: true });
+
     let activeListener: any = null;
 
     const setupListener = async () => {
@@ -66,6 +78,8 @@ function App() {
     setupListener();
 
     return () => {
+      observer.disconnect();
+      document.body.classList.remove('body-no-scroll');
       if (activeListener) {
         activeListener.remove();
       }

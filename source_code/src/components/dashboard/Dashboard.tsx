@@ -18,8 +18,9 @@ import { LayoutDashboard, Settings as SettingsIcon, X, Calendar, Clock, Trending
 
 import { useFinance } from '../../contexts/FinanceContext';
 import { useAppSettings } from '../../contexts/AppSettingsContext';
+import packageJson from '../../../package.json';
+const version = packageJson.version;
 import versionInfo from '../../../public/version.json';
-const version = versionInfo.version;
 import { changelogHistory, compareVersions } from '../../utils/changelogHistory';
 import { formatMoney } from '../../utils/financeCalculations';
 import RemnantDecisionModal from '../settings/RemnantDecisionModal';

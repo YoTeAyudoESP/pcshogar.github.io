@@ -1,7 +1,9 @@
 {
-  "releaseNotes": "🚀 Novedades v1.9.4:\n- Mejora de UI: El porcentaje de uso de las tarjetas de crédito ahora tiene en cuenta el capital de los préstamos asociados.\n- Responsive UI: Diseño mejorado en el formulario de creación/edición de préstamos para pantallas pequeñas.\n- UX: Modales mejorados sin scroll interno y con foco automático en la parte superior para evitar doble scroll en dispositivos.",
+  "releaseNotes": "Mejoras versión 1.9.5:\n- UX: Foco automático y comportamiento de ventanas modales mejorado al editar (body scroll lock).\n- UX: Auto-actualización automática de versión en el Dashboard para mantener siempre sincronizado el número mostrado con la versión real instalada.",
   "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.9.4/PCSHogar_Setup_v1.9.4.apk",
-  "version": "1.9.4",
+  "version": "1.9.5",
   "versionCode": 206,
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.9.4/PCSHogar_Setup_v1.9.4.exe"
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.9.4/PCSHogar_Setup_v1.9.4.exe",
+  "updateUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.9.5/PCSHogar_Setup_v1.9.5.exe",
+  "apkUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.9.5/PCSHogar_Setup_v1.9.5.apk"
 }

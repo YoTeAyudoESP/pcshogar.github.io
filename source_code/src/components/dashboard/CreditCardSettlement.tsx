@@ -313,7 +313,7 @@ const CreditCardSettlement: React.FC = () => {
 
                                 {/* Barra de progreso visual */}
                                 {limit > 0 && (
-                                    <UsageBar used={activeTotal} limit={limit} color={card.color || '#fbbf24'} />
+                                    <UsageBar used={activeTotal + limitToDeductFromRegular} limit={limit} color={card.color || '#fbbf24'} />
                                 )}
 
                                 {/* Gastos forzados al ciclo siguiente */}

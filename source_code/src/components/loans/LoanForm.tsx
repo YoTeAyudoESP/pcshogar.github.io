@@ -362,7 +362,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
                     {editingLoan ? 'Editar Préstamo' : 'Simular / Crear Préstamo'}
                 </h2>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
                     <div>
                         <label style={labelStyle}>Nombre del Préstamo{requiredSpan}</label>
                         <input style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="Ej: Coche, Reforma..." />
@@ -392,7 +392,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
                     </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: editingLoan ? '1fr 1fr 1fr' : '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
                     <div>
                         <label style={labelStyle}>Importe a Financiar (€){requiredSpan}</label>
                         <input type="number" step="0.01" style={inputStyle} value={amount} onChange={e => setAmount(e.target.value ? Number(e.target.value) : '')} placeholder="Ej. 15000" />
@@ -409,7 +409,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
                     </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
                     <div>
                         <label style={labelStyle}>Fecha Concesión (Dinero en cuenta){requiredSpan}</label>
                         <input type="date" style={inputStyle} value={grantDate} onChange={e => setGrantDate(e.target.value)} />
@@ -468,7 +468,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
                         <div style={{ color: '#ef4444' }}>{results.error}</div>
                     ) : results ? (
                         <>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
                                 <div>
                                     <div style={{ fontSize: '0.85rem', color: 'rgba(var(--color-rgb-light), 0.7)', marginBottom: '0.2rem' }}>Cuota Normal (Redondeada)</div>
                                     <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'white' }}>{formatMoney(results.quota)}</div>
@@ -511,7 +511,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
                     
                     {showAdvanced && (
                         <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                            <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
                                 <div>
                                     <label style={labelStyle}>Comisiones / Gastos extra (€)</label>
                                     <input type="number" step="0.01" style={{...inputStyle, background: 'var(--panel-bg)'}} value={openingFee} onChange={e => handleOpeningFeeChange(e.target.value)} placeholder="Ej. 150" />
@@ -525,7 +525,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
                                     <input type="number" step="0.01" style={{...inputStyle, background: 'var(--panel-bg)'}} value={earlyAmortizationFee} onChange={e => setEarlyAmortizationFee(e.target.value ? Number(e.target.value) : '')} placeholder="Ej. 1.0" />
                                 </div>
                             </div>
-                            <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
                                 <div>
                                     <label style={labelStyle}>Fijar Primera Cuota (€)</label>
                                     <input type="number" step="0.01" style={{...inputStyle, background: 'var(--panel-bg)'}} value={overrideFirstQuota} onChange={e => setOverrideFirstQuota(e.target.value ? Number(e.target.value) : '')} placeholder="Copia de tu recibo" />

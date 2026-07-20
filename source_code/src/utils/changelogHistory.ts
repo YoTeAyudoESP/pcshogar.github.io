@@ -5,6 +5,15 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '1.9.4',
+    releaseNotes: `Novedades 1.9.4:
+- Mejora de UI: El porcentaje de uso de las tarjetas de crédito ahora tiene en cuenta el capital de los préstamos asociados.
+- Responsive UI: Diseño mejorado en el formulario de creación/edición de préstamos para pantallas pequeñas.
+- UX: Modales mejorados sin scroll interno y con foco automático en la parte superior para evitar doble scroll en dispositivos.`
+  },
+    
+
+  {
     version: '1.9.1',
     releaseNotes: `Novedades 1.9.1:
 - Huchas: Soporte para financiar gastos fijos desde huchas.

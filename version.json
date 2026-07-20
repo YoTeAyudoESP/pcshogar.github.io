@@ -1,7 +1,7 @@
 {
-  "releaseNotes": "Mejoras versión 1.9.5:\n- UX: Foco automático y comportamiento de ventanas modales mejorado al editar (body scroll lock).\n- UX: Auto-actualización automática de versión en el Dashboard para mantener siempre sincronizado el número mostrado con la versión real instalada.",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.9.5/PCSHogar_Setup_v1.9.5.apk",
-  "version": "1.9.5",
-  "versionCode": 206,
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.9.5/PCSHogar_Setup_v1.9.5.exe"
+  "version": "1.9.6",
+  "releaseNotes": "Mejoras versión 1.9.6:\n- UX: El formulario de préstamos ahora funciona igual que el resto de modales - sin scroll encapsulado, los botones son siempre accesibles.",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.9.6/PCSHogar_Setup_v1.9.6.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.9.6/PCSHogar_Setup_v1.9.6.exe",
+  "versionCode": 209
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import { X, Calculator, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 import type { Loan } from '../../types/finance';
@@ -43,13 +43,9 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
     const [earlyAmortizationFee, setEarlyAmortizationFee] = useState<number | ''>('');
 
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const overlayRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         window.scrollTo(0, 0);
-        if (overlayRef.current) {
-            overlayRef.current.scrollTop = 0;
-        }
     }, []);
 
     useEffect(() => {
@@ -338,17 +334,8 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
     const requiredSpan = <span style={{ color: '#ef4444', marginLeft: '4px' }}>*</span>;
 
     return (
-        <div className="modal-overlay" ref={overlayRef}>
-            <div style={{
-                background: '#121212',
-                borderRadius: '1.5rem',
-                width: '100%',
-                maxWidth: '650px',
-                padding: '2rem',
-                boxShadow: '0 20px 50px rgba(0,0,0,0.4)',
-                border: '1px solid var(--panel-border)',
-                position: 'relative'
-            }}>
+        <div className="modal-overlay">
+            <div className="modal-container" style={{ maxWidth: '650px', padding: '2rem' }} onClick={e => e.stopPropagation()}>
                 <button 
                     type="button" 
                     onClick={() => { if (onCancelEdit) onCancelEdit(); if (onClose) onClose(); }}

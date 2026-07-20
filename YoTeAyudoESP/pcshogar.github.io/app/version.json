@@ -1,7 +1,7 @@
 {
-  "releaseNotes": "🚀 Novedades v1.9.1:\\n- Huchas: Soporte para financiar gastos fijos desde huchas.\\n- Préstamos y Financiación: Calculadora bidireccional.\\n- Dashboard: Alerta visual para gastos fijos atrasados.",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.9.1/PCSHogar_Setup_v1.9.1.apk",
-  "version": "1.9.1",
-  "versionCode": 203,
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.9.1/PCSHogar_Setup_v1.9.1.exe"
+  "releaseNotes": "🚀 Novedades v1.9.3:\n- Préstamos: Añadido campo de 'Capital amortizado' para un mejor control.\n- Préstamos: Mejorado el formulario de edición y visualización de cuotas simuladas.\n- Préstamos: Ajuste de capital pendiente más preciso y TIN opcional al editar.",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.9.3/PCSHogar_Setup_v1.9.3.apk",
+  "version": "1.9.3",
+  "versionCode": 205,
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.9.3/PCSHogar_Setup_v1.9.3.exe"
 }

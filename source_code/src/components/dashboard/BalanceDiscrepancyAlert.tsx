@@ -68,7 +68,7 @@ const BalanceDiscrepancyAlert: React.FC = () => {
         });
 
         return {
-            ...calculateBalanceDiscrepancy(accounts, savings, expenses, cards, recurringExpenses, autoAvailable.availableToSpend),
+            ...calculateBalanceDiscrepancy(accounts, savings, expenses, cards, recurringExpenses, autoAvailable.availableToSpend, 0.50, incomes),
             baseAvailableToSpend: autoAvailable.availableToSpend
         };
     }, [accounts, savings, expenses, cards, recurringExpenses, incomes, allocations, overrides]);

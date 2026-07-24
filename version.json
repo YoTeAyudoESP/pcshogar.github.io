@@ -1,7 +1,7 @@
 {
-  "version": "1.9.7",
-  "releaseNotes": "Mejoras versión 1.9.7:\n- UX: Modales renderizados mediante React Portals para evitar que backdrop-filter o transformaciones CSS bloqueen el posicionamiento y scroll de las ventanas emergentes.",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.9.7/PCSHogar_Setup_v1.9.7.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.9.7/PCSHogar_Setup_v1.9.7.exe",
-  "versionCode": 210
+  "version": "1.9.8",
+  "releaseNotes": "Mejoras versión 1.9.8:\n- Corrección: Compensación automática de ingresos recibidos para periodos presupuestarios futuros para evitar alertas de descuadre falsas en el mes actual.",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.9.8/PCSHogar_Setup_v1.9.8.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.9.8/PCSHogar_Setup_v1.9.8.exe",
+  "versionCode": 211
 }

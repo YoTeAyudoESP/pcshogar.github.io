@@ -559,7 +559,8 @@ export function calculateBalanceDiscrepancy(
     cards: CreditCard[],
     recurringExpenses: RecurringExpense[] = [],
     disponibleDelMes: number = 0,
-    threshold: number = 0.50
+    threshold: number = 0.50,
+    incomes: Income[] = []
 ): {
     dineroReal: number;
     dineroLibreReal: number;
@@ -630,11 +631,43 @@ export function calculateBalanceDiscrepancy(
         .filter(c => c.type === 'credit' || c.type === 'virtual')
         .reduce((sum, c) => sum + (c.currentBalance || 0), 0);
 
+    // ── Future-budgeted received incomes ──────────────────────────────────────
+    let futureIncomesTotal = 0;
+    (incomes || []).forEach(inc => {
+        if (inc.status !== 'received' || inc.type === 'rollover') return;
+        
+        let incMonth = inc.budgetMonth;
+        let incYear = inc.budgetYear;
+        
+        if (incMonth === undefined || incYear === undefined) {
+            if (inc.period && typeof inc.period === 'string') {
+                const [y, m] = inc.period.split('-').map(Number);
+                incMonth = m - 1;
+                incYear = y;
+            } else {
+                const timestamp = inc.effectiveDate || (inc as any).receivedDate || (inc as any).date || inc.updatedAt || inc.createdAt;
+                if (timestamp) {
+                    const d = new Date(timestamp);
+                    incMonth = d.getMonth();
+                    incYear = d.getFullYear();
+                }
+            }
+        }
+        
+        if (incMonth !== undefined && incYear !== undefined) {
+            const incPeriodNum = incYear * 12 + incMonth;
+            const currentPeriodNum = now.getFullYear() * 12 + now.getMonth();
+            if (incPeriodNum > currentPeriodNum) {
+                futureIncomesTotal += inc.amount;
+            }
+        }
+    });
+
     // ── Final calculation ─────────────────────────────────────────────────────
     const compromisos = compromisoGastos + compromisoTarjetas;
     const dineroEnHuchas = savings.reduce((sum, s) => sum + (s.currentAmount || 0), 0);
     const dineroLibreReal = dineroReal - compromisos;
-    const desajuste = dineroLibreReal - (dineroEnHuchas + disponibleDelMes);
+    const desajuste = dineroLibreReal - (dineroEnHuchas + disponibleDelMes + futureIncomesTotal);
     const isOverdraft = dineroReal < -threshold;
     const hasSignificantDiscrepancy = Math.abs(desajuste) >= threshold;
 

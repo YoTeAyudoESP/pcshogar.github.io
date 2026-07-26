@@ -78,6 +78,13 @@ const RemnantDecisionModal: React.FC<RemnantDecisionModalProps> = ({ closing, on
     });
 
     const formatCurrency = (val: number) => {
+        try {
+            const saved = localStorage.getItem('pcshogar_settings');
+            if (saved && JSON.parse(saved).privacyMode) {
+                return '•••• €';
+            }
+        } catch (e) {}
+
         const isNegative = val < 0;
         const [integerPart, decimalPart] = Math.abs(val).toFixed(2).split('.');
         const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');

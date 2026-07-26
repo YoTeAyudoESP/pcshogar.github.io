@@ -181,7 +181,11 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
     }, [settings, activeEconomy]);
 
     const updateSettings = (newSettings: Partial<AppSettings>) => {
-        setSettings(prev => ({ ...prev, ...newSettings }));
+        setSettings(prev => {
+            const next = { ...prev, ...newSettings };
+            localStorage.setItem('pcshogar_settings', JSON.stringify(next));
+            return next;
+        });
     };
 
     const updateSyncSettings = (newSync: Partial<SyncSettings>) => {

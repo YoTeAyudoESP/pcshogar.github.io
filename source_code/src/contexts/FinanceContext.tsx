@@ -96,6 +96,7 @@ interface FinanceContextType {
     importData: (data: any) => Promise<void>;
     settleCardCycle: (cardId: string, amount: number, totalPending: number, date: number, accountId: string, rangeStart?: number, rangeEnd?: number) => Promise<void>;
     refreshFinance: () => Promise<void>;
+    privacyMode?: boolean;
 }
 
 const FinanceContext = createContext<FinanceContextType | undefined>(undefined);
@@ -1522,7 +1523,8 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
             pendingClosing,
             setPendingClosing,
             importData,
-            refreshFinance
+            refreshFinance,
+            privacyMode: settings.privacyMode || false
         }}>
             {children}
         </FinanceContext.Provider>

@@ -78,6 +78,13 @@ const FinanceSummary: React.FC = () => {
     }, [expenses, selectedMonth, selectedYear, accounts]);
 
     const formatCurrency = (val: number, includeSymbol: boolean = true) => {
+        try {
+            const saved = localStorage.getItem('pcshogar_settings');
+            if (saved && JSON.parse(saved).privacyMode) {
+                return includeSymbol ? '•••• €' : '••••';
+            }
+        } catch (e) {}
+
         const isNegative = val < 0;
         const [integerPart, decimalPart] = Math.abs(val).toFixed(2).split('.');
         const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');

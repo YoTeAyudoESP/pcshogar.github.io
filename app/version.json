@@ -1,7 +1,7 @@
 {
-  "version": "1.9.9",
-  "releaseNotes": "Novedades versión 1.9.9:\n- Modo Privacidad (Modo Incógnito) para ocultar saldos.\n- Vinculación de cuenta bancaria al financiar desde tarjetas.\n- Corrección de devoluciones y exclusiones de presupuesto en informes.\n- Autoselección en desplegables de selección única.",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.9.9/PCSHogar_Setup_v1.9.9.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.9.9/PCSHogar_Setup_v1.9.9.exe",
-  "versionCode": 212
+  "version": "2.0.0",
+  "releaseNotes": "Novedades versión 2.0.0:\n- Modo Privacidad (Modo Incógnito) síncrono y reactivo para ocultar todos los importes del dashboard, disponible e huchas.\n- Vinculación de cuenta bancaria al financiar desde tarjetas.\n- Corrección de devoluciones y exclusiones de presupuesto en informes.\n- Autoselección en desplegables de selección única.",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.0.0/PCSHogar_Setup_v2.0.0.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.0.0/PCSHogar_Setup_v2.0.0.exe",
+  "versionCode": 213
 }

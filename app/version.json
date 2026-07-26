@@ -1,7 +1,7 @@
 {
-  "version": "2.0.3",
-  "releaseNotes": "Novedades versión 2.0.3:\n- Sistema de recordatorios inteligente: mensajes de motivación según meses de uso y acciones realizadas.\n- Los hitos de uso (40, 80, 160... acciones) generan mensajes personalizados de felicitación.\n- Botón de donación actualizado: 'Invitar a un café (PayPal)'.\n- Periodos de silencio inteligentes al donar o tras varios avisos.",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.0.3/PCSHogar_Setup_v2.0.3.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.0.3/PCSHogar_Setup_v2.0.3.exe",
-  "versionCode": 216
+  "version": "2.0.4",
+  "releaseNotes": "Novedades versión 2.0.4:\n- Simplificación del formulario de Ingreso: estado inicial según tipo (Extra -> Recibido, Fijo -> Pendiente).\n- Banner informativo en Ingresos Fijos explicando las recurrencias mensuales.\n- Campo de Fecha de Fin / Expiración (Opcional) en ingresos fijos.\n- Eliminación de campos redundantes en Ingreso (Mes/Año Presupuesto y Fecha de Cobro Real).\n- Etiqueta 'Importe (€)' simplificada en devoluciones para móviles estrechos.\n- Renombrado selector a 'Método de Cobro' con opción inicial 'Seleccione...'",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.0.4/PCSHogar_Setup_v2.0.4.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.0.4/PCSHogar_Setup_v2.0.4.exe",
+  "versionCode": 217
 }

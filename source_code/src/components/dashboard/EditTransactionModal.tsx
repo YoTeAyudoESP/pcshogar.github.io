@@ -263,7 +263,7 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction
                             <input style={inputStyle} value={description} onChange={e => setDescription(e.target.value)} required />
                         </div>
                         <div style={{ flex: 1 }}>
-                            <label style={labelStyle}>{isRefund ? 'Importe Devolución (€)' : 'Importe (€)'}</label>
+                            <label style={labelStyle}>Importe (€)</label>
                             <input type="number" step="0.01" style={inputStyle} value={amount} onChange={e => setAmount(e.target.value)} required />
                         </div>
                     </div>

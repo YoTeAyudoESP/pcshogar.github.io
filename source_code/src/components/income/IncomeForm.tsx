@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
-import { X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, PiggyBank } from 'lucide-react';
+import { X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, PiggyBank, Info } from 'lucide-react';
 import type { Income, FixedIncome, ExtraIncome, Frequency } from '../../types/income';
 import { formatMoney } from '../../utils/financeCalculations';
 import ModalPortal from '../common/ModalPortal';
@@ -24,14 +24,12 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData, onNavigat
     const [name, setName] = useState(initialData?.name || '');
     const [amount, setAmount] = useState(initialData?.amount?.toString() || '');
     const [currency, setCurrency] = useState(initialData?.currency || 'EUR');
-    const [status, setStatus] = useState<'pending' | 'received'>(initialData?.status || 'pending');
+    const [status, setStatus] = useState<'pending' | 'received'>(
+        initialData?.status || (initialData?.type === 'fixed' ? 'pending' : 'received')
+    );
     const [excludeFromBudget, setExcludeFromBudget] = useState(
         initialData ? (initialData.excludeFromBudget || false) : true
     );
-
-    // Temporal
-    const [budgetMonth, setBudgetMonth] = useState<number>(initialData?.budgetMonth ?? new Date().getMonth());
-    const [budgetYear, setBudgetYear] = useState<number>(initialData?.budgetYear ?? new Date().getFullYear());
 
     // Fixed specific
     const [frequency, setFrequency] = useState<Frequency>((initialData as FixedIncome)?.frequency || 'monthly');
@@ -47,7 +45,13 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData, onNavigat
 
     // Common
     const [linkedAccountId, setLinkedAccountId] = useState(initialData?.linkedAccountId || '');
-    const [effectiveDate, setEffectiveDate] = useState(initialData?.effectiveDate ? new Date(initialData.effectiveDate).toISOString().split('T')[0] : '');
+
+    const handleTypeChange = (newType: 'fixed' | 'extra') => {
+        setType(newType);
+        if (!isEditing) {
+            setStatus(newType === 'extra' ? 'received' : 'pending');
+        }
+    };
 
     useEffect(() => {
         if (!categoryId && incomeCategories.length > 0 && !isEditing) {
@@ -66,15 +70,37 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData, onNavigat
         if (!name || !amount || hasNoAccounts) return;
 
         const incomeAmount = parseFloat(amount);
+
+        // Derive budgetMonth and budgetYear automatically
+        let computedBudgetMonth = new Date().getMonth();
+        let computedBudgetYear = new Date().getFullYear();
+        if (type === 'extra' && receivedDate) {
+            const d = new Date(receivedDate);
+            if (!isNaN(d.getTime())) {
+                computedBudgetMonth = d.getMonth();
+                computedBudgetYear = d.getFullYear();
+            }
+        }
+
+        // Derive effectiveDate automatically when received
+        let computedEffectiveDate: number | undefined = undefined;
+        if (status === 'received') {
+            if (type === 'extra' && receivedDate) {
+                computedEffectiveDate = new Date(receivedDate).getTime();
+            } else {
+                computedEffectiveDate = Date.now();
+            }
+        }
+
         const commonData = {
             name,
             amount: incomeAmount,
             currency,
             linkedAccountId,
             status,
-            budgetMonth,
-            budgetYear,
-            effectiveDate: effectiveDate ? new Date(effectiveDate).getTime() : undefined,
+            budgetMonth: computedBudgetMonth,
+            budgetYear: computedBudgetYear,
+            effectiveDate: computedEffectiveDate,
             excludeFromBudget: status === 'pending' ? excludeFromBudget : false,
         };
 
@@ -115,7 +141,7 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData, onNavigat
         // Handle savings transfer if requested
         if (status === 'received' && targetSavingGoalId && linkedAccountId) {
             const allocationDate = type === 'fixed'
-                ? (effectiveDate ? new Date(effectiveDate).getTime() : Date.now())
+                ? Date.now()
                 : new Date(receivedDate).getTime();
             await allocateSavings(
                 targetSavingGoalId, 
@@ -123,8 +149,8 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData, onNavigat
                 incomeAmount, 
                 allocationDate,
                 `Ahorro directo de ingreso: ${name}`,
-                budgetMonth,
-                budgetYear
+                computedBudgetMonth,
+                computedBudgetYear
             );
         }
 
@@ -164,10 +190,6 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData, onNavigat
         gap: '8px',
         transition: 'all 0.2s ease'
     });
-
-    const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    const currentYear = new Date().getFullYear();
-    const years = [currentYear - 1, currentYear, currentYear + 1];
 
     return (
         <ModalPortal><div className="modal-overlay" onClick={onClose}>
@@ -232,19 +254,36 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData, onNavigat
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                         <button
                             type="button"
-                            onClick={() => setType('extra')}
+                            onClick={() => handleTypeChange('extra')}
                             style={toggleButtonStyle(type === 'extra', '#d946ef')}
                         >
                             <PlusCircle size={18} /> Extra
                         </button>
                         <button
                             type="button"
-                            onClick={() => setType('fixed')}
+                            onClick={() => handleTypeChange('fixed')}
                             style={toggleButtonStyle(type === 'fixed', '#818cf8')}
                         >
                             <Calendar size={18} /> Fijo
                         </button>
                     </div>
+
+                    {type === 'fixed' && (
+                        <div style={{
+                            background: 'rgba(129, 140, 248, 0.08)',
+                            border: '1px solid rgba(129, 140, 248, 0.2)',
+                            borderRadius: '12px',
+                            padding: '0.85rem 1rem',
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            gap: '10px'
+                        }}>
+                            <Info size={18} color="#818cf8" style={{ marginTop: '2px', flexShrink: 0 }} />
+                            <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)', lineHeight: '1.4' }}>
+                                Un <strong>Ingreso Fijo</strong> crea una regla recurrente en la aplicación. Se esperará este cobro cada mes automáticamente en tus previsiones.
+                            </span>
+                        </div>
+                    )}
 
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                         <button
@@ -281,37 +320,36 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData, onNavigat
                         </div>
                     </div>
 
-                    {/* Budget Period */}
-                    <div style={{ display: 'flex', gap: '1rem' }}>
-                        <div style={{ flex: 1 }}>
-                            <label style={labelStyle}>Mes de Presupuesto</label>
-                            <select style={inputStyle} value={budgetMonth} onChange={e => setBudgetMonth(parseInt(e.target.value))}>
-                                {months.map((m, i) => <option key={i} value={i}>{m}</option>)}
-                            </select>
-                        </div>
-                        <div style={{ flex: 1 }}>
-                            <label style={labelStyle}>Año de Presupuesto</label>
-                            <select style={inputStyle} value={budgetYear} onChange={e => setBudgetYear(parseInt(e.target.value))}>
-                                {years.map(y => <option key={y} value={y}>{y}</option>)}
-                            </select>
-                        </div>
-                    </div>
-
                     {type === 'fixed' ? (
-                        <div style={{ display: 'flex', gap: '1rem' }}>
-                            <div style={{ flex: 1 }}>
-                                <label style={labelStyle}>Frecuencia</label>
-                                <select style={inputStyle} value={frequency} onChange={e => setFrequency(e.target.value as Frequency)}>
-                                    <option value="weekly">Semanal</option>
-                                    <option value="monthly">Mensual</option>
-                                    <option value="yearly">Anual</option>
-                                </select>
+                        <>
+                            <div style={{ display: 'flex', gap: '1rem' }}>
+                                <div style={{ flex: 1 }}>
+                                    <label style={labelStyle}>Frecuencia</label>
+                                    <select style={inputStyle} value={frequency} onChange={e => setFrequency(e.target.value as Frequency)}>
+                                        <option value="weekly">Semanal</option>
+                                        <option value="monthly">Mensual</option>
+                                        <option value="yearly">Anual</option>
+                                    </select>
+                                </div>
+                                <div style={{ flex: 1 }}>
+                                    <label style={labelStyle}>Día de Cobro</label>
+                                    <input type="number" min="1" max="31" style={inputStyle} value={paymentDay} onChange={e => setPaymentDay(e.target.value)} required />
+                                </div>
                             </div>
-                            <div style={{ flex: 1 }}>
-                                <label style={labelStyle}>Día de Cobro</label>
-                                <input type="number" min="1" max="31" style={inputStyle} value={paymentDay} onChange={e => setPaymentDay(e.target.value)} required />
+
+                            <div>
+                                <label style={labelStyle}>Fecha de Fin / Expiración (Opcional)</label>
+                                <input 
+                                    type="date" 
+                                    style={inputStyle} 
+                                    value={expirationDate} 
+                                    onChange={e => setExpirationDate(e.target.value)} 
+                                />
+                                <small style={{ color: 'rgba(255,255,255,0.4)', marginTop: '0.3rem', display: 'block', fontSize: '0.78rem' }}>
+                                    Si se especifica, será la fecha del último ingreso recurrente a considerar.
+                                </small>
                             </div>
-                        </div>
+                        </>
                     ) : (
                         <div style={{ display: 'flex', gap: '1rem' }}>
                             <div style={{ flex: 1 }}>
@@ -322,32 +360,20 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData, onNavigat
                             </div>
                             <div style={{ flex: 1 }}>
                                 <label style={labelStyle}>Fecha de Operación</label>
-                                <input type="date" style={inputStyle} value={receivedDate} onChange={e => {
-                                    setReceivedDate(e.target.value);
-                                    const d = new Date(e.target.value);
-                                    if (!isNaN(d.getTime())) {
-                                        setBudgetMonth(d.getMonth());
-                                        setBudgetYear(d.getFullYear());
-                                    }
-                                }} required />
+                                <input type="date" style={inputStyle} value={receivedDate} onChange={e => setReceivedDate(e.target.value)} required />
                             </div>
                         </div>
                     )}
 
-                    <div style={{ display: 'flex', gap: '1rem' }}>
-                        <div style={{ flex: 1 }}>
-                            <label style={labelStyle}>Banco / Método de Cobro</label>
-                            <select style={inputStyle} value={linkedAccountId} onChange={e => setLinkedAccountId(e.target.value)}>
-                                <option value="">Solo efectivo / Sin banco</option>
-                                {accounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name} ({formatMoney(acc.balance)})</option>)}
-                            </select>
-                        </div>
-                        {status === 'received' ? (
+                    {status === 'pending' ? (
+                        <div style={{ display: 'flex', gap: '1rem' }}>
                             <div style={{ flex: 1 }}>
-                                <label style={labelStyle}>Fecha de Cobro Real</label>
-                                <input type="date" style={inputStyle} value={effectiveDate} onChange={e => setEffectiveDate(e.target.value)} />
+                                <label style={labelStyle}>Método de Cobro</label>
+                                <select style={inputStyle} value={linkedAccountId} onChange={e => setLinkedAccountId(e.target.value)}>
+                                    <option value="">Seleccione...</option>
+                                    {accounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name} ({formatMoney(acc.balance)})</option>)}
+                                </select>
                             </div>
-                        ) : (
                             <div style={{ flex: 1 }}>
                                 <label style={labelStyle}>¿Sumar al disponible del mes?</label>
                                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.4rem' }}>
@@ -367,8 +393,16 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData, onNavigat
                                     </button>
                                 </div>
                             </div>
-                        )}
-                    </div>
+                        </div>
+                    ) : (
+                        <div>
+                            <label style={labelStyle}>Método de Cobro</label>
+                            <select style={inputStyle} value={linkedAccountId} onChange={e => setLinkedAccountId(e.target.value)}>
+                                <option value="">Seleccione...</option>
+                                {accounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name} ({formatMoney(acc.balance)})</option>)}
+                            </select>
+                        </div>
+                    )}
 
                     {status === 'received' && linkedAccountId && savings.length > 0 && (
                         <div style={{ 

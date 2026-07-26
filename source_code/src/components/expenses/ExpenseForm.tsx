@@ -319,7 +319,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                             />
                         </div>
                         <div style={{ flex: 1 }}>
-                            <label style={labelStyle}>{isRefund ? 'Importe Devolución (€)' : 'Importe (€)'}</label>
+                            <label style={labelStyle}>Importe (€)</label>
                             <input 
                                 type="number" 
                                 step="0.01" 

@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
+import { formatMoney } from '../../utils/financeCalculations';
 
 const FinanceGlobalSummary: React.FC = () => {
     const { accounts, cards, savings } = useFinance();
@@ -65,7 +66,7 @@ const FinanceGlobalSummary: React.FC = () => {
             }}>
                 <span style={labelStyle}>Saldo en Bancos</span>
                 <span style={{ ...valueStyle, color: '#38bdf8' }}>
-                    {bankBalance.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+                    {formatMoney(bankBalance)}
                 </span>
             </div>
 
@@ -76,7 +77,7 @@ const FinanceGlobalSummary: React.FC = () => {
             }}>
                 <span style={labelStyle}>Efectivo</span>
                 <span style={{ ...valueStyle, color: '#60a5fa' }}>
-                    {cashBalance.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+                    {formatMoney(cashBalance)}
                 </span>
             </div>
 
@@ -86,7 +87,7 @@ const FinanceGlobalSummary: React.FC = () => {
             }}>
                 <span style={labelStyle}>Ahorro en Huchas</span>
                 <span style={{ ...valueStyle, color: 'white' }}>
-                    {piggyBankBalance.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+                    {formatMoney(piggyBankBalance)}
                 </span>
             </div>
         </div>

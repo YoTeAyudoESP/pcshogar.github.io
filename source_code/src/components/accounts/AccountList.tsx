@@ -3,6 +3,7 @@ import { useFinance } from '../../contexts/FinanceContext';
 import type { Account } from '../../types/finance';
 import { Edit2, Trash2 } from 'lucide-react';
 import DeleteAccountDialog from './DeleteAccountDialog';
+import { formatMoney } from '../../utils/financeCalculations';
 
 interface AccountListProps {
     onEdit?: (account: Account) => void;
@@ -44,7 +45,7 @@ const AccountList: React.FC<AccountListProps> = ({ onEdit, filterType }) => {
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
                                 <div style={{ fontWeight: 700, fontSize: '1.1rem' }} className="currency">
-                                    {acc.currency === 'EUR' ? '€' : '$'}{acc.balance.toLocaleString('es-ES', { minimumFractionDigits: 2 })}
+                                    {formatMoney(acc.balance)}
                                 </div>
                                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                                     {onEdit && (

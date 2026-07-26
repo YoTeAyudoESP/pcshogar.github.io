@@ -101,6 +101,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
 
         if (periodType === 'monthly') {
             filteredExpenses = expenses.filter(exp => {
+                if (exp.excludeFromBudget) return false;
                 const d = new Date(exp.date);
                 return d.getFullYear() === selectedYear && d.getMonth() === selectedMonth;
             });
@@ -114,6 +115,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
             const startMonth = (selectedQuarter - 1) * 3;
             const endMonth = startMonth + 2;
             filteredExpenses = expenses.filter(exp => {
+                if (exp.excludeFromBudget) return false;
                 const d = new Date(exp.date);
                 return d.getFullYear() === selectedYear && d.getMonth() >= startMonth && d.getMonth() <= endMonth;
             });
@@ -124,7 +126,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                 return incYear === selectedYear && incMonth >= startMonth && incMonth <= endMonth && inc.status === 'received';
             });
         } else {
-            filteredExpenses = expenses.filter(exp => new Date(exp.date).getFullYear() === selectedYear);
+            filteredExpenses = expenses.filter(exp => !exp.excludeFromBudget && new Date(exp.date).getFullYear() === selectedYear);
             filteredIncomes = extraIncomes.filter((inc: any) => {
                 const d = inc.receivedDate ? new Date(inc.receivedDate) : new Date(inc.createdAt);
                 const incYear = inc.budgetYear !== undefined ? inc.budgetYear : d.getFullYear();
@@ -151,7 +153,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                     netAmount: exp.amount - funded
                 };
             })
-            .filter(exp => exp.netAmount > 0);
+            .filter(exp => exp.netAmount !== 0);
 
         const validIncomes = filteredIncomes.filter((inc: any) => !inc.linkedSavingGoalId);
 

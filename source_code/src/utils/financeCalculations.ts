@@ -511,6 +511,16 @@ export function calculateCardCycleDates(card: CreditCard) {
 export const round2 = (num: number) => Math.round(num * 100) / 100;
 
 export function formatMoney(amount: number | undefined | null, includeSymbol: boolean = true): string {
+    try {
+        const saved = localStorage.getItem('pcshogar_settings');
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            if (parsed.privacyMode) {
+                return includeSymbol ? '•••• €' : '••••';
+            }
+        }
+    } catch (e) {}
+
     if (amount === undefined || amount === null || isNaN(amount)) {
         return includeSymbol ? '0,00€' : '0,00';
     }
@@ -523,6 +533,16 @@ export function formatMoney(amount: number | undefined | null, includeSymbol: bo
 }
 
 export function formatMoneySigned(amount: number | undefined | null): string {
+    try {
+        const saved = localStorage.getItem('pcshogar_settings');
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            if (parsed.privacyMode) {
+                return '•••• €';
+            }
+        }
+    } catch (e) {}
+
     if (amount === undefined || amount === null || isNaN(amount)) {
         return '0,00€';
     }

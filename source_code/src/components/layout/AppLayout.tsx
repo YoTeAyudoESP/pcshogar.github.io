@@ -1,5 +1,5 @@
 import React, { type ReactNode, useState, useEffect } from 'react';
-import { Heart } from 'lucide-react';
+import { Heart, Eye, EyeOff } from 'lucide-react';
 import HelpFeedbackModal from '../common/HelpFeedbackModal';
 import logo from '../../assets/logo.png';
 import EconomySelector from './EconomySelector';
@@ -12,6 +12,8 @@ interface AppLayoutProps {
 }
 
 const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
+    const { settings, updateSettings } = useAppSettings();
+    const isPrivacyActive = settings.privacyMode || false;
     const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
@@ -52,6 +54,25 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                 </div>
                 <nav style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <ProfileDropdown onEditProfile={() => setIsEditProfileModalOpen(true)} />
+                    <button 
+                        onClick={() => updateSettings({ privacyMode: !isPrivacyActive })}
+                        style={{
+                            background: 'rgba(255, 255, 255, 0.05)',
+                            border: 'none',
+                            color: isPrivacyActive ? '#10b981' : 'white',
+                            cursor: 'pointer',
+                            padding: '10px',
+                            borderRadius: '12px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.2s ease',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                        }}
+                        title={isPrivacyActive ? "Desactivar modo privacidad" : "Activar modo privacidad"}
+                    >
+                        {isPrivacyActive ? <EyeOff size={24} /> : <Eye size={24} />}
+                    </button>
                     <button 
                         onClick={() => setIsHelpModalOpen(true)}
                         style={{

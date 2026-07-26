@@ -263,6 +263,7 @@ export interface AppSettings {
     profiles?: UserProfile[];
     activeProfileId?: string;
     notifyNextDayPayments?: boolean;
+    privacyMode?: boolean;
 }
 
 export const SUPPORTED_CURRENCIES = [

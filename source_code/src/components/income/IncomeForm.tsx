@@ -55,6 +55,12 @@ const IncomeForm: React.FC<IncomeFormProps> = ({ onClose, initialData, onNavigat
         }
     }, [incomeCategories, categoryId, isEditing]);
 
+    useEffect(() => {
+        if (!isEditing && accounts.length === 1) {
+            setLinkedAccountId(accounts[0].id);
+        }
+    }, [accounts, isEditing]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!name || !amount || hasNoAccounts) return;

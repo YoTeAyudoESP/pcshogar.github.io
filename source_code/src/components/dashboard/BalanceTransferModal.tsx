@@ -45,6 +45,14 @@ const BalanceTransferModal: React.FC<BalanceTransferModalProps> = ({ onClose, on
     const [notes, setNotes] = useState('');
     const [loading, setLoading] = useState(false);
 
+    React.useEffect(() => {
+        if (activeTab === 'savings' && savings.length === 1) {
+            setToId(savings[0].id);
+        } else if (activeTab === 'withdraw' && savings.length === 1) {
+            setFromId(savings[0].id);
+        }
+    }, [activeTab, savings]);
+
     const parsedAmount = parseFloat(amount);
     const remaining = isNaN(parsedAmount) ? availableToSpend : availableToSpend - parsedAmount;
 

@@ -4,6 +4,19 @@
  * Example: 1234.56 => "1.234,56 €"
  */
 export const formatCurrency = (amount: number, currency: string = 'EUR'): string => {
+    try {
+        const saved = localStorage.getItem('pcshogar_settings');
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            if (parsed.privacyMode) {
+                let symbol = '€';
+                if (currency === 'USD') symbol = '$';
+                if (currency === 'GBP') symbol = '£';
+                return `•••• ${symbol}`;
+            }
+        }
+    } catch (e) {}
+
     if (amount === undefined || amount === null || isNaN(amount)) {
         return `0,00€`;
     }

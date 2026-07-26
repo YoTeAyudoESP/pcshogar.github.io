@@ -46,6 +46,19 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
         }
     }, [expenseCategories, categoryId]);
 
+    useEffect(() => {
+        if (paymentMethodType === 'account' && accounts.length === 1) {
+            setSelectedMethodId(accounts[0].id);
+        } else if (paymentMethodType === 'card' && cards.length === 1) {
+            setSelectedMethodId(cards[0].id);
+        } else if (paymentMethodType === 'cash') {
+            const cashAccs = accounts.filter(a => a.type === 'cash');
+            if (cashAccs.length === 1) {
+                setSelectedMethodId(cashAccs[0].id);
+            }
+        }
+    }, [paymentMethodType, accounts, cards]);
+
     const expenseTotal = parseFloat(amount) || 0;
     const hasNoAccounts = accounts.length === 0;
 

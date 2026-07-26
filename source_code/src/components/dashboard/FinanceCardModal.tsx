@@ -20,12 +20,15 @@ const FinanceCardModal: React.FC<FinanceCardModalProps> = ({ isOpen, onClose, ca
     const { 
         loans = [], cards = [], updateExpense, expenses = [], 
         addLoan, updateLoan, addRecurringExpense, updateRecurringExpense,
-        recurringExpenses = []
+        recurringExpenses = [], accounts = [], updateCard
     } = useFinance();
 
     const [card, setCard] = useState<CreditCard | null>(null);
     const [existingLoan, setExistingLoan] = useState<Loan | null>(null);
     const [existingRec, setExistingRec] = useState<RecurringExpense | null>(null);
+
+    const [selectedAccountId, setSelectedAccountId] = useState('');
+    const [changeDefaultAccount, setChangeDefaultAccount] = useState(false);
 
     const [calculationMode, setCalculationMode] = useState<'quota' | 'months'>('quota');
     const [monthlyQuota, setMonthlyQuota] = useState<number | ''>('');
@@ -50,6 +53,11 @@ const FinanceCardModal: React.FC<FinanceCardModalProps> = ({ isOpen, onClose, ca
             const now = new Date();
             const nextMonthDate = new Date(now.getFullYear(), now.getMonth() + 1, foundCard.paymentDay || 1);
             setFirstQuotaDate(nextMonthDate.toISOString().split('T')[0]);
+            
+            // Set initial selected account (preselect linked account or first account)
+            const targetAccId = foundCard.linkedAccountId || (accounts.length > 0 ? accounts[0].id : '');
+            setSelectedAccountId(targetAccId);
+            setChangeDefaultAccount(false);
         }
 
         const foundLoan = loans.find(l => l.linkedAccountId === cardId && l.status === 'active');
@@ -66,7 +74,14 @@ const FinanceCardModal: React.FC<FinanceCardModalProps> = ({ isOpen, onClose, ca
             setOverrideLastQuota('');
             setShowAdvanced(false);
         }
-    }, [isOpen, cardId, cards, loans]);
+    }, [isOpen, cardId, cards, loans, accounts]);
+
+    // Dropdown autoselection if only 1 option exists (Punto 4)
+    useEffect(() => {
+        if (accounts.length === 1 && !selectedAccountId) {
+            setSelectedAccountId(accounts[0].id);
+        }
+    }, [accounts, selectedAccountId]);
     
     useEffect(() => {
         if (existingLoan?.linkedRecurringExpenseId) {
@@ -265,11 +280,17 @@ const FinanceCardModal: React.FC<FinanceCardModalProps> = ({ isOpen, onClose, ca
                     updatedAt: Date.now()
                 });
 
-                if (existingRec && existingRec.amount !== targetQuota) {
-                    await updateRecurringExpense({
-                        ...existingRec,
+                if (existingRec) {
+                    const updateData: Partial<RecurringExpense> = {
                         amount: targetQuota,
                         updatedAt: Date.now()
+                    };
+                    if (selectedAccountId) {
+                        updateData.paymentMethod = { type: 'account', accountId: selectedAccountId };
+                    }
+                    await updateRecurringExpense({
+                        ...existingRec,
+                        ...updateData
                     });
                 }
             } else {
@@ -290,6 +311,7 @@ const FinanceCardModal: React.FC<FinanceCardModalProps> = ({ isOpen, onClose, ca
                     paymentDay: card?.paymentDay || 1,
                     categoryId: 'loan_revolving', // generic category
                     active: true,
+                    paymentMethod: selectedAccountId ? { type: 'account', accountId: selectedAccountId } : undefined,
                     updatedAt: Date.now()
                 };
 
@@ -316,6 +338,14 @@ const FinanceCardModal: React.FC<FinanceCardModalProps> = ({ isOpen, onClose, ca
                 };
 
                 await addLoan(loanData);
+            }
+
+            // 3. Update card's linked account permanently if toggle is active (Punto 2)
+            if (card && changeDefaultAccount && selectedAccountId) {
+                await updateCard({
+                    ...card,
+                    linkedAccountId: selectedAccountId
+                });
             }
 
             if (onSuccess) onSuccess();
@@ -508,6 +538,36 @@ const FinanceCardModal: React.FC<FinanceCardModalProps> = ({ isOpen, onClose, ca
                         />
                     </div>
                 )}
+
+                {/* Cuenta de cobro selection (Punto 2) */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+                    <label style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)' }}>
+                        Cuenta de cobro <span style={{ color: '#ef4444' }}>*</span>
+                    </label>
+                    <select
+                        style={inputStyle}
+                        value={selectedAccountId}
+                        onChange={e => setSelectedAccountId(e.target.value)}
+                    >
+                        <option value="">Selecciona cuenta...</option>
+                        {accounts.map(acc => (
+                            <option key={acc.id} value={acc.id}>
+                                {acc.name} ({formatMoney(acc.balance)})
+                            </option>
+                        ))}
+                    </select>
+
+                    {card && card.linkedAccountId !== selectedAccountId && selectedAccountId && (
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', marginTop: '4px' }}>
+                            <input
+                                type="checkbox"
+                                checked={changeDefaultAccount}
+                                onChange={e => setChangeDefaultAccount(e.target.checked)}
+                            />
+                            Usar también esta cuenta para futuros pagos de la tarjeta {card.name}
+                        </label>
+                    )}
+                </div>
 
                 <button 
                     onClick={handleFinance}

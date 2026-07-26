@@ -33,6 +33,7 @@ const DEFAULT_SETTINGS: AppSettings = {
     language: 'es',
     theme: 'default',
     notifyNextDayPayments: false,
+    privacyMode: false,
     sync: {
         enabled: false,
         type: 'local',

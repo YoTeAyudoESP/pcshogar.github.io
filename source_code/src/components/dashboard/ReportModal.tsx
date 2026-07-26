@@ -150,7 +150,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                 return {
                     ...exp,
                     fundedAmount: funded,
-                    netAmount: exp.amount - funded
+                    netAmount: exp.amount
                 };
             })
             .filter(exp => exp.netAmount !== 0);

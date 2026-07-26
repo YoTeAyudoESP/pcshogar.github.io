@@ -14,7 +14,7 @@ import SettingsView from '../settings/SettingsView';
 import ExpenseCategoryChart from '../analytics/ExpenseCategoryChart';
 import YearlyFinancialChart from '../analytics/YearlyFinancialChart';
 import DateSelector from '../common/DateSelector';
-import { LayoutDashboard, Settings as SettingsIcon, X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, MinusCircle, PiggyBank, ArrowLeftRight, AlertCircle, Mail, Heart, RotateCcw, FileText } from 'lucide-react';
+import { LayoutDashboard, Settings as SettingsIcon, X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, MinusCircle, PiggyBank, ArrowLeftRight, AlertCircle, Mail, Heart, RotateCcw, FileText, Coffee, Award } from 'lucide-react';
 
 import { useFinance } from '../../contexts/FinanceContext';
 import { useAppSettings } from '../../contexts/AppSettingsContext';
@@ -118,7 +118,8 @@ const Dashboard: React.FC = () => {
     const [isHuchaModalOpen, setIsHuchaModalOpen] = useState(false);
     const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
-    const [show30DayReminder, setShow30DayReminder] = useState(false);
+    const [reminderType, setReminderType] = useState<'monthly' | 'milestone' | null>(null);
+    const [activeMilestone, setActiveMilestone] = useState<number>(0);
     const [showChangelog, setShowChangelog] = useState(false);
     const [changelogEntriesToShow, setChangelogEntriesToShow] = useState<any[]>([]);
     
@@ -160,9 +161,9 @@ const Dashboard: React.FC = () => {
             } else if (isTransferModalOpen) {
                 e.preventDefault();
                 setIsTransferModalOpen(false);
-            } else if (show30DayReminder) {
+            } else if (reminderType) {
                 e.preventDefault();
-                setShow30DayReminder(false);
+                setReminderType(null);
             } else if (showChangelog) {
                 e.preventDefault();
                 setShowChangelog(false);
@@ -174,42 +175,103 @@ const Dashboard: React.FC = () => {
 
         window.addEventListener('app-back-pressed', handleBack);
         return () => window.removeEventListener('app-back-pressed', handleBack);
-    }, [editingTx, isIncomeFormOpen, isExpenseModalOpen, isRefundModalOpen, isHuchaModalOpen, isTransferModalOpen, show30DayReminder, showChangelog, currentView, showCashUpdateNotice]);
+    }, [editingTx, isIncomeFormOpen, isExpenseModalOpen, isRefundModalOpen, isHuchaModalOpen, isTransferModalOpen, reminderType, showChangelog, currentView, showCashUpdateNotice]);
 
-    useEffect(() => {
+    const checkReminders = () => {
         if (loading) return;
 
-        // 1. Install date checking
-        let installDateStr = localStorage.getItem('pcshogar_install_date');
-        if (!installDateStr) {
-            installDateStr = Date.now().toString();
-            localStorage.setItem('pcshogar_install_date', installDateStr);
+        const now = Date.now();
+        const actionsCount = parseInt(localStorage.getItem('pcshogar_actions_count') || '0');
+
+        // 1. Action-based milestone checking
+        const lastMilestoneShown = parseInt(localStorage.getItem('pcshogar_last_action_milestone_shown') || '0');
+        const milestones = [40, 80, 160, 220, 300, 360, 420, 500];
+
+        if (actionsCount > 500) {
+            const currentMaxMilestone = Math.floor(actionsCount / 100) * 100;
+            if (currentMaxMilestone > lastMilestoneShown) {
+                setActiveMilestone(currentMaxMilestone);
+                setReminderType('milestone');
+                return;
+            }
+        } else {
+            const pendingMilestone = milestones.find(m => actionsCount >= m && lastMilestoneShown < m);
+            if (pendingMilestone) {
+                setActiveMilestone(pendingMilestone);
+                setReminderType('milestone');
+                return;
+            }
         }
-        const installTime = parseInt(installDateStr);
-        const days = Math.floor((Date.now() - installTime) / (1000 * 60 * 60 * 24));
-        
-        const reminderDismissed = localStorage.getItem('pcshogar_reminder_dismissed') === 'true';
-        if (!reminderDismissed) {
+
+        // 2. Time-based monthly reminder checking
+        if (actionsCount < 100) {
+            let installDateStr = localStorage.getItem('pcshogar_install_date');
+            if (!installDateStr) {
+                installDateStr = now.toString();
+                localStorage.setItem('pcshogar_install_date', installDateStr);
+            }
+            const installTime = parseInt(installDateStr);
+
+            // PayPal silent period checking (3 months / 90 days)
+            const paypalClickTimeStr = localStorage.getItem('pcshogar_paypal_click_time');
+            if (paypalClickTimeStr) {
+                const paypalTime = parseInt(paypalClickTimeStr);
+                if (now - paypalTime < 7776000000) {
+                    return;
+                }
+            }
+
             const lastShownStr = localStorage.getItem('pcshogar_reminder_last_shown');
+            const reminderCount = parseInt(localStorage.getItem('pcshogar_reminder_count') || '0');
+
+            if (reminderCount >= 6) {
+                // Silent period of 6 months (180 days)
+                if (lastShownStr) {
+                    const lastShown = parseInt(lastShownStr);
+                    if (now - lastShown < 15552000000) {
+                        return;
+                    } else {
+                        localStorage.setItem('pcshogar_reminder_count', '0');
+                    }
+                }
+            }
+
             let shouldShow = false;
             if (!lastShownStr) {
-                if (days >= 30) {
+                if (now - installTime >= 2592000000) {
                     shouldShow = true;
                 }
             } else {
                 const lastShown = parseInt(lastShownStr);
-                // 30 días en ms = 30 * 24 * 60 * 60 * 1000 = 2592000000
-                if (Date.now() - lastShown >= 2592000000) {
+                if (now - lastShown >= 2592000000) {
                     shouldShow = true;
                 }
             }
+
             if (shouldShow) {
-                const currentCount = parseInt(localStorage.getItem('pcshogar_reminder_count') || '0') + 1;
-                localStorage.setItem('pcshogar_reminder_count', currentCount.toString());
-                localStorage.setItem('pcshogar_reminder_last_shown', Date.now().toString());
-                setShow30DayReminder(true);
+                const newCount = (parseInt(localStorage.getItem('pcshogar_reminder_count') || '0')) + 1;
+                localStorage.setItem('pcshogar_reminder_count', newCount.toString());
+                localStorage.setItem('pcshogar_reminder_last_shown', now.toString());
+                setReminderType('monthly');
             }
         }
+    };
+
+    useEffect(() => {
+        if (loading) return;
+        checkReminders();
+    }, [loading]);
+
+    useEffect(() => {
+        const handleAction = () => {
+            checkReminders();
+        };
+        window.addEventListener('pcshogar_action_performed', handleAction);
+        return () => window.removeEventListener('pcshogar_action_performed', handleAction);
+    }, [loading]);
+
+    useEffect(() => {
+        if (loading) return;
 
         // 2. Changelog checking
         const lastVersion = localStorage.getItem('pcshogar_last_version');
@@ -553,99 +615,128 @@ const Dashboard: React.FC = () => {
                 <ReportModal onClose={() => setIsReportModalOpen(false)} />
             )}
 
-            {show30DayReminder && (() => {
-                const currentCount = parseInt(localStorage.getItem('pcshogar_reminder_count') || '0');
+            {reminderType && (() => {
+                const installTime = parseInt(localStorage.getItem('pcshogar_install_date') || Date.now().toString());
+                const monthsUsing = Math.max(1, Math.floor((Date.now() - installTime) / (1000 * 60 * 60 * 24 * 30)));
+                const reminderCount = parseInt(localStorage.getItem('pcshogar_reminder_count') || '0');
+
+                const getMilestoneContent = (n: number) => {
+                    if (n === 40)  return { title: '¡Empezando con fuerza! 🚀', text: `¡Ya llevas ${n} acciones en PCS Hogar! Estás tomando el control de tus finanzas. ¿Tienes alguna sugerencia para mejorar la app?` };
+                    if (n === 80)  return { title: '¡Vas cogiendo ritmo! 💪', text: `${n} acciones registradas. La constancia es la clave para unas finanzas sanas. Si tienes alguna idea de mejora, nos encantaría escucharte.` };
+                    if (n === 160) return { title: '¡Usuario comprometido! 🌟', text: `Con ${n} acciones en PCS Hogar demuestras que te tomas en serio tus finanzas. ¿Todo funciona bien? ¡Cuéntanos!` };
+                    if (n === 220) return { title: '¡Experto en marcha! 🎯', text: `¡${n} acciones! Estás dominando tu economía personal como un profesional. Tu opinión es muy valiosa para nosotros.` };
+                    if (n === 300) return { title: '¡Trescientas razones! 🏅', text: `${n} acciones demuestran tu compromiso con tus finanzas. Gracias por confiar en PCS Hogar. ¿Nos invitas a un café?` };
+                    if (n === 360) return { title: '¡Un año de decisiones! 📅', text: `Con ${n} acciones llevas el equivalente a un año tomando decisiones financieras inteligentes. ¡Eres increíble!` };
+                    if (n === 420) return { title: '¡Maestro Financiero! 💎', text: `${n} acciones. Pocas personas se implican tanto en su economía. Tu nivel de compromiso es excepcional.` };
+                    if (n === 500) return { title: '🏆 ¡500 Acciones! Leyenda Financiera', text: `¡INCREÍBLE! Has alcanzado las 500 acciones en PCS Hogar. Eres un auténtico referente del ahorro inteligente. Gracias de corazón por tu fidelidad. 🎉` };
+                    // Above 500: every 100
+                    const titles: Record<number, string> = {
+                        600: '🦅 Gurú del Ahorro',
+                        700: '🏛️ Centurión de la Hucha',
+                        800: '💰 Gran Maestro de las Finanzas',
+                        900: '🌙 Sabio del Presupuesto',
+                        1000: '⭐ Leyenda de las 1000 Acciones',
+                    };
+                    const title = titles[n] || `🎖️ Hito ${n} Acciones`;
+                    return { title, text: `¡Wow! Has superado las ${n} acciones en PCS Hogar. Tu disciplina financiera es ejemplar. ¡Sigue así!` };
+                };
+
+                const isMilestone = reminderType === 'milestone';
+                const content = isMilestone ? getMilestoneContent(activeMilestone) : null;
+                const isBigMilestone = activeMilestone === 500;
+
                 return (
-                    <ModalPortal><div className="modal-overlay" onClick={() => setShow30DayReminder(false)}>
+                    <ModalPortal><div className="modal-overlay" onClick={() => setReminderType(null)}>
                         <div className="modal-container glass-panel" style={{ padding: '2.5rem 2rem', maxWidth: '440px', width: '95%', textAlign: 'center', position: 'relative' }} onClick={e => e.stopPropagation()}>
+                            {/* Icon */}
                             <div style={{
                                 width: '70px',
                                 height: '70px',
                                 margin: '0 auto 1.5rem',
-                                background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                                background: isBigMilestone
+                                    ? 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'
+                                    : isMilestone
+                                        ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+                                        : 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
                                 borderRadius: '20px',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                boxShadow: '0 10px 20px rgba(29, 78, 216, 0.3)'
+                                boxShadow: isBigMilestone
+                                    ? '0 10px 20px rgba(245, 158, 11, 0.4)'
+                                    : isMilestone
+                                        ? '0 10px 20px rgba(16, 185, 129, 0.3)'
+                                        : '0 10px 20px rgba(29, 78, 216, 0.3)'
                             }}>
-                                <HelpCircle size={36} color="white" />
+                                {isBigMilestone ? <Award size={36} color="white" /> : isMilestone ? <Award size={36} color="white" /> : <HelpCircle size={36} color="white" />}
                             </div>
-                            <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '1rem', color: 'white' }}>
-                                ¿Cómo va tu experiencia?
+                            {/* Title */}
+                            <h2 style={{ fontSize: isBigMilestone ? '1.6rem' : '1.5rem', fontWeight: 800, marginBottom: '1rem', color: 'white' }}>
+                                {isMilestone ? content!.title : '¿Cómo va tu experiencia?'}
                             </h2>
-                            <p style={{ fontSize: '0.95rem', lineHeight: '1.6', color: 'rgba(255,255,255,0.7)', marginBottom: '2rem' }}>
-                                ¡Llevas más de 30 días usando PCS Hogar! Si tienes alguna duda, sugerencia de mejora o has detectado algún problema, nos encantaría escucharte. Puedes contactarnos haciendo clic en el botón de sugerencias.
+                            {/* Body text */}
+                            <p style={{ fontSize: '0.95rem', lineHeight: '1.6', color: 'rgba(255,255,255,0.75)', marginBottom: '2rem' }}>
+                                {isMilestone
+                                    ? content!.text
+                                    : `¡Llevas más de ${monthsUsing} ${monthsUsing === 1 ? 'mes' : 'meses'} usando PCS Hogar! Si tienes alguna duda, sugerencia de mejora o has detectado algún problema, nos encantaría escucharte.`
+                                }
                             </p>
+                            {/* Action buttons */}
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
-                                <button 
+                                <button
                                     onClick={() => {
                                         const subject = encodeURIComponent('Sugerencia app PCSHogar');
                                         const mailtoUrl = `mailto:yoayudo2020@gmail.com?subject=${subject}`;
                                         window.open(mailtoUrl, '_system');
                                     }}
                                     style={{
-                                        width: '100%',
-                                        padding: '12px',
-                                        borderRadius: '10px',
-                                        background: '#1e2028',
-                                        color: 'white',
+                                        width: '100%', padding: '12px', borderRadius: '10px',
+                                        background: '#1e2028', color: 'white',
                                         border: '1px solid rgba(255, 255, 255, 0.12)',
-                                        fontWeight: 600,
-                                        fontSize: '0.95rem',
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: '8px',
-                                        boxSizing: 'border-box'
+                                        fontWeight: 600, fontSize: '0.95rem', cursor: 'pointer',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        gap: '8px', boxSizing: 'border-box'
                                     }}
                                 >
                                     <Mail size={18} /> Enviar sugerencia por email
                                 </button>
-                                <button 
+                                <button
                                     onClick={() => {
                                         const paypalUrl = 'https://www.paypal.me/pherba/5';
                                         window.open(paypalUrl, '_system');
+                                        localStorage.setItem('pcshogar_paypal_click_time', Date.now().toString());
+                                        localStorage.setItem('pcshogar_reminder_count', '0');
+                                        setReminderType(null);
                                     }}
                                     style={{
-                                        width: '100%',
-                                        padding: '12px',
-                                        borderRadius: '10px',
+                                        width: '100%', padding: '12px', borderRadius: '10px',
                                         background: 'linear-gradient(135deg, #ec4899 0%, #d946ef 100%)',
-                                        color: 'white',
-                                        border: 'none',
-                                        fontWeight: 700,
-                                        fontSize: '0.95rem',
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: '8px',
+                                        color: 'white', border: 'none', fontWeight: 700, fontSize: '0.95rem',
+                                        cursor: 'pointer', display: 'flex', alignItems: 'center',
+                                        justifyContent: 'center', gap: '8px',
                                         boxShadow: '0 4px 15px rgba(236, 72, 153, 0.3)',
                                         boxSizing: 'border-box'
                                     }}
                                 >
-                                    <Heart size={16} fill="white" color="white" /> Aportar para servidores (PayPal)
+                                    <Coffee size={16} /> Invitar a un café (PayPal)
                                 </button>
                             </div>
-                            <button 
+                            {/* Close button */}
+                            <button
                                 onClick={() => {
-                                    if (currentCount >= 3) {
-                                        localStorage.setItem('pcshogar_reminder_dismissed', 'true');
+                                    if (isMilestone) {
+                                        localStorage.setItem('pcshogar_last_action_milestone_shown', activeMilestone.toString());
                                     }
-                                    setShow30DayReminder(false);
+                                    setReminderType(null);
                                 }}
                                 style={{
-                                    background: 'none',
-                                    border: 'none',
+                                    background: 'none', border: 'none',
                                     color: 'rgba(255, 255, 255, 0.4)',
                                     textDecoration: 'underline',
-                                    fontSize: '0.85rem',
-                                    cursor: 'pointer'
+                                    fontSize: '0.85rem', cursor: 'pointer'
                                 }}
                             >
-                                {currentCount >= 3 ? 'Cerrar y no volver a mostrar' : 'Cerrar'}
+                                {!isMilestone && reminderCount >= 6 ? 'Cerrar y descansar unos meses' : 'Cerrar'}
                             </button>
                         </div>
                     </div></ModalPortal>

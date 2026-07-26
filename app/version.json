@@ -1,7 +1,7 @@
 {
-  "version": "2.0.2",
-  "releaseNotes": "Novedades versión 2.0.2:\n- Corrección en informes: ahora se incluyen los gastos que han sido financiados con huchas, mostrando el importe real gastado.",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.0.2/PCSHogar_Setup_v2.0.2.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.0.2/PCSHogar_Setup_v2.0.2.exe",
-  "versionCode": 215
+  "version": "2.0.3",
+  "releaseNotes": "Novedades versión 2.0.3:\n- Sistema de recordatorios inteligente: mensajes de motivación según meses de uso y acciones realizadas.\n- Los hitos de uso (40, 80, 160... acciones) generan mensajes personalizados de felicitación.\n- Botón de donación actualizado: 'Invitar a un café (PayPal)'.\n- Periodos de silencio inteligentes al donar o tras varios avisos.",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.0.3/PCSHogar_Setup_v2.0.3.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.0.3/PCSHogar_Setup_v2.0.3.exe",
+  "versionCode": 216
 }

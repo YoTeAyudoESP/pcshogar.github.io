@@ -95,7 +95,7 @@ interface FinanceContextType {
     pendingClosing: MonthClosing | null;
     importData: (data: any) => Promise<void>;
     settleCardCycle: (cardId: string, amount: number, totalPending: number, date: number, accountId: string, rangeStart?: number, rangeEnd?: number) => Promise<void>;
-    refreshFinance: () => Promise<void>;
+    refreshFinance: (isInitialLoad?: boolean) => Promise<void>;
     privacyMode?: boolean;
 }
 
@@ -120,7 +120,18 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
     const [loading, setLoading] = useState(true);
     const [pendingClosing, setPendingClosing] = useState<MonthClosing | null>(null);
 
-    const refreshFinance = useCallback(async () => {
+    const incrementActionCount = useCallback(() => {
+        try {
+            const count = parseInt(localStorage.getItem('pcshogar_actions_count') || '0') + 1;
+            localStorage.setItem('pcshogar_actions_count', count.toString());
+            window.dispatchEvent(new CustomEvent('pcshogar_action_performed', { detail: { count } }));
+        } catch (e) {}
+    }, []);
+
+    const refreshFinance = useCallback(async (isInitialLoad?: boolean) => {
+        if (!isInitialLoad) {
+            incrementActionCount();
+        }
         setLoading(true);
         try {
             const [
@@ -459,7 +470,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
     const { showToast } = useToast();
 
     useEffect(() => {
-        refreshFinance();
+        refreshFinance(true);
     }, [refreshFinance, activeEconomy?.id]);
 
     // Auto-sync watcher

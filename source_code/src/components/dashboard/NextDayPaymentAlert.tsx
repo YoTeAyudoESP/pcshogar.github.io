@@ -17,8 +17,9 @@ const NextDayPaymentAlert: React.FC = () => {
 
     if (!settings.notifyNextDayPayments || dismissed) return null;
 
-    // Calcular la fecha de mañana
+    // Calcular las fechas de hoy y mañana
     const today = new Date();
+    const todayDay = today.getDate();
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
     
@@ -28,7 +29,7 @@ const NextDayPaymentAlert: React.FC = () => {
     const period = `${tomorrowYear}-${(tomorrowMonth + 1).toString().padStart(2, '0')}`;
     const monthEnd = new Date(tomorrowYear, tomorrowMonth + 1, 0).getTime();
 
-    // Filtrar gastos fijos que vencen mañana y no están pagados
+    // Filtrar gastos fijos que vencen hoy/mañana o están pendientes y no están pagados
     const pendingNextDayExpenses = recurringExpenses.filter(re => {
         if (!re.active) return false;
         const start = re.updatedAt || 0;
@@ -46,6 +47,22 @@ const NextDayPaymentAlert: React.FC = () => {
     if (pendingNextDayExpenses.length === 0) return null;
 
     const totalAmount = pendingNextDayExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+
+    const hasToday = pendingNextDayExpenses.some(e => e.paymentDay <= todayDay);
+    const hasTomorrowOnly = pendingNextDayExpenses.every(e => e.paymentDay === tomorrowDay);
+    const hasTodayOnly = pendingNextDayExpenses.every(e => e.paymentDay <= todayDay);
+
+    const titleText = hasTomorrowOnly 
+        ? "Pagos fijos previstos para mañana"
+        : hasTodayOnly
+            ? "Pagos fijos programados para HOY"
+            : "Pagos fijos previstos para HOY y mañana";
+
+    const getTimingLabel = (paymentDay: number) => {
+        if (paymentDay === todayDay) return 'HOY';
+        if (paymentDay === tomorrowDay) return 'Mañana';
+        return 'Pendiente';
+    };
 
     const handleDismiss = () => {
         setDismissed(true);
@@ -92,7 +109,7 @@ const NextDayPaymentAlert: React.FC = () => {
                     fontWeight: 700,
                     fontSize: '0.95rem'
                 }}>
-                    Pagos fijos previstos para mañana
+                    {titleText}
                 </h4>
                 <p style={{
                     margin: 0,
@@ -100,17 +117,21 @@ const NextDayPaymentAlert: React.FC = () => {
                     fontSize: '0.88rem',
                     lineHeight: '1.5'
                 }}>
-                    {pendingNextDayExpenses.length === 1 ? (
+                    {pendingNextDayExpenses.length === 1 ? (() => {
+                        const timing = getTimingLabel(pendingNextDayExpenses[0].paymentDay);
+                        const prefix = timing === 'HOY' ? 'HOY se prevé el cobro de ' : timing === 'Mañana' ? 'Mañana se prevé el cobro de ' : 'Se prevé el cobro de ';
+                        return (
+                            <>
+                                {prefix}<strong>{pendingNextDayExpenses[0].description}</strong> por un importe de{' '}
+                                <strong style={{ color: 'white' }}>{formatMoney(pendingNextDayExpenses[0].amount)}</strong>.
+                            </>
+                        );
+                    })() : (
                         <>
-                            Mañana se prevé el cobro de <strong>{pendingNextDayExpenses[0].description}</strong> por un importe de{' '}
-                            <strong style={{ color: 'white' }}>{formatMoney(pendingNextDayExpenses[0].amount)}</strong>.
-                        </>
-                    ) : (
-                        <>
-                            Mañana se prevé el cobro de <strong style={{ color: 'white' }}>{pendingNextDayExpenses.length} pagos fijos</strong> por un importe total de{' '}
+                            Se prevé el cobro de <strong style={{ color: 'white' }}>{pendingNextDayExpenses.length} pagos fijos</strong> por un importe total de{' '}
                             <strong style={{ color: 'white' }}>{formatMoney(totalAmount)}</strong>: {pendingNextDayExpenses.map((e, index) => (
                                 <span key={e.id}>
-                                    {e.description} ({formatMoney(e.amount)}){index < pendingNextDayExpenses.length - 1 ? ', ' : '.'}
+                                    {e.description} [{getTimingLabel(e.paymentDay)}] ({formatMoney(e.amount)}){index < pendingNextDayExpenses.length - 1 ? ', ' : '.'}
                                 </span>
                             ))}
                         </>

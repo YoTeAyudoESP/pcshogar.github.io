@@ -14,7 +14,7 @@ interface PiggyBankListProps {
 }
 
 const PiggyBankList: React.FC<PiggyBankListProps> = ({ onEdit, onAddMoney, onWithdrawMoney, onShowHistory }) => {
-    const { savings, accounts, deleteSavingGoal, adjustSavings, fixedIncomes } = useFinance();
+    const { savings, accounts, deleteSavingGoal, adjustSavings, fixedIncomes, expenses } = useFinance();
     const { selectedMonth, selectedYear } = useDateSelection();
     const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
     const [deletingGoal, setDeletingGoal] = useState<SavingGoal | null>(null);
@@ -71,6 +71,20 @@ const PiggyBankList: React.FC<PiggyBankListProps> = ({ onEdit, onAddMoney, onWit
             {savings.map(goal => {
                 const sourceAcc = accounts.find(a => a.id === goal.automaticSourceAccountId);
                 const linkedIncome = fixedIncomes?.find(i => i.id === goal.linkedFixedIncomeId);
+
+                const reservedAmount = (expenses || [])
+                    .filter(exp => exp.status === 'pending' && !exp.excludeFromBudget)
+                    .reduce((sum, exp) => {
+                        let funded = 0;
+                        if (exp.savingGoalFunding && exp.savingGoalFunding.length > 0) {
+                            funded = exp.savingGoalFunding
+                                .filter(f => f.goalId === goal.id)
+                                .reduce((s, f) => s + f.amount, 0);
+                        } else if (exp.linkedSavingGoalId === goal.id) {
+                            funded = exp.amount;
+                        }
+                        return sum + funded;
+                    }, 0);
                 
                 return (
                     <div 
@@ -133,6 +147,17 @@ const PiggyBankList: React.FC<PiggyBankListProps> = ({ onEdit, onAddMoney, onWit
                                 }}>
                                     {formatMoney(goal.currentAmount)}
                                 </div>
+                                {reservedAmount > 0 && (
+                                    <div style={{ 
+                                        fontSize: '0.75rem', 
+                                        color: '#f59e0b', 
+                                        fontWeight: 600, 
+                                        marginTop: '2px',
+                                        whiteSpace: 'nowrap' 
+                                    }}>
+                                        🔒 Reservado: {formatMoney(reservedAmount)} (Disp: {formatMoney(Math.max(0, goal.currentAmount - reservedAmount))})
+                                    </div>
+                                )}
                             </div>
                         </div>
 

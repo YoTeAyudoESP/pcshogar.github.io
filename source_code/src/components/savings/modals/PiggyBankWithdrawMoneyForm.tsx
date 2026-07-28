@@ -25,10 +25,26 @@ const PiggyBankWithdrawMoneyForm: React.FC<PiggyBankWithdrawMoneyFormProps> = ({
         savings, recurringExpenses, overrides, cards
     });
 
+    const reservedAmount = (expenses || [])
+        .filter(exp => exp.status === 'pending' && !exp.excludeFromBudget)
+        .reduce((sum, exp) => {
+            let funded = 0;
+            if (exp.savingGoalFunding && exp.savingGoalFunding.length > 0) {
+                funded = exp.savingGoalFunding
+                    .filter(f => f.goalId === goal.id)
+                    .reduce((s, f) => s + f.amount, 0);
+            } else if (exp.linkedSavingGoalId === goal.id) {
+                funded = exp.amount;
+            }
+            return sum + funded;
+        }, 0);
+
+    const spendableAmount = Math.max(0, goal.currentAmount - reservedAmount);
+
     const parsedAmount = parseFloat(amount);
     const updatedAvailable = isNaN(parsedAmount) ? availableToSpend : availableToSpend + parsedAmount;
 
-    const isSubmitDisabled = isNaN(parsedAmount) || parsedAmount <= 0 || parsedAmount > goal.currentAmount;
+    const isSubmitDisabled = isNaN(parsedAmount) || parsedAmount <= 0 || parsedAmount > spendableAmount;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -45,8 +61,12 @@ const PiggyBankWithdrawMoneyForm: React.FC<PiggyBankWithdrawMoneyFormProps> = ({
             return;
         }
 
-        if (withdrawAmount > goal.currentAmount) {
-            setError(`No puedes retirar más saldo del acumulado actual en esta hucha (${formatMoney(goal.currentAmount)})`);
+        if (withdrawAmount > spendableAmount) {
+            if (reservedAmount > 0) {
+                setError(`No puedes retirar este importe porque hay ${formatMoney(reservedAmount)} reservados para pagos pendientes. Saldo líquido disponible: ${formatMoney(spendableAmount)}.`);
+            } else {
+                setError(`No puedes retirar más saldo del acumulado actual en esta hucha (${formatMoney(goal.currentAmount)})`);
+            }
             return;
         }
 

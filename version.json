@@ -1,7 +1,7 @@
 {
-  "version": "2.0.9",
-  "releaseNotes": "Novedades versión 2.0.9:\n- Los gastos puntuales de tarjeta en estado pendiente no acumulan ni aparecen en el desglose de la tarjeta hasta ser confirmados.\n- Sistema de reserva de fondos en huchas para gastos pendientes: los saldos se mantienen protegidos como 'Reservados' e impiden retiradas indebidas hasta la confirmación del pago.",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.0.9/PCSHogar_Setup_v2.0.9.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.0.9/PCSHogar_Setup_v2.0.9.exe",
-  "versionCode": 222
+  "version": "2.0.10",
+  "releaseNotes": "Novedades versión 2.0.10:\n- Los gastos puntuales de tarjeta en estado pendiente quedan excluidos de la lista de gastos agrupados por tarjeta hasta ser confirmados.\n- Sistema de reserva de fondos en huchas para gastos pendientes: los saldos se mantienen protegidos como 'Reservados' e impiden retiradas indebidas hasta la confirmación del pago.",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.0.10/PCSHogar_Setup_v2.0.10.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.0.10/PCSHogar_Setup_v2.0.10.exe",
+  "versionCode": 223
 }

@@ -20,6 +20,10 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ onEdit }) => {
     }>({ show: false, expense: null });
 
     const isItemInSelectedMonth = (item: any) => {
+        // Exclude pending card expenses from ExpenseList (they belong to PendingActionsWidget until confirmed)
+        if (item.paymentMethod?.type === 'card' && item.status === 'pending') {
+            return false;
+        }
         if (item.period && typeof item.period === 'string') {
             const [y, m] = item.period.split('-').map(Number);
             return y === selectedYear && (m - 1) === selectedMonth;

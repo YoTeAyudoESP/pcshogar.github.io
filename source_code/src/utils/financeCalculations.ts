@@ -335,6 +335,7 @@ export function calculateAvailableBalanceForMonth(
     const summary = {
         availableToSpend,
         totalMonthIncome,
+        extraIncomesReceived,
         totalMonthExpenses,
         totalAccountExpenses,
         totalCardExpenses,

@@ -1,7 +1,7 @@
 {
-  "version": "2.0.6",
-  "releaseNotes": "Novedades versión 2.0.6:\n- Corrección del saldo bancario y huchas al confirmar ingresos fijos con ahorro automático.\n- Ajuste del cálculo de descuadre para evitar el doble conteo de ahorros en reservas de ingresos futuros.\n- Comprobación de ingresos duplicados orientada al mes de presupuesto destino real.\n- Nota informativa al confirmar ingresos fijos configurados para el presupuesto del mes siguiente.",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.0.6/PCSHogar_Setup_v2.0.6.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.0.6/PCSHogar_Setup_v2.0.6.exe",
-  "versionCode": 219
+  "version": "2.0.7",
+  "releaseNotes": "Novedades versión 2.0.7:\n- Corrección en la gráfica 'Evolución 2026' del Dashboard: se eliminó la duplicación de ingresos al confirmar ingresos fijos destinados a presupuestos de meses futuros.",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.0.7/PCSHogar_Setup_v2.0.7.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.0.7/PCSHogar_Setup_v2.0.7.exe",
+  "versionCode": 220
 }

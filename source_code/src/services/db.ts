@@ -679,7 +679,6 @@ class IncomeDB {
         const tx = db.transaction(['allocations', 'savings', 'accounts'], 'readwrite');
         const allocStore = tx.objectStore('allocations');
         const savingsStore = tx.objectStore('savings');
-        const accountStore = tx.objectStore('accounts');
 
         await allocStore.add(allocation);
 
@@ -688,15 +687,6 @@ class IncomeDB {
             goal.currentAmount += allocation.amount;
             goal.updatedAt = Date.now();
             await savingsStore.put(goal);
-        }
-
-        if (allocation.sourceAccountId) {
-            const account = await accountStore.get(allocation.sourceAccountId);
-            if (account) {
-                account.balance -= allocation.amount;
-                account.updatedAt = Date.now();
-                await accountStore.put(account);
-            }
         }
         await tx.done;
     }

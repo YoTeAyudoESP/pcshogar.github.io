@@ -678,7 +678,14 @@ export function calculateBalanceDiscrepancy(
             const incPeriodNum = incYear * 12 + incMonth;
             const currentPeriodNum = now.getFullYear() * 12 + now.getMonth();
             if (incPeriodNum > currentPeriodNum) {
-                futureIncomesTotal += inc.amount;
+                let savedAmount = 0;
+                if (inc.fixedIncomeId) {
+                    savedAmount = (savings || [])
+                        .filter(s => s.linkedFixedIncomeId === inc.fixedIncomeId)
+                        .reduce((sum, s) => sum + (s.monthlySavingAmount || 0), 0);
+                }
+                const netAmount = Math.max(0, inc.amount - savedAmount);
+                futureIncomesTotal += netAmount;
             }
         }
     });

@@ -1,7 +1,7 @@
 {
-  "version": "2.0.5",
-  "releaseNotes": "Novedades versión 2.0.5:\n- Nota explicativa en ingresos pendientes al seleccionar 'No sumar'.\n- Nuevo selector 'Asignar al Presupuesto de:' (Mes Actual / Mes Siguiente) para ingresos.\n- Lista completa de frecuencias y selector de mes del primer cobro en ingresos fijos.\n- Textos dinámicos en alertas de cobros fijos (HOY vs Mañana vs Pendientes).\n- Modal personalizado de confirmación al eliminar huchas (0,00€ y con saldo).\n- Diseños adaptados al 100% para pantallas estrechas de móviles Android.",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.0.5/PCSHogar_Setup_v2.0.5.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.0.5/PCSHogar_Setup_v2.0.5.exe",
-  "versionCode": 218
+  "version": "2.0.6",
+  "releaseNotes": "Novedades versión 2.0.6:\n- Corrección del saldo bancario y huchas al confirmar ingresos fijos con ahorro automático.\n- Ajuste del cálculo de descuadre para evitar el doble conteo de ahorros en reservas de ingresos futuros.\n- Comprobación de ingresos duplicados orientada al mes de presupuesto destino real.\n- Nota informativa al confirmar ingresos fijos configurados para el presupuesto del mes siguiente.",
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.0.6/PCSHogar_Setup_v2.0.6.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.0.6/PCSHogar_Setup_v2.0.6.exe",
+  "versionCode": 219
 }

@@ -3,7 +3,7 @@ import { X, Check, Calendar, CreditCard, DollarSign } from 'lucide-react';
 import { useFinance } from '../../contexts/FinanceContext';
 import { useToast } from '../../contexts/ToastContext';
 import type { FixedIncome } from '../../types/income';
-import type { RecurringExpense, Account } from '../../types/finance';
+import type { RecurringExpense } from '../../types/finance';
 import { formatMoney } from '../../utils/financeCalculations';
 import ModalPortal from '../common/ModalPortal';
 
@@ -26,13 +26,15 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
     const nextMonthPeriod = getNextMonthPeriod();
 
     const isExtraIncomePending = type === 'income' && item.type === 'extra';
-    const isDuplicateIncome = type === 'income' && !isExtraIncomePending && (incomes || []).some(inc => inc.fixedIncomeId === item.id && inc.period === currentRealPeriod);
+    const isForNextMonthDefault = type === 'income' && (item.accountForNextMonth || (item as any).countForNextMonth);
+    const targetDefaultPeriod = isForNextMonthDefault ? nextMonthPeriod : currentRealPeriod;
+    const isDuplicateIncome = type === 'income' && !isExtraIncomePending && (incomes || []).some(inc => inc.fixedIncomeId === item.id && inc.period === targetDefaultPeriod);
 
     const [amount, setAmount] = useState(type === 'refund' ? Math.abs(item.amount) : item.amount);
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [budgetPeriod, setBudgetPeriod] = useState(() => {
         if (isDuplicateIncome) return nextMonthPeriod;
-        if (type === 'income' && (item.accountForNextMonth || (item as any).countForNextMonth)) return nextMonthPeriod;
+        if (isForNextMonthDefault) return nextMonthPeriod;
         return currentRealPeriod;
     });
     const [accountId, setAccountId] = useState('');
@@ -45,12 +47,12 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
         if (isDuplicateIncome) {
             setBudgetPeriod(nextMonthPeriod);
             setDuplicateOption('next');
-        } else if (type === 'income' && (item.accountForNextMonth || (item as any).countForNextMonth)) {
+        } else if (isForNextMonthDefault) {
             setBudgetPeriod(nextMonthPeriod);
         } else {
             setBudgetPeriod(currentRealPeriod);
         }
-    }, [isDuplicateIncome, type, item.accountForNextMonth, (item as any).countForNextMonth]);
+    }, [isDuplicateIncome, isForNextMonthDefault, nextMonthPeriod, currentRealPeriod]);
 
     const handleDuplicateOptionChange = (option: 'next' | 'current') => {
         setDuplicateOption(option);
@@ -107,7 +109,7 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
             if (type === 'refund') {
                 let finalDescription = description;
                 if (!finalDescription.toLowerCase().startsWith('devolución:')) {
-                    finalDescription = `Devolución: ${finalDescription}`;
+                    finalDescription = "Devolución: " + finalDescription;
                 }
                 const updatedExpense = {
                     ...item,
@@ -226,7 +228,7 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
                     {type === 'income' ? 'Confirmar Ingreso' : type === 'refund' ? 'Confirmar Devolución' : 'Confirmar Gasto'}
                 </h2>
 
-                {isDuplicateIncome && (
+                {isDuplicateIncome ? (
                     <div style={{
                         background: 'rgba(251, 191, 36, 0.08)',
                         border: '1px solid rgba(251, 191, 36, 0.2)',
@@ -239,10 +241,10 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
                         marginBottom: '0.5rem'
                     }}>
                         <span style={{ fontSize: '0.85rem', color: '#fbbf24', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            ⚠️ Ingreso ya cobrado este mes
+                            ⚠️ Ingreso ya registrado en este periodo
                         </span>
                         <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', margin: 0, lineHeight: 1.4 }}>
-                            Este ingreso ya fue registrado en el periodo actual ({currentRealPeriod}). ¿Cómo deseas contabilizar este cobro?
+                            Este ingreso ya fue registrado previamente en el periodo objetivo ({targetDefaultPeriod}). ¿Cómo deseas contabilizar este nuevo cobro?
                         </p>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem', color: 'white', marginTop: '0.25rem' }}>
                             <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
@@ -266,6 +268,22 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
                                 Ingreso extra en el mes actual ({currentRealPeriod})
                             </label>
                         </div>
+                    </div>
+                ) : isForNextMonthDefault && (
+                    <div style={{
+                        background: 'rgba(59, 130, 246, 0.08)',
+                        border: '1px solid rgba(59, 130, 246, 0.2)',
+                        borderRadius: '12px',
+                        padding: '0.85rem 1rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.75rem',
+                        marginTop: '-0.5rem',
+                        marginBottom: '0.75rem'
+                    }}>
+                        <span style={{ fontSize: '0.82rem', color: '#60a5fa', lineHeight: 1.45 }}>
+                            ℹ️ Este ingreso fijo está configurado por defecto para asignarse al presupuesto del <strong>Mes Siguiente ({nextMonthPeriod})</strong>. Puedes modificar la casilla de presupuesto si deseas asignarlo a otro mes.
+                        </span>
                     </div>
                 )}
 
@@ -318,7 +336,7 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
                             <CreditCard size={14} /> Cuenta/Banco
                         </label>
                         <select 
-                            value={`${methodType}:${accountId}`}
+                            value={methodType + ':' + accountId}
                             onChange={(e) => {
                                 const [mType, mId] = e.target.value.split(':');
                                 setMethodType(mType as any);
@@ -336,7 +354,7 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
                             <option value="">Selecciona una cuenta o tarjeta</option>
                             <optgroup label="Cuentas Bancarias">
                                 {accounts.map(acc => (
-                                    <option key={acc.id} value={`account:${acc.id}`}>
+                                    <option key={acc.id} value={'account:' + acc.id}>
                                         {acc.name} ({formatMoney(acc.balance)})
                                     </option>
                                 ))}
@@ -344,7 +362,7 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
                             {(type === 'expense' || type === 'refund') && (
                                 <optgroup label="Tarjetas de Crédito">
                                     {useFinance().cards.map(card => (
-                                        <option key={card.id} value={`card:${card.id}`}>
+                                        <option key={card.id} value={'card:' + card.id}>
                                             {card.name}
                                         </option>
                                     ))}

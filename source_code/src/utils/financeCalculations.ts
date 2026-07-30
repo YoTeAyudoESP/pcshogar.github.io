@@ -707,7 +707,7 @@ export function calculateBalanceDiscrepancy(
             .filter(a => a.budgetMonth === val.month && a.budgetYear === val.year && a.amount > 0);
         const transfersToHuchas = allocsForMonth.reduce((sum, a) => sum + a.amount, 0);
 
-        const totalSavedToHuchas = val.autoSavings + transfersToHuchas;
+        const totalSavedToHuchas = Math.max(val.autoSavings, transfersToHuchas);
         const netFutureIncome = Math.max(0, val.totalIncomes - totalSavedToHuchas);
         futureIncomesTotal += netFutureIncome;
     });

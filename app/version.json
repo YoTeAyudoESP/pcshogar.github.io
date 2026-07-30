@@ -1,7 +1,7 @@
 {
-  "version": "2.0.11",
-  "versionCode": 224,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.0.11/PCSHogar_Setup_v2.0.11.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.0.11/PCSHogar_Setup_v2.0.11.exe",
-  "releaseNotes": "Novedades versión 2.0.11:\n- Corrección en la balanza de desajuste bancario: descuenta adecuadamente los traspasos y aportaciones a huchas realizados desde ingresos futuros recibidos por adelantado.\n- Nueva opción de 'Pendiente de recibir' al registrar devoluciones de compras."
+  "version": "2.1.0",
+  "versionCode": 225,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.1.0/PCSHogar_Setup_v2.1.0.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.1.0/PCSHogar_Setup_v2.1.0.exe",
+  "releaseNotes": "Novedades versión 2.1.0:\n- Ajuste en la balanza de desajuste bancario: elimina la duplicidad en el conteo de ahorros automáticos mensuales vinculados a ingresos fijos.\n- Solucionado el aviso de dinero sin asignar de 982,33 €.\n- Nueva opción de 'Pendiente de recibir' al registrar devoluciones de compras."
 }

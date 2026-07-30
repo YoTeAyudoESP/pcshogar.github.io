@@ -124,9 +124,10 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
                 await updateExpense(updatedExpense);
                 showToast("Devolución confirmada con éxito.", "success");
             } else if (item.isPunctualPending) {
+                const isRefundItem = item.amount < 0 || (type as string) === 'refund' || description?.toLowerCase().startsWith('devolución');
                 const updatedExpense = {
                     ...item,
-                    amount: Math.abs(amount),
+                    amount: isRefundItem ? -Math.abs(amount) : Math.abs(amount),
                     date: new Date(date).getTime(),
                     description: description,
                     status: 'paid' as const,
@@ -135,7 +136,7 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
                         : { type: 'account' as const, accountId: accountId }
                 };
                 await updateExpense(updatedExpense);
-                showToast("Gasto confirmado con éxito.", "success");
+                showToast(isRefundItem ? "Devolución confirmada con éxito." : "Gasto confirmado con éxito.", "success");
             } else if (isExtraIncomePending) {
                 if (allocationTarget === 'hucha' && !selectedSavingGoalId) {
                     showToast('Por favor, selecciona una hucha.', 'error');

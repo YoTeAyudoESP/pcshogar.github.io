@@ -1,5 +1,5 @@
 import type { 
-    Expense, SavingGoal, SavingAllocation, 
+    Expense, SavingGoal, SavingAllocation,
     RecurringExpense, MonthOverride, CreditCard,
     Account
 } from '../types/finance';
@@ -581,7 +581,8 @@ export function calculateBalanceDiscrepancy(
     recurringExpenses: RecurringExpense[] = [],
     disponibleDelMes: number = 0,
     threshold: number = 0.50,
-    incomes: Income[] = []
+    incomes: Income[] = [],
+    allocations: SavingAllocation[] = []
 ): {
     dineroReal: number;
     dineroLibreReal: number;
@@ -635,9 +636,7 @@ export function calculateBalanceDiscrepancy(
         if (start > monthEnd) return;
         const isIgnored = re.ignoredPeriods?.includes(mesActual);
         
-        // Use the same helper used for availableToSpend (requires importing isRecurringActiveInMonth if not already, wait, it's defined in the same file)
         if (!isIgnored && isRecurringActiveInMonth(re.frequency, re.paymentMonth, currentMonth, currentYear, start)) {
-            // Check if it's paid (or pending, but wait! If it's pending it's in gastosPendientes!)
             const isRegistered = expenses.some(e => e.recurringExpenseId === re.id && isItemInMonthAndYear(e, currentMonth, currentYear));
             if (!isRegistered) {
                 pendingFixedExpenses += re.amount;
@@ -654,6 +653,9 @@ export function calculateBalanceDiscrepancy(
 
     // ── Future-budgeted received incomes ──────────────────────────────────────
     let futureIncomesTotal = 0;
+
+    const futureMonthMap = new Map<string, { year: number; month: number; totalIncomes: number; autoSavings: number }>();
+
     (incomes || []).forEach(inc => {
         if (inc.status !== 'received' || inc.type === 'rollover') return;
         
@@ -679,16 +681,35 @@ export function calculateBalanceDiscrepancy(
             const incPeriodNum = incYear * 12 + incMonth;
             const currentPeriodNum = now.getFullYear() * 12 + now.getMonth();
             if (incPeriodNum > currentPeriodNum) {
-                let savedAmount = 0;
+                const key = `${incYear}-${incMonth}`;
+                if (!futureMonthMap.has(key)) {
+                    futureMonthMap.set(key, { year: incYear, month: incMonth, totalIncomes: 0, autoSavings: 0 });
+                }
+                const entry = futureMonthMap.get(key)!;
+                entry.totalIncomes += (inc.amount || 0);
+
                 if (inc.fixedIncomeId) {
-                    savedAmount = (savings || [])
+                    const autoSaved = (savings || [])
                         .filter(s => s.linkedFixedIncomeId === inc.fixedIncomeId)
                         .reduce((sum, s) => sum + (s.monthlySavingAmount || 0), 0);
+                    entry.autoSavings += autoSaved;
                 }
-                const netAmount = Math.max(0, inc.amount - savedAmount);
-                futureIncomesTotal += netAmount;
+
+                if ((inc as any).allocationTarget === 'hucha' || (inc as any).savingGoalId) {
+                    entry.autoSavings += (inc.amount || 0);
+                }
             }
         }
+    });
+
+    futureMonthMap.forEach((val) => {
+        const allocsForMonth = (allocations || [])
+            .filter(a => a.budgetMonth === val.month && a.budgetYear === val.year && a.amount > 0);
+        const transfersToHuchas = allocsForMonth.reduce((sum, a) => sum + a.amount, 0);
+
+        const totalSavedToHuchas = val.autoSavings + transfersToHuchas;
+        const netFutureIncome = Math.max(0, val.totalIncomes - totalSavedToHuchas);
+        futureIncomesTotal += netFutureIncome;
     });
 
     // ── Final calculation ─────────────────────────────────────────────────────

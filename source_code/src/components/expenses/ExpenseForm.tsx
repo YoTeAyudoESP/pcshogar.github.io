@@ -269,42 +269,40 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                     
                     {!isRefund && (
-                        <>
-                            <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                <button
-                                    type="button"
-                                    onClick={() => setType('puntual')}
-                                    style={toggleButtonStyle(type === 'puntual', '#ef4444')}
-                                >
-                                    <Clock size={18} /> Puntual
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setType('fixed')}
-                                    style={toggleButtonStyle(type === 'fixed', '#8b5cf6')}
-                                >
-                                    <Calendar size={18} /> Fijo
-                                </button>
-                            </div>
-
-                            <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                <button
-                                    type="button"
-                                    onClick={() => setStatus('paid')}
-                                    style={toggleButtonStyle(status === 'paid', '#ef4444')}
-                                >
-                                    <CheckCircle size={18} /> Pagado
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setStatus('pending')}
-                                    style={toggleButtonStyle(status === 'pending', '#f59e0b')}
-                                >
-                                    <Clock size={18} /> Pendiente
-                                </button>
-                            </div>
-                        </>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button
+                                type="button"
+                                onClick={() => setType('puntual')}
+                                style={toggleButtonStyle(type === 'puntual', '#ef4444')}
+                            >
+                                <Clock size={18} /> Puntual
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setType('fixed')}
+                                style={toggleButtonStyle(type === 'fixed', '#8b5cf6')}
+                            >
+                                <Calendar size={18} /> Fijo
+                            </button>
+                        </div>
                     )}
+
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button
+                            type="button"
+                            onClick={() => setStatus('paid')}
+                            style={toggleButtonStyle(status === 'paid', isRefund ? '#10b981' : '#ef4444')}
+                        >
+                            <CheckCircle size={18} /> {isRefund ? 'Recibida' : 'Pagado'}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setStatus('pending')}
+                            style={toggleButtonStyle(status === 'pending', '#f59e0b')}
+                        >
+                            <Clock size={18} /> {isRefund ? 'Pendiente de recibir' : 'Pendiente'}
+                        </button>
+                    </div>
 
                     {/* Rows */}
                     <div style={{ display: 'flex', gap: '1rem' }}>

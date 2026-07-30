@@ -1,7 +1,7 @@
 {
-  "version": "2.0.10",
-  "releaseNotes": "Novedades versión 2.0.10:\n- Los gastos puntuales de tarjeta en estado pendiente quedan excluidos de la lista de gastos agrupados por tarjeta hasta ser confirmados.\n- Sistema de reserva de fondos en huchas para gastos pendientes: los saldos se mantienen protegidos como 'Reservados' e impiden retiradas indebidas hasta la confirmación del pago.",
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.0.10/PCSHogar_Setup_v2.0.10.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.0.10/PCSHogar_Setup_v2.0.10.exe",
-  "versionCode": 223
+  "version": "2.0.11",
+  "versionCode": 224,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.0.11/PCSHogar_Setup_v2.0.11.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.0.11/PCSHogar_Setup_v2.0.11.exe",
+  "releaseNotes": "Novedades versión 2.0.11:\n- Corrección en la balanza de desajuste bancario: descuenta adecuadamente los traspasos y aportaciones a huchas realizados desde ingresos futuros recibidos por adelantado.\n- Nueva opción de 'Pendiente de recibir' al registrar devoluciones de compras."
 }

@@ -13,6 +13,7 @@ import CreditCardSettlement from './CreditCardSettlement';
 import SettingsView from '../settings/SettingsView';
 import ExpenseCategoryChart from '../analytics/ExpenseCategoryChart';
 import YearlyFinancialChart from '../analytics/YearlyFinancialChart';
+import ProjectionsView from '../analytics/ProjectionsView';
 import DateSelector from '../common/DateSelector';
 import { LayoutDashboard, Settings as SettingsIcon, X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, MinusCircle, PiggyBank, ArrowLeftRight, AlertCircle, Mail, Heart, RotateCcw, FileText, Coffee, Award } from 'lucide-react';
 
@@ -511,6 +512,9 @@ const Dashboard: React.FC = () => {
                     <CreditCardSettlement />
 
                     {/* Income Modal Rendering handled at root */}
+
+                    {/* Projections Simulator Section */}
+                    <ProjectionsView />
 
                     {/* Charts Section */}
                     <div style={{ 

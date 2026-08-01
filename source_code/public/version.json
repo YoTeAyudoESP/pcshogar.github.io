@@ -1,7 +1,7 @@
 {
-  "version": "2.2.0",
-  "versionCode": 226,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.2.0/PCSHogar_Setup_v2.2.0.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.2.0/PCSHogar_Setup_v2.2.0.exe",
-  "releaseNotes": "Novedades versión 2.2.0:\n- Traslado automático de ingresos pendientes de meses anteriores al mes actual con la etiqueta '[Atrasado]'.\n- Exclusión en Cierre de Mes de los ingresos fijos ya cobrados por adelantado para el mes siguiente.\n- Borrado limpio de casilla de importe (permitiendo vaciar al teclear) y validación estricta de importe superior a 0,00 €.\n- Reconocimiento automático de gastos fijos pagados por adelantado a fin de mes."
+  "version": "2.2.1",
+  "versionCode": 227,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.2.1/PCSHogar_Setup_v2.2.1.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.2.1/PCSHogar_Setup_v2.2.1.exe",
+  "releaseNotes": "Novedades versión 2.2.1:\n- Actualizada la etiqueta del panel informativo a 'Gastos Fijos (pend.)' para mayor claridad.\n- Nuevo Simulador de Proyección a Fin de Año interactivo con controles de gasto variable estimado, eventos extraordinarios y saldo al 31 de diciembre."
 }

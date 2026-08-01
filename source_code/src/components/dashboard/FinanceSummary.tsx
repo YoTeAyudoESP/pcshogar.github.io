@@ -198,7 +198,7 @@ const FinanceSummary: React.FC = () => {
                 {/* Row 1 Right: Fijos (Pend.) */}
                 <div style={{ textAlign: isMobile ? 'center' : 'right' }}>
                     <div style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '0.85rem', marginBottom: '4px' }}>
-                        Fijos (Pend.)
+                        Gastos Fijos (pend.)
                     </div>
                     <div style={{ color: '#818cf8', fontWeight: 800, fontSize: '1.2rem', whiteSpace: 'nowrap' }}>
                         {formatCurrency(pendingFixedExpenses)}

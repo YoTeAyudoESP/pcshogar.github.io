@@ -215,9 +215,29 @@ const ProjectionsView: React.FC = () => {
 
                 {/* Slider / Variable Budget Input */}
                 <div style={{ marginBottom: '1.5rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', fontSize: '0.88rem' }}>
-                        <span>Gasto Variable Estimado al Mes (Supermercado, ocio, etc.):</span>
-                        <strong style={{ color: '#fbbf24', fontSize: '1.1rem' }}>{formatMoney(monthlyVariableBudget)} / mes</strong>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.75rem', fontSize: '0.88rem' }}>
+                        <span>Gasto Variable Estimado al Mes (Supermercado, ocio...):</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                            <input 
+                                type="number" 
+                                min="0"
+                                step="10"
+                                value={monthlyVariableBudget || ''}
+                                onChange={e => setMonthlyVariableBudget(Math.max(0, Number(e.target.value)))}
+                                style={{
+                                    width: '105px',
+                                    padding: '0.4rem 0.6rem',
+                                    borderRadius: '0.5rem',
+                                    border: '1px solid rgba(251, 191, 36, 0.4)',
+                                    background: 'rgba(251, 191, 36, 0.1)',
+                                    color: '#fbbf24',
+                                    fontWeight: 700,
+                                    fontSize: '1rem',
+                                    textAlign: 'right'
+                                }}
+                            />
+                            <span style={{ color: '#fbbf24', fontWeight: 700 }}>€ / mes</span>
+                        </div>
                     </div>
                     <input 
                         type="range" 
@@ -228,7 +248,7 @@ const ProjectionsView: React.FC = () => {
                         onChange={e => setMonthlyVariableBudget(Number(e.target.value))}
                         style={{ width: '100%', cursor: 'pointer', accentColor: '#fbbf24' }}
                     />
-                    <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.3rem' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.4rem' }}>
                         Estimación total para {remainingMonthsCount} meses restantes: {formatMoney(estimatedVariableTotal)}
                     </div>
                 </div>

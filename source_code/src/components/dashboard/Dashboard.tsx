@@ -13,9 +13,9 @@ import CreditCardSettlement from './CreditCardSettlement';
 import SettingsView from '../settings/SettingsView';
 import ExpenseCategoryChart from '../analytics/ExpenseCategoryChart';
 import YearlyFinancialChart from '../analytics/YearlyFinancialChart';
-import ProjectionsView from '../analytics/ProjectionsView';
+import ProjectionsModal from './ProjectionsModal';
 import DateSelector from '../common/DateSelector';
-import { LayoutDashboard, Settings as SettingsIcon, X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, MinusCircle, PiggyBank, ArrowLeftRight, AlertCircle, Mail, Heart, RotateCcw, FileText, Coffee, Award } from 'lucide-react';
+import { LayoutDashboard, Settings as SettingsIcon, X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, MinusCircle, PiggyBank, ArrowLeftRight, AlertCircle, Mail, Heart, RotateCcw, FileText, Coffee, Award, Sparkles } from 'lucide-react';
 
 import { useFinance } from '../../contexts/FinanceContext';
 import { useAppSettings } from '../../contexts/AppSettingsContext';
@@ -119,6 +119,7 @@ const Dashboard: React.FC = () => {
     const [isHuchaModalOpen, setIsHuchaModalOpen] = useState(false);
     const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+    const [isProjectionsModalOpen, setIsProjectionsModalOpen] = useState(false);
     const [reminderType, setReminderType] = useState<'monthly' | 'milestone' | null>(null);
     const [activeMilestone, setActiveMilestone] = useState<number>(0);
     const [showChangelog, setShowChangelog] = useState(false);
@@ -162,6 +163,12 @@ const Dashboard: React.FC = () => {
             } else if (isTransferModalOpen) {
                 e.preventDefault();
                 setIsTransferModalOpen(false);
+            } else if (isReportModalOpen) {
+                e.preventDefault();
+                setIsReportModalOpen(false);
+            } else if (isProjectionsModalOpen) {
+                e.preventDefault();
+                setIsProjectionsModalOpen(false);
             } else if (reminderType) {
                 e.preventDefault();
                 setReminderType(null);
@@ -500,6 +507,18 @@ const Dashboard: React.FC = () => {
                             <FileText size={20} />
                             {isMobile ? 'Informe' : 'Informe PDF'}
                         </button>
+                        <button 
+                            onClick={() => setIsProjectionsModalOpen(true)}
+                            style={{ 
+                                ...actionButtonStyle, 
+                                background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', 
+                                border: '1px solid rgba(129, 140, 248, 0.4)',
+                                flex: isMobile ? '1 1 100%' : '1 1 auto'
+                            }}
+                        >
+                            <Sparkles size={20} />
+                            Simulador Disponible a Fin de Año
+                        </button>
                     </div>
 
                     <OverdueFixedExpenseAlert />
@@ -510,11 +529,6 @@ const Dashboard: React.FC = () => {
                     <PendingActionsWidget onEdit={(item, type, isFromPending) => { setEditingTx(item); setEditingType(type); setIsEditingFromPendingWidget(!!isFromPending); }} />
                     <FinanceGlobalSummary />
                     <CreditCardSettlement />
-
-                    {/* Income Modal Rendering handled at root */}
-
-                    {/* Projections Simulator Section */}
-                    <ProjectionsView />
 
                     {/* Charts Section */}
                     <div style={{ 
@@ -839,6 +853,11 @@ const Dashboard: React.FC = () => {
                     </div>
                 </div></ModalPortal>
             )}
+
+            <ProjectionsModal 
+                isOpen={isProjectionsModalOpen} 
+                onClose={() => setIsProjectionsModalOpen(false)} 
+            />
         </div>
     );
 };

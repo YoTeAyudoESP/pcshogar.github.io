@@ -109,6 +109,10 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
         }
 
         const parsedAmount = parseFloat(amount);
+        if (isNaN(parsedAmount) || parsedAmount <= 0) {
+            alert('El importe debe ser superior a 0,00 €');
+            return;
+        }
         const finalAmount = isRefund ? -Math.abs(parsedAmount) : parsedAmount;
 
         let finalDescription = description.trim();

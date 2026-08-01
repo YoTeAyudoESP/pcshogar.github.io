@@ -30,7 +30,7 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
     const targetDefaultPeriod = isForNextMonthDefault ? nextMonthPeriod : currentRealPeriod;
     const isDuplicateIncome = type === 'income' && !isExtraIncomePending && (incomes || []).some(inc => inc.fixedIncomeId === item.id && inc.period === targetDefaultPeriod);
 
-    const [amount, setAmount] = useState(type === 'refund' ? Math.abs(item.amount) : item.amount);
+    const [amountStr, setAmountStr] = useState<string>(() => String(Math.abs(item.amount || 0)));
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [budgetPeriod, setBudgetPeriod] = useState(() => {
         if (isDuplicateIncome) return nextMonthPeriod;
@@ -101,6 +101,12 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
             return;
         }
 
+        const numAmount = parseFloat(amountStr);
+        if (isNaN(numAmount) || numAmount <= 0) {
+            showToast('El importe debe ser superior a 0,00 €', 'error');
+            return;
+        }
+
         const period = budgetPeriod;
         const description = (item as any).description || (item as any).name;
         const categoryId = (item as any).categoryId;
@@ -113,7 +119,7 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
                 }
                 const updatedExpense = {
                     ...item,
-                    amount: -Math.abs(amount),
+                    amount: -Math.abs(numAmount),
                     date: new Date(date).getTime(),
                     description: finalDescription,
                     status: 'paid' as const,
@@ -127,7 +133,7 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
                 const isRefundItem = item.amount < 0 || (type as string) === 'refund' || description?.toLowerCase().startsWith('devolución');
                 const updatedExpense = {
                     ...item,
-                    amount: isRefundItem ? -Math.abs(amount) : Math.abs(amount),
+                    amount: isRefundItem ? -Math.abs(numAmount) : Math.abs(numAmount),
                     date: new Date(date).getTime(),
                     description: description,
                     status: 'paid' as const,
@@ -145,7 +151,7 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
                 const excludeFromBudget = allocationTarget !== 'budget';
                 await confirmExtraIncome(
                     item.id,
-                    amount,
+                    numAmount,
                     new Date(date).getTime(),
                     accountId,
                     period,
@@ -157,7 +163,7 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
                 await confirmFixedMovement(
                     type,
                     item.id,
-                    amount,
+                    numAmount,
                     new Date(date).getTime(),
                     accountId,
                     period,
@@ -296,8 +302,9 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
                         </label>
                         <input 
                             type="number"
-                            value={amount}
-                            onChange={(e) => setAmount(Number(e.target.value))}
+                            step="0.01"
+                            value={amountStr}
+                            onChange={(e) => setAmountStr(e.target.value)}
                             style={{
                                 background: 'rgba(255, 255, 255, 0.05)',
                                 border: '1px solid rgba(255, 255, 255, 0.1)',

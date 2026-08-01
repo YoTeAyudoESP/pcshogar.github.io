@@ -259,7 +259,51 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                 activeIncomes = await incomeDB.getAllIncomes();
             }
 
-            setIncomes(activeIncomes);
+            // Auto-rollover pending incomes from past months
+            let activeIncomesList = [...activeIncomes];
+            let didIncomeRollover = false;
+            const currentPeriodStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+            const currentRealYearNum = new Date().getFullYear();
+            const currentRealMonthNum = new Date().getMonth();
+
+            for (let i = 0; i < activeIncomesList.length; i++) {
+                const inc = activeIncomesList[i];
+                if (inc.status === 'pending') {
+                    const incTimestamp = (inc as any).effectiveDate || (inc as any).date || (inc as any).createdAt || Date.now();
+                    const incPeriod = inc.period ?? (inc.budgetYear !== undefined && inc.budgetMonth !== undefined
+                        ? `${inc.budgetYear}-${String(inc.budgetMonth + 1).padStart(2, '0')}`
+                        : `${new Date(incTimestamp).getFullYear()}-${String(new Date(incTimestamp).getMonth() + 1).padStart(2, '0')}`);
+                    
+                    if (incPeriod < currentPeriodStr) {
+                        didIncomeRollover = true;
+                        const firstOfCurrentMonth = new Date(currentRealYearNum, currentRealMonthNum, 1).getTime();
+                        let newDesc = (inc as any).description || (inc as any).name || 'Ingreso';
+                        if (!newDesc.includes('[Atrasado]')) {
+                            newDesc = `[Atrasado] ${newDesc}`.trim();
+                        }
+
+                        const updatedInc = {
+                            ...inc,
+                            description: newDesc,
+                            name: newDesc,
+                            date: firstOfCurrentMonth,
+                            effectiveDate: firstOfCurrentMonth,
+                            period: currentPeriodStr,
+                            budgetMonth: currentRealMonthNum,
+                            budgetYear: currentRealYearNum,
+                            updatedAt: Date.now()
+                        };
+
+                        await incomeDB.updateIncome(updatedInc);
+                        activeIncomesList[i] = updatedInc;
+                    }
+                }
+            }
+            if (didIncomeRollover) {
+                setIncomes(activeIncomesList);
+            } else {
+                setIncomes(activeIncomes);
+            }
 
             // Auto-rollover pending expenses from past months
             let activeExpenses = [...exps];

@@ -1,7 +1,7 @@
 {
-  "version": "2.1.0",
-  "versionCode": 225,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.1.0/PCSHogar_Setup_v2.1.0.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.1.0/PCSHogar_Setup_v2.1.0.exe",
-  "releaseNotes": "Novedades versión 2.1.0:\n- Ajuste en la balanza de desajuste bancario: elimina la duplicidad en el conteo de ahorros automáticos mensuales vinculados a ingresos fijos.\n- Solucionado el aviso de dinero sin asignar de 982,33 €.\n- Nueva opción de 'Pendiente de recibir' al registrar devoluciones de compras."
+  "version": "2.2.0",
+  "versionCode": 226,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.2.0/PCSHogar_Setup_v2.2.0.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.2.0/PCSHogar_Setup_v2.2.0.exe",
+  "releaseNotes": "Novedades versión 2.2.0:\n- Traslado automático de ingresos pendientes de meses anteriores al mes actual con la etiqueta '[Atrasado]'.\n- Exclusión en Cierre de Mes de los ingresos fijos ya cobrados por adelantado para el mes siguiente.\n- Borrado limpio de casilla de importe (permitiendo vaciar al teclear) y validación estricta de importe superior a 0,00 €.\n- Reconocimiento automático de gastos fijos pagados por adelantado a fin de mes."
 }

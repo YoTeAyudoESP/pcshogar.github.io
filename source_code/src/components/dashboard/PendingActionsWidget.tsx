@@ -35,7 +35,7 @@ const PendingActionsWidget: React.FC<PendingActionsWidgetProps> = ({ onEdit }) =
         const start = re.updatedAt || 0;
         if (start > monthEnd) return false;
 
-        const isPaid = expenses.some(e => e.recurringExpenseId === re.id && e.period === period);
+        const isPaid = expenses.some(e => e.recurringExpenseId === re.id && (e.period === period || isItemInMonthAndYear(e, selectedMonth, selectedYear)));
         const isIgnored = re.ignoredPeriods?.includes(period);
         
         if (isPaid || isIgnored) return false;

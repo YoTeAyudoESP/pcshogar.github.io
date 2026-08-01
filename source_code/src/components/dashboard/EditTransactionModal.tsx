@@ -164,6 +164,10 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction
                 const oldCardId = oldExpense.paymentMethod.type === 'card' ? oldExpense.paymentMethod.cardId : '';
                 
                 const parsedAmount = parseFloat(amount);
+                if (isNaN(parsedAmount) || parsedAmount <= 0) {
+                    alert('El importe debe ser superior a 0,00 €');
+                    return;
+                }
                 const finalAmount = isRefund ? -Math.abs(parsedAmount) : parsedAmount;
 
                 let finalDescription = description.trim();

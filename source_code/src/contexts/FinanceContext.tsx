@@ -259,6 +259,40 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                 activeIncomes = await incomeDB.getAllIncomes();
             }
 
+            // Clean up any legacy '[Atrasado] ' prefix from stored names/descriptions in DB
+            for (let i = 0; i < activeIncomes.length; i++) {
+                const inc = activeIncomes[i];
+                let name = inc.name || '';
+                let desc = (inc as any).description || '';
+                if (name.includes('[Atrasado]') || desc.includes('[Atrasado]')) {
+                    const cleanName = name.replace(/\[Atrasado\]\s*/gi, '').trim();
+                    const cleanDesc = desc.replace(/\[Atrasado\]\s*/gi, '').trim();
+                    const updatedInc = {
+                        ...inc,
+                        name: cleanName,
+                        description: cleanDesc,
+                        updatedAt: Date.now()
+                    };
+                    await incomeDB.updateIncome(updatedInc);
+                    activeIncomes[i] = updatedInc;
+                }
+            }
+
+            for (let i = 0; i < repairedExps.length; i++) {
+                const exp = repairedExps[i];
+                let desc = exp.description || '';
+                if (desc.includes('[Atrasado]')) {
+                    const cleanDesc = desc.replace(/\[Atrasado\]\s*/gi, '').trim();
+                    const updatedExp = {
+                        ...exp,
+                        description: cleanDesc,
+                        updatedAt: Date.now()
+                    };
+                    await incomeDB.updateExpense(updatedExp);
+                    repairedExps[i] = updatedExp;
+                }
+            }
+
             // Auto-rollover pending incomes from past months
             let activeIncomesList = [...activeIncomes];
             let didIncomeRollover = false;

@@ -129,6 +129,23 @@ const PendingActionsWidget: React.FC<PendingActionsWidgetProps> = ({ onEdit }) =
         return d.getMonth() !== selectedMonth || d.getFullYear() !== selectedYear;
     };
 
+    const cleanItemName = (str: string) => {
+        return (str || '').replace(/\[Atrasado\]\s*/gi, '').trim();
+    };
+
+    const checkIsOverdue = (item: any) => {
+        if (item.period && item.period < period) return true;
+        if (item.date) {
+            const d = new Date(item.date);
+            const itemM = d.getMonth();
+            const itemY = d.getFullYear();
+            if (itemY < selectedYear || (itemY === selectedYear && itemM < selectedMonth)) {
+                return true;
+            }
+        }
+        return false;
+    };
+
     const allPending = [
         ...pendingIncomes.map(inc => ({ ...inc, actionType: 'income' as const })),
         ...pendingExtraIncomes.map(inc => ({ ...inc, actionType: 'income' as const, isExtraPending: true })),
@@ -137,9 +154,10 @@ const PendingActionsWidget: React.FC<PendingActionsWidgetProps> = ({ onEdit }) =
         ...pendingPunctualExpenses.map(exp => ({ ...exp, actionType: 'expense' as const, isPunctualPending: true }))
     ].sort((a: any, b: any) => {
         const getDay = (item: any) => {
+            if (checkIsOverdue(item)) return 1;
             if (item.actionType === 'refund') {
                 if (isRollover(item)) {
-                    return 1; // Rollover to day 1
+                    return 1;
                 }
                 return new Date(item.date).getDate();
             }
@@ -178,30 +196,28 @@ const PendingActionsWidget: React.FC<PendingActionsWidgetProps> = ({ onEdit }) =
                     <Clock size={18} className="text-indigo-400" />
                     Pendientes de Confirmar
                 </h3>
-                <span style={{ 
-                    fontSize: '0.8rem', 
-                    color: 'rgba(255,255,255,0.4)',
-                    background: 'rgba(255,255,255,0.05)',
-                    padding: '2px 8px',
-                    borderRadius: '12px'
-                }}>
-                    {allPending.length} {allPending.length === 1 ? 'movimiento' : 'movimientos'}
-                </span>
             </div>
 
-            <div style={{ 
+            <div className="no-scrollbar" style={{ 
                 display: 'flex', 
-                gap: '12px', 
-                paddingBottom: '10px'
-            }} className="horizontal-scroll">
-                {allPending.map((item: any) => (
+                gap: '1rem', 
+                overflowX: 'auto', 
+                paddingBottom: '0.5rem',
+                paddingLeft: '4px',
+                paddingRight: '4px'
+            }}>
+                {allPending.map((item: any) => {
+                    const isOverdueItem = checkIsOverdue(item);
+                    const displayDay = isOverdueItem ? 1 : (item.actionType === 'refund' || item.isPunctualPending ? (isRollover(item) ? 1 : new Date(item.date).getDate()) : (item.paymentDay || (item.receivedDate ? new Date(item.receivedDate).getDate() : new Date(item.date || item.createdAt).getDate())));
+                    
+                    return (
                     <div 
                         key={item.id}
                         onClick={() => handleConfirm(item)}
                         style={{
                             minWidth: '220px',
                             background: 'rgba(30, 32, 41, 0.6)',
-                            border: '1px solid rgba(255,255,255,0.05)',
+                            border: isOverdueItem ? '1px solid rgba(245, 158, 11, 0.4)' : '1px solid rgba(255,255,255,0.05)',
                             borderRadius: '16px',
                             padding: '1.2rem',
                             cursor: 'pointer',
@@ -235,8 +251,8 @@ const PendingActionsWidget: React.FC<PendingActionsWidgetProps> = ({ onEdit }) =
                                 {(item.actionType === 'income' || item.actionType === 'refund') ? <ArrowDownLeft size={16} /> : <ArrowUpRight size={16} />}
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>
-                                    Día {item.actionType === 'refund' || item.isPunctualPending ? (isRollover(item) ? '1' : new Date(item.date).getDate()) : (item.paymentDay || (item.receivedDate ? new Date(item.receivedDate).getDate() : new Date(item.date || item.createdAt).getDate()))}
+                                <div style={{ fontSize: '0.75rem', color: isOverdueItem ? '#f59e0b' : 'rgba(255,255,255,0.4)', fontWeight: 600 }}>
+                                    Día {displayDay}
                                 </div>
                             </div>
                         </div>
@@ -248,9 +264,26 @@ const PendingActionsWidget: React.FC<PendingActionsWidgetProps> = ({ onEdit }) =
                             marginBottom: '4px',
                             whiteSpace: 'nowrap',
                             overflow: 'hidden',
-                            textOverflow: 'ellipsis'
+                            textOverflow: 'ellipsis',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.35rem'
                         }}>
-                            {item.description || item.name}
+                            {isOverdueItem && (
+                                <span style={{
+                                    fontSize: '0.68rem',
+                                    fontWeight: 800,
+                                    background: 'rgba(245, 158, 11, 0.2)',
+                                    color: '#f59e0b',
+                                    border: '1px solid rgba(245, 158, 11, 0.4)',
+                                    padding: '1px 5px',
+                                    borderRadius: '5px',
+                                    flexShrink: 0
+                                }}>
+                                    Atrasado
+                                </span>
+                            )}
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{cleanItemName(item.description || item.name)}</span>
                         </div>
                         
                         <div style={{ 
@@ -322,7 +355,8 @@ const PendingActionsWidget: React.FC<PendingActionsWidgetProps> = ({ onEdit }) =
                             )}
                         </div>
                     </div>
-                ))}
+                );
+            })}
             </div>
 
             {/* Confirmation Modal */}

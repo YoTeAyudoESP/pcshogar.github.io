@@ -1,7 +1,7 @@
 {
-  "version": "2.2.3",
-  "versionCode": 229,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.2.3/PCSHogar_Setup_v2.2.3.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.2.3/PCSHogar_Setup_v2.2.3.exe",
-  "releaseNotes": "Novedades versión 2.2.3:\n- Protección de ingresos pagados en el cambio de mes para evitar reapariciones en pendientes.\n- Eliminación de la etiqueta '[Atrasado]' de los nombres de plantilla y desvío al mes actual si se cobra con retraso.\n- Validación estricta del total de ahorro multi-hucha asignado a un ingreso fijo.\n- Corrección en la extracción de fechas de asignación para sincronización instantánea de cierres en Dropbox y Google Drive."
+  "version": "2.2.4",
+  "versionCode": 230,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.2.4/PCSHogar_Setup_v2.2.4.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.2.4/PCSHogar_Setup_v2.2.4.exe",
+  "releaseNotes": "Novedades versión 2.2.4:\n- Limpieza automática de la base de datos para restaurar nombres limpios originales sin prefijos guardados.\n- Renderizado dinámico de la insignia visual '[Atrasado]' únicamente en la tarjeta de pendientes sin alterar el nombre del registro.\n- Evaluación de fechas corregida para ingresos y gastos fijos con salto de mes (la nómina se evalúa para el día previsto de su mes y no genera falsos atrasos antes de tiempo).\n- Posicionamiento automático en el Día 1 del mes actual para los atrasos verdaderos."
 }

@@ -11,7 +11,7 @@ interface PiggyBankFormProps {
 }
 
 const PiggyBankForm: React.FC<PiggyBankFormProps> = ({ editingGoal, onCancelEdit, onClose }) => {
-    const { addSavingGoal, updateSavingGoal, accounts, fixedIncomes } = useFinance();
+    const { addSavingGoal, updateSavingGoal, accounts, fixedIncomes, savings } = useFinance();
     const formRef = useRef<HTMLFormElement>(null);
     const [name, setName] = useState('');
     const [target, setTarget] = useState('');
@@ -92,6 +92,17 @@ const PiggyBankForm: React.FC<PiggyBankFormProps> = ({ editingGoal, onCancelEdit
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!name) return;
+
+        const monthlyVal = monthly ? parseFloat(monthly) : 0;
+        const selectedFixedIncome = fixedIncomes.find(inc => inc.id === linkedFixedIncomeId);
+        if (selectedFixedIncome && monthlyVal > 0) {
+            const otherGoalsLinked = savings.filter(s => s.linkedFixedIncomeId === linkedFixedIncomeId && s.id !== editingGoal?.id);
+            const otherSavingsSum = otherGoalsLinked.reduce((acc, g) => acc + (g.monthlySavingAmount || 0), 0);
+            if (otherSavingsSum + monthlyVal > selectedFixedIncome.amount) {
+                alert(`La suma total asignada a huchas para este ingreso fijo (${formatMoney(selectedFixedIncome.amount)}) supera su importe. Total actual asignado a otras huchas: ${formatMoney(otherSavingsSum)}.`);
+                return;
+            }
+        }
 
         const goalData = {
             name,

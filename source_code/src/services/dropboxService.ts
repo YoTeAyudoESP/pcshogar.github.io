@@ -226,7 +226,7 @@ export class DropboxService {
                         ? item.deletedAt 
                         : col === 'closings' 
                             ? (item.updatedAt || item.closedAt || 0) 
-                            : (item.updatedAt || 0);
+                            : (item.updatedAt || item.createdAt || item.date || 0);
                     mapA.set(item.id, ts);
                 }
             });
@@ -238,7 +238,7 @@ export class DropboxService {
                     ? item.deletedAt 
                     : col === 'closings' 
                         ? (item.updatedAt || item.closedAt || 0) 
-                        : (item.updatedAt || 0);
+                        : (item.updatedAt || item.createdAt || item.date || 0);
                 const tsA = mapA.get(item.id);
                 if (tsA === undefined || tsA !== tsB) {
                     return false;
@@ -267,7 +267,7 @@ export class DropboxService {
             if (store === 'closings') {
                 return item.updatedAt || item.closedAt || 0;
             }
-            return item.updatedAt || 0;
+            return item.updatedAt || item.createdAt || item.date || 0;
         };
 
         // Helper to merge arrays of objects with 'id' and modification timestamp

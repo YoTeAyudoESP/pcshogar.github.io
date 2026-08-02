@@ -277,20 +277,18 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                     if (incPeriod < currentPeriodStr) {
                         didIncomeRollover = true;
                         const firstOfCurrentMonth = new Date(currentRealYearNum, currentRealMonthNum, 1).getTime();
-                        let newDesc = (inc as any).description || (inc as any).name || 'Ingreso';
-                        if (!newDesc.includes('[Atrasado]')) {
-                            newDesc = `[Atrasado] ${newDesc}`.trim();
-                        }
+                        const cleanDesc = (inc as any).description || (inc as any).name || 'Ingreso';
 
                         const updatedInc = {
                             ...inc,
-                            description: newDesc,
-                            name: newDesc,
+                            description: cleanDesc,
+                            name: cleanDesc,
                             date: firstOfCurrentMonth,
                             effectiveDate: firstOfCurrentMonth,
                             period: currentPeriodStr,
                             budgetMonth: currentRealMonthNum,
                             budgetYear: currentRealYearNum,
+                            isNextMonth: false,
                             updatedAt: Date.now()
                         };
 
@@ -319,14 +317,11 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                         
                         // Change date to 1st of current month
                         const newDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1).getTime();
-                        let newDesc = exp.description;
-                        if (!newDesc.includes('[Atrasado]')) {
-                            newDesc = `[Atrasado] ${newDesc}`;
-                        }
+                        const cleanDesc = exp.description;
                         
                         const updatedExp = {
                             ...exp,
-                            description: newDesc,
+                            description: cleanDesc,
                             date: newDate,
                             period: currentPeriod,
                             updatedAt: Date.now()

@@ -13,7 +13,11 @@ export function isItemInMonthAndYear(item: any, month: number, year: number) {
         const [y, m] = item.period.split('-').map(Number);
         return y === year && (m - 1) === month;
     }
-    const timestamp = item.receivedDate || item.date || item.updatedAt || item.createdAt;
+    // IMPORTANTE: updatedAt NO se usa como fuente de timestamp.
+    // updatedAt es cuándo se modificó el registro, no cuándo ocurrió el gasto/ingreso.
+    // Usarlo causaba que gastos de meses pasados editados en el mes actual
+    // aparecieran incorrectamente en la gráfica del mes actual.
+    const timestamp = item.receivedDate || item.effectiveDate || item.date || item.createdAt;
     if (!timestamp) return false;
     
     const d = new Date(timestamp);

@@ -76,6 +76,7 @@ export interface SavingGoal {
     accountInBudget?: boolean; // If adjustments affect monthly available
     isVirtual?: boolean;
     linkedFixedIncomeId?: string;
+    incomeSources?: Array<{ fixedIncomeId: string; monthlyAmount: number }>;
     updatedAt?: number;
     createdAt?: number; // Fecha de creación de la hucha
 }

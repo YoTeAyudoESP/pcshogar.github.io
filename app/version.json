@@ -1,7 +1,7 @@
 {
-  "version": "2.2.4",
-  "versionCode": 230,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.2.4/PCSHogar_Setup_v2.2.4.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.2.4/PCSHogar_Setup_v2.2.4.exe",
-  "releaseNotes": "Novedades versión 2.2.4:\n- Limpieza automática de la base de datos para restaurar nombres limpios originales sin prefijos guardados.\n- Renderizado dinámico de la insignia visual '[Atrasado]' únicamente en la tarjeta de pendientes sin alterar el nombre del registro.\n- Evaluación de fechas corregida para ingresos y gastos fijos con salto de mes (la nómina se evalúa para el día previsto de su mes y no genera falsos atrasos antes de tiempo).\n- Posicionamiento automático en el Día 1 del mes actual para los atrasos verdaderos."
+  "version": "2.2.5",
+  "versionCode": 231,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.2.5/PCSHogar_Setup_v2.2.5.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.2.5/PCSHogar_Setup_v2.2.5.exe",
+  "releaseNotes": "Novedades versión 2.2.5:\n- Sincronización Bidireccional Multi-Hucha / Multi-Ingreso Fijo.\n- Desde el Ingreso Fijo (Ajustes ➔ Movimientos Fijos): nuevo bloque 'Ahorro Automático en Huchas' con botón para añadir múltiples huchas de destino y barra resumen en tiempo real (Importe, Ahorro total, Disponible estimado).\n- Desde la Hucha (Ahorro ➔ Crear/Editar Hucha): nuevo gestor multi-fuente 'Fuentes de Ahorro desde Ingresos Fijos' para vincular múltiples ingresos fijos con sus importes individuales.\n- Sincronización transparente en tiempo real y migración automática sin pérdida de datos."
 }

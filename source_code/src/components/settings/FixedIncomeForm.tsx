@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import type { FixedIncome, Frequency } from '../../types/income';
 import { Save, X, Plus, Calendar, Tag, Landmark, Wallet, Coins, Clock4, CalendarRange } from 'lucide-react';
+import { formatMoney } from '../../utils/financeCalculations';
 
 interface FixedIncomeFormProps {
     editingIncome?: FixedIncome;
@@ -10,7 +11,7 @@ interface FixedIncomeFormProps {
 }
 
 const FixedIncomeForm: React.FC<FixedIncomeFormProps> = ({ editingIncome, onClose, onNavigateToSettings }) => {
-    const { addFixedIncome, updateIncome, accounts } = useFinance();
+    const { addFixedIncome, updateIncome, accounts, savings, updateSavingGoal } = useFinance();
     const hasNoAccounts = accounts.length === 0;
     const [name, setName] = useState(editingIncome?.name || '');
     const [amount, setAmount] = useState(editingIncome?.amount?.toString() || '');
@@ -21,6 +22,47 @@ const FixedIncomeForm: React.FC<FixedIncomeFormProps> = ({ editingIncome, onClos
     const [paymentMonth, setPaymentMonth] = useState(editingIncome?.paymentMonth?.toString() || '1');
     const [accountId, setAccountId] = useState(editingIncome?.linkedAccountId || '');
     const [accountForNextMonth, setAccountForNextMonth] = useState(editingIncome?.accountForNextMonth || (editingIncome as any)?.countForNextMonth || false);
+    const [allocatedHuchas, setAllocatedHuchas] = useState<Array<{ goalId: string; monthlyAmount: number }>>([]);
+
+    useEffect(() => {
+        if (editingIncome) {
+            const linked = savings.filter(s => {
+                if (s.incomeSources && s.incomeSources.length > 0) {
+                    return s.incomeSources.some(src => src.fixedIncomeId === editingIncome.id);
+                }
+                return s.linkedFixedIncomeId === editingIncome.id;
+            }).map(s => {
+                let monthlyAmount = s.monthlySavingAmount || 0;
+                if (s.incomeSources && s.incomeSources.length > 0) {
+                    const match = s.incomeSources.find(src => src.fixedIncomeId === editingIncome.id);
+                    if (match) monthlyAmount = match.monthlyAmount;
+                }
+                return { goalId: s.id, monthlyAmount };
+            });
+            setAllocatedHuchas(linked);
+        } else {
+            setAllocatedHuchas([]);
+        }
+    }, [editingIncome, savings]);
+
+    const handleAddHucha = () => {
+        const unused = savings.find(s => !allocatedHuchas.some(a => a.goalId === s.id));
+        if (unused) {
+            setAllocatedHuchas([...allocatedHuchas, { goalId: unused.id, monthlyAmount: 0 }]);
+        } else if (savings.length > 0) {
+            setAllocatedHuchas([...allocatedHuchas, { goalId: savings[0].id, monthlyAmount: 0 }]);
+        }
+    };
+
+    const handleUpdateHucha = (index: number, field: 'goalId' | 'monthlyAmount', value: any) => {
+        const updated = [...allocatedHuchas];
+        updated[index] = { ...updated[index], [field]: value };
+        setAllocatedHuchas(updated);
+    };
+
+    const handleRemoveHucha = (index: number) => {
+        setAllocatedHuchas(allocatedHuchas.filter((_, i) => i !== index));
+    };
 
     useEffect(() => {
         const handleBack = (e: Event) => {
@@ -58,9 +100,16 @@ const FixedIncomeForm: React.FC<FixedIncomeFormProps> = ({ editingIncome, onClos
         e.preventDefault();
         if (!name || !amount || hasNoAccounts) return;
 
+        const numericAmount = parseFloat(amount) || 0;
+        const totalAllocatedToHuchas = allocatedHuchas.reduce((acc, h) => acc + (h.monthlyAmount || 0), 0);
+        if (totalAllocatedToHuchas > numericAmount) {
+            alert(`La suma total asignada a huchas (${totalAllocatedToHuchas.toFixed(2)} €) supera el importe del ingreso fijo (${numericAmount.toFixed(2)} €).`);
+            return;
+        }
+
         const incomeData = {
             name,
-            amount: parseFloat(amount),
+            amount: numericAmount,
             currency,
             frequency,
             paymentDay: parseInt(paymentDay) || 1,
@@ -74,11 +123,53 @@ const FixedIncomeForm: React.FC<FixedIncomeFormProps> = ({ editingIncome, onClos
             createdAt: editingIncome?.createdAt || Date.now()
         };
 
+        let fixedId = editingIncome?.id;
         if (editingIncome) {
             await updateIncome({ ...editingIncome, ...incomeData, updatedAt: Date.now() } as any);
         } else {
-            await addFixedIncome(incomeData as any);
+            const added: any = await addFixedIncome(incomeData as any);
+            if (added && added.id) fixedId = added.id;
         }
+
+        if (fixedId) {
+            for (const s of savings) {
+                const allocMatch = allocatedHuchas.find(a => a.goalId === s.id && a.monthlyAmount > 0);
+                let currentSources = s.incomeSources ? [...s.incomeSources] : [];
+                if (!s.incomeSources && s.linkedFixedIncomeId && s.monthlySavingAmount) {
+                    currentSources = [{ fixedIncomeId: s.linkedFixedIncomeId, monthlyAmount: s.monthlySavingAmount }];
+                }
+
+                if (allocMatch) {
+                    const existingIdx = currentSources.findIndex(src => src.fixedIncomeId === fixedId);
+                    if (existingIdx >= 0) {
+                        currentSources[existingIdx] = { fixedIncomeId: fixedId!, monthlyAmount: allocMatch.monthlyAmount };
+                    } else {
+                        currentSources.push({ fixedIncomeId: fixedId!, monthlyAmount: allocMatch.monthlyAmount });
+                    }
+                    const totalMonthly = currentSources.reduce((acc, src) => acc + src.monthlyAmount, 0);
+                    await updateSavingGoal({
+                        ...s,
+                        incomeSources: currentSources,
+                        linkedFixedIncomeId: currentSources[0].fixedIncomeId,
+                        monthlySavingAmount: totalMonthly,
+                        updatedAt: Date.now()
+                    });
+                } else {
+                    if (currentSources.some(src => src.fixedIncomeId === fixedId) || s.linkedFixedIncomeId === fixedId) {
+                        const filtered = currentSources.filter(src => src.fixedIncomeId !== fixedId);
+                        const totalMonthly = filtered.reduce((acc, src) => acc + src.monthlyAmount, 0);
+                        await updateSavingGoal({
+                            ...s,
+                            incomeSources: filtered.length > 0 ? filtered : undefined,
+                            linkedFixedIncomeId: filtered.length > 0 ? filtered[0].fixedIncomeId : undefined,
+                            monthlySavingAmount: totalMonthly,
+                            updatedAt: Date.now()
+                        });
+                    }
+                }
+            }
+        }
+
         onClose();
     };
 
@@ -290,6 +381,105 @@ const FixedIncomeForm: React.FC<FixedIncomeFormProps> = ({ editingIncome, onClos
                         style={{ width: '20px', height: '20px', accentColor: 'var(--primary)', cursor: 'pointer' }}
                     />
                 </label>
+            </div>
+
+            {/* Ahorro Automático en Huchas */}
+            <div style={{ ...containerStyle, background: 'rgba(25, 27, 34, 0.4)', borderRadius: '0.75rem', border: '1px solid rgba(255, 255, 255, 0.1)', padding: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                    <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#10b981' }}>
+                        🐷 Ahorro Automático en Huchas
+                    </span>
+                    <button
+                        type="button"
+                        onClick={handleAddHucha}
+                        style={{
+                            background: 'rgba(16, 185, 129, 0.15)',
+                            border: '1px solid rgba(16, 185, 129, 0.3)',
+                            color: '#10b981',
+                            padding: '4px 10px',
+                            borderRadius: '8px',
+                            fontSize: '0.8rem',
+                            fontWeight: 700,
+                            cursor: 'pointer'
+                        }}
+                    >
+                        + Añadir Hucha
+                    </button>
+                </div>
+
+                {allocatedHuchas.length === 0 ? (
+                    <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)', fontStyle: 'italic', textAlign: 'center', padding: '0.5rem 0' }}>
+                        Sin huchas de destino (el 100% irá al disponible mensual).
+                    </div>
+                ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1rem' }}>
+                        {allocatedHuchas.map((h, idx) => (
+                            <div key={idx} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                <select
+                                    style={{ ...inputStyle, marginBottom: 0, flex: 2 }}
+                                    value={h.goalId}
+                                    onChange={e => handleUpdateHucha(idx, 'goalId', e.target.value)}
+                                >
+                                    <option value="">Seleccionar Hucha...</option>
+                                    {savings.map(s => (
+                                        <option key={s.id} value={s.id}>{s.name} ({formatMoney(s.currentAmount)})</option>
+                                    ))}
+                                </select>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    placeholder="Importe (€)"
+                                    style={{ ...inputStyle, marginBottom: 0, flex: 1 }}
+                                    value={h.monthlyAmount || ''}
+                                    onChange={e => handleUpdateHucha(idx, 'monthlyAmount', parseFloat(e.target.value) || 0)}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => handleRemoveHucha(idx)}
+                                    style={{
+                                        background: 'rgba(239, 68, 68, 0.15)',
+                                        border: 'none',
+                                        color: '#ef4444',
+                                        padding: '0.75rem',
+                                        borderRadius: '8px',
+                                        cursor: 'pointer',
+                                        fontWeight: 700
+                                    }}
+                                    title="Quitar hucha"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* Realtime Summary Bar */}
+                {amount && parseFloat(amount) > 0 && (
+                    <div style={{
+                        marginTop: '0.75rem',
+                        padding: '0.75rem',
+                        borderRadius: '8px',
+                        background: 'rgba(0,0,0,0.2)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '4px',
+                        fontSize: '0.85rem'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', color: 'rgba(255,255,255,0.6)' }}>
+                            <span>Importe del Ingreso:</span>
+                            <span style={{ fontWeight: 700, color: 'white' }}>{formatMoney(parseFloat(amount))}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10b981' }}>
+                            <span>Destinado a huchas ({allocatedHuchas.length}):</span>
+                            <span style={{ fontWeight: 700 }}>- {formatMoney(allocatedHuchas.reduce((acc, h) => acc + (h.monthlyAmount || 0), 0))}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#3b82f6', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '4px', marginTop: '2px' }}>
+                            <span>Disponible estimado restante:</span>
+                            <span style={{ fontWeight: 800 }}>{formatMoney(Math.max(0, parseFloat(amount) - allocatedHuchas.reduce((acc, h) => acc + (h.monthlyAmount || 0), 0)))}</span>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Cuenta o Efectivo */}

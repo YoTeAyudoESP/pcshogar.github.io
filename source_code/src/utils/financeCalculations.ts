@@ -292,7 +292,27 @@ export function calculateAvailableBalanceForMonth(
             if (start <= monthEnd) {
                 // If it is linked to a fixed income, check if that fixed income is active or confirmed in this month
                 let isLinkedIncomeActive = true;
-                if (s.linkedFixedIncomeId) {
+                let projectedAmount = s.monthlySavingAmount || 0;
+
+                if (s.incomeSources && s.incomeSources.length > 0) {
+                    projectedAmount = 0;
+                    for (const src of s.incomeSources) {
+                        const linkedIncome = fixedIncomes.find(inc => inc.id === src.fixedIncomeId);
+                        if (linkedIncome && linkedIncome.active) {
+                            const incStart = linkedIncome.effectiveDate || linkedIncome.createdAt || 0;
+                            const incEnd = linkedIncome.expirationDate || new Date(9999, 11, 31).getTime();
+                            const isIgnored = linkedIncome.ignoredPeriods?.includes(period);
+                            let isTemplateActive = false;
+                            if (incStart <= monthEnd && incEnd >= monthStart && !isIgnored) {
+                                isTemplateActive = isRecurringActiveInMonth(linkedIncome.frequency, linkedIncome.paymentMonth, month, year, incStart);
+                            }
+                            const isConfirmed = extraIncomes.some(ei => ei.fixedIncomeId === src.fixedIncomeId && isItemInMonthAndYear(ei, month, year));
+                            if (isTemplateActive || isConfirmed) {
+                                projectedAmount += (src.monthlyAmount || 0);
+                            }
+                        }
+                    }
+                } else if (s.linkedFixedIncomeId) {
                     const linkedIncome = fixedIncomes.find(inc => inc.id === s.linkedFixedIncomeId);
                     if (linkedIncome && linkedIncome.active) {
                         const incStart = linkedIncome.effectiveDate || linkedIncome.createdAt || 0;
@@ -305,13 +325,12 @@ export function calculateAvailableBalanceForMonth(
                         const isConfirmed = extraIncomes.some(ei => ei.fixedIncomeId === s.linkedFixedIncomeId && isItemInMonthAndYear(ei, month, year));
                         isLinkedIncomeActive = isTemplateActive || isConfirmed;
                     } else {
-                        // If the linked income does not exist, do not project savings
                         isLinkedIncomeActive = false;
                     }
+                    if (!isLinkedIncomeActive) projectedAmount = 0;
                 }
 
-                if (isLinkedIncomeActive) {
-                    const projectedAmount = s.monthlySavingAmount || 0;
+                if (projectedAmount > 0) {
                     // Find actual allocations to this hucha in this month
                     const allocationsForThisHucha = allocations
                         .filter(alloc => alloc.goalId === s.id && isItemInMonthAndYear(alloc, month, year) && (alloc.type === 'manual' || alloc.type === 'automatic'))

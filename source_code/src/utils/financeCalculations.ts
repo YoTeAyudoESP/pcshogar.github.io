@@ -201,8 +201,7 @@ export function calculateAvailableBalanceForMonth(
         .filter(exp => {
             if (exp.excludeFromBudget) return false;
             if (exp.amount < 0 && exp.status === 'pending') return false;
-            const d = new Date(exp.date);
-            return d.getMonth() === month && d.getFullYear() === year;
+            return isItemInMonthAndYear(exp, month, year);
         })
         .forEach(exp => {
             let fundedAmount = 0;

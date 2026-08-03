@@ -3,6 +3,7 @@ import { X, FileText, Download, AlertCircle, CheckCircle, ExternalLink, FolderOp
 import { useFinance } from '../../contexts/FinanceContext';
 import { formatCurrency } from '../../utils/formatters';
 import { DEFAULT_CATEGORIES } from '../../types/finance';
+import { isItemInMonthAndYear } from '../../utils/financeCalculations';
 import type { Income } from '../../types/income';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
@@ -102,8 +103,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
         if (periodType === 'monthly') {
             filteredExpenses = expenses.filter(exp => {
                 if (exp.excludeFromBudget) return false;
-                const d = new Date(exp.date);
-                return d.getFullYear() === selectedYear && d.getMonth() === selectedMonth;
+                return isItemInMonthAndYear(exp, selectedMonth, selectedYear);
             });
             filteredIncomes = extraIncomes.filter((inc: any) => {
                 const d = inc.receivedDate ? new Date(inc.receivedDate) : new Date(inc.createdAt);

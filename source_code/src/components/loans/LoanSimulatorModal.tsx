@@ -29,6 +29,13 @@ const LoanSimulatorModal: React.FC<LoanSimulatorModalProps> = ({ isOpen, onClose
     // UI state
     const [showSchedule, setShowSchedule] = useState(false);
     const [showValidationErrors, setShowValidationErrors] = useState(false);
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+    React.useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     // Calculations
     const simulationResult = useMemo(() => {
@@ -174,7 +181,7 @@ const LoanSimulatorModal: React.FC<LoanSimulatorModalProps> = ({ isOpen, onClose
                     maxHeight: '90vh',
                     overflowY: 'auto',
                     boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
-                    padding: '1.5rem',
+                    padding: isMobile ? '1.25rem 1rem' : '1.5rem',
                     color: 'white',
                     position: 'relative'
                 }}>
@@ -185,12 +192,13 @@ const LoanSimulatorModal: React.FC<LoanSimulatorModalProps> = ({ isOpen, onClose
                                 width: '42px', height: '42px', borderRadius: '12px',
                                 background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
+                                boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
+                                flexShrink: 0
                             }}>
                                 <Calculator size={22} color="white" />
                             </div>
                             <div>
-                                <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 800 }}>Simulador de Préstamos</h2>
+                                <h2 style={{ margin: 0, fontSize: isMobile ? '1.1rem' : '1.25rem', fontWeight: 800 }}>Simulador de Préstamos</h2>
                                 <p style={{ margin: 0, fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>Calcula cuotas y financiación sin guardar datos</p>
                             </div>
                         </div>
@@ -202,7 +210,7 @@ const LoanSimulatorModal: React.FC<LoanSimulatorModalProps> = ({ isOpen, onClose
                                 borderRadius: '50%',
                                 width: '36px', height: '36px',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                color: 'rgba(255,255,255,0.6)', cursor: 'pointer'
+                                color: 'rgba(255,255,255,0.6)', cursor: 'pointer', flexShrink: 0
                             }}
                         >
                             <X size={20} />
@@ -210,7 +218,7 @@ const LoanSimulatorModal: React.FC<LoanSimulatorModalProps> = ({ isOpen, onClose
                     </div>
 
                     {/* Simulation Type Selector */}
-                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', background: 'rgba(255,255,255,0.03)', padding: '4px', borderRadius: '10px' }}>
+                    <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '0.5rem', marginBottom: '1.25rem', background: 'rgba(255,255,255,0.03)', padding: '4px', borderRadius: '10px' }}>
                         <button
                             type="button"
                             onClick={() => setSimulationMode('loan')}
@@ -238,7 +246,7 @@ const LoanSimulatorModal: React.FC<LoanSimulatorModalProps> = ({ isOpen, onClose
                     </div>
 
                     {/* Calculation Goal Selector */}
-                    <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.25rem' }}>
+                    <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '0.6rem' : '1rem', marginBottom: '1.25rem' }}>
                         <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)' }}>
                             <input
                                 type="radio"
@@ -262,7 +270,7 @@ const LoanSimulatorModal: React.FC<LoanSimulatorModalProps> = ({ isOpen, onClose
                     </div>
 
                     {/* Inputs */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
                         {calculationType === 'quota' ? (
                             <div>
                                 <label style={labelStyle}>Importe a Financiar (€) *</label>
@@ -382,7 +390,7 @@ const LoanSimulatorModal: React.FC<LoanSimulatorModalProps> = ({ isOpen, onClose
                                 RESULTADO DE LA SIMULACIÓN
                             </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem', textAlign: 'center', marginBottom: '1rem' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: '0.75rem', textAlign: 'center', marginBottom: '1rem' }}>
                                 <div style={{ background: 'rgba(99, 102, 241, 0.1)', padding: '0.75rem', borderRadius: '0.75rem' }}>
                                     <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase' }}>Cuota Mensual</div>
                                     <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#818cf8', marginTop: '0.2rem' }}>
@@ -422,8 +430,8 @@ const LoanSimulatorModal: React.FC<LoanSimulatorModalProps> = ({ isOpen, onClose
                                     </button>
 
                                     {showSchedule && (
-                                        <div style={{ marginTop: '0.75rem', maxHeight: '180px', overflowY: 'auto', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.5rem' }}>
-                                            <table style={{ width: '100%', fontSize: '0.75rem', borderCollapse: 'collapse', textAlign: 'right' }}>
+                                        <div style={{ marginTop: '0.75rem', maxHeight: '180px', overflowY: 'auto', overflowX: 'auto', WebkitOverflowScrolling: 'touch', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0.5rem' }}>
+                                            <table style={{ width: '100%', minWidth: '320px', fontSize: '0.75rem', borderCollapse: 'collapse', textAlign: 'right' }}>
                                                 <thead style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.6)' }}>
                                                     <tr>
                                                         <th style={{ padding: '6px', textAlign: 'center' }}>Mes</th>
@@ -453,7 +461,7 @@ const LoanSimulatorModal: React.FC<LoanSimulatorModalProps> = ({ isOpen, onClose
                     )}
 
                     {/* Actions */}
-                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <div style={{ display: 'flex', flexDirection: isMobile ? 'column-reverse' : 'row', gap: '0.75rem' }}>
                         <button
                             type="button"
                             onClick={onClose}

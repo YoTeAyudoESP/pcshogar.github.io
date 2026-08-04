@@ -5,6 +5,12 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.2.9',
+    releaseNotes: `Novedades v2.2.9:
+- 💳 Barra de Uso de Tarjeta con Retención: La barra de porcentaje de uso ahora contempla la deuda retenida del ciclo anterior, reflejando el 100% de ocupación si el disponible actual es 0€.
+- 📱 Simulador de Préstamos Responsivo: Interfaz del simulador optimizada para pantallas de móvil (smartphones), apilando campos de entrada y resultados verticalmente sin desbordamiento lateral.`
+  },
+  {
     version: '2.2.8',
     releaseNotes: `Novedades v2.2.8:
 - 💳 Retención de disponible en tarjetas: Nueva opción por tarjeta ("Mantener crédito retenido del ciclo anterior hasta el día de pago") para evitar liberar saldo antes de abonar la deuda.

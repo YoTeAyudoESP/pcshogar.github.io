@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import type { Expense, Category, PaymentMethod, CreditCard } from '../../types/finance';
 import type { Income } from '../../types/income';
-import { X, Calendar, Info } from 'lucide-react';
-import { predictSettlementDate, formatMoney } from '../../utils/financeCalculations';
+import { X, Calendar, Info, AlertTriangle } from 'lucide-react';
+import { predictSettlementDate, formatMoney, getCardAvailableCredit } from '../../utils/financeCalculations';
 import FinanceCardModal from './FinanceCardModal';
 import ModalPortal from '../common/ModalPortal';
 
@@ -15,7 +15,7 @@ interface EditTransactionModalProps {
 }
 
 const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction, type, lockStatusToPending, onClose }) => {
-    const { updateIncome, updateExpense, accounts, cards, categories, savings } = useFinance();
+    const { updateIncome, updateExpense, accounts, cards, categories, savings, loans = [], expenses = [] } = useFinance();
     
     const isRefund = type === 'expense' && (transaction as Expense).amount < 0;
 
@@ -392,6 +392,40 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction
                                     )}
                                 </div>
                             </div>
+
+                            {(() => {
+                                if (type !== 'expense' || isRefund || paymentMethodType !== 'card' || !selectedMethodId) return null;
+                                const card = cards.find(c => c.id === selectedMethodId);
+                                if (!card || card.type === 'debit') return null;
+                                const avail = getCardAvailableCredit(card, expenses, loans);
+                                const parsedAmt = parseFloat(amount) || 0;
+                                if (parsedAmt > avail) {
+                                    const excess = parsedAmt - avail;
+                                    return (
+                                        <div style={{
+                                            background: 'rgba(239, 68, 68, 0.12)',
+                                            border: '1px solid rgba(239, 68, 68, 0.35)',
+                                            borderRadius: '10px',
+                                            padding: '0.85rem 1rem',
+                                            marginBottom: '1rem',
+                                            color: '#f87171',
+                                            fontSize: '0.85rem',
+                                            display: 'flex',
+                                            alignItems: 'flex-start',
+                                            gap: '0.6rem'
+                                        }}>
+                                            <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
+                                            <div>
+                                                <strong>⚠️ Atención: Exceso de Crédito Disponible</strong>
+                                                <div style={{ marginTop: '2px', opacity: 0.9 }}>
+                                                    Este gasto de <strong>{formatMoney(parsedAmt)}</strong> supera el disponible actual de la tarjeta ({formatMoney(avail)}). Superarás el límite en <strong>{formatMoney(excess)}</strong>.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            })()}
 
                             {showFinanceModal && selectedMethodId && amount && (
                                 <FinanceCardModal

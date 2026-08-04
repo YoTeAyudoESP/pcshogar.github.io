@@ -1,7 +1,7 @@
 {
-  "version": "2.2.7",
-  "versionCode": 233,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.2.7/PCSHogar_Setup_v2.2.7.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.2.7/PCSHogar_Setup_v2.2.7.exe",
-  "releaseNotes": "Novedades versión 2.2.7:\n- Corrección en la Gráfica de Evolución Anual: las devoluciones y gastos asignados a un mes específico mediante período/mes asignado ahora restan/suman en la gráfica del mes asignado (ej. agosto) en lugar de en la fecha bruta de compra.\n- Coherencia total entre la lista de Movimientos, las Gráficas de Evolución y los Informes."
+  "version": "2.2.8",
+  "versionCode": 234,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.2.8/PCSHogar_Setup_v2.2.8.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.2.8/PCSHogar_Setup_v2.2.8.exe",
+  "releaseNotes": "Novedades versión 2.2.8:\n- Retención opcional de disponible en tarjetas hasta el día de pago.\n- Simulador de Préstamos y Compras a Plazos en Dashboard con opción de convertir a préstamo real.\n- Alerta preventiva roja en formularios si un gasto supera el disponible de una tarjeta."
 }

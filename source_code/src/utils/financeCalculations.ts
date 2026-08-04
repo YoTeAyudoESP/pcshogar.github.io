@@ -839,3 +839,47 @@ export function computeCommissionsFromTae(amount: number, months: number, tin: n
     const commissions = amount - pv;
     return round2(Math.max(0, commissions));
 }
+
+export function getCardAvailableCredit(card: CreditCard, expenses: Expense[], loans: any[] = []): number {
+    if (!card || card.type === 'debit') return Infinity;
+    if (card.type === 'virtual') return card.currentBalance;
+    if (card.limit <= 0) return 0;
+
+    const cycleDates = calculateCardCycleDates(card);
+    
+    const activeExpenses = (expenses || []).filter(exp => {
+        if (!exp?.paymentMethod) return false;
+        const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === card.id;
+        if (!isCard || exp.isSettled) return false;
+        if (exp.status === 'pending') return false;
+        const expDate = getEffectiveSettlementDate(exp);
+        return expDate >= cycleDates.active.start && expDate <= cycleDates.active.cutoff;
+    });
+    const activeTotal = activeExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+
+    const pendingExpenses = (expenses || []).filter(exp => {
+        if (!exp?.paymentMethod) return false;
+        const isCard = exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId === card.id;
+        if (!isCard || exp.isSettled) return false;
+        if (exp.status === 'pending') return false;
+        const expDate = getEffectiveSettlementDate(exp);
+        return expDate >= cycleDates.pending.start && expDate <= cycleDates.pending.cutoff;
+    });
+    const pendingTotal = pendingExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+
+    const todayDay = new Date().getDate();
+    const cutoff = card.cutoffDay || 1;
+    const pay = card.paymentDay || 1;
+    const isHoldingPreviousCycle = card.holdCreditUntilPayment && (
+        (cutoff < pay && todayDay > cutoff && todayDay < pay) ||
+        (cutoff > pay && (todayDay > cutoff || todayDay < pay))
+    );
+    const extraHold = isHoldingPreviousCycle ? pendingTotal : 0;
+
+    const supportedLoansCapital = (loans || [])
+        .filter(l => l.status === 'active' && l.supportedByCardId === card.id)
+        .reduce((sum, l) => sum + (l.currentDebt || 0), 0);
+    const limitToDeduct = card.hasAdditionalFinanceLimit ? 0 : supportedLoansCapital;
+
+    return Math.max(0, card.limit - activeTotal - limitToDeduct - extraHold);
+}

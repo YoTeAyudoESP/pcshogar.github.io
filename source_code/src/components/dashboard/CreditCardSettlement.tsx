@@ -263,9 +263,19 @@ const CreditCardSettlement: React.FC = () => {
                             .filter(l => l.status === 'active' && l.supportedByCardId === card.id)
                             .reduce((sum, l) => sum + (l.currentDebt || 0), 0);
 
-                        // Disponible = límite - gasto ciclo ACTUAL - prestamos (si no hay limite de financiacion separado)
+                        // Disponible = límite - gasto ciclo ACTUAL - deuda ciclo anterior retenida (si holdCreditUntilPayment) - prestamos
+                        const today = new Date();
+                        const todayDay = today.getDate();
+                        const cutoff = card.cutoffDay || 1;
+                        const pay = card.paymentDay || 1;
+                        const isHoldingPreviousCycle = card.holdCreditUntilPayment && (
+                            (cutoff < pay && todayDay > cutoff && todayDay < pay) ||
+                            (cutoff > pay && (todayDay > cutoff || todayDay < pay))
+                        );
+                        const extraHold = isHoldingPreviousCycle ? pendingTotal : 0;
+
                         const limitToDeductFromRegular = card.hasAdditionalFinanceLimit ? 0 : supportedLoansCapital;
-                        const available = limit > 0 ? Math.max(0, limit - activeTotal - limitToDeductFromRegular) : null;
+                        const available = limit > 0 ? Math.max(0, limit - activeTotal - limitToDeductFromRegular - extraHold) : null;
                         
                         // Disponible Financiación (si tiene límite separado)
                         const availableFinance = card.hasAdditionalFinanceLimit && card.financeLimit !== undefined 

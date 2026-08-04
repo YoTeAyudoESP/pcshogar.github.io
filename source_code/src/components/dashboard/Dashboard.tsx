@@ -15,7 +15,9 @@ import ExpenseCategoryChart from '../analytics/ExpenseCategoryChart';
 import YearlyFinancialChart from '../analytics/YearlyFinancialChart';
 import ProjectionsModal from './ProjectionsModal';
 import DateSelector from '../common/DateSelector';
-import { LayoutDashboard, Settings as SettingsIcon, X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, MinusCircle, PiggyBank, ArrowLeftRight, AlertCircle, Mail, Heart, RotateCcw, FileText, Coffee, Award, Sparkles } from 'lucide-react';
+import LoanSimulatorModal from '../loans/LoanSimulatorModal';
+import LoanForm from '../loans/LoanForm';
+import { LayoutDashboard, Settings as SettingsIcon, X, Calendar, Clock, TrendingUp, HelpCircle, PlusCircle, MinusCircle, PiggyBank, ArrowLeftRight, AlertCircle, Mail, Heart, RotateCcw, FileText, Coffee, Award, Sparkles, Calculator } from 'lucide-react';
 
 import { useFinance } from '../../contexts/FinanceContext';
 import { useAppSettings } from '../../contexts/AppSettingsContext';
@@ -120,6 +122,8 @@ const Dashboard: React.FC = () => {
     const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
     const [isProjectionsModalOpen, setIsProjectionsModalOpen] = useState(false);
+    const [isLoanSimulatorOpen, setIsLoanSimulatorOpen] = useState(false);
+    const [draftLoanData, setDraftLoanData] = useState<any | null>(null);
     const [reminderType, setReminderType] = useState<'monthly' | 'milestone' | null>(null);
     const [activeMilestone, setActiveMilestone] = useState<number>(0);
     const [showChangelog, setShowChangelog] = useState(false);
@@ -519,6 +523,18 @@ const Dashboard: React.FC = () => {
                             <Sparkles size={20} />
                             Simulador Disponible a Fin de Año
                         </button>
+                        <button 
+                            onClick={() => setIsLoanSimulatorOpen(true)}
+                            style={{ 
+                                ...actionButtonStyle, 
+                                background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)', 
+                                border: '1px solid rgba(34, 211, 238, 0.4)',
+                                flex: isMobile ? '1 1 100%' : '1 1 auto'
+                            }}
+                        >
+                            <Calculator size={20} />
+                            Simulador de Préstamos
+                        </button>
                     </div>
 
                     <OverdueFixedExpenseAlert />
@@ -858,6 +874,24 @@ const Dashboard: React.FC = () => {
                 isOpen={isProjectionsModalOpen} 
                 onClose={() => setIsProjectionsModalOpen(false)} 
             />
+
+            {isLoanSimulatorOpen && (
+                <LoanSimulatorModal
+                    isOpen={isLoanSimulatorOpen}
+                    onClose={() => setIsLoanSimulatorOpen(false)}
+                    onConvertToRealLoan={(simulatedData) => {
+                        setIsLoanSimulatorOpen(false);
+                        setDraftLoanData(simulatedData);
+                    }}
+                />
+            )}
+
+            {draftLoanData && (
+                <LoanForm
+                    initialData={draftLoanData}
+                    onClose={() => setDraftLoanData(null)}
+                />
+            )}
         </div>
     );
 };

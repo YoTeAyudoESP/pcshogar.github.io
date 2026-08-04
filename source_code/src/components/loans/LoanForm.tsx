@@ -8,11 +8,19 @@ import ModalPortal from '../common/ModalPortal';
 
 interface LoanFormProps {
     editingLoan?: Loan;
+    initialData?: {
+        name?: string;
+        amount?: number;
+        tin?: number;
+        tae?: number;
+        months?: number;
+        monthlyQuota?: number;
+    };
     onCancelEdit?: () => void;
     onClose?: () => void;
 }
 
-const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose }) => {
+const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelEdit, onClose }) => {
     const { addLoan, updateLoan, accounts, cards = [], addRecurringExpense } = useFinance();
     
     // Basic Details
@@ -77,6 +85,16 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
                 if (editingLoan.earlyAmortizationFee !== undefined) setEarlyAmortizationFee(editingLoan.earlyAmortizationFee);
                 setShowAdvanced(true);
             }
+        } else if (initialData) {
+            if (initialData.name) setName(initialData.name);
+            if (initialData.amount) setAmount(initialData.amount);
+            if (initialData.tin !== undefined) setTin(initialData.tin);
+            if (initialData.tae !== undefined) setTae(initialData.tae);
+            if (initialData.months) setMonths(initialData.months);
+            if (initialData.monthlyQuota) {
+                setCalculationMode('quota');
+                setMonthlyQuota(initialData.monthlyQuota);
+            }
         } else {
             setName('');
             setLinkedAccountId(accounts.find(a => a.isMain)?.id || accounts[0]?.id || '');
@@ -95,7 +113,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
             setEarlyAmortizationFee('');
             setShowAdvanced(false);
         }
-    }, [editingLoan, accounts]);
+    }, [editingLoan, initialData, accounts]);
 
     const calculateDaysBetween = (start: string, end: string) => {
         const d1 = new Date(start);
@@ -206,19 +224,19 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
                 } else {
                     interest = round2(currentP * monthlyRate);
                 }
-                
+
+                currentTotalInt += interest;
+
                 let quotaToPay = M;
                 if (currentMonths === 0 && firstQ !== undefined) {
                     quotaToPay = firstQ;
                 }
 
                 let amortization = round2(quotaToPay - interest);
-                
+
                 if (amortization <= 0 && monthlyRate > 0 && !(currentMonths === 0 && firstQ !== undefined)) {
-                    return { error: 'La cuota no cubre ni los intereses.' };
+                    return { error: 'La cuota es menor o igual a los intereses generados.' };
                 }
-                
-                currentTotalInt += interest;
 
                 if (currentP - amortization < 0.01) {
                     finalLastQ = round2(currentP + interest);
@@ -226,6 +244,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
                 } else {
                     currentP = round2(currentP - amortization);
                 }
+
                 currentMonths++;
             }
 
@@ -239,313 +258,298 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, onCancelEdit, onClose 
         }
 
         return null;
-    }, [amount, tin, calculationMode, monthlyQuota, months, overrideFirstQuota, grantDate, startDate]);
+    }, [amount, tin, calculationMode, monthlyQuota, months, grantDate, startDate, overrideFirstQuota]);
 
-
-    const handleOpeningFeeChange = (val: string) => {
-        const fee = val ? Number(val) : '';
-        setOpeningFee(fee);
-        if (fee !== '' && amount && tin !== '' && results?.months) {
-            setTae(computeTae(Number(amount), results.months, Number(tin), Number(fee)));
-        } else {
-            setTae('');
-        }
-    };
-
-    const handleTaeChange = (val: string) => {
-        const t = val ? Number(val) : '';
-        setTae(t);
-        if (t !== '' && amount && tin !== '' && results?.months) {
-            setOpeningFee(computeCommissionsFromTae(Number(amount), results.months, Number(tin), Number(t)));
-        } else {
-            setOpeningFee('');
-        }
-    };
-
-    useEffect(() => {
-        if (openingFee !== '' && amount && tin !== '' && results?.months) {
-            setTae(computeTae(Number(amount), results.months, Number(tin), Number(openingFee)));
-        } else {
-            setTae('');
-        }
-    }, [amount, tin, results?.months]); // Auto-sync when loan parameters change
-
-    const handleSubmit = async () => {
-        if (!name.trim()) return;
-        if (!amount || Number(amount) <= 0) return;
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!name || !amount || !results || (results as any).error) return;
         
-        if (!results || results.error) return;
-
         setIsSubmitting(true);
-        
         try {
-            const loanData = {
-                name,
-                totalAmount: Number(amount),
-                remainingAmount: Number(amount) - (amortizedAmount === '' ? 0 : Number(amortizedAmount)),
-                currentDebt: Number(amount) - (amortizedAmount === '' ? 0 : Number(amortizedAmount)),
-                monthlyInstallment: results.quota as number,
-                monthlyPayment: results.quota as number,
-                firstInstallmentAmount: overrideFirstQuota !== '' ? Number(overrideFirstQuota) : undefined,
-                lastInstallmentAmount: overrideLastQuota !== '' ? Number(overrideLastQuota) : undefined,
-                startDate: new Date(startDate).getTime(),
-                currency: 'EUR',
-                paymentDay: new Date(startDate).getDate(),
-                status: 'active',
-                tin: tin === '' ? 0 : Number(tin),
-                tae: tae !== '' ? Number(tae) : undefined,
-                grantDate: grantDate ? new Date(grantDate).getTime() : undefined,
-                openingFee: openingFee !== '' ? Number(openingFee) : undefined,
-                earlyAmortizationFee: earlyAmortizationFee !== '' ? Number(earlyAmortizationFee) : undefined,
-                linkedAccountId,
-                supportedByCardId: supportedByCardId || undefined,
-                updatedAt: Date.now()
-            };
+            const totalAmt = Number(amount);
+            const amortized = amortizedAmount === '' ? 0 : Number(amortizedAmount);
+            const remaining = Math.max(0, totalAmt - amortized);
+            const payDay = new Date(startDate).getDate() || 1;
 
-            let loanId = editingLoan ? editingLoan.id : uuidv4();
-            let recId = editingLoan?.linkedRecurringExpenseId || uuidv4();
+            if (editingLoan) {
+                const updatedLoan: Loan = {
+                    ...editingLoan,
+                    name,
+                    totalAmount: totalAmt,
+                    remainingAmount: remaining,
+                    currentDebt: remaining,
+                    monthlyPayment: (results as any).quota,
+                    monthlyInstallment: (results as any).quota,
+                    currency: 'EUR',
+                    tin: tin === '' ? undefined : Number(tin),
+                    grantDate: new Date(grantDate).getTime(),
+                    startDate: new Date(startDate).getTime(),
+                    linkedAccountId: supportedByCardId ? undefined : linkedAccountId,
+                    supportedByCardId: supportedByCardId || undefined,
+                    firstInstallmentAmount: overrideFirstQuota !== '' ? Number(overrideFirstQuota) : undefined,
+                    lastInstallmentAmount: (results as any).lastQuota || undefined,
+                    openingFee: openingFee !== '' ? Number(openingFee) : undefined,
+                    earlyAmortizationFee: earlyAmortizationFee !== '' ? Number(earlyAmortizationFee) : undefined,
+                    status: remaining === 0 ? 'paid' : 'active'
+                };
 
-            if (!editingLoan) {
-                const payDay = new Date(startDate).getDate();
-                const newRecId = await addRecurringExpense({
+                await updateLoan(updatedLoan);
+
+                if (editingLoan.linkedRecurringExpenseId) {
+                    await addRecurringExpense({
+                        id: editingLoan.linkedRecurringExpenseId,
+                        description: `Cuota Préstamo: ${name}`,
+                        amount: (results as any).quota,
+                        currency: 'EUR',
+                        frequency: 'monthly',
+                        paymentDay: payDay,
+                        active: remaining > 0,
+                        sourceAccountId: supportedByCardId ? undefined : linkedAccountId,
+                        categoryId: 'cat_loans'
+                    } as any);
+                }
+            } else {
+                const recId = uuidv4();
+                
+                await addRecurringExpense({
+                    id: recId,
                     description: `Cuota Préstamo: ${name}`,
-                    amount: results.quota as number,
+                    amount: (results as any).quota,
                     currency: 'EUR',
                     frequency: 'monthly',
                     paymentDay: payDay,
                     active: true,
-                    sourceAccountId: linkedAccountId,
+                    sourceAccountId: supportedByCardId ? undefined : linkedAccountId,
                     categoryId: 'cat_loans'
-                });
-                await addLoan({ ...loanData, id: loanId, linkedRecurringExpenseId: newRecId } as Loan);
-            } else {
-                await updateLoan({ ...editingLoan, ...loanData } as Loan);
+                } as any);
+
+                const newLoan: Loan = {
+                    id: uuidv4(),
+                    name,
+                    totalAmount: totalAmt,
+                    remainingAmount: remaining,
+                    currentDebt: remaining,
+                    monthlyPayment: (results as any).quota,
+                    monthlyInstallment: (results as any).quota,
+                    currency: 'EUR',
+                    tin: tin === '' ? undefined : Number(tin),
+                    grantDate: new Date(grantDate).getTime(),
+                    startDate: new Date(startDate).getTime(),
+                    linkedAccountId: supportedByCardId ? undefined : linkedAccountId,
+                    supportedByCardId: supportedByCardId || undefined,
+                    linkedRecurringExpenseId: recId,
+                    firstInstallmentAmount: overrideFirstQuota !== '' ? Number(overrideFirstQuota) : undefined,
+                    lastInstallmentAmount: (results as any).lastQuota || undefined,
+                    openingFee: openingFee !== '' ? Number(openingFee) : undefined,
+                    earlyAmortizationFee: earlyAmortizationFee !== '' ? Number(earlyAmortizationFee) : undefined,
+                    status: remaining === 0 ? 'paid' : 'active'
+                };
+
+                await addLoan(newLoan);
             }
-            
+
             if (onCancelEdit) onCancelEdit();
             if (onClose) onClose();
-        } catch (error) {
-            console.error('Error guardando préstamo:', error);
+        } catch (err) {
+            console.error('Error saving loan:', err);
+        } finally {
             setIsSubmitting(false);
         }
     };
 
-    const inputStyle = { width: '100%', padding: '0.8rem', borderRadius: '0.75rem', border: '1px solid var(--panel-border)', background: 'var(--panel-bg-3)', color: 'var(--text-main)', fontSize: '0.95rem' };
-    const labelStyle = { display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'rgba(var(--color-rgb-light), 0.7)', marginBottom: '0.4rem' };
-    const requiredSpan = <span style={{ color: '#ef4444', marginLeft: '4px' }}>*</span>;
+    const formContent = (
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800 }}>
+                    {editingLoan ? 'Editar Préstamo' : 'Nuevo Préstamo'}
+                </h3>
+                {(onClose || onCancelEdit) && (
+                    <button type="button" onClick={onCancelEdit || onClose} style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.6)', cursor: 'pointer' }}>
+                        <X size={20} />
+                    </button>
+                )}
+            </div>
 
-    return (
-        <ModalPortal><div className="modal-overlay">
-            <div className="modal-container" style={{ maxWidth: '650px', padding: '2rem' }} onClick={e => e.stopPropagation()}>
-                <button 
-                    type="button" 
-                    onClick={() => { if (onCancelEdit) onCancelEdit(); if (onClose) onClose(); }}
-                    style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'transparent', border: 'none', color: 'rgba(var(--color-rgb-light), 0.5)', cursor: 'pointer' }}
+            <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', marginBottom: '0.4rem' }}>Nombre del Préstamo</label>
+                <input
+                    type="text"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    placeholder="Ej. Coche Nuevo, Reforma Cocina"
+                    required
+                    style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: 'white', fontSize: '0.95rem', boxSizing: 'border-box' }}
+                />
+            </div>
+
+            <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', marginBottom: '0.4rem' }}>Pago / Cargo asociado a:</label>
+                <select
+                    value={supportedByCardId ? `card:${supportedByCardId}` : linkedAccountId}
+                    onChange={e => {
+                        const val = e.target.value;
+                        if (val.startsWith('card:')) {
+                            setSupportedByCardId(val.replace('card:', ''));
+                            setLinkedAccountId('');
+                        } else {
+                            setSupportedByCardId('');
+                            setLinkedAccountId(val);
+                        }
+                    }}
+                    style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: 'white', fontSize: '0.95rem', boxSizing: 'border-box' }}
+                    required
                 >
-                    <X size={24} />
-                </button>
+                    <optgroup label="Cuentas Bancarias">
+                        {accounts.map(a => (
+                            <option key={a.id} value={a.id}>{a.name}</option>
+                        ))}
+                    </optgroup>
+                    <optgroup label="Tarjetas de Crédito">
+                        {cards.filter(c => c.type === 'credit').map(c => (
+                            <option key={c.id} value={`card:${c.id}`}>{c.name}</option>
+                        ))}
+                    </optgroup>
+                </select>
+            </div>
 
-                <h2 style={{ margin: '0 0 1.5rem 0', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <Calculator size={24} color="#10b981" />
-                    {editingLoan ? 'Editar Préstamo' : 'Simular / Crear Préstamo'}
-                </h2>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-                    <div>
-                        <label style={labelStyle}>Nombre del Préstamo{requiredSpan}</label>
-                        <input style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="Ej: Coche, Reforma..." />
-                    </div>
-                    <div>
-                        <label style={labelStyle}>Cuenta de Cobro{requiredSpan}</label>
-                        <select style={inputStyle} value={linkedAccountId} onChange={e => setLinkedAccountId(e.target.value)}>
-                            {accounts.map(acc => (
-                                <option key={acc.id} value={acc.id}>{acc.name} ({formatMoney(acc.balance)})</option>
-                            ))}
-                        </select>
-                    </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                    <label style={{ display: 'block', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', marginBottom: '0.4rem' }}>Importe Total Préstamo (€)</label>
+                    <input
+                        type="number"
+                        step="0.01"
+                        min="1"
+                        value={amount}
+                        onChange={e => setAmount(e.target.value === '' ? '' : Number(e.target.value))}
+                        placeholder="Ej. 10000"
+                        required
+                        style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: 'white', fontSize: '0.95rem', boxSizing: 'border-box' }}
+                    />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-                    <div>
-                        <label style={labelStyle}>Tarjeta que financia (Opcional)</label>
-                        <select style={inputStyle} value={supportedByCardId} onChange={e => setSupportedByCardId(e.target.value)}>
-                            <option value="">-- Ninguna --</option>
-                            {cards.filter(c => c.type === 'credit').map(c => (
-                                <option key={c.id} value={c.id}>{c.name}</option>
-                            ))}
-                        </select>
-                        <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>
-                            Si seleccionas una, el capital pendiente de este préstamo restará del límite de la tarjeta.
-                        </div>
-                    </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-                    <div>
-                        <label style={labelStyle}>Importe a Financiar (€){requiredSpan}</label>
-                        <input type="number" step="0.01" style={inputStyle} value={amount} onChange={e => setAmount(e.target.value ? Number(e.target.value) : '')} placeholder="Ej. 15000" />
-                    </div>
-                    {editingLoan && (
-                        <div>
-                            <label style={labelStyle}>Capital amortizado (€)</label>
-                            <input type="number" step="0.01" style={inputStyle} value={amortizedAmount} onChange={e => setAmortizedAmount(e.target.value !== '' ? Number(e.target.value) : '')} placeholder="Ej. 2500" />
-                        </div>
-                    )}
-                    <div>
-                        <label style={labelStyle}>TIN Anual (%)</label>
-                        <input type="number" step="0.01" style={inputStyle} value={tin} onChange={e => setTin(e.target.value !== '' ? Number(e.target.value) : '')} placeholder="Ej. 6.5" />
-                    </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-                    <div>
-                        <label style={labelStyle}>Fecha Concesión (Dinero en cuenta){requiredSpan}</label>
-                        <input type="date" style={inputStyle} value={grantDate} onChange={e => setGrantDate(e.target.value)} />
-                    </div>
-                    <div>
-                        <label style={labelStyle}>Fecha Primer Pago{requiredSpan}</label>
-                        <input type="date" style={inputStyle} value={startDate} onChange={e => setStartDate(e.target.value)} />
-                    </div>
-                </div>
-
-                {/* Calculation Mode */}
-                <div style={{ display: 'flex', background: 'rgba(0,0,0,0.2)', padding: '4px', borderRadius: '12px', marginBottom: '1rem' }}>
-                    <button
-                        onClick={() => setCalculationMode('quota')}
-                        style={{
-                            flex: 1, padding: '10px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600,
-                            background: calculationMode === 'quota' ? 'rgba(255,255,255,0.1)' : 'transparent',
-                            color: calculationMode === 'quota' ? 'white' : 'rgba(255,255,255,0.5)',
-                        }}
-                    >
-                        Fijar Cuota Mensual
-                    </button>
-                    <button
-                        onClick={() => setCalculationMode('months')}
-                        style={{
-                            flex: 1, padding: '10px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600,
-                            background: calculationMode === 'months' ? 'rgba(255,255,255,0.1)' : 'transparent',
-                            color: calculationMode === 'months' ? 'white' : 'rgba(255,255,255,0.5)',
-                        }}
-                    >
-                        Fijar Plazo (Meses)
-                    </button>
-                </div>
-
-                <div style={{ marginBottom: '1.5rem' }}>
-                    {calculationMode === 'quota' ? (
-                        <div>
-                            <label style={labelStyle}>¿Cuánto quieres pagar al mes? (€){requiredSpan}</label>
-                            <input type="number" step="0.01" style={inputStyle} value={monthlyQuota} onChange={e => setMonthlyQuota(e.target.value ? Number(e.target.value) : '')} placeholder="Ej. 300" />
-                        </div>
-                    ) : (
-                        <div>
-                            <label style={labelStyle}>¿En cuántos meses quieres pagarlo?{requiredSpan}</label>
-                            <input type="number" style={inputStyle} value={months} onChange={e => setMonths(e.target.value ? Number(e.target.value) : '')} placeholder="Ej. 60" />
-                        </div>
-                    )}
-                </div>
-
-                <div style={{ background: results && !results.error ? 'rgba(16, 185, 129, 0.1)' : 'rgba(0,0,0,0.2)', borderRadius: '1rem', padding: '1.5rem', marginBottom: '1.5rem', border: `1px solid ${results && !results.error ? 'rgba(16, 185, 129, 0.3)' : 'var(--panel-border)'}` }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem', color: results && !results.error ? '#10b981' : 'rgba(255,255,255,0.5)', fontWeight: 600 }}>
-                        <RefreshCw size={18} className={!results ? "spin" : ""} />
-                        Simulación de Amortización Real
-                    </div>
-                    
-                    {results?.error ? (
-                        <div style={{ color: '#ef4444' }}>{results.error}</div>
-                    ) : results ? (
-                        <>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
-                                <div>
-                                    <div style={{ fontSize: '0.85rem', color: 'rgba(var(--color-rgb-light), 0.7)', marginBottom: '0.2rem' }}>Cuota Normal (Redondeada)</div>
-                                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'white' }}>{formatMoney(results.quota)}</div>
-                                </div>
-                                <div>
-                                    <div style={{ fontSize: '0.85rem', color: 'rgba(var(--color-rgb-light), 0.7)', marginBottom: '0.2rem' }}>Plazo Total</div>
-                                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'white' }}>{results.months} meses</div>
-                                </div>
-                                <div>
-                                    <div style={{ fontSize: '0.85rem', color: 'rgba(var(--color-rgb-light), 0.7)', marginBottom: '0.2rem' }}>Última Cuota (Ajuste Final)</div>
-                                    <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#10b981' }}>{overrideLastQuota !== '' ? formatMoney(Number(overrideLastQuota)) + ' (Manual)' : formatMoney(results.lastQuota)}</div>
-                                </div>
-                                <div>
-                                    <div style={{ fontSize: '0.85rem', color: 'rgba(var(--color-rgb-light), 0.7)', marginBottom: '0.2rem' }}>Intereses Totales al Banco</div>
-                                    <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#ef4444' }}>{formatMoney(results.totalInterest)}</div>
-                                </div>
-                            </div>
-                            <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem' }}>
-                                    Total a pagar (Importe + Intereses + Comisiones)
-                                </div>
-                                <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'white' }}>
-                                    {formatMoney(Number(amount) + (results.totalInterest || 0) + (openingFee !== '' ? Number(openingFee) : 0))}
-                                </div>
-                            </div>
-                        </>
-                    ) : (
-                        <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem' }}>Introduce el importe y el TIN para ver la simulación en tiempo real.</div>
-                    )}
-                </div>
-
-                <div style={{ marginBottom: '2rem' }}>
-                    <button
-                        onClick={() => setShowAdvanced(!showAdvanced)}
-                        style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'transparent', border: 'none', color: 'rgba(var(--color-rgb-light), 0.6)', cursor: 'pointer', fontSize: '0.9rem', padding: '0.5rem 0' }}
-                    >
-                        {showAdvanced ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                        Ajustes Avanzados de Banco (Opcional)
-                    </button>
-                    
-                    {showAdvanced && (
-                        <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-                                <div>
-                                    <label style={labelStyle}>Comisiones / Gastos extra (€)</label>
-                                    <input type="number" step="0.01" style={{...inputStyle, background: 'var(--panel-bg)'}} value={openingFee} onChange={e => handleOpeningFeeChange(e.target.value)} placeholder="Ej. 150" />
-                                </div>
-                                <div>
-                                    <label style={labelStyle}>TAE Real (%)</label>
-                                    <input type="number" step="0.01" style={{...inputStyle, background: 'var(--panel-bg)', color: '#10b981', fontWeight: 'bold'}} value={tae} onChange={e => handleTaeChange(e.target.value)} placeholder="Ej. 6.8" />
-                                </div>
-                                <div>
-                                    <label style={labelStyle}>Penalización Amort. Anticipada (%)</label>
-                                    <input type="number" step="0.01" style={{...inputStyle, background: 'var(--panel-bg)'}} value={earlyAmortizationFee} onChange={e => setEarlyAmortizationFee(e.target.value ? Number(e.target.value) : '')} placeholder="Ej. 1.0" />
-                                </div>
-                            </div>
-                            <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
-                                <div>
-                                    <label style={labelStyle}>Fijar Primera Cuota (€)</label>
-                                    <input type="number" step="0.01" style={{...inputStyle, background: 'var(--panel-bg)'}} value={overrideFirstQuota} onChange={e => setOverrideFirstQuota(e.target.value ? Number(e.target.value) : '')} placeholder="Copia de tu recibo" />
-                                </div>
-                                <div>
-                                    <label style={labelStyle}>Fijar Última Cuota (€)</label>
-                                    <input type="number" step="0.01" style={{...inputStyle, background: 'var(--panel-bg)'}} value={overrideLastQuota} onChange={e => setOverrideLastQuota(e.target.value ? Number(e.target.value) : '')} placeholder="Copia de tu recibo" />
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                <div style={{ display: 'flex', gap: '1rem' }}>
-                    <button 
-                        type="button" 
-                        onClick={() => { if (onCancelEdit) onCancelEdit(); if (onClose) onClose(); }}
-                        style={{ flex: 1, padding: '1rem', borderRadius: '1rem', border: '1px solid var(--panel-border)', background: 'rgba(255,255,255,0.05)', color: 'white', fontWeight: 600, cursor: 'pointer' }}
-                    >
-                        Cerrar (Sólo Simulación)
-                    </button>
-                    <button 
-                        onClick={handleSubmit}
-                        disabled={!name || !amount || !results || !!results.error || isSubmitting}
-                        style={{ flex: 1, padding: '1rem', borderRadius: '1rem', border: 'none', background: (!name || !amount || !results || !!results.error || isSubmitting) ? 'var(--panel-border)' : 'var(--color-primary)', color: 'white', fontWeight: 600, cursor: (!name || !amount || !results || !!results.error || isSubmitting) ? 'not-allowed' : 'pointer' }}
-                    >
-                        {isSubmitting ? 'Guardando...' : 'Confirmar Préstamo'}
-                    </button>
+                <div>
+                    <label style={{ display: 'block', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', marginBottom: '0.4rem' }}>Interés TIN (%)</label>
+                    <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={tin}
+                        onChange={e => setTin(e.target.value === '' ? '' : Number(e.target.value))}
+                        placeholder="Ej. 6.5"
+                        style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: 'white', fontSize: '0.95rem', boxSizing: 'border-box' }}
+                    />
                 </div>
             </div>
-        </div></ModalPortal>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                    <label style={{ display: 'block', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', marginBottom: '0.4rem' }}>Fecha Concesión</label>
+                    <input
+                        type="date"
+                        value={grantDate}
+                        onChange={e => setGrantDate(e.target.value)}
+                        required
+                        style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: 'white', fontSize: '0.95rem', boxSizing: 'border-box' }}
+                    />
+                </div>
+                <div>
+                    <label style={{ display: 'block', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', marginBottom: '0.4rem' }}>Primer Pago (Cuota)</label>
+                    <input
+                        type="date"
+                        value={startDate}
+                        onChange={e => setStartDate(e.target.value)}
+                        required
+                        style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: 'white', fontSize: '0.95rem', boxSizing: 'border-box' }}
+                    />
+                </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                    <label style={{ display: 'block', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', marginBottom: '0.4rem' }}>Modo de Cálculo</label>
+                    <select
+                        value={calculationMode}
+                        onChange={e => setCalculationMode(e.target.value as any)}
+                        style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: 'white', fontSize: '0.95rem', boxSizing: 'border-box' }}
+                    >
+                        <option value="quota">Indicar Cuota Mensual</option>
+                        <option value="months">Indicar Plazo (Meses)</option>
+                    </select>
+                </div>
+
+                {calculationMode === 'quota' ? (
+                    <div>
+                        <label style={{ display: 'block', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', marginBottom: '0.4rem' }}>Cuota Mensual (€)</label>
+                        <input
+                            type="number"
+                            step="0.01"
+                            min="1"
+                            value={monthlyQuota}
+                            onChange={e => setMonthlyQuota(e.target.value === '' ? '' : Number(e.target.value))}
+                            placeholder="Ej. 185"
+                            required
+                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: 'white', fontSize: '0.95rem', boxSizing: 'border-box' }}
+                        />
+                    </div>
+                ) : (
+                    <div>
+                        <label style={{ display: 'block', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', marginBottom: '0.4rem' }}>Duración (Meses)</label>
+                        <input
+                            type="number"
+                            min="1"
+                            value={months}
+                            onChange={e => setMonths(e.target.value === '' ? '' : Number(e.target.value))}
+                            placeholder="Ej. 60"
+                            required
+                            style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: 'white', fontSize: '0.95rem', boxSizing: 'border-box' }}
+                        />
+                    </div>
+                )}
+            </div>
+
+            {results && !(results as any).error && (
+                <div style={{ background: 'rgba(99, 102, 241, 0.08)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(99, 102, 241, 0.2)', fontSize: '0.85rem', lineHeight: '1.6' }}>
+                    <div><strong>Cuota estimada:</strong> {formatMoney((results as any).quota)} / mes</div>
+                    <div><strong>Plazo total:</strong> {(results as any).months} meses</div>
+                    <div><strong>Total Intereses:</strong> {formatMoney((results as any).totalInterest)}</div>
+                    <div><strong>Total Amortizado:</strong> {formatMoney((results as any).totalPaid)}</div>
+                </div>
+            )}
+
+            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+                {(onCancelEdit || onClose) && (
+                    <button
+                        type="button"
+                        onClick={onCancelEdit || onClose}
+                        style={{ flex: 1, padding: '0.85rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.1)', background: 'transparent', color: 'white', fontWeight: 600, cursor: 'pointer' }}
+                    >
+                        Cancelar
+                    </button>
+                )}
+                <button
+                    type="submit"
+                    disabled={isSubmitting || !results || !!(results as any).error}
+                    style={{ flex: 1.5, padding: '0.85rem', borderRadius: '0.75rem', border: 'none', background: 'var(--color-primary)', color: 'white', fontWeight: 700, cursor: 'pointer', opacity: isSubmitting ? 0.6 : 1 }}
+                >
+                    {editingLoan ? 'Guardar Cambios' : 'Crear Préstamo'}
+                </button>
+            </div>
+        </form>
     );
+
+    if (onClose && !onCancelEdit) {
+        return (
+            <ModalPortal>
+                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.75)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
+                    <div style={{ background: 'linear-gradient(145deg, #1e1e2d 0%, #151521 100%)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '1.25rem', width: '100%', maxWidth: '540px', maxHeight: '90vh', overflowY: 'auto', padding: '1.5rem', color: 'white' }}>
+                        {formContent}
+                    </div>
+                </div>
+            </ModalPortal>
+        );
+    }
+
+    return formContent;
 };
 
 export default LoanForm;

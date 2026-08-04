@@ -27,6 +27,7 @@ export interface CreditCard {
     openingFee?: number;
     hasAdditionalFinanceLimit?: boolean;
     financeLimit?: number;
+    holdCreditUntilPayment?: boolean;
 }
 
 export type PaymentMethod =

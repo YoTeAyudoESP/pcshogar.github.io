@@ -20,6 +20,7 @@ const CardForm: React.FC<CardFormProps> = ({ onClose, editingCard, onCancelEdit 
     const [color, setColor] = useState('#f87171');
     const [hasAdditionalFinanceLimit, setHasAdditionalFinanceLimit] = useState(false);
     const [financeLimit, setFinanceLimit] = useState('');
+    const [holdCreditUntilPayment, setHoldCreditUntilPayment] = useState(false);
 
     useEffect(() => {
         if (editingCard) {
@@ -32,6 +33,7 @@ const CardForm: React.FC<CardFormProps> = ({ onClose, editingCard, onCancelEdit 
             setColor(editingCard.color || '#f87171');
             setHasAdditionalFinanceLimit(editingCard.hasAdditionalFinanceLimit || false);
             setFinanceLimit(editingCard.financeLimit ? editingCard.financeLimit.toString() : '');
+            setHoldCreditUntilPayment(editingCard.holdCreditUntilPayment || false);
         } else {
             // Reset form when not editing
             setName('');
@@ -43,6 +45,7 @@ const CardForm: React.FC<CardFormProps> = ({ onClose, editingCard, onCancelEdit 
             setColor('#f87171');
             setHasAdditionalFinanceLimit(false);
             setFinanceLimit('');
+            setHoldCreditUntilPayment(false);
         }
     }, [editingCard]);
 
@@ -62,7 +65,8 @@ const CardForm: React.FC<CardFormProps> = ({ onClose, editingCard, onCancelEdit 
                 currentBalance: type === 'virtual' ? (parseFloat(limit) || 0) : editingCard.currentBalance,
                 color,
                 hasAdditionalFinanceLimit: type === 'credit' ? hasAdditionalFinanceLimit : false,
-                financeLimit: (type === 'credit' && hasAdditionalFinanceLimit) ? (parseFloat(financeLimit) || 0) : undefined
+                financeLimit: (type === 'credit' && hasAdditionalFinanceLimit) ? (parseFloat(financeLimit) || 0) : undefined,
+                holdCreditUntilPayment: type === 'credit' ? holdCreditUntilPayment : false
             });
             if (onCancelEdit) onCancelEdit();
         } else {
@@ -76,7 +80,8 @@ const CardForm: React.FC<CardFormProps> = ({ onClose, editingCard, onCancelEdit 
                 color,
                 currentBalance: type === 'virtual' ? (parseFloat(limit) || 0) : 0,
                 hasAdditionalFinanceLimit: type === 'credit' ? hasAdditionalFinanceLimit : false,
-                financeLimit: (type === 'credit' && hasAdditionalFinanceLimit) ? (parseFloat(financeLimit) || 0) : undefined
+                financeLimit: (type === 'credit' && hasAdditionalFinanceLimit) ? (parseFloat(financeLimit) || 0) : undefined,
+                holdCreditUntilPayment: type === 'credit' ? holdCreditUntilPayment : false
             } as CreditCard;
             await addCard(
                 newCard.name,
@@ -88,7 +93,8 @@ const CardForm: React.FC<CardFormProps> = ({ onClose, editingCard, onCancelEdit 
                 newCard.color || '',
                 newCard.currentBalance,
                 newCard.hasAdditionalFinanceLimit,
-                newCard.financeLimit
+                newCard.financeLimit,
+                newCard.holdCreditUntilPayment
             );
         }
 
@@ -240,6 +246,21 @@ const CardForm: React.FC<CardFormProps> = ({ onClose, editingCard, onCancelEdit 
                                 </div>
                             </div>
                         )}
+                    </div>
+
+                    <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '1rem', border: '1px solid rgba(255,255,255,0.05)', marginTop: '0.5rem' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
+                            <input 
+                                type="checkbox" 
+                                checked={holdCreditUntilPayment}
+                                onChange={e => setHoldCreditUntilPayment(e.target.checked)}
+                                style={{ width: '18px', height: '18px', accentColor: 'var(--color-primary)' }}
+                            />
+                            <span style={{ fontSize: '0.9rem', color: 'white' }}>Retener disponible del ciclo anterior hasta el día de cobro del recibo</span>
+                        </label>
+                        <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.4rem', marginLeft: '2.1rem' }}>
+                            Activa esto si tu banco no restaura tu crédito disponible en el nuevo ciclo hasta que se abona físicamente el recibo anterior (ej. día 5).
+                        </div>
                     </div>
                 </>
             )}

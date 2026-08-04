@@ -5,6 +5,18 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.2.8',
+    releaseNotes: `Novedades v2.2.8:
+- 💳 Retención de disponible en tarjetas: Nueva opción por tarjeta ("Mantener crédito retenido del ciclo anterior hasta el día de pago") para evitar liberar saldo antes de abonar la deuda.
+- 🧮 Simulador de Préstamos y Compras a Plazos: Nuevo botón en el Dashboard para calcular cuotas, intereses y tablas de amortización (Francés) con opción de "Convertir en Préstamo Real".
+- ⚠️ Alerta Inteligente de Límite de Tarjeta: Aviso rojo preventivo en los formularios de gastos si un importe supera el crédito disponible actual de la tarjeta.`
+  },
+  {
+    version: '2.2.7',
+    releaseNotes: `Novedades v2.2.7:
+- 📊 Corrección en Dashboard e Informes: Asignación mensual exacta para devoluciones y gastos basada en el mes en curso.`
+  },
+  {
     version: '1.9.4',
     releaseNotes: `Novedades 1.9.4:
 - Mejora de UI: El porcentaje de uso de las tarjetas de crédito ahora tiene en cuenta el capital de los préstamos asociados.

@@ -47,7 +47,7 @@ interface FinanceContextType {
     updateCategory: (category: Category) => Promise<void>;
     deleteCategory: (id: string, reassignToId?: string) => Promise<void>;
     addAccount: (name: string, type: 'bank' | 'cash', initialBalance: number, color?: string) => Promise<void>;
-    addCard: (name: string, linkedAccountId: string, limit: number, cutoffDay: number, paymentDay: number, type: 'debit' | 'credit' | 'virtual', color?: string, initialBalance?: number, hasAdditionalFinanceLimit?: boolean, financeLimit?: number) => Promise<void>;
+    addCard: (name: string, linkedAccountId: string, limit: number, cutoffDay: number, paymentDay: number, type: 'debit' | 'credit' | 'virtual', color?: string, initialBalance?: number, hasAdditionalFinanceLimit?: boolean, financeLimit?: number, holdCreditUntilPayment?: boolean) => Promise<void>;
     addExpense: (expense: Omit<Expense, 'id'>) => Promise<void>;
     addSavingGoal: (goal: Omit<SavingGoal, 'id'>) => Promise<void>;
     allocateSavings: (goalId: string, sourceAccountId: string, amount: number, date?: number, description?: string, budgetMonth?: number, budgetYear?: number) => Promise<void>;
@@ -613,7 +613,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         await refreshFinance();
     };
 
-    const addCard = async (name: string, linkedAccountId: string, limit: number, cutoffDay: number, paymentDay: number, type: 'debit' | 'credit' | 'virtual', color?: string, initialBalance?: number, hasAdditionalFinanceLimit?: boolean, financeLimit?: number) => {
+    const addCard = async (name: string, linkedAccountId: string, limit: number, cutoffDay: number, paymentDay: number, type: 'debit' | 'credit' | 'virtual', color?: string, initialBalance?: number, hasAdditionalFinanceLimit?: boolean, financeLimit?: number, holdCreditUntilPayment?: boolean) => {
         const newCard: CreditCard = {
             id: uuidv4(),
             name,
@@ -626,6 +626,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
             color,
             hasAdditionalFinanceLimit,
             financeLimit,
+            holdCreditUntilPayment,
             updatedAt: Date.now()
         };
         await incomeDB.addCard(newCard);

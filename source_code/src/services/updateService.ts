@@ -45,6 +45,8 @@ export const UpdateService = {
                     console.warn('Could not read app version from Electron, using package fallback', e);
                     currentVersion = versionInfo.version; // fallback to current build version
                 }
+            } else {
+                currentVersion = versionInfo.version;
             }
 
             // Compare versions using semver

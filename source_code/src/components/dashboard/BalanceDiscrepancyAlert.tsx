@@ -56,7 +56,10 @@ const BalanceDiscrepancyAlert: React.FC = () => {
 
     const result = useMemo(() => {
         const now = new Date();
-        const autoAvailable = calculateAvailableBalanceForMonth(now.getFullYear(), now.getMonth(), {
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();
+
+        const autoAvailable = calculateAvailableBalanceForMonth(currentYear, currentMonth, {
             fixedIncomes: (incomes || []).filter((i: any) => i.type === 'fixed') as any[],
             extraIncomes: incomes?.filter(i => i.type === 'extra' || i.type === 'rollover') || [],
             expenses,
@@ -67,16 +70,23 @@ const BalanceDiscrepancyAlert: React.FC = () => {
             cards
         });
 
+        // Respect manual MonthOverride if set by user for current month
+        const manualOverride = (overrides || []).find(o => o.year === currentYear && o.month === currentMonth);
+        const effectiveAvailableToSpend = manualOverride ? manualOverride.amount : autoAvailable.availableToSpend;
+
         return {
-            ...calculateBalanceDiscrepancy(accounts, savings, expenses, cards, recurringExpenses, autoAvailable.availableToSpend, 0.50, incomes, allocations),
-            baseAvailableToSpend: autoAvailable.availableToSpend
+            ...calculateBalanceDiscrepancy(accounts, savings, expenses, cards, recurringExpenses, effectiveAvailableToSpend, 0.50, incomes, allocations),
+            baseAvailableToSpend: autoAvailable.availableToSpend,
+            effectiveAvailableToSpend,
+            isManualOverrideActive: !!manualOverride
         };
     }, [accounts, savings, expenses, cards, recurringExpenses, incomes, allocations, overrides]);
 
     const {
         dineroReal, dineroLibreReal, compromisoGastos, compromisoTarjetas,
         compromisos, dineroEnHuchas, desajuste, isOverdraft,
-        hasSignificantDiscrepancy, mesActual, baseAvailableToSpend
+        hasSignificantDiscrepancy, mesActual, baseAvailableToSpend,
+        effectiveAvailableToSpend, isManualOverrideActive
     } = result;
 
     const [expanded, setExpanded] = useState(false);
@@ -278,7 +288,8 @@ const BalanceDiscrepancyAlert: React.FC = () => {
                             {compromisoGastos > 0.005 && <BreakdownRow label="Gastos pendientes del mes (fijos y variables)" value={-compromisoGastos} color="#f87171" />}
                             {compromisoTarjetas > 0.005 && <BreakdownRow label="Ciclos de tarjeta de crédito abiertos" value={-compromisoTarjetas} color="#f87171" />}
                             <BreakdownRow label="Dinero libre real" value={dineroLibreReal} color={dineroLibreReal >= 0 ? '#10b981' : '#f43f5e'} separator bold />
-                            <BreakdownRow label="En huchas" value={-dineroEnHuchas} color="#818cf8" />
+                            {dineroEnHuchas > 0.005 && <BreakdownRow label="En huchas" value={-dineroEnHuchas} color="#818cf8" />}
+                            {effectiveAvailableToSpend > 0.005 && <BreakdownRow label={isManualOverrideActive ? "Disponible del mes (Ajustado por ti)" : "Disponible del mes"} value={-effectiveAvailableToSpend} color="#f59e0b" />}
                             <BreakdownRow label={isUnassigned ? 'Sin asignar' : 'Desajuste negativo'} value={desajuste} color={accentColor} separator bold />
                         </div>
                     )}

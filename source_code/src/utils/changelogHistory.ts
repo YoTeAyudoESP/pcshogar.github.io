@@ -5,6 +5,11 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.3.1',
+    releaseNotes: `Novedades v2.3.1:
+- 🎯 Alerta de Descuadre de Saldos Ajustada: La alerta del Dashboard respeta ahora el disponible manual del mes configurado por el usuario (MonthOverride), eliminando descuadres fantasma y mostrando un desglose 100% coherente con la pantalla principal.`
+  },
+  {
     version: '2.3.0',
     releaseNotes: `Novedades v2.3.0:
 - 🛡️ Aislamiento Total de Archivos por Economía: Cada economía creada asigna ahora su propio archivo independiente de sincronización (/pcshogar_<id>.json), evitando cruces de datos entre distintas economías.

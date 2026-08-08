@@ -70,9 +70,10 @@ const BalanceDiscrepancyAlert: React.FC = () => {
             cards
         });
 
-        // Respect manual MonthOverride if set by user for current month
+        // autoAvailable.availableToSpend already incorporates MonthOverride (if active)
+        // and subtracts subsequent variable expenses, fixed deviations, and allocations.
         const manualOverride = (overrides || []).find(o => o.year === currentYear && o.month === currentMonth);
-        const effectiveAvailableToSpend = manualOverride ? manualOverride.amount : autoAvailable.availableToSpend;
+        const effectiveAvailableToSpend = autoAvailable.availableToSpend;
 
         return {
             ...calculateBalanceDiscrepancy(accounts, savings, expenses, cards, recurringExpenses, effectiveAvailableToSpend, 0.50, incomes, allocations),

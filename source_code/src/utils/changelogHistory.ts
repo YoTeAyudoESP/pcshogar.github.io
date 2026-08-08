@@ -5,6 +5,11 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.3.2',
+    releaseNotes: `Novedades v2.3.2:
+- 🎯 Sincronización del Disponible Vivo en Alerta de Saldos: La alerta de desajuste utiliza ahora el disponible real dinámico del Dashboard (contemplando el ajuste manual activo y descontando los gastos transcurridos durante el mes), eliminando falsos avisos de descuadre.`
+  },
+  {
     version: '2.3.1',
     releaseNotes: `Novedades v2.3.1:
 - 🎯 Alerta de Descuadre de Saldos Ajustada: La alerta del Dashboard respeta ahora el disponible manual del mes configurado por el usuario (MonthOverride), eliminando descuadres fantasma y mostrando un desglose 100% coherente con la pantalla principal.`

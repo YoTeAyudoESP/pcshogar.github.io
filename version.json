@@ -1,7 +1,7 @@
 {
-  "version": "2.2.9",
-  "versionCode": 235,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.2.9/PCSHogar_Setup_v2.2.9.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.2.9/PCSHogar_Setup_v2.2.9.exe",
-  "releaseNotes": "Novedades versión 2.2.9:\n- Barra de uso de tarjeta ajustada para tarjetas con retención de deuda activa.\n- Simulador de préstamos 100% responsivo en smartphones y pantallas pequeñas."
+  "version": "2.3.0",
+  "versionCode": 240,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.3.0/PCSHogar_Setup_v2.3.0.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.3.0/PCSHogar_Setup_v2.3.0.exe",
+  "releaseNotes": "Novedades versión 2.3.0:\n- Aislamiento total de archivos de sincronización por economía (/pcshogar_<id>.json).\n- Auto-saneamiento e integridad al arrancar la app con notificación transparente de optimización.\n- Vista de Ajuste de Saldo 100% responsiva con tarjetas verticales en móvil sin scroll horizontal."
 }

@@ -109,7 +109,7 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
                     didMigrate = true;
                 }
                 
-                // Auto-migrate economy owners
+                // Auto-migrate economy owners and sync path isolation
                 p.economies.forEach(eco => {
                     if (!eco.ownerProfileId) {
                         const inPrincipal = baseSettings.profiles?.find(pr => pr.id === 'prof_default')?.economies.some(e => e.id === eco.id);
@@ -119,6 +119,18 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
                             eco.ownerProfileId = p.id;
                         }
                         didMigrate = true;
+                    }
+
+                    // Auto-migrate secondary economy sync paths to keep them isolated from /pcshogar_data.json
+                    if (eco.id !== 'eco_default' && eco.sync) {
+                        if (!eco.sync.dropboxPath || eco.sync.dropboxPath === '/pcshogar_data.json') {
+                            eco.sync.dropboxPath = `/pcshogar_${eco.id}.json`;
+                            didMigrate = true;
+                        }
+                        if (!eco.sync.googledrivePath || eco.sync.googledrivePath === 'pcshogar_data.json') {
+                            eco.sync.googledrivePath = `pcshogar_${eco.id}.json`;
+                            didMigrate = true;
+                        }
                     }
                 });
             });
@@ -265,6 +277,9 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
         if (!activeProfile) throw new Error("No hay perfil activo");
         const newEcoId = `eco_${Date.now()}`;
         const safeName = name.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+        const defaultDropboxPath = `/pcshogar_${newEcoId}.json`;
+        const defaultGoogleDrivePath = `pcshogar_${newEcoId}.json`;
+
         const newEco: Economy = {
             id: newEcoId,
             name,
@@ -273,8 +288,8 @@ export const AppSettingsProvider = ({ children }: { children: ReactNode }) => {
             sync: {
                 enabled: syncType !== 'local',
                 type: syncType,
-                dropboxPath: syncType === 'dropbox' ? syncPath : '',
-                googledrivePath: syncType === 'googledrive' ? syncPath : '',
+                dropboxPath: syncType === 'dropbox' ? (syncPath || defaultDropboxPath) : defaultDropboxPath,
+                googledrivePath: syncType === 'googledrive' ? (syncPath || defaultGoogleDrivePath) : defaultGoogleDrivePath,
                 dropboxToken: settings.sync.dropboxToken,
                 googledriveToken: settings.sync.googledriveToken,
                 lastSync: 0

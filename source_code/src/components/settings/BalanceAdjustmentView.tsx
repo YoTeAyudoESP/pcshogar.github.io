@@ -33,6 +33,13 @@ const BalanceAdjustmentView: React.FC = () => {
     const [showIgnored, setShowIgnored] = useState(false);
     const [editingClosing, setEditingClosing] = useState<MonthClosing | null>(null);
     const [dismissedUntil, setDismissedUntil] = useState<number>(0);
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+    React.useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     React.useEffect(() => {
         try {
@@ -213,24 +220,49 @@ const BalanceAdjustmentView: React.FC = () => {
                             </p>
                         </div>
                     </div>
-                    {Date.now() < dismissedUntil ? (
-                        <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    
+                    <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '0.75rem', alignItems: isMobile ? 'stretch' : 'center', justifyContent: 'space-between', background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '0.5rem' }}>
+                        {Date.now() < dismissedUntil ? (
+                            <>
+                                <div>
+                                    <strong style={{ display: 'block', marginBottom: '4px' }}>Tienes una alerta oculta actualmente.</strong>
+                                    <span style={{ fontSize: '0.85rem', opacity: 0.6 }}>Estará oculta hasta: {new Date(dismissedUntil).toLocaleDateString()}</span>
+                                </div>
+                                <button 
+                                    onClick={handleRestoreAlert}
+                                    style={{ background: '#f59e0b', color: 'black', border: 'none', padding: '0.6rem 1.2rem', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer' }}
+                                >
+                                    Restaurar en Dashboard
+                                </button>
+                            </>
+                        ) : (
                             <div>
-                                <strong style={{ display: 'block', marginBottom: '4px' }}>Tienes una alerta oculta actualmente.</strong>
-                                <span style={{ fontSize: '0.85rem', opacity: 0.6 }}>Estará oculta hasta: {new Date(dismissedUntil).toLocaleDateString()}</span>
+                                <span style={{ fontSize: '0.9rem', opacity: 0.8 }}>No tienes ninguna alerta de descuadre oculta. Si hay descuadre, lo verás en tu Dashboard.</span>
                             </div>
-                            <button 
-                                onClick={handleRestoreAlert}
-                                style={{ background: '#f59e0b', color: 'black', border: 'none', padding: '0.6rem 1.2rem', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer' }}
-                            >
-                                Restaurar en Dashboard
-                            </button>
-                        </div>
-                    ) : (
-                        <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1rem', borderRadius: '0.5rem' }}>
-                            <span style={{ fontSize: '0.9rem', opacity: 0.8 }}>No tienes ninguna alerta de descuadre oculta. Si hay descuadre, lo verás en tu Dashboard.</span>
-                        </div>
-                    )}
+                        )}
+
+                        <button
+                            onClick={async () => {
+                                await refreshFinance(true);
+                            }}
+                            style={{
+                                background: 'rgba(99, 102, 241, 0.15)',
+                                color: '#818cf8',
+                                border: '1px solid rgba(99, 102, 241, 0.3)',
+                                padding: '0.6rem 1.2rem',
+                                borderRadius: '0.5rem',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '0.5rem',
+                                whiteSpace: 'nowrap'
+                            }}
+                        >
+                            <RefreshCw size={16} /> Diagnosticar y Reparar Saldos
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -277,58 +309,107 @@ const BalanceAdjustmentView: React.FC = () => {
                 </p>
 
                 <h4 style={{ fontSize: '0.9rem', marginBottom: '1rem', opacity: 0.7 }}>Historial de Cierres y Remanentes</h4>
-                <div className="glass-panel" style={{ padding: 0, overflow: 'hidden' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
-                        <thead style={{ background: 'rgba(255,255,255,0.02)' }}>
-                            <tr>
-                                <th style={{ textAlign: 'left', padding: '1rem' }}>Mes Cerrado</th>
-                                <th style={{ textAlign: 'left', padding: '1rem' }}>Acción Tomada</th>
-                                <th style={{ textAlign: 'right', padding: '1rem' }}>Importe</th>
-                                <th style={{ textAlign: 'center', padding: '1rem' }}>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {historyClosings.length === 0 ? (
-                                <tr><td colSpan={4} style={{ padding: '2rem', textAlign: 'center', opacity: 0.3 }}>No hay historial de cierres</td></tr>
-                            ) : (
-                                historyClosings.map(c => (
-                                    <tr key={c.id} style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                                        <td style={{ padding: '1rem', textTransform: 'capitalize' }}>{getMonthName(c.month)} {c.year}</td>
-                                        <td style={{ padding: '1rem' }}>Procesado</td>
-                                        <td style={{ padding: '1rem', textAlign: 'right', color: c.finalBalance >= 0 ? '#2ed573' : '#ff4757', fontWeight: 600, whiteSpace: 'nowrap' }}>
-                                            {formatCurrency(c.finalBalance)}
-                                        </td>
-                                        <td style={{ padding: '1rem', textAlign: 'center' }}>
-                                            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
-                                                <button 
-                                                    onClick={() => setEditingClosing(c)} 
-                                                    title="Editar Importe"
-                                                    style={{ background: 'none', border: 'none', color: '#818cf8', cursor: 'pointer' }}
-                                                >
-                                                    <Edit3 size={16} />
-                                                </button>
-                                                <button 
-                                                    onClick={() => handleIgnoreClosing(c.id)} 
-                                                    title="Ignorar Cierre"
-                                                    style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}
-                                                >
-                                                    <EyeOff size={16} />
-                                                </button>
-                                                <button 
-                                                    onClick={() => handleDeleteClosing(c.id)} 
-                                                    title="Deshacer y Borrar"
-                                                    style={{ background: 'none', border: 'none', color: '#ff4757', cursor: 'pointer' }}
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
+                
+                {isMobile ? (
+                    /* Mobile Card View (No Horizontal Scroll) */
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        {historyClosings.length === 0 ? (
+                            <div style={{ textAlign: 'center', padding: '2rem', opacity: 0.3 }} className="glass-panel">No hay historial de cierres</div>
+                        ) : (
+                            historyClosings.map(c => (
+                                <div key={c.id} className="glass-panel" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div>
+                                            <div style={{ fontSize: '1rem', fontWeight: 800, textTransform: 'capitalize' }}>
+                                                {getMonthName(c.month)} {c.year}
                                             </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+                                            <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', marginTop: '2px' }}>
+                                                Estado: Procesado
+                                            </div>
+                                        </div>
+                                        <div style={{ fontSize: '1.15rem', fontWeight: 800, color: c.finalBalance >= 0 ? '#2ed573' : '#ff4757' }}>
+                                            {formatCurrency(c.finalBalance)}
+                                        </div>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '0.6rem', justifyContent: 'flex-end' }}>
+                                        <button 
+                                            onClick={() => setEditingClosing(c)} 
+                                            style={{ background: 'rgba(129, 140, 248, 0.1)', border: '1px solid rgba(129, 140, 248, 0.2)', color: '#818cf8', padding: '0.4rem 0.8rem', borderRadius: '0.5rem', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer' }}
+                                        >
+                                            <Edit3 size={14} /> Editar
+                                        </button>
+                                        <button 
+                                            onClick={() => handleIgnoreClosing(c.id)} 
+                                            style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', color: 'rgba(255,255,255,0.6)', padding: '0.4rem 0.8rem', borderRadius: '0.5rem', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer' }}
+                                        >
+                                            <EyeOff size={14} /> Ignorar
+                                        </button>
+                                        <button 
+                                            onClick={() => handleDeleteClosing(c.id)} 
+                                            style={{ background: 'rgba(255, 71, 87, 0.1)', border: '1px solid rgba(255, 71, 87, 0.2)', color: '#ff4757', padding: '0.4rem 0.8rem', borderRadius: '0.5rem', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer' }}
+                                        >
+                                            <Trash2 size={14} /> Deshacer
+                                        </button>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                ) : (
+                    /* Desktop Table View */
+                    <div className="glass-panel" style={{ padding: 0, overflow: 'hidden' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                            <thead style={{ background: 'rgba(255,255,255,0.02)' }}>
+                                <tr>
+                                    <th style={{ textAlign: 'left', padding: '1rem' }}>Mes Cerrado</th>
+                                    <th style={{ textAlign: 'left', padding: '1rem' }}>Acción Tomada</th>
+                                    <th style={{ textAlign: 'right', padding: '1rem' }}>Importe</th>
+                                    <th style={{ textAlign: 'center', padding: '1rem' }}>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {historyClosings.length === 0 ? (
+                                    <tr><td colSpan={4} style={{ padding: '2rem', textAlign: 'center', opacity: 0.3 }}>No hay historial de cierres</td></tr>
+                                ) : (
+                                    historyClosings.map(c => (
+                                        <tr key={c.id} style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                                            <td style={{ padding: '1rem', textTransform: 'capitalize' }}>{getMonthName(c.month)} {c.year}</td>
+                                            <td style={{ padding: '1rem' }}>Procesado</td>
+                                            <td style={{ padding: '1rem', textAlign: 'right', color: c.finalBalance >= 0 ? '#2ed573' : '#ff4757', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                                                {formatCurrency(c.finalBalance)}
+                                            </td>
+                                            <td style={{ padding: '1rem', textAlign: 'center' }}>
+                                                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+                                                    <button 
+                                                        onClick={() => setEditingClosing(c)} 
+                                                        title="Editar Importe"
+                                                        style={{ background: 'none', border: 'none', color: '#818cf8', cursor: 'pointer' }}
+                                                    >
+                                                        <Edit3 size={16} />
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => handleIgnoreClosing(c.id)} 
+                                                        title="Ignorar Cierre"
+                                                        style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}
+                                                    >
+                                                        <EyeOff size={16} />
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => handleDeleteClosing(c.id)} 
+                                                        title="Deshacer y Borrar"
+                                                        style={{ background: 'none', border: 'none', color: '#ff4757', cursor: 'pointer' }}
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
 
                 <div style={{ marginTop: '2rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
@@ -338,42 +419,78 @@ const BalanceAdjustmentView: React.FC = () => {
                     <p style={{ fontSize: '0.8rem', opacity: 0.5, marginBottom: '1rem' }}>
                         Lista de todos los movimientos de remanente registrados en el sistema.
                     </p>
-                    <div className="glass-panel" style={{ padding: 0, overflow: 'hidden' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-                            <thead style={{ background: 'rgba(255,255,255,0.02)' }}>
-                                <tr>
-                                    <th style={{ textAlign: 'left', padding: '0.75rem' }}>Origen</th>
-                                    <th style={{ textAlign: 'left', padding: '0.75rem' }}>Destino</th>
-                                    <th style={{ textAlign: 'right', padding: '0.75rem' }}>Importe</th>
-                                    <th style={{ textAlign: 'center', padding: '0.75rem' }}>Estado</th>
-                                    <th style={{ textAlign: 'center', padding: '0.75rem' }}>Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {activeRemnants.length === 0 ? (
-                                    <tr><td colSpan={5} style={{ padding: '2rem', textAlign: 'center', opacity: 0.3 }}>No hay remanentes activos</td></tr>
-                                ) : (
-                                    activeRemnants.map(rem => (
-                                        <tr key={rem.id} style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                                            <td style={{ padding: '0.75rem' }}>--</td>
-                                            <td style={{ padding: '0.75rem' }}>{rem.budgetMonth !== undefined ? `${rem.budgetMonth + 1}/${rem.budgetYear}` : '--'}</td>
-                                            <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: 600, whiteSpace: 'nowrap' }}>{formatCurrency(rem.amount)}</td>
-                                            <td style={{ padding: '0.75rem', textAlign: 'center', color: 'rgba(255,255,255,0.4)' }}>Vinculado</td>
-                                            <td style={{ padding: '0.75rem', textAlign: 'center' }}>
-                                                <button 
-                                                    onClick={() => handleDeleteRemnant(rem.id)}
-                                                    style={{ background: 'none', border: 'none', color: '#ff4757', cursor: 'pointer' }}
-                                                    title="Eliminar Remanente"
-                                                >
-                                                    <Trash2 size={14} />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+
+                    {isMobile ? (
+                        /* Mobile Card View for Active Remnants */
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            {activeRemnants.length === 0 ? (
+                                <div style={{ textAlign: 'center', padding: '2rem', opacity: 0.3 }} className="glass-panel">No hay remanentes activos</div>
+                            ) : (
+                                activeRemnants.map(rem => (
+                                    <div key={rem.id} className="glass-panel" style={{ padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div>
+                                            <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>
+                                                Destino: {rem.budgetMonth !== undefined ? `${rem.budgetMonth + 1}/${rem.budgetYear}` : '--'}
+                                            </div>
+                                            <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>
+                                                Estado: Vinculado
+                                            </div>
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                            <div style={{ fontSize: '1rem', fontWeight: 800, color: '#34d399' }}>
+                                                {formatCurrency(rem.amount)}
+                                            </div>
+                                            <button 
+                                                onClick={() => handleDeleteRemnant(rem.id)}
+                                                style={{ background: 'rgba(255, 71, 87, 0.1)', border: 'none', color: '#ff4757', padding: '0.5rem', borderRadius: '0.5rem', cursor: 'pointer' }}
+                                                title="Eliminar Remanente"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    ) : (
+                        /* Desktop Table View */
+                        <div className="glass-panel" style={{ padding: 0, overflow: 'hidden' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                                <thead style={{ background: 'rgba(255,255,255,0.02)' }}>
+                                    <tr>
+                                        <th style={{ textAlign: 'left', padding: '0.75rem' }}>Origen</th>
+                                        <th style={{ textAlign: 'left', padding: '0.75rem' }}>Destino</th>
+                                        <th style={{ textAlign: 'right', padding: '0.75rem' }}>Importe</th>
+                                        <th style={{ textAlign: 'center', padding: '0.75rem' }}>Estado</th>
+                                        <th style={{ textAlign: 'center', padding: '0.75rem' }}>Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {activeRemnants.length === 0 ? (
+                                        <tr><td colSpan={5} style={{ padding: '2rem', textAlign: 'center', opacity: 0.3 }}>No hay remanentes activos</td></tr>
+                                    ) : (
+                                        activeRemnants.map(rem => (
+                                            <tr key={rem.id} style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                                                <td style={{ padding: '0.75rem' }}>--</td>
+                                                <td style={{ padding: '0.75rem' }}>{rem.budgetMonth !== undefined ? `${rem.budgetMonth + 1}/${rem.budgetYear}` : '--'}</td>
+                                                <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: 600, whiteSpace: 'nowrap' }}>{formatCurrency(rem.amount)}</td>
+                                                <td style={{ padding: '0.75rem', textAlign: 'center', color: 'rgba(255,255,255,0.4)' }}>Vinculado</td>
+                                                <td style={{ padding: '0.75rem', textAlign: 'center' }}>
+                                                    <button 
+                                                        onClick={() => handleDeleteRemnant(rem.id)}
+                                                        style={{ background: 'none', border: 'none', color: '#ff4757', cursor: 'pointer' }}
+                                                        title="Eliminar Remanente"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
                 </div>
             </div>
 

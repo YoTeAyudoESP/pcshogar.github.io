@@ -5,6 +5,13 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.3.0',
+    releaseNotes: `Novedades v2.3.0:
+- 🛡️ Aislamiento Total de Archivos por Economía: Cada economía creada asigna ahora su propio archivo independiente de sincronización (/pcshogar_<id>.json), evitando cruces de datos entre distintas economías.
+- 🧹 Auto-Saneamiento e Integridad al Arrancar: La app detecta y purga automáticamente registros huérfanos o duplicados de antiguas sincronizaciones y notifica de forma transparente al usuario si requirió optimización.
+- 📱 Vista de Ajuste de Saldo 100% Responsiva: Historiales y remanentes adaptados a formato de tarjetas apiladas para móvil, eliminando por completo el desplazamiento horizontal.`
+  },
+  {
     version: '2.2.9',
     releaseNotes: `Novedades v2.2.9:
 - 💳 Barra de Uso de Tarjeta con Retención: La barra de porcentaje de uso ahora contempla la deuda retenida del ciclo anterior, reflejando el 100% de ocupación si el disponible actual es 0€.

@@ -17,6 +17,7 @@ import { calculateAvailableBalanceForMonth, round2 } from '../utils/financeCalcu
 import { DropboxService } from '../services/dropboxService';
 import { GoogleDriveService } from '../services/googleDriveService';
 import { useToast } from './ToastContext';
+import DataRepairNoticeModal from '../components/common/DataRepairNoticeModal';
 
 // Simple fallback for uuidv4 to avoid dependency issues on some devices
 const uuidv4 = () => {
@@ -533,6 +534,49 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                 setPendingClosing(null);
             }
 
+            // Automatic Integrity Self-Healing Check on Initial Load (v2.3.0)
+            if (isInitialLoad) {
+                // Clear any hidden discrepancy state to evaluate fresh clean data
+                try {
+                    localStorage.removeItem('balanceDiscrepancyDismissed');
+                } catch (e) {}
+
+                // Check for orphan or duplicate cross-sync records
+                let didAutoRepair = false;
+                const accountIds = new Set(accs.map(a => a.id));
+                const cardIds = new Set(cds.map(c => c.id));
+
+                // Find duplicate expenses created within 2 seconds of each other with identical description and amount
+                const seenExpenseKeys = new Map<string, string>();
+                for (const exp of exps) {
+                    const expKey = `${exp.description}_${exp.amount}_${Math.floor(exp.date / 2000)}`;
+                    if (seenExpenseKeys.has(expKey)) {
+                        didAutoRepair = true;
+                        await incomeDB.deleteExpenseWithTransaction(exp.id);
+                    } else {
+                        seenExpenseKeys.set(expKey, exp.id);
+                    }
+
+                    // Check for orphan expenses referencing non-existent card IDs
+                    if (exp.paymentMethod && exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId) {
+                        if (!cardIds.has(exp.paymentMethod.cardId)) {
+                            didAutoRepair = true;
+                            const fallbackAccount = accs[0]?.id || '';
+                            const fixedExp = {
+                                ...exp,
+                                paymentMethod: fallbackAccount ? { type: 'account' as const, accountId: fallbackAccount } : { type: 'cash' as const },
+                                updatedAt: Date.now()
+                            };
+                            await incomeDB.updateExpense(fixedExp);
+                        }
+                    }
+                }
+
+                if (didAutoRepair) {
+                    setShowRepairNoticeModal(true);
+                }
+            }
+
         } catch (error) {
             console.error("Failed to fetch finance data", error);
         } finally {
@@ -541,6 +585,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
     }, []);
     const { settings, updateSyncSettings, activeEconomy } = useAppSettings();
     const { showToast } = useToast();
+    const [showRepairNoticeModal, setShowRepairNoticeModal] = useState(false);
 
     useEffect(() => {
         refreshFinance(true);
@@ -548,16 +593,18 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
 
     // Auto-sync watcher
     useEffect(() => {
-        if (!loading && settings.sync.enabled) {
+        const currentSync = activeEconomy?.sync || settings.sync;
+        if (!loading && currentSync.enabled) {
             const triggerSync = async () => {
-                if (settings.sync.type === 'local' && settings.sync.localPath) {
-                    const success = await SyncService.syncToLocalFile(settings.sync.localPath);
+                if (currentSync.type === 'local' && currentSync.localPath) {
+                    const success = await SyncService.syncToLocalFile(currentSync.localPath);
                     if (success) {
                         updateSyncSettings({ lastSync: Date.now() });
                         showToast('Copia local actualizada', 'success');
                     }
-                } else if (settings.sync.type === 'dropbox' && settings.sync.dropboxToken) {
+                } else if (currentSync.type === 'dropbox' && currentSync.dropboxToken) {
                     try {
+                        DropboxService.init(currentSync.dropboxToken, currentSync.dropboxPath || '/pcshogar_data.json');
                         const timestamp = await DropboxService.sync();
                         if (timestamp) {
                             updateSyncSettings({ lastSync: timestamp });
@@ -568,8 +615,9 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                         console.error("Auto-sync Dropbox failed", e);
                         showToast('Error al sincronizar con Dropbox', 'error');
                     }
-                } else if (settings.sync.type === 'googledrive' && settings.sync.googledriveToken) {
+                } else if (currentSync.type === 'googledrive' && currentSync.googledriveToken) {
                     try {
+                        GoogleDriveService.init(currentSync.googledriveToken, currentSync.googledrivePath || 'pcshogar_data.json');
                         const timestamp = await GoogleDriveService.sync();
                         if (timestamp) {
                             updateSyncSettings({ lastSync: timestamp });
@@ -590,7 +638,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         accounts, cards, expenses, savings, allocations, 
         recurringExpenses, loans, movements, categories, 
         transfers, closings, overrides, incomes,
-        settings.sync.enabled, settings.sync.localPath, settings.sync.dropboxToken, settings.sync.googledriveToken, settings.sync.type, loading, showToast, refreshFinance
+        activeEconomy?.id, activeEconomy?.sync, settings.sync.enabled, loading, showToast, refreshFinance
     ]);
 
     const importData = async (data: any) => {
@@ -1612,6 +1660,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
             privacyMode: settings.privacyMode || false
         }}>
             {children}
+            <DataRepairNoticeModal isOpen={showRepairNoticeModal} onClose={() => setShowRepairNoticeModal(false)} />
         </FinanceContext.Provider>
     );
 };

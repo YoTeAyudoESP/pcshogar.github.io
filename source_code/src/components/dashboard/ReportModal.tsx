@@ -571,7 +571,10 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
 
         // --- PAGES: DETALLE DE INGRESOS ---
         if (includeDetail && reportData.detailIncomes.length > 0) {
-            const incomeChunks = chunkArray(reportData.detailIncomes, 22);
+            let incomeChunks = chunkArray(reportData.detailIncomes, 22);
+            if (periodType === 'yearly' && incomeChunks.length > 15) {
+                incomeChunks = incomeChunks.slice(0, 15);
+            }
             incomeChunks.forEach((chunk, pageIndex) => {
                 pages.push({
                     id: `detail-incomes-page-${pageIndex}`,
@@ -629,7 +632,10 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
 
         // --- PAGES: DETALLE DE GASTOS ---
         if (includeDetail && reportData.detailExpenses.length > 0) {
-            const expenseChunks = chunkArray(reportData.detailExpenses, 22);
+            let expenseChunks = chunkArray(reportData.detailExpenses, 22);
+            if (periodType === 'yearly' && expenseChunks.length > 15) {
+                expenseChunks = expenseChunks.slice(0, 15);
+            }
             expenseChunks.forEach((chunk, pageIndex) => {
                 pages.push({
                     id: `detail-expenses-page-${pageIndex}`,
@@ -733,13 +739,13 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                 // Revert style
                 pageEl.setAttribute('style', originalStyle);
 
-                const imgData = canvas.toDataURL('image/png');
+                const imgData = canvas.toDataURL('image/jpeg', 0.85);
                 
                 if (i > 0) {
                     pdf.addPage();
                 }
                 
-                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+                pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
 
                 // Free canvas buffer memory immediately to prevent Android WebView OOM crash
                 canvas.width = 0;
@@ -989,7 +995,14 @@ const ReportModal: React.FC<ReportModalProps> = ({ onClose }) => {
                         background: 'rgba(255,255,255,0.03)', padding: '0.25rem', borderRadius: '10px'
                     }}>
                         {(['monthly', 'quarterly', 'yearly'] as PeriodType[]).map(type => (
-                            <button key={type} onClick={() => setPeriodType(type)} style={{
+                            <button key={type} onClick={() => {
+                                setPeriodType(type);
+                                if (type === 'yearly' as any || type === 'annual' as any) {
+                                    setIncludeDetail(false);
+                                } else {
+                                    setIncludeDetail(true);
+                                }
+                            }} style={{
                                 padding: '0.6rem', border: 'none', borderRadius: '8px',
                                 fontWeight: 600, cursor: 'pointer', fontSize: '0.85rem',
                                 background: periodType === type ? 'var(--color-primary)' : 'transparent',

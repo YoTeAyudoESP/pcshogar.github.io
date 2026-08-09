@@ -218,6 +218,27 @@ const FinanceBreakdownModal: React.FC<FinanceBreakdownModalProps> = ({ isOpen, o
                 {/* Content */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     
+                    {/* Information Banner */}
+                    <div style={{
+                        background: 'rgba(54, 162, 235, 0.08)',
+                        border: '1px solid rgba(54, 162, 235, 0.2)',
+                        borderRadius: '12px',
+                        padding: '0.85rem 1rem',
+                        fontSize: '0.82rem',
+                        color: 'rgba(255, 255, 255, 0.85)',
+                        lineHeight: 1.45
+                    }}>
+                        <div style={{ fontWeight: 700, color: '#36a2eb', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            💡 Cálculo Interno de Presupuesto
+                        </div>
+                        <div style={{ marginBottom: '6px' }}>
+                            Este desglose muestra la fórmula interna que utiliza la app para calcular tu disponible libre del mes. Combina tus movimientos confirmados con las estimaciones e ingresos/gastos fijos previstos para este período.
+                        </div>
+                        <div style={{ color: 'rgba(255, 255, 255, 0.65)', fontStyle: 'italic' }}>
+                            Por este motivo, es posible que veas desgloses o importes que a simple vista no te parezcan lógicos, pero puedes tener total tranquilidad: son cálculos matemáticos minuciosos y 100% precisos diseñados para ofrecerte tu disponible real.
+                        </div>
+                    </div>
+                    
                     {/* 1. Ingresos Totales Block */}
                     <div style={{ 
                         background: 'rgba(16, 185, 129, 0.05)', 

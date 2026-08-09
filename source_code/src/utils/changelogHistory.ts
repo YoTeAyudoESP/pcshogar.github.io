@@ -5,6 +5,12 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.3.3',
+    releaseNotes: `Novedades v2.3.3:
+- ⚡ Optimización de Informes PDF Anuales: Compresión de imágenes JPEG y gestión eficiente de memoria RAM durante la generación de PDFs para evitar cierres inesperados al procesar grandes volúmenes de datos (>500 movimientos).
+- 💡 Banner Informativo en Desglose del Disponible (i): Añadida tarjeta explicativa profesional en el desglose del disponible que aclara cómo la app calcula el presupuesto combinando movimientos reales y estimaciones fijas del período.`
+  },
+  {
     version: '2.3.2',
     releaseNotes: `Novedades v2.3.2:
 - 🎯 Sincronización del Disponible Vivo en Alerta de Saldos: La alerta de desajuste utiliza ahora el disponible real dinámico del Dashboard (contemplando el ajuste manual activo y descontando los gastos transcurridos durante el mes), eliminando falsos avisos de descuadre.`

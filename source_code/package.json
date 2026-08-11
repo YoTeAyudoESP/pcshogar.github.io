@@ -35,7 +35,8 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": "always",
       "createStartMenuShortcut": true,
-      "shortcutName": "PCSHogar"
+      "shortcutName": "PCSHogar",
+      "allowElevation": true
     }
   },
   "scripts": {
@@ -45,7 +46,7 @@
     "preview": "vite preview",
     "electron:dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
     "electron:build": "npm run build && electron-builder",
-    "android:build": "node scripts/update-android-version.cjs && npm run build && npx cap sync android && cd android && gradlew assembleDebug && cd .. && node scripts/move-apk.cjs",
+    "android:build": "node scripts/update-android-version.cjs && npm run build && npx cap sync android && cd android && gradlew assembleRelease && cd .. && node scripts/move-apk.cjs",
     "build:all": "npm run electron:build && npm run android:build"
   },
   "dependencies": {

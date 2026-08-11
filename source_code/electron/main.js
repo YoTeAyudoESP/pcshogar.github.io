@@ -170,10 +170,9 @@ function createWindow() {
                     file.on('finish', () => {
                         file.close();
                         shell.openPath(tempPath).then(() => {
-                            // Delay slightly before quitting to make sure installation starts cleanly
                             setTimeout(() => {
-                                app.quit();
-                            }, 1000);
+                                app.exit(0);
+                            }, 300);
                             resolve(true);
                         }).catch(err => {
                             reject(err);

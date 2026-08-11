@@ -3,7 +3,9 @@ const path = require('path');
 const packageJson = require('../package.json');
 
 const version = packageJson.version;
-const source = path.join(__dirname, '../android/app/build/outputs/apk/debug/app-debug.apk');
+const releaseSource = path.join(__dirname, '../android/app/build/outputs/apk/release/app-release.apk');
+const debugSource = path.join(__dirname, '../android/app/build/outputs/apk/debug/app-debug.apk');
+const source = fs.existsSync(releaseSource) ? releaseSource : debugSource;
 const distDir = path.join(__dirname, '../dist_android');
 const dest = path.join(distDir, `PCSHogar_Setup_v${version}.apk`);
 

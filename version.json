@@ -1,7 +1,7 @@
 {
   "version": "2.3.4",
-  "versionCode": 244,
-  "url": "https://raw.githubusercontent.com/YoTeAyudoESP/pcshogar.github.io/main/PCSHogar_Setup_v2.3.4.apk",
+  "versionCode": 20340,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.3.4/PCSHogar_Setup_v2.3.4.apk",
   "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.3.4/PCSHogar_Setup_v2.3.4.exe",
   "releaseNotes": "Novedades versión 2.3.4:\n- Eliminación del borrado automático silencioso al iniciar la aplicación para proteger la integridad de todos los registros del usuario.\n- Estabilidad en la sincronización en la nube y corrección de desajustes cíclicos acumulativos en tarjetas de crédito."
 }

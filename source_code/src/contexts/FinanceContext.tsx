@@ -534,48 +534,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                 setPendingClosing(null);
             }
 
-            // Automatic Integrity Self-Healing Check on Initial Load (v2.3.0)
-            if (isInitialLoad) {
-                // Clear any hidden discrepancy state to evaluate fresh clean data
-                try {
-                    localStorage.removeItem('balanceDiscrepancyDismissed');
-                } catch (e) {}
 
-                // Check for orphan or duplicate cross-sync records
-                let didAutoRepair = false;
-                const accountIds = new Set(accs.map(a => a.id));
-                const cardIds = new Set(cds.map(c => c.id));
-
-                // Find duplicate expenses created within 2 seconds of each other with identical description and amount
-                const seenExpenseKeys = new Map<string, string>();
-                for (const exp of exps) {
-                    const expKey = `${exp.description}_${exp.amount}_${Math.floor(exp.date / 2000)}`;
-                    if (seenExpenseKeys.has(expKey)) {
-                        didAutoRepair = true;
-                        await incomeDB.deleteExpenseWithTransaction(exp.id);
-                    } else {
-                        seenExpenseKeys.set(expKey, exp.id);
-                    }
-
-                    // Check for orphan expenses referencing non-existent card IDs
-                    if (exp.paymentMethod && exp.paymentMethod.type === 'card' && exp.paymentMethod.cardId) {
-                        if (!cardIds.has(exp.paymentMethod.cardId)) {
-                            didAutoRepair = true;
-                            const fallbackAccount = accs[0]?.id || '';
-                            const fixedExp = {
-                                ...exp,
-                                paymentMethod: fallbackAccount ? { type: 'account' as const, accountId: fallbackAccount } : { type: 'cash' as const },
-                                updatedAt: Date.now()
-                            };
-                            await incomeDB.updateExpense(fixedExp);
-                        }
-                    }
-                }
-
-                if (didAutoRepair) {
-                    setShowRepairNoticeModal(true);
-                }
-            }
 
         } catch (error) {
             console.error("Failed to fetch finance data", error);

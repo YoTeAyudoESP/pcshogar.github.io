@@ -5,6 +5,12 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.3.4',
+    releaseNotes: `Novedades v2.3.4:
+- 🛡️ Integridad de Datos y Protección de Registros: Eliminada la eliminación automática silenciosa al iniciar la app. Todas las transacciones registradas se conservan de forma íntegra.
+- ⚡ Estabilidad en Sincronización Nube y Saldos: Eliminados bucles de avisos emergentes de mantenimiento y corrección de descuadres acumulativos en saldos de tarjetas de crédito.`
+  },
+  {
     version: '2.3.3',
     releaseNotes: `Novedades v2.3.3:
 - ⚡ Optimización de Informes PDF Anuales: Compresión de imágenes JPEG y gestión eficiente de memoria RAM durante la generación de PDFs para evitar cierres inesperados al procesar grandes volúmenes de datos (>500 movimientos).

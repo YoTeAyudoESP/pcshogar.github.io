@@ -1,7 +1,7 @@
 {
-  "version": "2.3.3",
-  "versionCode": 243,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.3.3/PCSHogar_Setup_v2.3.3.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.3.3/PCSHogar_Setup_v2.3.3.exe",
-  "releaseNotes": "Novedades versión 2.3.3:\n- Optimización de informes PDF anuales para evitar cierres inesperados por consumo de memoria.\n- Banner informativo en el desglose del disponible (i) explicando las proyecciones y la fórmula interna de presupuesto."
+  "version": "2.3.4",
+  "versionCode": 244,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.3.4/PCSHogar_Setup_v2.3.4.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.3.4/PCSHogar_Setup_v2.3.4.exe",
+  "releaseNotes": "Novedades versión 2.3.4:\n- Eliminación del borrado automático silencioso al iniciar la aplicación para proteger la integridad de todos los registros del usuario.\n- Estabilidad en la sincronización en la nube y corrección de desajustes cíclicos acumulativos en tarjetas de crédito."
 }

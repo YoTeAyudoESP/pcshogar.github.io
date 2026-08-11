@@ -212,8 +212,19 @@ const BalanceDiscrepancyAlert: React.FC = () => {
     const handleApplyReduction = async () => {
         setReducing(true);
         try {
+            const now = new Date();
             for (const [goalId, amount] of Object.entries(reductions)) {
-                if (amount > 0) await adjustSavings(goalId, -amount, undefined, false, undefined, undefined, undefined, 'adjustment');
+                if (amount && amount > 0) {
+                    if (goalId === 'disponible') {
+                        const newAvailable = Math.max(0, effectiveAvailableToSpend - amount);
+                        await setMonthOverride(now.getFullYear(), now.getMonth(), newAvailable);
+                    } else {
+                        await adjustSavings(goalId, -amount, undefined, false, undefined, undefined, undefined, 'adjustment');
+                    }
+                }
+            }
+            if ((reductions['disponible'] || 0) > 0 || totalReduction >= Math.abs(desajuste) - 0.005) {
+                handleDismissNextMonth();
             }
             setReductions({});
             setExpanded(false);
@@ -408,52 +419,79 @@ const BalanceDiscrepancyAlert: React.FC = () => {
                         </>
                     )}
 
-                    {/* ─── NEGATIVE GAP: reduce huchas ─────────────────── */}
+                    {/* ─── NEGATIVE GAP: reduce huchas or disponible ───── */}
                     {isNegativeGap && (
                         <>
                             <p style={{ margin: 0, fontSize: '0.85rem', color: 'rgba(255,255,255,0.65)', lineHeight: 1.5 }}>
-                                Necesitas reducir el saldo de tus huchas en al menos <strong style={{ color: '#fb923c' }}>{formatMoney(Math.abs(desajuste))}</strong> para cuadrar con tu dinero libre real.
+                                Necesitas reducir el disponible del mes o el saldo de tus huchas en al menos <strong style={{ color: '#fb923c' }}>{formatMoney(Math.abs(desajuste))}</strong> para cuadrar con tu dinero libre real.
                             </p>
-                            {savings.filter(s => s.currentAmount > 0).length > 0 ? (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                                    <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>REDUCIR HUCHAS</div>
-                                    {savings.filter(s => s.currentAmount > 0).map((goal: SavingGoal) => (
-                                        <div key={goal.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
-                                            <PiggyBank size={16} color="#818cf8" style={{ flexShrink: 0 }} />
-                                            <div style={{ flex: 1 }}>
-                                                <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)' }}>{goal.name}</div>
-                                                <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.35)' }}>Saldo actual: {formatMoney(goal.currentAmount)}</div>
-                                            </div>
-                                            <div style={inputWrapper}>
-                                                <input type="text" inputMode="decimal" value={reductions[goal.id] ?? ''} placeholder="0,00"
-                                                    onChange={e => {
-                                                        const raw = e.target.value.replace(',', '.');
-                                                        if (raw !== '' && isNaN(Number(raw))) return;
-                                                        let v = parseFloat(raw) || 0;
-                                                        const currentOthers = Object.entries(reductions).filter(([k]) => k !== goal.id).reduce((s, [_, val]) => s + val, 0);
-                                                        const needed = Math.abs(desajuste);
-                                                        if (currentOthers + v > needed) {
-                                                            v = Math.max(0, needed - currentOthers);
-                                                        }
-                                                        if (v > goal.currentAmount) v = goal.currentAmount;
-                                                        setReductions(prev => ({ ...prev, [goal.id]: raw === '' ? undefined : Number(v.toFixed(2)) } as any));
-                                                    }}
-                                                    style={numInput} />
-                                                <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', fontWeight: 600 }}>€</span>
-                                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                                <div style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>REDUCIR SALDOS</div>
+                                
+                                {/* Option to reduce from Disponible del Mes */}
+                                {effectiveAvailableToSpend > 0 && (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
+                                        <Wallet size={16} color="#f59e0b" style={{ flexShrink: 0 }} />
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)', fontWeight: 600 }}>Disponible del Mes</div>
+                                            <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.35)' }}>Disponible actual: {formatMoney(effectiveAvailableToSpend)}</div>
                                         </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <p style={{ margin: 0, fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)', fontStyle: 'italic' }}>No tienes huchas con saldo para ajustar.</p>
-                            )}
-                            {savings.filter(s => s.currentAmount > 0).length > 0 && (() => {
+                                        <div style={inputWrapper}>
+                                            <input type="text" inputMode="decimal" value={reductions['disponible'] ?? ''} placeholder="0,00"
+                                                onChange={e => {
+                                                    const raw = e.target.value.replace(',', '.');
+                                                    if (raw !== '' && isNaN(Number(raw))) return;
+                                                    let v = parseFloat(raw) || 0;
+                                                    const currentOthers = Object.entries(reductions).filter(([k]) => k !== 'disponible').reduce((s, [_, val]) => s + val, 0);
+                                                    const needed = Math.abs(desajuste);
+                                                    if (currentOthers + v > needed) {
+                                                        v = Math.max(0, needed - currentOthers);
+                                                    }
+                                                    if (v > effectiveAvailableToSpend) v = effectiveAvailableToSpend;
+                                                    setReductions(prev => ({ ...prev, 'disponible': raw === '' ? undefined : Number(v.toFixed(2)) } as any));
+                                                }}
+                                                style={numInput} />
+                                            <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', fontWeight: 600 }}>€</span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Huchas reduction options */}
+                                {savings.filter(s => s.currentAmount > 0).map((goal: SavingGoal) => (
+                                    <div key={goal.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
+                                        <PiggyBank size={16} color="#818cf8" style={{ flexShrink: 0 }} />
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)' }}>{goal.name}</div>
+                                            <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.35)' }}>Saldo actual: {formatMoney(goal.currentAmount)}</div>
+                                        </div>
+                                        <div style={inputWrapper}>
+                                            <input type="text" inputMode="decimal" value={reductions[goal.id] ?? ''} placeholder="0,00"
+                                                onChange={e => {
+                                                    const raw = e.target.value.replace(',', '.');
+                                                    if (raw !== '' && isNaN(Number(raw))) return;
+                                                    let v = parseFloat(raw) || 0;
+                                                    const currentOthers = Object.entries(reductions).filter(([k]) => k !== goal.id).reduce((s, [_, val]) => s + val, 0);
+                                                    const needed = Math.abs(desajuste);
+                                                    if (currentOthers + v > needed) {
+                                                        v = Math.max(0, needed - currentOthers);
+                                                    }
+                                                    if (v > goal.currentAmount) v = goal.currentAmount;
+                                                    setReductions(prev => ({ ...prev, [goal.id]: raw === '' ? undefined : Number(v.toFixed(2)) } as any));
+                                                }}
+                                                style={numInput} />
+                                            <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)', fontWeight: 600 }}>€</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {(() => {
                                 const isReductionValid = Math.abs(totalReduction - Math.abs(desajuste)) < 0.005;
                                 return (
                                     <button onClick={handleApplyReduction} disabled={reducing || !isReductionValid}
                                         style={{ ...applyButton, background: !isReductionValid ? 'rgba(255,255,255,0.05)' : 'rgba(251,146,60,0.15)', border: `1px solid ${!isReductionValid ? 'rgba(255,255,255,0.08)' : 'rgba(251,146,60,0.35)'}`, color: !isReductionValid ? 'rgba(255,255,255,0.3)' : '#fb923c', cursor: !isReductionValid ? 'not-allowed' : 'pointer' }}>
                                         <Check size={16} />
-                                        {reducing ? 'Ajustando...' : isReductionValid ? `Ajustar huchas (${formatMoney(totalReduction)})` : `Faltan ${formatMoney(Math.abs(desajuste) - totalReduction)} por recortar`}
+                                        {reducing ? 'Ajustando...' : isReductionValid ? `Ajustar saldos (${formatMoney(totalReduction)})` : `Faltan ${formatMoney(Math.abs(desajuste) - totalReduction)} por recortar`}
                                     </button>
                                 );
                             })()}

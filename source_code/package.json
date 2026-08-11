@@ -1,7 +1,7 @@
 {
   "name": "pcshogar",
   "private": true,
-  "version": "2.3.4",
+  "version": "2.3.5",
   "description": "App para control de gastos del hogar",
   "versionCode": 243,
   "versionName": "1.9.6",

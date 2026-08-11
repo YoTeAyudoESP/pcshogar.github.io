@@ -5,6 +5,12 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.3.5',
+    releaseNotes: `Novedades v2.3.5:
+- 🎯 Reducción flexible de desajuste negativo: Ahora el widget de alerta de desajustes permite restar el saldo sobrante directamente del Disponible del Mes (además de o en lugar de las huchas), facilitando la corrección inmediata con un solo clic.
+- ⚙️ Optimización en la ejecución del instalador de Windows para un cierre fluido sin bloqueos.`
+  },
+  {
     version: '2.3.4',
     releaseNotes: `Novedades v2.3.4:
 - 🛡️ Integridad de Datos y Protección de Registros: Eliminada la eliminación automática silenciosa al iniciar la app. Todas las transacciones registradas se conservan de forma íntegra.

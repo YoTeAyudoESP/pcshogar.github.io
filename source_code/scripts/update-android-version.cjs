@@ -18,9 +18,9 @@ gradleContent = gradleContent.replace(/versionName "[^"]*"/, `versionName "${ver
 
 // Update versionCode (optional but good practice)
 // Let's try to just increment the found one? No, stateless.
-// Let's construct one: Major * 10000 + Minor * 100 + Patch
 const [major, minor, patch] = version.split('.').map(Number);
-const newVersionCode = major * 10000 + minor * 100 + patch;
+// Format: Major * 10000 + Minor * 1000 + Patch * 10 (e.g., 2.3.4 -> 20340)
+const newVersionCode = major * 10000 + minor * 1000 + patch * 10;
 // But wait, user had 34. 
 // If I change to 172 (0*10000 + 1*100 + 72), it's > 34. Safe.
 

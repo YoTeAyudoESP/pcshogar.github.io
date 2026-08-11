@@ -11,24 +11,21 @@
     "appId": "com.pcshogar.app",
     "productName": "PCSHogar",
     "artifactName": "PCSHogar_Setup_v${version}.${ext}",
-    "compression": "maximum",
+    "compression": "normal",
     "icon": "public/Icono_PCSHogar.png",
-    "publish": [
-      {
-        "provider": "generic",
-        "url": "https://pcshogar.es/app"
-      }
-    ],
     "directories": {
       "output": "dist_electron"
     },
     "files": [
       "dist/**/*",
-      "electron/**/*"
+      "electron/**/*",
+      "!**/node_modules/**/android/**",
+      "!**/node_modules/**/ios/**"
     ],
     "win": {
       "target": "nsis",
-      "icon": "public/icon.ico"
+      "icon": "public/icon.ico",
+      "executableName": "PCSHogar"
     },
     "nsis": {
       "oneClick": false,

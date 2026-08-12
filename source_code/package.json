@@ -3,7 +3,7 @@
   "private": true,
   "version": "2.3.6",
   "description": "App para control de gastos del hogar",
-  "versionCode": 244,
+  "versionCode": 23060,
   "versionName": "1.9.6",
   "type": "module",
   "main": "electron/main.js",

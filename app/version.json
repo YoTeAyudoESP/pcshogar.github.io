@@ -1,6 +1,6 @@
 {
   "version": "2.3.6",
-  "versionCode": 20360,
+  "versionCode": 23060,
   "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.3.6/PCSHogar_Setup_v2.3.6.apk",
   "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.3.6/PCSHogar_Setup_v2.3.6.exe",
   "releaseNotes": "Novedades versión 2.3.6:\n- Edición y creación de préstamos en ventana modal flotante.\n- Campo TAE y selector de interpretación de importe (Capital Solicitado vs Coste Total).\n- Desglose de 3 barras de progreso y cuadro de amortización interactivo adaptado a móviles sin scroll horizontal."

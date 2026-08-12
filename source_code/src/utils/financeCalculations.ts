@@ -935,10 +935,20 @@ export function calculateLoanAmortization(loan: Loan) {
         const isCurr = instDate.getFullYear() === currentYear && instDate.getMonth() === currentMonth;
 
         let interestComp = r > 0 ? Math.round((remaining * r) * 100) / 100 : 0;
-        let capitalComp = Math.round((monthlyPayment - interestComp) * 100) / 100;
+        let currentPayment = monthlyPayment;
+        if (monthCount === 1 && loan.firstInstallmentAmount && loan.firstInstallmentAmount > 0) {
+            currentPayment = loan.firstInstallmentAmount;
+        }
+
+        let capitalComp = Math.round((currentPayment - interestComp) * 100) / 100;
 
         if (remaining - capitalComp < 0.01) {
             capitalComp = remaining;
+            if (loan.lastInstallmentAmount && loan.lastInstallmentAmount > 0) {
+                currentPayment = loan.lastInstallmentAmount;
+            } else {
+                currentPayment = Math.round((capitalComp + interestComp) * 100) / 100;
+            }
             remaining = 0;
         } else {
             remaining = Math.round((remaining - capitalComp) * 100) / 100;
@@ -949,7 +959,7 @@ export function calculateLoanAmortization(loan: Loan) {
         schedule.push({
             installmentNumber: monthCount,
             date: instDate,
-            payment: Math.round((capitalComp + interestComp) * 100) / 100,
+            payment: currentPayment,
             capital: capitalComp,
             interest: interestComp,
             remainingCapital: remaining,

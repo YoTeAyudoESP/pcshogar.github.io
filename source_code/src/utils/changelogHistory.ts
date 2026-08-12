@@ -5,6 +5,12 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.3.7',
+    releaseNotes: `Novedades v2.3.7:
+- 📄 Cuotas Especiales en Préstamos: Opción directa para configurar importes personalizados en la primera y/o última cuota del préstamo.
+- 📊 Porcentajes (%) en Barras de Progreso: Indicadores visuales de avance porcentual en las 3 barras de la tarjeta de préstamo (Progreso Global, Capital Principal e Intereses).`
+  },
+  {
     version: '2.3.6',
     releaseNotes: `Novedades v2.3.6:
 - 🏦 Edición de Préstamos en Ventana Modal Flotante: Formulario de edición y creación de préstamos centrado en pantalla sin desplazamientos.

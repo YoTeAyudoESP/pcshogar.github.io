@@ -563,6 +563,38 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                 )}
             </div>
 
+            <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', padding: '0.85rem', borderRadius: '0.75rem' }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'rgba(255,255,255,0.85)', marginBottom: '0.5rem' }}>
+                    Cuotas Especiales (Opcional)
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                    <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', marginBottom: '0.3rem' }}>Primera Cuota (€)</label>
+                        <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={overrideFirstQuota}
+                            onChange={e => setOverrideFirstQuota(e.target.value === '' ? '' : Number(e.target.value))}
+                            placeholder="Misma cuota"
+                            style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.04)', color: 'white', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                        />
+                    </div>
+                    <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', marginBottom: '0.3rem' }}>Última Cuota (€)</label>
+                        <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={overrideLastQuota}
+                            onChange={e => setOverrideLastQuota(e.target.value === '' ? '' : Number(e.target.value))}
+                            placeholder="Misma cuota"
+                            style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.04)', color: 'white', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                        />
+                    </div>
+                </div>
+            </div>
+
             {results && !(results as any).error && (
                 <div style={{ background: 'rgba(99, 102, 241, 0.08)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(99, 102, 241, 0.2)', fontSize: '0.85rem', lineHeight: '1.6' }}>
                     <div><strong>Cuota estimada:</strong> {formatMoney((results as any).quota)} / mes</div>

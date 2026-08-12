@@ -112,43 +112,49 @@ const LoanList: React.FC<LoanListProps> = ({ onEdit }) => {
                             </div>
                         </div>
 
-                        {calc ? (
-                            /* 3 PROGRESS BARS WHEN TIN/TAE IS CONFIGURED */
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.85rem', background: 'rgba(255,255,255,0.02)', padding: '0.85rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                {/* BAR 1: GLOBAL COST PROGRESS */}
-                                <div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '3px' }}>
-                                        <span style={{ fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>📊 Progreso Global (Coste Total)</span>
-                                        <span>{formatMoney(calc.paidTotal)} / <strong>{formatMoney(calc.totalCost)}</strong></span>
-                                    </div>
-                                    <div style={{ height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
-                                        <div style={{ height: '100%', width: `${Math.min(100, Math.max(0, (calc.paidTotal / calc.totalCost) * 100))}%`, background: 'linear-gradient(90deg, #f59e0b, #e67e22)', transition: 'width 0.3s ease' }} />
-                                    </div>
-                                </div>
+                        {calc ? (() => {
+                            const globalPct = calc.totalCost > 0 ? Math.min(100, Math.max(0, (calc.paidTotal / calc.totalCost) * 100)) : 0;
+                            const capitalPct = calc.principal > 0 ? Math.min(100, Math.max(0, (calc.paidCapital / calc.principal) * 100)) : 0;
+                            const interestPct = calc.totalInterest > 0 ? Math.min(100, Math.max(0, (calc.paidInterest / calc.totalInterest) * 100)) : 0;
 
-                                {/* BAR 2: PRINCIPAL CAPITAL PROGRESS */}
-                                <div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '3px' }}>
-                                        <span style={{ fontWeight: 600, color: '#60a5fa' }}>🏦 Capital Principal (Deuda Neta)</span>
-                                        <span>Amortizado: {formatMoney(calc.paidCapital)} | Pendiente: <strong style={{ color: '#60a5fa' }}>{formatMoney(calc.remainingCapital)}</strong></span>
+                            return (
+                                /* 3 PROGRESS BARS WHEN TIN/TAE IS CONFIGURED */
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.85rem', background: 'rgba(255,255,255,0.02)', padding: '0.85rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                    {/* BAR 1: GLOBAL COST PROGRESS */}
+                                    <div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '3px' }}>
+                                            <span style={{ fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>📊 Progreso Global (Coste Total)</span>
+                                            <span>{formatMoney(calc.paidTotal)} / <strong>{formatMoney(calc.totalCost)}</strong> <span style={{ color: '#f59e0b', fontWeight: 700, marginLeft: '4px' }}>({globalPct.toFixed(1)}%)</span></span>
+                                        </div>
+                                        <div style={{ height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
+                                            <div style={{ height: '100%', width: `${globalPct}%`, background: 'linear-gradient(90deg, #f59e0b, #e67e22)', transition: 'width 0.3s ease' }} />
+                                        </div>
                                     </div>
-                                    <div style={{ height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
-                                        <div style={{ height: '100%', width: `${Math.min(100, Math.max(0, (calc.paidCapital / calc.principal) * 100))}%`, background: 'linear-gradient(90deg, #3b82f6, #1d4ed8)', transition: 'width 0.3s ease' }} />
-                                    </div>
-                                </div>
 
-                                {/* BAR 3: INTERESTS PROGRESS */}
-                                <div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '3px' }}>
-                                        <span style={{ fontWeight: 600, color: '#f87171' }}>📈 Intereses</span>
-                                        <span>Pagados: {formatMoney(calc.paidInterest)} | Por Pagar: <strong style={{ color: '#f87171' }}>{formatMoney(calc.remainingInterest)}</strong></span>
+                                    {/* BAR 2: PRINCIPAL CAPITAL PROGRESS */}
+                                    <div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '3px' }}>
+                                            <span style={{ fontWeight: 600, color: '#60a5fa' }}>🏦 Capital Principal (Deuda Neta)</span>
+                                            <span>Amortizado: {formatMoney(calc.paidCapital)} <span style={{ color: '#60a5fa', fontWeight: 700, marginLeft: '2px' }}>({capitalPct.toFixed(1)}%)</span> | Pendiente: <strong style={{ color: '#60a5fa' }}>{formatMoney(calc.remainingCapital)}</strong></span>
+                                        </div>
+                                        <div style={{ height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
+                                            <div style={{ height: '100%', width: `${capitalPct}%`, background: 'linear-gradient(90deg, #3b82f6, #1d4ed8)', transition: 'width 0.3s ease' }} />
+                                        </div>
                                     </div>
-                                    <div style={{ height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
-                                        <div style={{ height: '100%', width: `${Math.min(100, Math.max(0, (calc.paidInterest / (calc.totalInterest || 1)) * 100))}%`, background: 'linear-gradient(90deg, #ef4444, #dc2626)', transition: 'width 0.3s ease' }} />
+
+                                    {/* BAR 3: INTERESTS PROGRESS */}
+                                    <div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '3px' }}>
+                                            <span style={{ fontWeight: 600, color: '#f87171' }}>📈 Intereses</span>
+                                            <span>Pagados: {formatMoney(calc.paidInterest)} <span style={{ color: '#f87171', fontWeight: 700, marginLeft: '2px' }}>({interestPct.toFixed(1)}%)</span> | Por Pagar: <strong style={{ color: '#f87171' }}>{formatMoney(calc.remainingInterest)}</strong></span>
+                                        </div>
+                                        <div style={{ height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
+                                            <div style={{ height: '100%', width: `${interestPct}%`, background: 'linear-gradient(90deg, #ef4444, #dc2626)', transition: 'width 0.3s ease' }} />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ) : (
+                            );
+                        })() : (
                             /* FALLBACK 1 PROGRESS BAR WHEN NO TIN/TAE */
                             <>
                                 <div style={{ marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>

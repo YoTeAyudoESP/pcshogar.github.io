@@ -140,6 +140,7 @@ export interface Loan {
     linkedRecurringExpenseId?: string;
     status: 'active' | 'paid';
     isPaid?: boolean;          // Convenience flag
+    amountMode?: 'principal' | 'total_cost';
     updatedAt?: number;
     color?: string;
 }

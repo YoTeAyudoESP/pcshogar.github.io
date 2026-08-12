@@ -1,7 +1,7 @@
 import type { 
     Expense, SavingGoal, SavingAllocation,
     RecurringExpense, MonthOverride, CreditCard,
-    Account
+    Account, Loan
 } from '../types/finance';
 import type { Income, FixedIncome } from '../types/income';
 
@@ -882,4 +882,108 @@ export function getCardAvailableCredit(card: CreditCard, expenses: Expense[], lo
     const limitToDeduct = card.hasAdditionalFinanceLimit ? 0 : supportedLoansCapital;
 
     return Math.max(0, card.limit - activeTotal - limitToDeduct - extraHold);
+}
+
+export interface AmortizationScheduleRow {
+    installmentNumber: number;
+    date: Date;
+    payment: number;
+    capital: number;
+    interest: number;
+    remainingCapital: number;
+    isPaid: boolean;
+    isCurrent: boolean;
+}
+
+export function calculateLoanAmortization(loan: Loan) {
+    const totalAmount = loan.totalAmount || 0;
+    const tin = loan.tin || loan.tae || 0;
+    const monthlyPayment = loan.monthlyPayment || loan.monthlyInstallment || 0;
+    const startDate = loan.startDate ? new Date(loan.startDate) : new Date();
+    const mode = loan.amountMode || 'principal';
+
+    if (totalAmount <= 0 || monthlyPayment <= 0) {
+        return null;
+    }
+
+    const r = (tin / 100) / 12;
+    
+    // If mode is 'total_cost' and tin > 0, extract true principal P from total cost
+    let principalP = totalAmount;
+    if (mode === 'total_cost' && tin > 0 && r > 0) {
+        const approxN = Math.max(1, Math.round(totalAmount / monthlyPayment));
+        principalP = monthlyPayment * ((1 - Math.pow(1 + r, -approxN)) / r);
+        principalP = Math.min(totalAmount, Math.max(1, principalP));
+    }
+
+    let remaining = principalP;
+    const schedule: AmortizationScheduleRow[] = [];
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+
+    let monthCount = 0;
+    let accumulatedInterest = 0;
+
+    while (remaining > 0.01 && monthCount < 1200) {
+        monthCount++;
+        const instDate = new Date(startDate);
+        instDate.setMonth(startDate.getMonth() + (monthCount - 1));
+
+        const isPast = instDate.getFullYear() < currentYear || 
+            (instDate.getFullYear() === currentYear && instDate.getMonth() < currentMonth);
+        const isCurr = instDate.getFullYear() === currentYear && instDate.getMonth() === currentMonth;
+
+        let interestComp = r > 0 ? Math.round((remaining * r) * 100) / 100 : 0;
+        let capitalComp = Math.round((monthlyPayment - interestComp) * 100) / 100;
+
+        if (remaining - capitalComp < 0.01) {
+            capitalComp = remaining;
+            remaining = 0;
+        } else {
+            remaining = Math.round((remaining - capitalComp) * 100) / 100;
+        }
+
+        accumulatedInterest += interestComp;
+
+        schedule.push({
+            installmentNumber: monthCount,
+            date: instDate,
+            payment: Math.round((capitalComp + interestComp) * 100) / 100,
+            capital: capitalComp,
+            interest: interestComp,
+            remainingCapital: remaining,
+            isPaid: isPast,
+            isCurrent: isCurr
+        });
+    }
+
+    const totalCost = principalP + accumulatedInterest;
+    
+    let paidCapital = 0;
+    let paidInterest = 0;
+    let paidTotal = 0;
+
+    schedule.forEach(row => {
+        if (row.isPaid || row.isCurrent) {
+            paidCapital += row.capital;
+            paidInterest += row.interest;
+            paidTotal += row.payment;
+        }
+    });
+
+    const remainingCapital = Math.max(0, principalP - paidCapital);
+    const remainingInterest = Math.max(0, accumulatedInterest - paidInterest);
+
+    return {
+        principal: Math.round(principalP * 100) / 100,
+        totalInterest: Math.round(accumulatedInterest * 100) / 100,
+        totalCost: Math.round(totalCost * 100) / 100,
+        paidCapital: Math.round(paidCapital * 100) / 100,
+        paidInterest: Math.round(paidInterest * 100) / 100,
+        paidTotal: Math.round(paidTotal * 100) / 100,
+        remainingCapital: Math.round(remainingCapital * 100) / 100,
+        remainingInterest: Math.round(remainingInterest * 100) / 100,
+        schedule
+    };
 }

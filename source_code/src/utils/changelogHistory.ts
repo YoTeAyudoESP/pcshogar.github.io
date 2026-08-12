@@ -5,6 +5,13 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.3.6',
+    releaseNotes: `Novedades v2.3.6:
+- 🏦 Edición de Préstamos en Ventana Modal Flotante: Formulario de edición y creación de préstamos centrado en pantalla sin desplazamientos.
+- 📐 Campo TAE y Selector de Importe: Añadida la casilla TAE y selector para indicar si el importe introducido es Capital Solicitado o Coste Total de Cuotas.
+- 📊 3 Barras de Progreso y Cuadro de Amortización Interactivo: Desglose visual de Capital vs Intereses y cuadro completo mes a mes adaptado a móviles Android sin ningún scroll horizontal.`
+  },
+  {
     version: '2.3.5',
     releaseNotes: `Novedades v2.3.5:
 - 🎯 Reducción flexible de desajuste negativo: Ahora el widget de alerta de desajustes permite restar el saldo sobrante directamente del Disponible del Mes (además de o en lugar de las huchas), facilitando la corrección inmediata con un solo clic.

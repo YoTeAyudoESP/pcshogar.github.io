@@ -50,6 +50,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
     const [openingFee, setOpeningFee] = useState<number | ''>('');
     const [tae, setTae] = useState<number | ''>('');
     const [earlyAmortizationFee, setEarlyAmortizationFee] = useState<number | ''>('');
+    const [amountMode, setAmountMode] = useState<'principal' | 'total_cost'>('principal');
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -65,6 +66,8 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
             setAmount(editingLoan.totalAmount || '');
             setAmortizedAmount((editingLoan.totalAmount || 0) - (editingLoan.remainingAmount || 0));
             setTin(editingLoan.tin !== undefined ? editingLoan.tin : '');
+            setTae(editingLoan.tae !== undefined ? editingLoan.tae : '');
+            setAmountMode(editingLoan.amountMode || 'principal');
             
             if (editingLoan.grantDate) {
                 setGrantDate(new Date(editingLoan.grantDate).toISOString().split('T')[0]);
@@ -282,6 +285,8 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                     monthlyInstallment: (results as any).quota,
                     currency: 'EUR',
                     tin: tin === '' ? undefined : Number(tin),
+                    tae: tae === '' ? undefined : Number(tae),
+                    amountMode: amountMode,
                     grantDate: new Date(grantDate).getTime(),
                     startDate: new Date(startDate).getTime(),
                     linkedAccountId: supportedByCardId ? undefined : linkedAccountId,
@@ -333,6 +338,8 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                     monthlyInstallment: (results as any).quota,
                     currency: 'EUR',
                     tin: tin === '' ? undefined : Number(tin),
+                    tae: tae === '' ? undefined : Number(tae),
+                    amountMode: amountMode,
                     grantDate: new Date(grantDate).getTime(),
                     startDate: new Date(startDate).getTime(),
                     linkedAccountId: supportedByCardId ? undefined : linkedAccountId,
@@ -412,9 +419,9 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                 </select>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
                 <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', marginBottom: '0.4rem' }}>Importe Total Préstamo (€)</label>
+                    <label style={{ display: 'block', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', marginBottom: '0.4rem' }}>Importe Total (€)</label>
                     <input
                         type="number"
                         step="0.01"
@@ -423,12 +430,12 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                         onChange={e => setAmount(e.target.value === '' ? '' : Number(e.target.value))}
                         placeholder="Ej. 10000"
                         required
-                        style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: 'white', fontSize: '0.95rem', boxSizing: 'border-box' }}
+                        style={{ width: '100%', padding: '0.85rem 0.75rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: 'white', fontSize: '0.9rem', boxSizing: 'border-box' }}
                     />
                 </div>
 
                 <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', marginBottom: '0.4rem' }}>Interés TIN (%)</label>
+                    <label style={{ display: 'block', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', marginBottom: '0.4rem' }}>TIN (%)</label>
                     <input
                         type="number"
                         step="0.01"
@@ -436,10 +443,59 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                         value={tin}
                         onChange={e => setTin(e.target.value === '' ? '' : Number(e.target.value))}
                         placeholder="Ej. 6.5"
-                        style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: 'white', fontSize: '0.95rem', boxSizing: 'border-box' }}
+                        style={{ width: '100%', padding: '0.85rem 0.75rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: 'white', fontSize: '0.9rem', boxSizing: 'border-box' }}
+                    />
+                </div>
+
+                <div>
+                    <label style={{ display: 'block', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', marginBottom: '0.4rem' }}>TAE (%)</label>
+                    <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={tae}
+                        onChange={e => setTae(e.target.value === '' ? '' : Number(e.target.value))}
+                        placeholder="Ej. 6.8"
+                        style={{ width: '100%', padding: '0.85rem 0.75rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: 'white', fontSize: '0.9rem', boxSizing: 'border-box' }}
                     />
                 </div>
             </div>
+
+            {(tin !== '' || tae !== '') && (
+                <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', padding: '0.85rem', borderRadius: '0.75rem' }}>
+                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#60a5fa', marginBottom: '0.5rem' }}>
+                        ¿Qué representa el Importe Total configurado ({amount ? formatMoney(Number(amount)) : '0 €'})?
+                    </label>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem' }}>
+                        <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', cursor: 'pointer' }}>
+                            <input
+                                type="radio"
+                                name="amountMode"
+                                checked={amountMode === 'principal'}
+                                onChange={() => setAmountMode('principal')}
+                                style={{ marginTop: '2px' }}
+                            />
+                            <div>
+                                <strong>Capital Solicitado al Banco</strong>
+                                <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>Dinero principal líquido que prestó la entidad (sin intereses).</div>
+                            </div>
+                        </label>
+                        <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', cursor: 'pointer' }}>
+                            <input
+                                type="radio"
+                                name="amountMode"
+                                checked={amountMode === 'total_cost'}
+                                onChange={() => setAmountMode('total_cost')}
+                                style={{ marginTop: '2px' }}
+                            />
+                            <div>
+                                <strong>Coste Total del Préstamo (Suma de Cuotas)</strong>
+                                <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)' }}>Suma total acumulada de todas las cuotas incluyendo intereses.</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            )}
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
@@ -537,7 +593,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
         </form>
     );
 
-    if (onClose && !onCancelEdit) {
+    if (onClose || onCancelEdit) {
         return (
             <ModalPortal>
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.75)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>

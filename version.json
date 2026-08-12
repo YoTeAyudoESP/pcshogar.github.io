@@ -1,7 +1,7 @@
 {
-  "version": "2.3.5",
-  "versionCode": 20350,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.3.5/PCSHogar_Setup_v2.3.5.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.3.5/PCSHogar_Setup_v2.3.5.exe",
-  "releaseNotes": "Novedades versión 2.3.5:\n- Reducción flexible de desajuste negativo: Permite restar el saldo sobrante directamente del Disponible del Mes (además de o en lugar de las huchas).\n- Ejecución fluida del instalador de Windows."
+  "version": "2.3.6",
+  "versionCode": 20360,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.3.6/PCSHogar_Setup_v2.3.6.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.3.6/PCSHogar_Setup_v2.3.6.exe",
+  "releaseNotes": "Novedades versión 2.3.6:\n- Edición y creación de préstamos en ventana modal flotante.\n- Campo TAE y selector de interpretación de importe (Capital Solicitado vs Coste Total).\n- Desglose de 3 barras de progreso y cuadro de amortización interactivo adaptado a móviles sin scroll horizontal."
 }

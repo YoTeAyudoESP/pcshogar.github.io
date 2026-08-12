@@ -1,7 +1,7 @@
 {
-  "version": "2.3.2",
-  "versionCode": 242,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.3.2/PCSHogar_Setup_v2.3.2.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.3.2/PCSHogar_Setup_v2.3.2.exe",
-  "releaseNotes": "Novedades versión 2.3.2:\n- Sincronización del disponible vivo en la alerta de saldos para contemplar los gastos del mes tras un ajuste manual, eliminando avisos falsos de descuadre."
+  "version": "2.3.7",
+  "versionCode": 23070,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.3.7/PCSHogar_Setup_v2.3.7.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.3.7/PCSHogar_Setup_v2.3.7.exe",
+  "releaseNotes": "Novedades versión 2.3.7:\n- Configuración directa de primera y última cuota especiales en préstamos.\n- Indicadores de porcentaje (%) visibles en las 3 barras de progreso de préstamos."
 }

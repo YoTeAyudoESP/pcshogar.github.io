@@ -1,7 +1,7 @@
 {
-  "version": "2.3.7",
-  "versionCode": 23070,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.3.7/PCSHogar_Setup_v2.3.7.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.3.7/PCSHogar_Setup_v2.3.7.exe",
-  "releaseNotes": "Novedades versión 2.3.7:\n- Configuración directa de primera y última cuota especiales en préstamos.\n- Indicadores de porcentaje (%) visibles en las 3 barras de progreso de préstamos."
+  "version": "2.3.8",
+  "versionCode": 23080,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.3.8/PCSHogar_Setup_v2.3.8.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.3.8/PCSHogar_Setup_v2.3.8.exe",
+  "releaseNotes": "Novedades versión 2.3.8:\n- Cálculo inteligente del disponible mensual para gastos fijos financiados con huchas y regla de cobertura parcial."
 }

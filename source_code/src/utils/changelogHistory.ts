@@ -5,6 +5,11 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.3.8',
+    releaseNotes: `Novedades v2.3.8:
+- 🐷 Gastos Fijos Financiados por Huchas: Cálculo inteligente del disponible del mes. Los gastos fijos respaldados por huchas no reducen el disponible mensual salvo por la diferencia si la hucha cuenta con cobertura parcial.`
+  },
+  {
     version: '2.3.7',
     releaseNotes: `Novedades v2.3.7:
 - 📄 Cuotas Especiales en Préstamos: Opción directa para configurar importes personalizados en la primera y/o última cuota del préstamo.

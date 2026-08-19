@@ -101,7 +101,7 @@ const FinanceBreakdownModal: React.FC<FinanceBreakdownModalProps> = ({ isOpen, o
         .filter(re => {
             if (!re.active) return false;
             
-            const start = re.updatedAt || 0;
+            const start = re.createdAt || re.updatedAt || 0;
             const monthEnd = new Date(selectedYear, selectedMonth + 1, 0).getTime();
             if (start > monthEnd) return false;
 
@@ -114,7 +114,16 @@ const FinanceBreakdownModal: React.FC<FinanceBreakdownModalProps> = ({ isOpen, o
             }
             return false;
         })
-        .reduce((sum, re) => sum + re.amount, 0);
+        .reduce((sum, re) => {
+            let netAmount = re.amount;
+            if (re.financingSavingGoalId) {
+                const goal = savings.find(s => s.id === re.financingSavingGoalId);
+                const huchaBalance = goal ? (goal.currentAmount || 0) : 0;
+                const covered = Math.min(re.amount, Math.max(0, huchaBalance));
+                netAmount = Math.max(0, re.amount - covered);
+            }
+            return sum + netAmount;
+        }, 0);
 
     const gastosDelMes = pagados + pendientesFijos;
 

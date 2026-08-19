@@ -239,6 +239,12 @@ export function calculateAvailableBalanceForMonth(
     let totalProjectedFixedExpenses = 0;
     let pendingFixedExpenses = 0;
 
+    // Track virtual remaining balances for huchas used to finance recurring expenses
+    const virtualHuchaBalances: Record<string, number> = {};
+    savings.forEach(s => {
+        virtualHuchaBalances[s.id] = s.currentAmount || 0;
+    });
+
     recurringExpenses.forEach(re => {
         if (!re.active) return;
         const start = re.createdAt || re.updatedAt || 0;
@@ -246,12 +252,23 @@ export function calculateAvailableBalanceForMonth(
         const isIgnored = re.ignoredPeriods?.includes(period);
         
         if (!isIgnored && isRecurringActiveInMonth(re.frequency, re.paymentMonth, month, year, start)) {
-            totalProjectedFixedExpenses += re.amount;
+            let netProjectedAmount = re.amount;
+
+            // Check if this recurring expense is financed by a Piggy Bank / Hucha
+            const goalId = re.financingSavingGoalId;
+            if (goalId && virtualHuchaBalances[goalId] !== undefined) {
+                const availableInHucha = Math.max(0, virtualHuchaBalances[goalId]);
+                const coveredByHucha = Math.min(re.amount, availableInHucha);
+                virtualHuchaBalances[goalId] -= coveredByHucha;
+                netProjectedAmount = Math.max(0, re.amount - coveredByHucha);
+            }
+
+            totalProjectedFixedExpenses += netProjectedAmount;
             
             // For the 'Pending' report specifically
             const isPaid = expenses.some(e => e.recurringExpenseId === re.id && isItemInMonthAndYear(e, month, year));
             if (!isPaid) {
-                pendingFixedExpenses += re.amount;
+                pendingFixedExpenses += netProjectedAmount;
             }
         }
     });
@@ -263,7 +280,17 @@ export function calculateAvailableBalanceForMonth(
             const isIgnored = re.ignoredPeriods?.includes(period);
             const isProjected = re.active && start <= monthEnd && !isIgnored && isRecurringActiveInMonth(re.frequency, re.paymentMonth, month, year, start);
             
-            const projectedAmount = isProjected ? re.amount : 0;
+            let projectedAmount = 0;
+            if (isProjected) {
+                projectedAmount = re.amount;
+                const goalId = re.financingSavingGoalId;
+                if (goalId) {
+                    const hucha = savings.find(s => s.id === goalId);
+                    const huchaBalance = hucha ? (hucha.currentAmount || 0) : 0;
+                    const covered = Math.min(re.amount, Math.max(0, huchaBalance));
+                    projectedAmount = Math.max(0, re.amount - covered);
+                }
+            }
             fixedExpensesDeviations += (totalPaid - projectedAmount);
         } else {
             // Re-assign to variable expenses since RE doesn't exist

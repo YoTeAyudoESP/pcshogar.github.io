@@ -1,7 +1,7 @@
 {
-  "version": "2.3.8",
-  "versionCode": 23080,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.3.8/PCSHogar_Setup_v2.3.8.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.3.8/PCSHogar_Setup_v2.3.8.exe",
-  "releaseNotes": "Novedades versión 2.3.8:\n- Cálculo inteligente del disponible mensual para gastos fijos financiados con huchas y regla de cobertura parcial."
+  "version": "2.3.9",
+  "versionCode": 23090,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.3.9/PCSHogar_Setup_v2.3.9.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.3.9/PCSHogar_Setup_v2.3.9.exe",
+  "releaseNotes": "Novedades versión 2.3.9:\n- Corrección del etiquetado 'Atrasado' en ingresos fijos que computan para el mes siguiente al navegar a meses futuros."
 }

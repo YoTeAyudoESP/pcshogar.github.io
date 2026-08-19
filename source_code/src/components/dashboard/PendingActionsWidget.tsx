@@ -134,6 +134,27 @@ const PendingActionsWidget: React.FC<PendingActionsWidgetProps> = ({ onEdit }) =
     };
 
     const checkIsOverdue = (item: any) => {
+        const today = new Date();
+        const realYear = today.getFullYear();
+        const realMonth = today.getMonth();
+        const realDay = today.getDate();
+
+        // For fixed incomes counting for next month, check if physical payment date has passed in real life
+        if (item.accountForNextMonth || item.countForNextMonth) {
+            const pDay = item.paymentDay || 1;
+            let physicalMonth = selectedMonth - 1;
+            let physicalYear = selectedYear;
+            if (physicalMonth < 0) {
+                physicalMonth = 11;
+                physicalYear--;
+            }
+            
+            // If physical payment date is in the future relative to today's real date, it's NOT overdue
+            if (physicalYear > realYear) return false;
+            if (physicalYear === realYear && physicalMonth > realMonth) return false;
+            if (physicalYear === realYear && physicalMonth === realMonth && pDay >= realDay) return false;
+        }
+
         if (item.period && item.period < period) return true;
         if (item.date) {
             const d = new Date(item.date);

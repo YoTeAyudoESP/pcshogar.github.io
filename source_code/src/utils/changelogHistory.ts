@@ -5,6 +5,11 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.3.9',
+    releaseNotes: `Novedades v2.3.9:
+- 📅 Precisión en Estado de Ingresos Fijos: Corregida la insignia "Atrasado" en ingresos fijos configurados para computar en el mes siguiente. Ahora evalúan la fecha real del calendario (hoy) evitando falsas alertas al navegar a meses futuros.`
+  },
+  {
     version: '2.3.8',
     releaseNotes: `Novedades v2.3.8:
 - 🐷 Gastos Fijos Financiados por Huchas: Cálculo inteligente del disponible del mes. Los gastos fijos respaldados por huchas no reducen el disponible mensual salvo por la diferencia si la hucha cuenta con cobertura parcial.`

@@ -967,7 +967,11 @@ export function calculateLoanAmortization(loan: Loan) {
             if (loan.firstInstallmentAmount && loan.firstInstallmentAmount > 0) {
                 currentPayment = loan.firstInstallmentAmount;
             }
-            if (loan.firstInstallmentInterestOnly || (loan.firstInstallmentAmount && loan.firstInstallmentAmount > 0 && loan.firstInstallmentAmount <= interestComp)) {
+            if (loan.firstInstallmentInterestOnly) {
+                interestComp = currentPayment;
+            } else if (loan.firstInstallmentInterestAmount !== undefined) {
+                interestComp = loan.firstInstallmentInterestAmount;
+            } else if (loan.firstInstallmentAmount && loan.firstInstallmentAmount > 0 && loan.firstInstallmentAmount <= interestComp) {
                 interestComp = currentPayment;
             }
         }

@@ -124,6 +124,7 @@ export interface Loan {
     monthlyPayment: number;    // Alias for monthlyInstallment used in components
     firstInstallmentAmount?: number;
     firstInstallmentInterestOnly?: boolean;
+    firstInstallmentInterestAmount?: number;
     lastInstallmentAmount?: number;
     startDate: number;
     estimatedEndDate?: number;

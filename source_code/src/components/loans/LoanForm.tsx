@@ -46,6 +46,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
     // Advanced Settings
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [overrideFirstQuota, setOverrideFirstQuota] = useState<number | ''>('');
+    const [overrideFirstQuotaInterest, setOverrideFirstQuotaInterest] = useState<number | ''>('');
     const [firstInstallmentInterestOnly, setFirstInstallmentInterestOnly] = useState<boolean>(false);
     const [overrideLastQuota, setOverrideLastQuota] = useState<number | ''>('');
     const [openingFee, setOpeningFee] = useState<number | ''>('');
@@ -85,8 +86,9 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                 setMonths(editingLoan.months);
             }
             
-            if (editingLoan.firstInstallmentAmount !== undefined || editingLoan.lastInstallmentAmount !== undefined || editingLoan.openingFee !== undefined || editingLoan.earlyAmortizationFee !== undefined || editingLoan.firstInstallmentInterestOnly) {
+            if (editingLoan.firstInstallmentAmount !== undefined || editingLoan.firstInstallmentInterestAmount !== undefined || editingLoan.lastInstallmentAmount !== undefined || editingLoan.openingFee !== undefined || editingLoan.earlyAmortizationFee !== undefined || editingLoan.firstInstallmentInterestOnly) {
                 setOverrideFirstQuota(editingLoan.firstInstallmentAmount !== undefined ? editingLoan.firstInstallmentAmount : '');
+                setOverrideFirstQuotaInterest(editingLoan.firstInstallmentInterestAmount !== undefined ? editingLoan.firstInstallmentInterestAmount : '');
                 setFirstInstallmentInterestOnly(!!editingLoan.firstInstallmentInterestOnly);
                 setOverrideLastQuota(editingLoan.lastInstallmentAmount !== undefined ? editingLoan.lastInstallmentAmount : '');
                 if (editingLoan.openingFee !== undefined) setOpeningFee(editingLoan.openingFee);
@@ -131,6 +133,18 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
     };
 
     const round2 = (num: number) => Math.round(num * 100) / 100;
+
+    useEffect(() => {
+        if (overrideFirstQuota !== '' && !firstInstallmentInterestOnly && overrideFirstQuotaInterest === '' && grantDate && startDate && tin !== '' && amount !== '') {
+            const days = calculateDaysBetween(grantDate, startDate);
+            if (days > 0 && days < 30) {
+                const suggestedInt = round2((Number(amount) * (Number(tin) / 100 / 360)) * days);
+                if (suggestedInt > 0 && suggestedInt < Number(overrideFirstQuota)) {
+                    setOverrideFirstQuotaInterest(suggestedInt);
+                }
+            }
+        }
+    }, [overrideFirstQuota, firstInstallmentInterestOnly, grantDate, startDate, tin, amount]);
 
     const results = useMemo(() => {
         let P = Number(amount);
@@ -298,6 +312,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                     supportedByCardId: supportedByCardId || undefined,
                     firstInstallmentAmount: overrideFirstQuota !== '' ? Number(overrideFirstQuota) : undefined,
                     firstInstallmentInterestOnly: firstInstallmentInterestOnly,
+                    firstInstallmentInterestAmount: overrideFirstQuotaInterest !== '' ? Number(overrideFirstQuotaInterest) : undefined,
                     lastInstallmentAmount: overrideLastQuota !== '' ? Number(overrideLastQuota) : ((results as any).lastQuota || undefined),
                     openingFee: openingFee !== '' ? Number(openingFee) : undefined,
                     earlyAmortizationFee: earlyAmortizationFee !== '' ? Number(earlyAmortizationFee) : undefined,
@@ -354,6 +369,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                     linkedRecurringExpenseId: recId,
                     firstInstallmentAmount: overrideFirstQuota !== '' ? Number(overrideFirstQuota) : undefined,
                     firstInstallmentInterestOnly: firstInstallmentInterestOnly,
+                    firstInstallmentInterestAmount: overrideFirstQuotaInterest !== '' ? Number(overrideFirstQuotaInterest) : undefined,
                     lastInstallmentAmount: overrideLastQuota !== '' ? Number(overrideLastQuota) : ((results as any).lastQuota || undefined),
                     openingFee: openingFee !== '' ? Number(openingFee) : undefined,
                     earlyAmortizationFee: earlyAmortizationFee !== '' ? Number(earlyAmortizationFee) : undefined,
@@ -595,6 +611,20 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                             />
                             <span>1ª cuota solo intereses (Carencia)</span>
                         </label>
+                        {overrideFirstQuota !== '' && !firstInstallmentInterestOnly && (
+                            <div style={{ marginTop: '0.4rem' }}>
+                                <label style={{ display: 'block', fontSize: '0.72rem', color: 'rgba(255,255,255,0.6)', marginBottom: '0.2rem' }}>Intereses 1ª cuota (€)</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    value={overrideFirstQuotaInterest}
+                                    onChange={e => setOverrideFirstQuotaInterest(e.target.value === '' ? '' : Number(e.target.value))}
+                                    placeholder="Ej. 24.88"
+                                    style={{ width: '100%', padding: '0.45rem 0.6rem', borderRadius: '0.4rem', border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.04)', color: 'white', fontSize: '0.8rem', boxSizing: 'border-box' }}
+                                />
+                            </div>
+                        )}
                     </div>
                     <div>
                         <label style={{ display: 'block', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', marginBottom: '0.3rem' }}>Última Cuota (€)</label>

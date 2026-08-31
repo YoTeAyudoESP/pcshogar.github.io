@@ -5,6 +5,11 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.4.5',
+    releaseNotes: `Novedades v2.4.5:
+- 🔢 Intereses de 1ª Cuota Personalizados: Posibilidad de indicar o calcular automáticamente por días los intereses del primer periodo corto, garantizando una coincidencia del 100% con los cuadros del banco.`
+  },
+  {
     version: '2.4.4',
     releaseNotes: `Novedades v2.4.4:
 - 📄 Corrección en Cuadro de Amortización: Ajuste del umbral de absorción de la última cuota para liquidar residuos finales de saldo (ej. 101,56 € en Diciembre de 2035) evitando filas excedentes de meses adicionales.`

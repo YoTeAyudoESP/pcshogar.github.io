@@ -1,7 +1,7 @@
 {
-  "version": "2.4.4",
-  "versionCode": 24040,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.4.4/PCSHogar_Setup_v2.4.4.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.4.4/PCSHogar_Setup_v2.4.4.exe",
-  "releaseNotes": "Novedades versión 2.4.4:\n- Absorción de residuos de saldo en la última cuota para evitar filas excedentes en el cuadro de amortización."
+  "version": "2.4.5",
+  "versionCode": 24050,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.4.5/PCSHogar_Setup_v2.4.5.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.4.5/PCSHogar_Setup_v2.4.5.exe",
+  "releaseNotes": "Novedades versión 2.4.5:\n- Intereses personalizados en la 1ª cuota y cálculo automático prorrateado por días para coincidencia 100% con cuadros bancarios."
 }

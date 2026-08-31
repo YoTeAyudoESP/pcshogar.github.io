@@ -5,6 +5,11 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.4.2',
+    releaseNotes: `Novedades v2.4.2:
+- 📄 Corrección en Edición de Préstamos: Guardado permanente del estado de carencia (1ª cuota solo intereses) y preservación del importe personalizado de la última cuota al editar.`
+  },
+  {
     version: '2.4.1',
     releaseNotes: `Novedades v2.4.1:
 - 🔢 Precisión Bancaria: Soporte de hasta 4 decimales en campos TIN (%) y TAE (%) (ej. 6,7913%).

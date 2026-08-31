@@ -85,7 +85,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                 setMonths(editingLoan.months);
             }
             
-            if (editingLoan.firstInstallmentAmount !== undefined || editingLoan.lastInstallmentAmount !== undefined || editingLoan.openingFee !== undefined || editingLoan.earlyAmortizationFee !== undefined) {
+            if (editingLoan.firstInstallmentAmount !== undefined || editingLoan.lastInstallmentAmount !== undefined || editingLoan.openingFee !== undefined || editingLoan.earlyAmortizationFee !== undefined || editingLoan.firstInstallmentInterestOnly) {
                 setOverrideFirstQuota(editingLoan.firstInstallmentAmount !== undefined ? editingLoan.firstInstallmentAmount : '');
                 setFirstInstallmentInterestOnly(!!editingLoan.firstInstallmentInterestOnly);
                 setOverrideLastQuota(editingLoan.lastInstallmentAmount !== undefined ? editingLoan.lastInstallmentAmount : '');
@@ -297,7 +297,8 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                     linkedAccountId: supportedByCardId ? undefined : linkedAccountId,
                     supportedByCardId: supportedByCardId || undefined,
                     firstInstallmentAmount: overrideFirstQuota !== '' ? Number(overrideFirstQuota) : undefined,
-                    lastInstallmentAmount: (results as any).lastQuota || undefined,
+                    firstInstallmentInterestOnly: firstInstallmentInterestOnly,
+                    lastInstallmentAmount: overrideLastQuota !== '' ? Number(overrideLastQuota) : ((results as any).lastQuota || undefined),
                     openingFee: openingFee !== '' ? Number(openingFee) : undefined,
                     earlyAmortizationFee: earlyAmortizationFee !== '' ? Number(earlyAmortizationFee) : undefined,
                     status: remaining === 0 ? 'paid' : 'active'
@@ -353,7 +354,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                     linkedRecurringExpenseId: recId,
                     firstInstallmentAmount: overrideFirstQuota !== '' ? Number(overrideFirstQuota) : undefined,
                     firstInstallmentInterestOnly: firstInstallmentInterestOnly,
-                    lastInstallmentAmount: (results as any).lastQuota || undefined,
+                    lastInstallmentAmount: overrideLastQuota !== '' ? Number(overrideLastQuota) : ((results as any).lastQuota || undefined),
                     openingFee: openingFee !== '' ? Number(openingFee) : undefined,
                     earlyAmortizationFee: earlyAmortizationFee !== '' ? Number(earlyAmortizationFee) : undefined,
                     status: remaining === 0 ? 'paid' : 'active'

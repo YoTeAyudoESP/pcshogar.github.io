@@ -1,7 +1,7 @@
 {
-  "version": "2.4.1",
-  "versionCode": 24010,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.4.1/PCSHogar_Setup_v2.4.1.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.4.1/PCSHogar_Setup_v2.4.1.exe",
-  "releaseNotes": "Novedades versión 2.4.1:\n- Precisión de hasta 4 decimales en TIN y TAE (%).\n- Atribución exacta de intereses en 1ª cuota de carencia.\n- Edición de plazo en meses y vista previa de fecha fin estimada en préstamos."
+  "version": "2.4.2",
+  "versionCode": 24020,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.4.2/PCSHogar_Setup_v2.4.2.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.4.2/PCSHogar_Setup_v2.4.2.exe",
+  "releaseNotes": "Novedades versión 2.4.2:\n- Solución de guardado permanente de la casilla de carencia y la última cuota personalizada al editar préstamos."
 }

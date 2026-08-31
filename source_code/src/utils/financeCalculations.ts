@@ -976,7 +976,8 @@ export function calculateLoanAmortization(loan: Loan) {
             ? 0 
             : Math.max(0, Math.round((currentPayment - interestComp) * 100) / 100);
 
-        if (remaining - capitalComp < 0.01) {
+        const residualThreshold = monthlyPayment ? Math.min(10, monthlyPayment * 0.1) : 0.01;
+        if (remaining - capitalComp < residualThreshold) {
             capitalComp = remaining;
             if (loan.lastInstallmentAmount && loan.lastInstallmentAmount > 0) {
                 currentPayment = loan.lastInstallmentAmount;

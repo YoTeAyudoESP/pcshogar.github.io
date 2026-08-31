@@ -5,6 +5,11 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.4.3',
+    releaseNotes: `Novedades v2.4.3:
+- 📄 Corrección en Cuadro de Amortización: Acotamiento estricto de la carencia al Mes 1, garantizando que el capital se amortice normalmente a partir del Mes 2 sin generar tablas infinitas de 1200 meses.`
+  },
+  {
     version: '2.4.2',
     releaseNotes: `Novedades v2.4.2:
 - 📄 Corrección en Edición de Préstamos: Guardado permanente del estado de carencia (1ª cuota solo intereses) y preservación del importe personalizado de la última cuota al editar.`

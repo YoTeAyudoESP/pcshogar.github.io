@@ -972,7 +972,7 @@ export function calculateLoanAmortization(loan: Loan) {
             }
         }
 
-        let capitalComp = (loan.firstInstallmentInterestOnly || (monthCount === 1 && loan.firstInstallmentAmount && loan.firstInstallmentAmount <= interestComp)) 
+        let capitalComp = (monthCount === 1 && (loan.firstInstallmentInterestOnly || (loan.firstInstallmentAmount && loan.firstInstallmentAmount <= interestComp))) 
             ? 0 
             : Math.max(0, Math.round((currentPayment - interestComp) * 100) / 100);
 

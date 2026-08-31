@@ -133,6 +133,7 @@ export interface Loan {
     paymentMethod?: PaymentMethod;
     tin?: number;
     tae?: number;
+    months?: number;
     grantDate?: number;
     openingFee?: number;
     earlyAmortizationFee?: number;

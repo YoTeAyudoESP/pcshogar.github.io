@@ -81,6 +81,9 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                 setCalculationMode('quota');
                 setMonthlyQuota(editingLoan.monthlyPayment);
             }
+            if (editingLoan.months) {
+                setMonths(editingLoan.months);
+            }
             
             if (editingLoan.firstInstallmentAmount !== undefined || editingLoan.lastInstallmentAmount !== undefined || editingLoan.openingFee !== undefined || editingLoan.earlyAmortizationFee !== undefined) {
                 setOverrideFirstQuota(editingLoan.firstInstallmentAmount !== undefined ? editingLoan.firstInstallmentAmount : '');
@@ -338,6 +341,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                     currentDebt: remaining,
                     monthlyPayment: (results as any).quota,
                     monthlyInstallment: (results as any).quota,
+                    months: (results as any).months,
                     currency: 'EUR',
                     tin: tin === '' ? undefined : Number(tin),
                     tae: tae === '' ? undefined : Number(tae),
@@ -441,11 +445,11 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                     <label style={{ display: 'block', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', marginBottom: '0.4rem' }}>TIN (%)</label>
                     <input
                         type="number"
-                        step="0.01"
+                        step="0.0001"
                         min="0"
                         value={tin}
                         onChange={e => setTin(e.target.value === '' ? '' : Number(e.target.value))}
-                        placeholder="Ej. 6.5"
+                        placeholder="Ej. 6.7913"
                         style={{ width: '100%', padding: '0.85rem 0.75rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: 'white', fontSize: '0.9rem', boxSizing: 'border-box' }}
                     />
                 </div>
@@ -454,11 +458,11 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                     <label style={{ display: 'block', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', marginBottom: '0.4rem' }}>TAE (%)</label>
                     <input
                         type="number"
-                        step="0.01"
+                        step="0.0001"
                         min="0"
                         value={tae}
                         onChange={e => setTae(e.target.value === '' ? '' : Number(e.target.value))}
-                        placeholder="Ej. 6.8"
+                        placeholder="Ej. 6.8125"
                         style={{ width: '100%', padding: '0.85rem 0.75rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: 'white', fontSize: '0.9rem', boxSizing: 'border-box' }}
                     />
                 </div>
@@ -610,6 +614,14 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                 <div style={{ background: 'rgba(99, 102, 241, 0.08)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid rgba(99, 102, 241, 0.2)', fontSize: '0.85rem', lineHeight: '1.6' }}>
                     <div><strong>Cuota estimada:</strong> {formatMoney((results as any).quota)} / mes</div>
                     <div><strong>Plazo total:</strong> {(results as any).months} meses</div>
+                    {startDate && (results as any).months && (
+                        <div><strong>Fecha Fin Estimada:</strong> {(() => {
+                            const d = new Date(startDate);
+                            d.setMonth(d.getMonth() + (results as any).months - 1);
+                            const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+                            return `${monthNames[d.getMonth()]} de ${d.getFullYear()}`;
+                        })()}</div>
+                    )}
                     <div><strong>Total Intereses:</strong> {formatMoney((results as any).totalInterest)}</div>
                     <div><strong>Total Amortizado:</strong> {formatMoney((results as any).totalPaid)}</div>
                 </div>

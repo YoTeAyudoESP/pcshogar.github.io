@@ -967,12 +967,12 @@ export function calculateLoanAmortization(loan: Loan) {
             if (loan.firstInstallmentAmount && loan.firstInstallmentAmount > 0) {
                 currentPayment = loan.firstInstallmentAmount;
             }
-            if (loan.firstInstallmentInterestOnly) {
+            if (loan.firstInstallmentInterestOnly || (loan.firstInstallmentAmount && loan.firstInstallmentAmount > 0 && loan.firstInstallmentAmount <= interestComp)) {
                 interestComp = currentPayment;
             }
         }
 
-        let capitalComp = (loan.firstInstallmentInterestOnly && monthCount === 1) 
+        let capitalComp = (loan.firstInstallmentInterestOnly || (monthCount === 1 && loan.firstInstallmentAmount && loan.firstInstallmentAmount <= interestComp)) 
             ? 0 
             : Math.max(0, Math.round((currentPayment - interestComp) * 100) / 100);
 

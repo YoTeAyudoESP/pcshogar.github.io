@@ -5,6 +5,13 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.4.1',
+    releaseNotes: `Novedades v2.4.1:
+- 🔢 Precisión Bancaria: Soporte de hasta 4 decimales en campos TIN (%) y TAE (%) (ej. 6,7913%).
+- 📄 Atribución de Carencia: Registro exacto del interés pagado en la 1ª cuota de carencia en el cuadro de amortización.
+- 📅 Edición Flexible de Préstamos: Carga de plazo en meses al editar y vista previa en vivo de la Fecha Estimada de Finalización.`
+  },
+  {
     version: '2.4.0',
     releaseNotes: `Novedades v2.4.0:
 - 📊 Simulador de Proyección: Cálculo de disponible a 31 Dic incluyendo huchas financiadas por múltiples fuentes.

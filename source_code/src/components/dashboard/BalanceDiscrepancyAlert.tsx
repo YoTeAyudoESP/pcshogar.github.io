@@ -191,7 +191,7 @@ const BalanceDiscrepancyAlert: React.FC = () => {
                 if (goalId === 'disponible') continue;
                 if (amount > 0) {
                     const src = accounts.find(a => a.type === 'bank') || accounts[0];
-                    if (src) await adjustSavings(goalId, amount, src.id, false, undefined, undefined, undefined, 'adjustment');
+                    if (src) await adjustSavings(goalId, amount, src.id, false, undefined, undefined, undefined, 'adjustment', 'Ajuste por descuadre de saldo');
                 }
             }
             if ((distributions['disponible'] || 0) > 0) {
@@ -219,7 +219,7 @@ const BalanceDiscrepancyAlert: React.FC = () => {
                         const newAvailable = Math.max(0, effectiveAvailableToSpend - amount);
                         await setMonthOverride(now.getFullYear(), now.getMonth(), newAvailable);
                     } else {
-                        await adjustSavings(goalId, -amount, undefined, false, undefined, undefined, undefined, 'adjustment');
+                        await adjustSavings(goalId, -amount, undefined, false, undefined, undefined, undefined, 'adjustment', 'Ajuste por descuadre de saldo');
                     }
                 }
             }

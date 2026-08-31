@@ -1,7 +1,7 @@
 {
-  "version": "2.3.9",
-  "versionCode": 23090,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.3.9/PCSHogar_Setup_v2.3.9.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.3.9/PCSHogar_Setup_v2.3.9.exe",
-  "releaseNotes": "Novedades versión 2.3.9:\n- Corrección del etiquetado 'Atrasado' en ingresos fijos que computan para el mes siguiente al navegar a meses futuros."
+  "version": "2.4.0",
+  "versionCode": 24000,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.4.0/PCSHogar_Setup_v2.4.0.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.4.0/PCSHogar_Setup_v2.4.0.exe",
+  "releaseNotes": "Novedades versión 2.4.0:\n- Proyecciones completas contemplando huchas multifuente.\n- Precisión en descripciones del historial de huchas (ajustes automáticos).\n- Opción de primera cuota solo intereses (carencia) en préstamos."
 }

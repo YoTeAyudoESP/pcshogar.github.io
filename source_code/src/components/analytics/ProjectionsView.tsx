@@ -75,9 +75,15 @@ const ProjectionsView: React.FC = () => {
     const futureHuchaAutoSavingsTotal = useMemo(() => {
         let total = 0;
         for (const s of savings) {
-            const monthlySave = s.monthlySavingAmount || 0;
-            if (monthlySave > 0 && s.linkedFixedIncomeId) {
-                total += monthlySave * Math.max(0, remainingMonthsCount);
+            let monthlyHuchaTotal = 0;
+            if (s.incomeSources && s.incomeSources.length > 0) {
+                monthlyHuchaTotal = s.incomeSources.reduce((sum, src) => sum + (src.monthlyAmount || 0), 0);
+            } else if (s.monthlySavingAmount && s.monthlySavingAmount > 0) {
+                monthlyHuchaTotal = s.monthlySavingAmount;
+            }
+
+            if (monthlyHuchaTotal > 0) {
+                total += monthlyHuchaTotal * Math.max(0, remainingMonthsCount);
             }
         }
         return total;

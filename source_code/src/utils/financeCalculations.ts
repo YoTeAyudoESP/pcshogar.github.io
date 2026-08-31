@@ -963,11 +963,18 @@ export function calculateLoanAmortization(loan: Loan) {
 
         let interestComp = r > 0 ? Math.round((remaining * r) * 100) / 100 : 0;
         let currentPayment = monthlyPayment;
-        if (monthCount === 1 && loan.firstInstallmentAmount && loan.firstInstallmentAmount > 0) {
-            currentPayment = loan.firstInstallmentAmount;
+        if (monthCount === 1) {
+            if (loan.firstInstallmentAmount && loan.firstInstallmentAmount > 0) {
+                currentPayment = loan.firstInstallmentAmount;
+            }
+            if (loan.firstInstallmentInterestOnly) {
+                interestComp = currentPayment;
+            }
         }
 
-        let capitalComp = Math.round((currentPayment - interestComp) * 100) / 100;
+        let capitalComp = (loan.firstInstallmentInterestOnly && monthCount === 1) 
+            ? 0 
+            : Math.max(0, Math.round((currentPayment - interestComp) * 100) / 100);
 
         if (remaining - capitalComp < 0.01) {
             capitalComp = remaining;

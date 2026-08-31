@@ -5,6 +5,13 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.4.0',
+    releaseNotes: `Novedades v2.4.0:
+- 📊 Simulador de Proyección: Cálculo de disponible a 31 Dic incluyendo huchas financiadas por múltiples fuentes.
+- 🐷 Historial de Huchas: Asignación explícita de descripciones en ajustes automáticos de saldo para evitar falsas aportaciones manuales.
+- 📄 Préstamos y Amortización: Opción de primera cuota solo intereses (periodo de carencia) desglosada correctamente en el cuadro de amortización.`
+  },
+  {
     version: '2.3.9',
     releaseNotes: `Novedades v2.3.9:
 - 📅 Precisión en Estado de Ingresos Fijos: Corregida la insignia "Atrasado" en ingresos fijos configurados para computar en el mes siguiente. Ahora evalúan la fecha real del calendario (hoy) evitando falsas alertas al navegar a meses futuros.`

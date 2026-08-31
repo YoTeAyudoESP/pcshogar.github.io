@@ -46,6 +46,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
     // Advanced Settings
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [overrideFirstQuota, setOverrideFirstQuota] = useState<number | ''>('');
+    const [firstInstallmentInterestOnly, setFirstInstallmentInterestOnly] = useState<boolean>(false);
     const [overrideLastQuota, setOverrideLastQuota] = useState<number | ''>('');
     const [openingFee, setOpeningFee] = useState<number | ''>('');
     const [tae, setTae] = useState<number | ''>('');
@@ -82,8 +83,9 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
             }
             
             if (editingLoan.firstInstallmentAmount !== undefined || editingLoan.lastInstallmentAmount !== undefined || editingLoan.openingFee !== undefined || editingLoan.earlyAmortizationFee !== undefined) {
-                if (editingLoan.firstInstallmentAmount !== undefined) setOverrideFirstQuota(editingLoan.firstInstallmentAmount);
-                if (editingLoan.lastInstallmentAmount !== undefined) setOverrideLastQuota(editingLoan.lastInstallmentAmount);
+                setOverrideFirstQuota(editingLoan.firstInstallmentAmount !== undefined ? editingLoan.firstInstallmentAmount : '');
+                setFirstInstallmentInterestOnly(!!editingLoan.firstInstallmentInterestOnly);
+                setOverrideLastQuota(editingLoan.lastInstallmentAmount !== undefined ? editingLoan.lastInstallmentAmount : '');
                 if (editingLoan.openingFee !== undefined) setOpeningFee(editingLoan.openingFee);
                 if (editingLoan.earlyAmortizationFee !== undefined) setEarlyAmortizationFee(editingLoan.earlyAmortizationFee);
                 setShowAdvanced(true);
@@ -346,6 +348,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                     supportedByCardId: supportedByCardId || undefined,
                     linkedRecurringExpenseId: recId,
                     firstInstallmentAmount: overrideFirstQuota !== '' ? Number(overrideFirstQuota) : undefined,
+                    firstInstallmentInterestOnly: firstInstallmentInterestOnly,
                     lastInstallmentAmount: (results as any).lastQuota || undefined,
                     openingFee: openingFee !== '' ? Number(openingFee) : undefined,
                     earlyAmortizationFee: earlyAmortizationFee !== '' ? Number(earlyAmortizationFee) : undefined,
@@ -579,6 +582,14 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                             placeholder="Misma cuota"
                             style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.04)', color: 'white', fontSize: '0.85rem', boxSizing: 'border-box' }}
                         />
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.72rem', color: '#93c5fd', marginTop: '0.4rem', cursor: 'pointer' }}>
+                            <input
+                                type="checkbox"
+                                checked={firstInstallmentInterestOnly}
+                                onChange={e => setFirstInstallmentInterestOnly(e.target.checked)}
+                            />
+                            <span>1ª cuota solo intereses (Carencia)</span>
+                        </label>
                     </div>
                     <div>
                         <label style={{ display: 'block', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', marginBottom: '0.3rem' }}>Última Cuota (€)</label>

@@ -5,6 +5,12 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.4.7',
+    releaseNotes: `Novedades v2.4.7:
+- 🛡️ Desvinculación de Ajustes Activos en Alerta de Descuadre: Asignar o descartar desajustes en el Dashboard ya no crea objetos de ajuste manual en la base de datos.
+- ✨ Limpieza Automática de Septiembre 2026 (v2.4.7): Eliminación única del ajuste de disponible de Septiembre 2026 para dejar el mes en cálculo dinámico puro.`
+  },
+  {
     version: '2.4.6',
     releaseNotes: `Novedades v2.4.6:
 - 🧹 Eliminación de Ajustes Activos Automáticos: Los cambios de mes ya no auto-generan ajustes fijos de disponible, eliminando falsas alertas de descuadre.

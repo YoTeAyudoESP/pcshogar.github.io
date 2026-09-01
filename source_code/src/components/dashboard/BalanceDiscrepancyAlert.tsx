@@ -194,14 +194,7 @@ const BalanceDiscrepancyAlert: React.FC = () => {
                     if (src) await adjustSavings(goalId, amount, src.id, false, undefined, undefined, undefined, 'adjustment', 'Ajuste por descuadre de saldo');
                 }
             }
-            if ((distributions['disponible'] || 0) > 0) {
-                const now = new Date();
-                // To ADD to available, we just set the new absolute value to (baseAvailableToSpend + distributions['disponible'])
-                await setMonthOverride(now.getFullYear(), now.getMonth(), baseAvailableToSpend + distributions['disponible']);
-            }
-            if ((distributions['disponible'] || 0) > 0 || totalDistributed >= desajuste - 0.005) {
-                handleDismissNextMonth();
-            }
+            handleDismissNextMonth();
             setDistributions({});
             setExpanded(false);
         } finally { setDistributing(false); }
@@ -212,20 +205,12 @@ const BalanceDiscrepancyAlert: React.FC = () => {
     const handleApplyReduction = async () => {
         setReducing(true);
         try {
-            const now = new Date();
             for (const [goalId, amount] of Object.entries(reductions)) {
-                if (amount && amount > 0) {
-                    if (goalId === 'disponible') {
-                        const newAvailable = Math.max(0, effectiveAvailableToSpend - amount);
-                        await setMonthOverride(now.getFullYear(), now.getMonth(), newAvailable);
-                    } else {
-                        await adjustSavings(goalId, -amount, undefined, false, undefined, undefined, undefined, 'adjustment', 'Ajuste por descuadre de saldo');
-                    }
+                if (amount && amount > 0 && goalId !== 'disponible') {
+                    await adjustSavings(goalId, -amount, undefined, false, undefined, undefined, undefined, 'adjustment', 'Ajuste por descuadre de saldo');
                 }
             }
-            if ((reductions['disponible'] || 0) > 0 || totalReduction >= Math.abs(desajuste) - 0.005) {
-                handleDismissNextMonth();
-            }
+            handleDismissNextMonth();
             setReductions({});
             setExpanded(false);
         } finally { setReducing(false); }

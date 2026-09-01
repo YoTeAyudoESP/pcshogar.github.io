@@ -1,7 +1,7 @@
 {
-  "version": "2.4.6",
-  "versionCode": 24060,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.4.6/PCSHogar_Setup_v2.4.6.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.4.6/PCSHogar_Setup_v2.4.6.exe",
-  "releaseNotes": "Novedades versión 2.4.6:\n- Eliminación de Ajustes Activos automáticos en cambios de mes para evitar alertas de descuadre falsas.\n- Limpieza automática única del ajuste de Septiembre de 2026.\n- Opciones explícitas para omitir mes o eliminar plantillas fácticas en movimientos pendientes."
+  "version": "2.4.7",
+  "versionCode": 24070,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.4.7/PCSHogar_Setup_v2.4.7.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.4.7/PCSHogar_Setup_v2.4.7.exe",
+  "releaseNotes": "Novedades versión 2.4.7:\n- Desvinculación total de Ajustes Activos en la Alerta de Descuadre del Dashboard.\n- Limpieza automática única del ajuste de Septiembre de 2026."
 }

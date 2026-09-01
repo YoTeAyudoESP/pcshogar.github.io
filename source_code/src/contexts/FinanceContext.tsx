@@ -375,10 +375,10 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
             setFixedIncomes(activeIncomes.filter((i): i is FixedIncome => i.type === 'fixed'));
             setExtraIncomes(activeIncomes.filter(i => i.type === 'extra' || i.type === 'rollover'));
 
-            // One-time migration for v2.4.6: clean up phantom September 2026 override
+            // One-time migration for v2.4.7: clean up any September 2026 override re-created prior to v2.4.7
             let cleanedOvrs = [...ovrs];
-            if (!localStorage.getItem('pcshogar_v246_repaired_sept2026_override')) {
-                localStorage.setItem('pcshogar_v246_repaired_sept2026_override', 'true');
+            if (!localStorage.getItem('pcshogar_v247_repaired_sept2026_override')) {
+                localStorage.setItem('pcshogar_v247_repaired_sept2026_override', 'true');
                 const sept2026Idx = cleanedOvrs.findIndex(o => o.id === '2026-09');
                 if (sept2026Idx !== -1) {
                     const septOvr = cleanedOvrs[sept2026Idx];

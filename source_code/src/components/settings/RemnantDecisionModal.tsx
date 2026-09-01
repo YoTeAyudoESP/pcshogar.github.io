@@ -10,6 +10,7 @@ import {
 import type { MonthClosing } from '../../types/finance';
 import { isItemInMonthAndYear, isRecurringActiveInMonth } from '../../utils/financeCalculations';
 import ModalPortal from '../common/ModalPortal';
+import PendingItemsResolutionWizard from './PendingItemsResolutionWizard';
 
 interface RemnantDecisionModalProps {
     closing: MonthClosing;
@@ -62,6 +63,21 @@ const RemnantDecisionModal: React.FC<RemnantDecisionModalProps> = ({ closing, on
             return false;
         });
     }, [fixedIncomes, closing, period]);
+
+    const [wizardDone, setWizardDone] = useState(false);
+
+    if (!wizardDone && (pendingExpenses.length > 0 || pendingIncomes.length > 0)) {
+        return (
+            <PendingItemsResolutionWizard
+                pendingExpenses={pendingExpenses}
+                pendingIncomes={pendingIncomes}
+                fromYear={closing.year}
+                fromMonth={closing.month}
+                onComplete={() => setWizardDone(true)}
+                onClose={onClose}
+            />
+        );
+    }
 
     let derivedFinalBalance = closing.finalBalance;
     pendingExpenses.forEach(pe => {

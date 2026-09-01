@@ -5,6 +5,13 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.5.0',
+    releaseNotes: `Novedades v2.5.0:
+- 🧙‍♂️ Asistente Guiado de Cierre de Mes: Resolución secuencial obligatoria (apunte por apunte) de todos los gastos e ingresos pendientes del mes antes de calcular el remanente.
+- 📅 Selector de Fechas Restringido: Las fechas de confirmación en el asistente quedan fijadas exclusivamente dentro del mes que se está cerrando.
+- 🔄 Recálculo Dinámico de Sobrante: Al aplazar o cancelar recibos pendientes, el sobrante libre del mes saliente se incrementa automáticamente.`
+  },
+  {
     version: '2.4.7',
     releaseNotes: `Novedades v2.4.7:
 - 🛡️ Desvinculación de Ajustes Activos en Alerta de Descuadre: Asignar o descartar desajustes en el Dashboard ya no crea objetos de ajuste manual en la base de datos.

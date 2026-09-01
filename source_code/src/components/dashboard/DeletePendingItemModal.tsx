@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
-import { AlertCircle, Trash2, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
+import { AlertCircle, Trash2, ArrowUpRight, ArrowDownLeft, CalendarX } from 'lucide-react';
 import { formatMoney } from '../../utils/financeCalculations';
 
 interface DeletePendingItemModalProps {
@@ -9,16 +9,43 @@ interface DeletePendingItemModalProps {
 }
 
 const DeletePendingItemModal: React.FC<DeletePendingItemModalProps> = ({ item, onClose }) => {
-    const { deleteExpense, deleteIncome } = useFinance();
+    const { deleteExpense, deleteIncome, deleteRecurringExpense, updateIncome, updateRecurringExpense } = useFinance();
     const [isDeleting, setIsDeleting] = useState(false);
 
-    const isExpense = item.actionType === 'expense' || item.actionType === 'refund';
+    const isExpense = item.actionType === 'expense' || item.actionType === 'refund' || item.recurringExpenseId;
+    const isRecurring = !!item.frequency || item.type === 'fixed';
+    const currentPeriod = item.period || `${new Date().getFullYear()}-${(new Date().getMonth() + 1).toString().padStart(2, '0')}`;
 
-    const handleDelete = async () => {
+    const handleOmitMonth = async () => {
+        setIsDeleting(true);
+        try {
+            const ignored = item.ignoredPeriods || [];
+            if (!ignored.includes(currentPeriod)) {
+                const newIgnored = [...ignored, currentPeriod];
+                if (isExpense) {
+                    await updateRecurringExpense({ ...item, ignoredPeriods: newIgnored });
+                } else {
+                    await updateIncome({ ...item, ignoredPeriods: newIgnored });
+                }
+            }
+            onClose();
+        } catch (error) {
+            console.error("Error omitting item", error);
+            alert("Error al omitir el movimiento.");
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    const handleDeletePermanent = async () => {
         setIsDeleting(true);
         try {
             if (isExpense) {
-                await deleteExpense(item.id);
+                if (item.frequency) {
+                    await deleteRecurringExpense(item.id);
+                } else {
+                    await deleteExpense(item.id);
+                }
             } else {
                 await deleteIncome(item.id);
             }
@@ -99,49 +126,76 @@ const DeletePendingItemModal: React.FC<DeletePendingItemModalProps> = ({ item, o
                 }}>
                     <AlertCircle size={24} style={{ flexShrink: 0 }} />
                     <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: 1.5 }}>
-                        ¿Estás seguro de que quieres eliminar este movimiento pendiente? Esta acción no se puede deshacer.
+                        {isRecurring 
+                            ? 'Este apunte es un movimiento fijo recurrente. Puedes omitirlo únicamente para este mes o eliminar la plantilla completa para siempre.' 
+                            : '¿Estás seguro de que quieres eliminar este movimiento pendiente? Esta acción no se puede deshacer.'}
                     </p>
                 </div>
 
-                <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
-                    <button 
-                        onClick={onClose}
-                        disabled={isDeleting}
-                        style={{
-                            flex: 1,
-                            padding: '1rem',
-                            background: 'rgba(255,255,255,0.05)',
-                            color: 'white',
-                            border: '1px solid rgba(255,255,255,0.1)',
-                            borderRadius: '0.75rem',
-                            cursor: isDeleting ? 'not-allowed' : 'pointer',
-                            fontWeight: 600,
-                            opacity: isDeleting ? 0.7 : 1
-                        }}
-                    >
-                        Cancelar
-                    </button>
-                    <button 
-                        onClick={handleDelete}
-                        disabled={isDeleting}
-                        style={{
-                            flex: 1,
-                            padding: '1rem',
-                            background: '#ef4444',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '0.75rem',
-                            cursor: isDeleting ? 'not-allowed' : 'pointer',
-                            fontWeight: 600,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '0.5rem',
-                            opacity: isDeleting ? 0.7 : 1
-                        }}
-                    >
-                        {isDeleting ? 'Eliminando...' : 'Eliminar'}
-                    </button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.5rem' }}>
+                    {isRecurring && (
+                        <button 
+                            onClick={handleOmitMonth}
+                            disabled={isDeleting}
+                            style={{
+                                padding: '0.85rem 1rem',
+                                background: 'rgba(59, 130, 246, 0.15)',
+                                color: '#60a5fa',
+                                border: '1px solid rgba(59, 130, 246, 0.3)',
+                                borderRadius: '0.75rem',
+                                cursor: isDeleting ? 'not-allowed' : 'pointer',
+                                fontWeight: 600,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '0.5rem',
+                                opacity: isDeleting ? 0.7 : 1
+                            }}
+                        >
+                            <CalendarX size={18} />
+                            Omitir solo este mes ({currentPeriod})
+                        </button>
+                    )}
+                    <div style={{ display: 'flex', gap: '1rem' }}>
+                        <button 
+                            onClick={onClose}
+                            disabled={isDeleting}
+                            style={{
+                                flex: 1,
+                                padding: '0.85rem',
+                                background: 'rgba(255,255,255,0.05)',
+                                color: 'white',
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                borderRadius: '0.75rem',
+                                cursor: isDeleting ? 'not-allowed' : 'pointer',
+                                fontWeight: 600,
+                                opacity: isDeleting ? 0.7 : 1
+                            }}
+                        >
+                            Cancelar
+                        </button>
+                        <button 
+                            onClick={handleDeletePermanent}
+                            disabled={isDeleting}
+                            style={{
+                                flex: 1,
+                                padding: '0.85rem',
+                                background: '#ef4444',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '0.75rem',
+                                cursor: isDeleting ? 'not-allowed' : 'pointer',
+                                fontWeight: 600,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '0.5rem',
+                                opacity: isDeleting ? 0.7 : 1
+                            }}
+                        >
+                            {isDeleting ? 'Eliminando...' : isRecurring ? 'Eliminar plantilla permanente' : 'Eliminar'}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

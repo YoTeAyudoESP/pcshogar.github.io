@@ -5,6 +5,13 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.4.6',
+    releaseNotes: `Novedades v2.4.6:
+- 🧹 Eliminación de Ajustes Activos Automáticos: Los cambios de mes ya no auto-generan ajustes fijos de disponible, eliminando falsas alertas de descuadre.
+- ✨ Limpieza Automática de Septiembre 2026: Eliminación única del ajuste fantasma de Septiembre para dejar el disponible en cálculo dinámico puro.
+- 🗑️ Gestión Clara de Pendientes: Opciones diferenciadas para omitir movimientos recurrentes en un mes específico o eliminar la plantilla completa.`
+  },
+  {
     version: '2.4.5',
     releaseNotes: `Novedades v2.4.5:
 - 🔢 Intereses de 1ª Cuota Personalizados: Posibilidad de indicar o calcular automáticamente por días los intereses del primer periodo corto, garantizando una coincidencia del 100% con los cuadros del banco.`

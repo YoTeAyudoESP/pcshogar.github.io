@@ -8,7 +8,7 @@ import {
     ArrowRightCircle
 } from 'lucide-react';
 import type { MonthClosing } from '../../types/finance';
-import { isItemInMonthAndYear, isRecurringActiveInMonth } from '../../utils/financeCalculations';
+import { isItemInMonthAndYear, isRecurringActiveInMonth, calculateAvailableBalanceForMonth } from '../../utils/financeCalculations';
 import ModalPortal from '../common/ModalPortal';
 import PendingItemsResolutionWizard from './PendingItemsResolutionWizard';
 
@@ -20,7 +20,7 @@ interface RemnantDecisionModalProps {
 const RemnantDecisionModal: React.FC<RemnantDecisionModalProps> = ({ closing, onClose }) => {
     const { 
         savings, closeMonthWithDecision, 
-        recurringExpenses, fixedIncomes, expenses, incomes,
+        recurringExpenses, fixedIncomes, expenses, incomes, overrides,
         updateRecurringExpense, updateIncome, addExpense, addExtraIncome
     } = useFinance();
     const [distributions, setDistributions] = useState<Record<string, number>>({});
@@ -79,19 +79,20 @@ const RemnantDecisionModal: React.FC<RemnantDecisionModalProps> = ({ closing, on
         );
     }
 
-    let derivedFinalBalance = closing.finalBalance;
-    pendingExpenses.forEach(pe => {
-        const dec = expenseDecisions[pe.id] || 'none';
-        if (dec !== 'none') {
-            derivedFinalBalance += pe.amount;
-        }
-    });
-    pendingIncomes.forEach(pi => {
-        const dec = incomeDecisions[pi.id] || 'none';
-        if (dec !== 'none') {
-            derivedFinalBalance -= pi.amount;
-        }
-    });
+    const { availableToSpend: freshAvailableToSpend } = useMemo(() => {
+        return calculateAvailableBalanceForMonth(closing.year, closing.month, {
+            fixedIncomes,
+            extraIncomes: incomes.filter(i => i.type === 'extra' || i.type === 'rollover'),
+            expenses,
+            allocations: [],
+            savings,
+            recurringExpenses,
+            overrides,
+            cards: []
+        });
+    }, [closing.year, closing.month, fixedIncomes, incomes, expenses, savings, recurringExpenses, overrides]);
+
+    let derivedFinalBalance = wizardDone ? freshAvailableToSpend : closing.finalBalance;
 
     const formatCurrency = (val: number) => {
         try {

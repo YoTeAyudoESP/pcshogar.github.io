@@ -1,7 +1,7 @@
 {
-  "version": "2.5.0",
-  "versionCode": 25000,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.5.0/PCSHogar_Setup_v2.5.0.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.5.0/PCSHogar_Setup_v2.5.0.exe",
-  "releaseNotes": "Novedades versión 2.5.0:\n- Asistente Guiado de Cierre de Mes: Resolución obligatoria paso a paso de todos los movimientos pendientes del mes antes de calcular el remanente.\n- Fechas de confirmación restringidas estrictamente al mes saliente.\n- Recálculo automático del sobrante disponible al aplazar o cancelar movimientos."
+  "version": "2.5.1",
+  "versionCode": 25010,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.5.1/PCSHogar_Setup_v2.5.1.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.5.1/PCSHogar_Setup_v2.5.1.exe",
+  "releaseNotes": "Novedades versión 2.5.1:\n- Recálculo dinámico automático e inmediato del sobrante libre del mes al completar el Asistente Guiado de Cierre.\n- Actualización transparente de saldos finales al aplazar o cancelar movimientos."
 }

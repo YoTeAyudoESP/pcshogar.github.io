@@ -5,6 +5,11 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.5.1',
+    releaseNotes: `Novedades v2.5.1:
+- 🔄 Recálculo Dinámico de Sobrante en Cierre de Mes: Actualización inmediata y transparente del remanente final disponible tras completar el Asistente Guiado de Cierre al aplazar o cancelar recibos.`
+  },
+  {
     version: '2.5.0',
     releaseNotes: `Novedades v2.5.0:
 - 🧙‍♂️ Asistente Guiado de Cierre de Mes: Resolución secuencial obligatoria (apunte por apunte) de todos los gastos e ingresos pendientes del mes antes de calcular el remanente.

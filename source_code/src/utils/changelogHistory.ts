@@ -5,6 +5,11 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.5.3',
+    releaseNotes: `Novedades v2.5.3:
+- 🔢 Formateo Estricto de 2 Decimales al Editar Cuentas y Efectivo: Mantiene siempre visibles los 2 dígitos decimales (preservando ceros a la derecha como .70 o .00) en el cuadro de edición.`
+  },
+  {
     version: '2.5.2',
     releaseNotes: `Novedades v2.5.2:
 - 🎯 Unificación de Botones del Dashboard: Etiquetas homogéneas, cortas y limpias ('Gasto', 'Ingreso', 'Devolución', 'Huchas', 'Traspaso', 'Informe') en Windows, Web y Android.

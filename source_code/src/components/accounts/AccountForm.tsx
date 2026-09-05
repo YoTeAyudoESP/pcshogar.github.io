@@ -22,7 +22,7 @@ const AccountForm: React.FC<AccountFormProps> = ({ onClose, editingAccount, onCa
     useEffect(() => {
         if (editingAccount) {
             setName(editingAccount.name);
-            setBalance(round2(editingAccount.balance).toString());
+            setBalance(round2(editingAccount.balance).toFixed(2));
             setType(editingAccount.type);
             setColor(editingAccount.color || '#3b82f6');
         } else {

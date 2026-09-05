@@ -1,7 +1,7 @@
 {
-  "version": "2.5.2",
-  "versionCode": 25020,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.5.2/PCSHogar_Setup_v2.5.2.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.5.2/PCSHogar_Setup_v2.5.2.exe",
-  "releaseNotes": "Novedades versión 2.5.2:\n- 🎯 Unificación de Botones del Dashboard: Etiquetas homogéneas, cortas y limpias ('Gasto', 'Ingreso', 'Devolución', 'Huchas', 'Traspaso', 'Informe') en Windows, Web y Android.\n- 🔢 Formateo de Decimales al Editar Cuentas y Efectivo: Redondeo limpio a 2 decimales en el formulario de edición para evitar cadenas largas de coma flotante de JS."
+  "version": "2.5.3",
+  "versionCode": 25030,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.5.3/PCSHogar_Setup_v2.5.3.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.5.3/PCSHogar_Setup_v2.5.3.exe",
+  "releaseNotes": "Novedades versión 2.5.3:\n- 🔢 Formateo Estricto de Decimales al Editar Cuentas y Efectivo: Mantiene siempre exactamente 2 dígitos decimales visibles (preservando ceros a la derecha como .70 o .00) en el cuadro de edición."
 }

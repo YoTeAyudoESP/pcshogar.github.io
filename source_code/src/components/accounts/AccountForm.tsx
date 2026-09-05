@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import type { Account } from '../../types/finance';
 import ColorPicker from '../common/ColorPicker';
+import { round2 } from '../../utils/financeCalculations';
 
 interface AccountFormProps {
     onClose?: () => void;
@@ -21,7 +22,7 @@ const AccountForm: React.FC<AccountFormProps> = ({ onClose, editingAccount, onCa
     useEffect(() => {
         if (editingAccount) {
             setName(editingAccount.name);
-            setBalance(editingAccount.balance.toString());
+            setBalance(round2(editingAccount.balance).toString());
             setType(editingAccount.type);
             setColor(editingAccount.color || '#3b82f6');
         } else {

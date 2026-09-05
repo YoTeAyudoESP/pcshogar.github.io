@@ -5,6 +5,12 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.5.2',
+    releaseNotes: `Novedades v2.5.2:
+- 🎯 Unificación de Botones del Dashboard: Etiquetas homogéneas, cortas y limpias ('Gasto', 'Ingreso', 'Devolución', 'Huchas', 'Traspaso', 'Informe') en Windows, Web y Android.
+- 🔢 Formateo de Decimales al Editar Cuentas y Efectivo: Redondeo limpio a 2 decimales en el formulario de edición para evitar cadenas largas de coma flotante de JS.`
+  },
+  {
     version: '2.5.1',
     releaseNotes: `Novedades v2.5.1:
 - 🔄 Recálculo Dinámico de Sobrante en Cierre de Mes: Actualización inmediata y transparente del remanente final disponible tras completar el Asistente Guiado de Cierre al aplazar o cancelar recibos.`

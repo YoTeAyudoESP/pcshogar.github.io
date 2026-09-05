@@ -474,42 +474,42 @@ const Dashboard: React.FC = () => {
                             style={{ ...actionButtonStyle, background: 'linear-gradient(135deg, #f43f5e 0%, #ef4444 100%)' }}
                         >
                             <MinusCircle size={20} />
-                            {isMobile ? 'Gasto' : 'Nuevo Gasto'}
+                            Gasto
                         </button>
                         <button 
                             onClick={() => setIsIncomeFormOpen(!isIncomeFormOpen)}
                             style={{ ...actionButtonStyle, background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}
                         >
                             <PlusCircle size={20} />
-                            {isMobile ? 'Ingreso' : 'Nuevo Ingreso'}
+                            Ingreso
                         </button>
                         <button 
                             onClick={() => setIsRefundModalOpen(true)}
                             style={{ ...actionButtonStyle, background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)' }}
                         >
                             <RotateCcw size={20} />
-                            {isMobile ? 'Devolución' : 'Nueva Devolución'}
+                            Devolución
                         </button>
                         <button 
                             onClick={() => { setSettingsTab('savings'); setCurrentView('settings'); }}
                             style={{ ...actionButtonStyle, background: 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)' }}
                         >
                             <PiggyBank size={20} />
-                            {isMobile ? 'Huchas' : 'Ahorrar'}
+                            Huchas
                         </button>
                         <button 
                             onClick={() => setIsTransferModalOpen(true)}
                             style={{ ...actionButtonStyle, background: 'linear-gradient(135deg, #64748b 0%, #475569 100%)' }}
                         >
                             <ArrowLeftRight size={20} />
-                            {isMobile ? 'Traspaso' : 'Transferencia'}
+                            Traspaso
                         </button>
                         <button 
                             onClick={() => setIsReportModalOpen(true)}
                             style={{ ...actionButtonStyle, background: 'linear-gradient(135deg, #a855f7 0%, #7e22ce 100%)' }}
                         >
                             <FileText size={20} />
-                            {isMobile ? 'Informe' : 'Informe PDF'}
+                            Informe
                         </button>
                         <button 
                             onClick={() => setIsProjectionsModalOpen(true)}

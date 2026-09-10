@@ -4,14 +4,14 @@ import { Trash2, Edit2, TrendingDown, DollarSign, Calendar } from 'lucide-react'
 import type { Loan } from '../../types/finance';
 import AmortizeLoanModal from './AmortizeLoanModal';
 import LoanScheduleModal from './LoanScheduleModal';
-import { formatMoney, calculateLoanAmortization } from '../../utils/financeCalculations';
+import { formatMoney, calculateLoanAmortization, isItemInMonthAndYear } from '../../utils/financeCalculations';
 
 interface LoanListProps {
     onEdit: (loan: Loan) => void;
 }
 
 const LoanList: React.FC<LoanListProps> = ({ onEdit }) => {
-    const { loans, deleteLoan } = useFinance();
+    const { loans, deleteLoan, expenses } = useFinance();
     const [amortizingLoan, setAmortizingLoan] = useState<Loan | null>(null);
     const [scheduleLoan, setScheduleLoan] = useState<Loan | null>(null);
 
@@ -46,7 +46,20 @@ const LoanList: React.FC<LoanListProps> = ({ onEdit }) => {
                 const currentDebt = loan.currentDebt ?? loan.remainingAmount ?? 0;
                 const monthlyPayment = loan.monthlyPayment ?? loan.monthlyInstallment ?? 0;
                 const hasRates = (loan.tin !== undefined && loan.tin > 0) || (loan.tae !== undefined && loan.tae > 0);
-                const calc = hasRates ? calculateLoanAmortization(loan) : null;
+
+                const isCurrentPaid = (() => {
+                    if (!loan.linkedRecurringExpenseId) return false;
+                    const now = new Date();
+                    const curMonth = now.getMonth();
+                    const curYear = now.getFullYear();
+                    return expenses.some(e => 
+                        e.recurringExpenseId === loan.linkedRecurringExpenseId && 
+                        e.status === 'paid' && 
+                        isItemInMonthAndYear(e, curMonth, curYear)
+                    );
+                })();
+
+                const calc = hasRates ? calculateLoanAmortization(loan, isCurrentPaid) : null;
 
                 const paid = totalAmount - currentDebt;
                 const progress = totalAmount > 0 ? (paid / totalAmount) * 100 : 0;

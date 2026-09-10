@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { X, CheckCircle, Clock } from 'lucide-react';
 import type { Loan } from '../../types/finance';
-import { calculateLoanAmortization, formatMoney } from '../../utils/financeCalculations';
+import { calculateLoanAmortization, formatMoney, isItemInMonthAndYear } from '../../utils/financeCalculations';
+import { useFinance } from '../../contexts/FinanceContext';
 import ModalPortal from '../common/ModalPortal';
 
 interface LoanScheduleModalProps {
@@ -10,6 +11,7 @@ interface LoanScheduleModalProps {
 }
 
 const LoanScheduleModal: React.FC<LoanScheduleModalProps> = ({ loan, onClose }) => {
+    const { expenses } = useFinance();
     const currentRef = useRef<HTMLDivElement | HTMLTableRowElement | null>(null);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
@@ -19,7 +21,19 @@ const LoanScheduleModal: React.FC<LoanScheduleModalProps> = ({ loan, onClose }) 
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const calc = calculateLoanAmortization(loan);
+    const isCurrentPaid = (() => {
+        if (!loan.linkedRecurringExpenseId) return false;
+        const now = new Date();
+        const curMonth = now.getMonth();
+        const curYear = now.getFullYear();
+        return expenses.some(e => 
+            e.recurringExpenseId === loan.linkedRecurringExpenseId && 
+            e.status === 'paid' && 
+            isItemInMonthAndYear(e, curMonth, curYear)
+        );
+    })();
+
+    const calc = calculateLoanAmortization(loan, isCurrentPaid);
 
     useEffect(() => {
         if (currentRef.current) {

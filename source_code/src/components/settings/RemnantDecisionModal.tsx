@@ -145,8 +145,11 @@ const RemnantDecisionModal: React.FC<RemnantDecisionModalProps> = ({ closing, on
                         ignoredPeriods: [...(pe.ignoredPeriods || []), period]
                     });
                     if (dec === 'postpone') {
+                        const expenseDesc = pe.description.startsWith('(Aplazado) ')
+                            ? pe.description
+                            : `(Aplazado) ${pe.description.replace(/^\(Aplazado\)\s*/, '')}`;
                         await addExpense({
-                            description: `(Aplazado) ${pe.description}`,
+                            description: expenseDesc,
                             amount: pe.amount,
                             currency: pe.currency,
                             date: nextMonthObj.getTime(), // SET TO 1ST OF NEXT MONTH
@@ -168,12 +171,16 @@ const RemnantDecisionModal: React.FC<RemnantDecisionModalProps> = ({ closing, on
                         ignoredPeriods: [...(pi.ignoredPeriods || []), period]
                     });
                     if (dec === 'postpone') {
+                        const incomeName = pi.name.startsWith('(Atraso) ')
+                            ? pi.name
+                            : `(Atraso) ${pi.name.replace(/^\((Aplazado|Atraso)\)\s*/, '')}`;
+                        const targetTime = new Date(nextMonthObj.getFullYear(), nextMonthObj.getMonth(), 1, 0, 0, 0, 0).getTime();
                         await addExtraIncome({
-                            name: `(Aplazado) ${pi.name}`,
+                            name: incomeName,
                             amount: pi.amount,
                             currency: pi.currency,
-                            receivedDate: Date.now(),
-                            effectiveDate: Date.now(),
+                            receivedDate: targetTime,
+                            effectiveDate: targetTime,
                             budgetMonth: nextMonthObj.getMonth(),
                             budgetYear: nextMonthObj.getFullYear(),
                             status: 'received',

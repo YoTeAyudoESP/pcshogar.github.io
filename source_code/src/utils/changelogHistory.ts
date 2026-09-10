@@ -5,6 +5,12 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.5.4',
+    releaseNotes: `Novedades v2.5.4:
+- 📅 Etiquetado (Atraso) en Día 1 para Ingresos Pendientes: Los ingresos extras aplazados entre meses reciben automáticamente el prefijo '(Atraso)' y se ubican con fecha en el día 1 del nuevo mes.
+- 🏦 Amortización Real en Préstamos: Las métricas de capital amortizado e intereses de préstamos contabilizan estrictamente las cuotas confirmadas como pagadas.`
+  },
+  {
     version: '2.5.3',
     releaseNotes: `Novedades v2.5.3:
 - 🔢 Formateo Estricto de 2 Decimales al Editar Cuentas y Efectivo: Mantiene siempre visibles los 2 dígitos decimales (preservando ceros a la derecha como .70 o .00) en el cuadro de edición.`

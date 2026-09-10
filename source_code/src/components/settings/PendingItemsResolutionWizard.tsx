@@ -152,10 +152,13 @@ const PendingItemsResolutionWizard: React.FC<PendingItemsResolutionWizardProps> 
                     }
                 }
                 // Add delayed pending item to targetPeriod (dated 1st of targetPeriod)
-                const targetTime = new Date(targetYear, targetMonth, 1).getTime();
+                const targetTime = new Date(targetYear, targetMonth, 1, 0, 0, 0, 0).getTime();
                 if (currentItem.type === 'expense') {
+                    const expenseDesc = currentItem.name.startsWith('(Aplazado) ')
+                        ? currentItem.name
+                        : `(Aplazado) ${currentItem.name.replace(/^\(Aplazado\)\s*/, '')}`;
                     await addExpense({
-                        description: `(Aplazado) ${currentItem.name}`,
+                        description: expenseDesc,
                         amount: currentItem.amount,
                         currency: (currentItem.currency as any) || 'EUR',
                         date: targetTime,
@@ -166,8 +169,11 @@ const PendingItemsResolutionWizard: React.FC<PendingItemsResolutionWizardProps> 
                         period: targetPeriod
                     });
                 } else {
+                    const incomeName = currentItem.name.startsWith('(Atraso) ')
+                        ? currentItem.name
+                        : `(Atraso) ${currentItem.name.replace(/^\((Aplazado|Atraso)\)\s*/, '')}`;
                     await addExtraIncome({
-                        name: `(Aplazado) ${currentItem.name}`,
+                        name: incomeName,
                         amount: currentItem.amount,
                         currency: (currentItem.currency as any) || 'EUR',
                         receivedDate: targetTime,

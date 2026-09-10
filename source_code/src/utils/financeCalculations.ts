@@ -922,7 +922,7 @@ export interface AmortizationScheduleRow {
     isCurrent: boolean;
 }
 
-export function calculateLoanAmortization(loan: Loan) {
+export function calculateLoanAmortization(loan: Loan, isCurrentPaid: boolean = false) {
     const totalAmount = loan.totalAmount || 0;
     const tin = loan.tin || loan.tae || 0;
     const monthlyPayment = loan.monthlyPayment || loan.monthlyInstallment || 0;
@@ -1002,7 +1002,7 @@ export function calculateLoanAmortization(loan: Loan) {
             capital: capitalComp,
             interest: interestComp,
             remainingCapital: remaining,
-            isPaid: isPast,
+            isPaid: isPast || (isCurr && isCurrentPaid),
             isCurrent: isCurr
         });
     }
@@ -1014,7 +1014,7 @@ export function calculateLoanAmortization(loan: Loan) {
     let paidTotal = 0;
 
     schedule.forEach(row => {
-        if (row.isPaid || row.isCurrent) {
+        if (row.isPaid) {
             paidCapital += row.capital;
             paidInterest += row.interest;
             paidTotal += row.payment;

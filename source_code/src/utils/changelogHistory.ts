@@ -5,6 +5,11 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.5.7',
+    releaseNotes: `Novedades v2.5.7:
+- 🎯 Corrección de Alerta de Descuadre en Ingresos Fijos Pendientes: Restricción del cálculo de desajuste exclusivamente a ingresos extras autorizados para evitar alertas falsas por nóminas o ingresos fijos pendientes.`
+  },
+  {
     version: '2.5.6',
     releaseNotes: `Novedades v2.5.6:
 - 🎯 Equilibrio de Descuadre de Saldo con Ingresos Pendientes: Inclusión de los ingresos extras pendientes autorizados a sumar al disponible en la fórmula de desajuste para eliminar alertas falsas.`

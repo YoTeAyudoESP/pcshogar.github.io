@@ -1,7 +1,7 @@
 {
-  "version": "2.5.6",
-  "versionCode": 25060,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.5.6/PCSHogar_Setup_v2.5.6.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.5.6/PCSHogar_Setup_v2.5.6.exe",
-  "releaseNotes": "Novedades versión 2.5.6:\n- 🎯 Equilibrio de Descuadre de Saldo con Ingresos Pendientes: Inclusión de los ingresos extras pendientes autorizados a sumar al disponible en la fórmula de desajuste para eliminar alertas falsas."
+  "version": "2.5.7",
+  "versionCode": 25070,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.5.7/PCSHogar_Setup_v2.5.7.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.5.7/PCSHogar_Setup_v2.5.7.exe",
+  "releaseNotes": "Novedades versión 2.5.7:\n- 🎯 Corrección de Alerta de Descuadre en Ingresos Fijos Pendientes: Restricción del cálculo de desajuste exclusivamente a ingresos extras autorizados para evitar alertas falsas por nóminas o ingresos fijos pendientes."
 }

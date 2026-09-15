@@ -759,7 +759,7 @@ export function calculateBalanceDiscrepancy(
 
     // ── Pending extra incomes of current month that user authorized to sum to available balance ──
     const pendingIncomesInBudget = (incomes || [])
-        .filter(inc => inc.type !== 'rollover' && inc.status === 'pending' && !inc.excludeFromBudget)
+        .filter(inc => inc.type === 'extra' && inc.status === 'pending' && inc.excludeFromBudget === false)
         .filter(inc => isItemInMonthAndYear(inc, currentMonth, currentYear))
         .reduce((sum, inc) => sum + (inc.amount || 0), 0);
 

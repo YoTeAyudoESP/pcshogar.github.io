@@ -757,11 +757,17 @@ export function calculateBalanceDiscrepancy(
         futureIncomesTotal += netFutureIncome;
     });
 
+    // ── Pending extra incomes of current month that user authorized to sum to available balance ──
+    const pendingIncomesInBudget = (incomes || [])
+        .filter(inc => inc.type !== 'rollover' && inc.status === 'pending' && !inc.excludeFromBudget)
+        .filter(inc => isItemInMonthAndYear(inc, currentMonth, currentYear))
+        .reduce((sum, inc) => sum + (inc.amount || 0), 0);
+
     // ── Final calculation ─────────────────────────────────────────────────────
     const compromisos = compromisoGastos + compromisoTarjetas;
     const dineroEnHuchas = savings.reduce((sum, s) => sum + (s.currentAmount || 0), 0);
     const dineroLibreReal = dineroReal - compromisos;
-    const desajuste = dineroLibreReal - (dineroEnHuchas + disponibleDelMes + futureIncomesTotal);
+    const desajuste = (dineroLibreReal + pendingIncomesInBudget) - (dineroEnHuchas + disponibleDelMes + futureIncomesTotal);
     const isOverdraft = dineroReal < -threshold;
     const hasSignificantDiscrepancy = Math.abs(desajuste) >= threshold;
 

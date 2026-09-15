@@ -5,6 +5,11 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.5.6',
+    releaseNotes: `Novedades v2.5.6:
+- 🎯 Equilibrio de Descuadre de Saldo con Ingresos Pendientes: Inclusión de los ingresos extras pendientes autorizados a sumar al disponible en la fórmula de desajuste para eliminar alertas falsas.`
+  },
+  {
     version: '2.5.5',
     releaseNotes: `Novedades v2.5.5:
 - 💰 Ingresos Extras Pendientes en el Disponible: Respeto inmediato a la selección 'Sí, sumar al disponible' en ingresos extras pendientes sin duplicidad al confirmar.

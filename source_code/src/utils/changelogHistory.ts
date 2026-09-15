@@ -5,6 +5,12 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.5.5',
+    releaseNotes: `Novedades v2.5.5:
+- 💰 Ingresos Extras Pendientes en el Disponible: Respeto inmediato a la selección 'Sí, sumar al disponible' en ingresos extras pendientes sin duplicidad al confirmar.
+- 💳 Corrección de Alertas de Descuadre Falsas: Inclusión de gastos pendientes con tarjeta en los compromisos del mes para evitar alertas de descuadre innecesarias.`
+  },
+  {
     version: '2.5.4',
     releaseNotes: `Novedades v2.5.4:
 - 📅 Etiquetado (Atraso) en Día 1 para Ingresos Pendientes: Los ingresos extras aplazados entre meses reciben automáticamente el prefijo '(Atraso)' y se ubican con fecha en el día 1 del nuevo mes.

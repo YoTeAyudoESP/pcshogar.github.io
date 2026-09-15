@@ -1,7 +1,7 @@
 {
-  "version": "2.5.4",
-  "versionCode": 25040,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.5.4/PCSHogar_Setup_v2.5.4.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.5.4/PCSHogar_Setup_v2.5.4.exe",
-  "releaseNotes": "Novedades versión 2.5.4:\n- 📅 Etiquetado (Atraso) en Día 1 para Ingresos Pendientes: Los ingresos extras aplazados entre meses reciben automáticamente el prefijo '(Atraso)' y se ubican con fecha en el día 1 del nuevo mes.\n- 🏦 Amortización Real en Préstamos: Las métricas de capital amortizado e intereses de préstamos contabilizan estrictamente las cuotas confirmadas como pagadas."
+  "version": "2.5.5",
+  "versionCode": 25050,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.5.5/PCSHogar_Setup_v2.5.5.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.5.5/PCSHogar_Setup_v2.5.5.exe",
+  "releaseNotes": "Novedades versión 2.5.5:\n- 💰 Ingresos Extras Pendientes en el Disponible: Respeto inmediato a la selección 'Sí, sumar al disponible' en ingresos extras pendientes sin duplicidad al confirmar.\n- 💳 Corrección de Alertas de Descuadre Falsas: Inclusión de gastos pendientes con tarjeta en los compromisos del mes para evitar alertas de descuadre innecesarias."
 }

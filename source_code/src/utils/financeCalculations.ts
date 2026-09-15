@@ -147,7 +147,7 @@ export function calculateAvailableBalanceForMonth(
     // 2. Process Extra Incomes (Actual records)
     extraIncomes.forEach(inc => {
         if (inc.type === 'rollover') return;
-        if (inc.status === 'pending') return;
+        if (inc.status === 'pending' && inc.excludeFromBudget) return;
         if (inc.excludeFromBudget) return;
         if (isItemInMonthAndYear(inc, month, year)) {
             extraIncomesReceived += inc.amount;
@@ -656,8 +656,7 @@ export function calculateBalanceDiscrepancy(
     cards.forEach(c => cardTypeMap.set(c.id, c.type));
 
     // ── Pending expenses of the current month that will reduce real money ─────
-    // Includes: account payments, cash payments, debit-card payments
-    // Excludes: credit/virtual card payments (those go into the cycle balance)
+    // Includes: account payments, cash payments, card payments (debit, credit, virtual)
     const gastosPendientes = expenses.filter(exp => {
         if (exp.status !== 'pending') return false;
 
@@ -666,10 +665,7 @@ export function calculateBalanceDiscrepancy(
         if (expPeriod !== mesActual) return false;
 
         const pm = exp.paymentMethod;
-        if (pm.type === 'account' || pm.type === 'cash') return true;
-        if (pm.type === 'card') {
-            return cardTypeMap.get(pm.cardId) === 'debit';
-        }
+        if (pm.type === 'account' || pm.type === 'cash' || pm.type === 'card') return true;
         return false;
     });
 

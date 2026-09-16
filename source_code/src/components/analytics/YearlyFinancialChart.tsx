@@ -22,7 +22,7 @@ const YearlyFinancialChart: React.FC = () => {
 
         const rawData = monthNames.map((monthName, index) => {
             const { 
-                extraIncomesReceived, 
+                strictlyReceivedIncomes, 
                 grossAccountExpenses, 
                 grossCardExpenses, 
                 grossCashExpenses 
@@ -41,7 +41,7 @@ const YearlyFinancialChart: React.FC = () => {
 
             return {
                 name: monthName,
-                Ingresos: extraIncomesReceived || 0,
+                Ingresos: strictlyReceivedIncomes || 0,
                 Gastos: totalExpense,
                 index
             };

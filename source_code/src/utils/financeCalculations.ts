@@ -88,6 +88,7 @@ export function calculateAvailableBalanceForMonth(
 
     // Calculate Incomes
     let extraIncomesReceived = 0;
+    let strictlyReceivedIncomes = 0;
     let pendingFixedIncomes = 0;
     let totalProjectedFixedIncomes = 0; // Total that should happen
 
@@ -147,10 +148,14 @@ export function calculateAvailableBalanceForMonth(
     // 2. Process Extra Incomes (Actual records)
     extraIncomes.forEach(inc => {
         if (inc.type === 'rollover') return;
-        if (inc.status === 'pending' && inc.excludeFromBudget) return;
         if (inc.excludeFromBudget) return;
         if (isItemInMonthAndYear(inc, month, year)) {
-            extraIncomesReceived += inc.amount;
+            if (!(inc.status === 'pending' && inc.excludeFromBudget)) {
+                extraIncomesReceived += inc.amount;
+            }
+            if (inc.status !== 'pending') {
+                strictlyReceivedIncomes += inc.amount;
+            }
         }
     });
 
@@ -385,6 +390,7 @@ export function calculateAvailableBalanceForMonth(
         availableToSpend,
         totalMonthIncome,
         extraIncomesReceived,
+        strictlyReceivedIncomes,
         totalMonthExpenses,
         totalAccountExpenses,
         totalCardExpenses,

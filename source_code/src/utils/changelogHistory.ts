@@ -5,6 +5,16 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.6.0',
+    releaseNotes: `Novedades v2.6.0:
+- 📈 Ajuste de la Gráfica de Evolución 2026: La curva verde de ingresos del Dashboard refleja estrictamente los ingresos reales cobrados en mano.`
+  },
+  {
+    version: '2.5.10',
+    releaseNotes: `Novedades v2.5.10:
+- 📈 Ajuste de la Gráfica de Evolución 2026 (Opción B): La curva de ingresos del Dashboard refleja estrictamente los ingresos reales cobrados en mano.`
+  },
+  {
     version: '2.5.9',
     releaseNotes: `Novedades v2.5.9:
 - 📈 Restablecimiento de la Gráfica de Evolución 2026: Corrección de la firma de año/mes en el cálculo de saldos para mostrar las curvas completas de ingresos y gastos reales.`

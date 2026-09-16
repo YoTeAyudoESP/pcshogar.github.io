@@ -1,9 +1,9 @@
 {
   "name": "pcshogar",
   "private": true,
-  "version": "2.5.9",
+  "version": "2.6.0",
   "description": "App para control de gastos del hogar",
-  "versionCode": 25090,
+  "versionCode": 26000,
   "versionName": "1.9.6",
   "type": "module",
   "main": "electron/main.js",

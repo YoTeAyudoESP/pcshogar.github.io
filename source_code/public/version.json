@@ -1,7 +1,7 @@
 {
-  "version": "2.5.9",
-  "versionCode": 25090,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.5.9/PCSHogar_Setup_v2.5.9.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.5.9/PCSHogar_Setup_v2.5.9.exe",
-  "releaseNotes": "Novedades versión 2.5.9:\n- 📈 Restablecimiento de la Gráfica de Evolución 2026: Corrección de la firma de año/mes en el cálculo de saldos para mostrar las curvas completas de ingresos y gastos reales."
+  "version": "2.6.0",
+  "versionCode": 26000,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.6.0/PCSHogar_Setup_v2.6.0.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.6.0/PCSHogar_Setup_v2.6.0.exe",
+  "releaseNotes": "Novedades versión 2.6.0:\n- 📈 Ajuste de la Gráfica de Evolución 2026: La curva verde de ingresos del Dashboard refleja estrictamente los ingresos reales cobrados en mano."
 }

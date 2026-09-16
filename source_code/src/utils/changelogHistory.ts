@@ -5,6 +5,13 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.6.1',
+    releaseNotes: `Novedades v2.6.1:
+- 🏦 Autoselección Dinámica en Préstamos: Ajuste reactivo al cambiar el día de cobro al crear un préstamo (menor o igual a hoy = pagado, mayor = pendiente).
+- 🔒 Verificación y Bloqueo de Seguridad: En préstamos editados con la cuota de este mes ya pagada en el historial, la casilla aparece marcada y bloqueada para proteger la contabilidad.
+- 📍 Claridad en Cuadro de Amortización: La cuota del mes actual indica explícitamente su estado como (Pagada ✓) o (Pendiente ⏳).`
+  },
+  {
     version: '2.6.0',
     releaseNotes: `Novedades v2.6.0:
 - 📈 Ajuste de la Gráfica de Evolución 2026: La curva verde de ingresos del Dashboard refleja estrictamente los ingresos reales cobrados en mano.`

@@ -181,8 +181,19 @@ const LoanScheduleModal: React.FC<LoanScheduleModalProps> = ({ loan, onClose }) 
                                                     <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', fontWeight: 400 }}>({monthLabel})</span>
                                                 </div>
                                                 {row.isCurrent ? (
-                                                    <span style={{ background: '#3b82f6', color: 'white', padding: '0.2rem 0.6rem', borderRadius: '1rem', fontSize: '0.7rem', fontWeight: 700 }}>
-                                                        📍 Cuota Actual
+                                                    <span style={{
+                                                        background: row.isPaid ? 'rgba(16, 185, 129, 0.2)' : 'rgba(59, 130, 246, 0.2)',
+                                                        border: row.isPaid ? '1px solid #10b981' : '1px solid #3b82f6',
+                                                        color: row.isPaid ? '#10b981' : '#60a5fa',
+                                                        padding: '0.2rem 0.65rem',
+                                                        borderRadius: '1rem',
+                                                        fontSize: '0.7rem',
+                                                        fontWeight: 700,
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        gap: '4px'
+                                                    }}>
+                                                        📍 Cuota Actual ({row.isPaid ? 'Pagada ✓' : 'Pendiente ⏳'})
                                                     </span>
                                                 ) : row.isPaid ? (
                                                     <span style={{ color: '#10b981', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '3px' }}>
@@ -253,8 +264,19 @@ const LoanScheduleModal: React.FC<LoanScheduleModalProps> = ({ loan, onClose }) 
                                                 <td style={{ padding: '0.65rem 0.5rem', textAlign: 'right', color: '#3b82f6', fontWeight: 600 }}>{formatMoney(row.remainingCapital)}</td>
                                                 <td style={{ padding: '0.65rem 0.5rem', textAlign: 'center' }}>
                                                     {row.isCurrent ? (
-                                                        <span style={{ background: '#3b82f6', color: 'white', padding: '0.15rem 0.5rem', borderRadius: '1rem', fontSize: '0.7rem', fontWeight: 700 }}>
-                                                            📍 Actual
+                                                        <span style={{
+                                                            background: row.isPaid ? 'rgba(16, 185, 129, 0.2)' : 'rgba(59, 130, 246, 0.2)',
+                                                            border: row.isPaid ? '1px solid #10b981' : '1px solid #3b82f6',
+                                                            color: row.isPaid ? '#10b981' : '#60a5fa',
+                                                            padding: '0.15rem 0.55rem',
+                                                            borderRadius: '1rem',
+                                                            fontSize: '0.7rem',
+                                                            fontWeight: 700,
+                                                            display: 'inline-flex',
+                                                            alignItems: 'center',
+                                                            gap: '4px'
+                                                        }}>
+                                                            📍 Actual ({row.isPaid ? 'Pagada ✓' : 'Pendiente ⏳'})
                                                         </span>
                                                     ) : row.isPaid ? (
                                                         <span style={{ color: '#10b981', fontSize: '0.75rem', fontWeight: 600 }}>Pagada</span>

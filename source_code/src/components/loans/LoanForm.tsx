@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import { X, Calculator, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 import type { Loan } from '../../types/finance';
-import { formatMoney, computeTae, computeCommissionsFromTae } from '../../utils/financeCalculations';
+import { formatMoney, computeTae, computeCommissionsFromTae, isItemInMonthAndYear } from '../../utils/financeCalculations';
 import { v4 as uuidv4 } from 'uuid';
 import ModalPortal from '../common/ModalPortal';
 
@@ -21,7 +21,7 @@ interface LoanFormProps {
 }
 
 const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelEdit, onClose }) => {
-    const { addLoan, updateLoan, accounts, cards = [], recurringExpenses = [], addRecurringExpense } = useFinance();
+    const { addLoan, updateLoan, accounts, cards = [], recurringExpenses = [], expenses = [], addRecurringExpense } = useFinance();
     
     // Basic Details
     const [name, setName] = useState('');
@@ -41,6 +41,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
     
     // Current month payment toggle state
     const [isCurrentMonthPaid, setIsCurrentMonthPaid] = useState<boolean>(true);
+    const [isCurrentMonthPaidLocked, setIsCurrentMonthPaidLocked] = useState<boolean>(false);
 
     const monthNames = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
     const currentMonthName = monthNames[new Date().getMonth()];
@@ -84,12 +85,29 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                 setStartDate(new Date(editingLoan.startDate).toISOString().split('T')[0]);
             }
 
-            // Check if current month is in ignoredPeriods of linked recurring expense
+            // Check if current month is in ignoredPeriods or has paid expense of linked recurring expense
             if (editingLoan.linkedRecurringExpenseId) {
                 const rec = recurringExpenses.find(r => r.id === editingLoan.linkedRecurringExpenseId);
                 const now = new Date();
-                const curPeriod = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-                setIsCurrentMonthPaid(!!rec?.ignoredPeriods?.includes(curPeriod));
+                const curMonth = now.getMonth() + 1;
+                const curYear = now.getFullYear();
+                const curPeriod = `${curYear}-${String(curMonth).padStart(2, '0')}`;
+
+                const isIgnored = !!rec?.ignoredPeriods?.includes(curPeriod);
+                const hasPaidExpense = expenses.some(exp => 
+                    exp.recurringExpenseId === editingLoan.linkedRecurringExpenseId && 
+                    isItemInMonthAndYear(exp, curMonth, curYear)
+                );
+
+                if (isIgnored || hasPaidExpense) {
+                    setIsCurrentMonthPaid(true);
+                    setIsCurrentMonthPaidLocked(true);
+                } else {
+                    setIsCurrentMonthPaid(false);
+                    setIsCurrentMonthPaidLocked(false);
+                }
+            } else {
+                setIsCurrentMonthPaidLocked(false);
             }
             
             if (editingLoan.monthlyPayment) {
@@ -119,6 +137,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                 setCalculationMode('quota');
                 setMonthlyQuota(initialData.monthlyQuota);
             }
+            setIsCurrentMonthPaidLocked(false);
         } else {
             setName('');
             setLinkedAccountId(accounts.find(a => a.isMain)?.id || accounts[0]?.id || '');
@@ -136,6 +155,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
             setOpeningFee('');
             setEarlyAmortizationFee('');
             setShowAdvanced(false);
+            setIsCurrentMonthPaidLocked(false);
         }
     }, [editingLoan, initialData, accounts, recurringExpenses]);
 
@@ -143,21 +163,24 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
         if (!editingLoan && startDate) {
             const now = new Date();
             const curY = now.getFullYear();
-            const curM = now.getMonth();
-            const curPeriod = `${curY}-${String(curM + 1).padStart(2, '0')}`;
+            const curM = now.getMonth() + 1;
+            const curD = now.getDate();
+            const curPeriod = `${curY}-${String(curM).padStart(2, '0')}`;
 
-            const startD = new Date(startDate);
-            const startY = startD.getFullYear();
-            const startM = startD.getMonth();
-            const startPeriod = `${startY}-${String(startM + 1).padStart(2, '0')}`;
-            const payDay = startD.getDate() || 1;
+            const parts = startDate.split('-');
+            if (parts.length === 3) {
+                const startY = Number(parts[0]);
+                const startM = Number(parts[1]);
+                const payDay = Number(parts[2]);
+                const startPeriod = `${startY}-${String(startM).padStart(2, '0')}`;
 
-            if (startPeriod < curPeriod) {
-                setIsCurrentMonthPaid(true);
-            } else if (startPeriod === curPeriod) {
-                setIsCurrentMonthPaid(now.getDate() >= payDay);
-            } else {
-                setIsCurrentMonthPaid(false);
+                if (startPeriod < curPeriod) {
+                    setIsCurrentMonthPaid(true);
+                } else if (startPeriod === curPeriod) {
+                    setIsCurrentMonthPaid(curD >= payDay);
+                } else {
+                    setIsCurrentMonthPaid(false);
+                }
             }
         }
     }, [startDate, editingLoan]);
@@ -626,7 +649,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                 background: 'rgba(255, 255, 255, 0.04)',
                 border: '1px solid rgba(255, 255, 255, 0.12)'
             }}>
-                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', margin: 0 }}>
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: isCurrentMonthPaidLocked ? 'not-allowed' : 'pointer', margin: 0 }}>
                     <div style={{ paddingRight: '0.75rem' }}>
                         <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'white', display: 'block' }}>
                             ¿Cuota del mes actual ({currentMonthName}) ya pagada?
@@ -634,12 +657,24 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                         <span style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.6)', marginTop: '2px', display: 'block' }}>
                             Si la marcas como pagada, no aparecerá como pendiente en el Dashboard de este mes.
                         </span>
+                        {isCurrentMonthPaidLocked && (
+                            <span style={{ fontSize: '0.72rem', color: '#10b981', marginTop: '4px', display: 'block', fontWeight: 600 }}>
+                                ✓ La cuota de este mes ya consta como pagada en tus registros y no se puede desmarcar.
+                            </span>
+                        )}
                     </div>
                     <input
                         type="checkbox"
                         checked={isCurrentMonthPaid}
-                        onChange={e => setIsCurrentMonthPaid(e.target.checked)}
-                        style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: 'var(--color-primary)' }}
+                        disabled={isCurrentMonthPaidLocked}
+                        onChange={e => !isCurrentMonthPaidLocked && setIsCurrentMonthPaid(e.target.checked)}
+                        style={{
+                            width: '18px',
+                            height: '18px',
+                            cursor: isCurrentMonthPaidLocked ? 'not-allowed' : 'pointer',
+                            accentColor: 'var(--color-primary)',
+                            opacity: isCurrentMonthPaidLocked ? 0.6 : 1
+                        }}
                     />
                 </label>
             </div>

@@ -11,7 +11,7 @@ interface LoanScheduleModalProps {
 }
 
 const LoanScheduleModal: React.FC<LoanScheduleModalProps> = ({ loan, onClose }) => {
-    const { expenses } = useFinance();
+    const { expenses, recurringExpenses = [] } = useFinance();
     const currentRef = useRef<HTMLDivElement | HTMLTableRowElement | null>(null);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
@@ -26,6 +26,11 @@ const LoanScheduleModal: React.FC<LoanScheduleModalProps> = ({ loan, onClose }) 
         const now = new Date();
         const curMonth = now.getMonth();
         const curYear = now.getFullYear();
+        const curPeriod = `${curYear}-${String(curMonth + 1).padStart(2, '0')}`;
+        
+        const rec = recurringExpenses.find((r: any) => r.id === loan.linkedRecurringExpenseId);
+        if (rec?.ignoredPeriods?.includes(curPeriod)) return true;
+
         return expenses.some(e => 
             e.recurringExpenseId === loan.linkedRecurringExpenseId && 
             e.status === 'paid' && 

@@ -5,6 +5,13 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.5.8',
+    releaseNotes: `Novedades v2.5.8:
+- 🏦 Control de Cuotas de Préstamos: Autoselección y gestión manual de cuotas pasadas y del mes actual en préstamos sin generar pendientes desfasados en el Dashboard.
+- 📊 Corrección de Gráfica de Evolución Anual: Cálculo exacto de ingresos realmente cobrados por mes sin duplicados ni interferencias.
+- 👁️ Mejor Visibilidad del Botón de Cierre: Botón X del modal de desglose del disponible con contraste perfecto.`
+  },
+  {
     version: '2.5.7',
     releaseNotes: `Novedades v2.5.7:
 - 🎯 Corrección de Alerta de Descuadre en Ingresos Fijos Pendientes: Restricción del cálculo de desajuste exclusivamente a ingresos extras autorizados para evitar alertas falsas por nóminas o ingresos fijos pendientes.`

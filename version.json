@@ -1,7 +1,7 @@
 {
-  "version": "2.5.7",
-  "versionCode": 25070,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.5.7/PCSHogar_Setup_v2.5.7.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.5.7/PCSHogar_Setup_v2.5.7.exe",
-  "releaseNotes": "Novedades versión 2.5.7:\n- 🎯 Corrección de Alerta de Descuadre en Ingresos Fijos Pendientes: Restricción del cálculo de desajuste exclusivamente a ingresos extras autorizados para evitar alertas falsas por nóminas o ingresos fijos pendientes."
+  "version": "2.5.8",
+  "versionCode": 25080,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.5.8/PCSHogar_Setup_v2.5.8.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.5.8/PCSHogar_Setup_v2.5.8.exe",
+  "releaseNotes": "Novedades versión 2.5.8:\n- 🏦 Control de Cuotas de Préstamos: Autoselección y gestión manual de cuotas pasadas y del mes actual en préstamos sin generar pendientes desfasados en el Dashboard.\n- 📊 Corrección de Gráfica de Evolución Anual: Cálculo exacto de ingresos realmente cobrados por mes sin duplicados ni interferencias.\n- 👁️ Mejor Visibilidad del Botón de Cierre: Botón X del modal de desglose del disponible con contraste perfecto."
 }

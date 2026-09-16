@@ -21,7 +21,7 @@ interface LoanFormProps {
 }
 
 const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelEdit, onClose }) => {
-    const { addLoan, updateLoan, accounts, cards = [], addRecurringExpense } = useFinance();
+    const { addLoan, updateLoan, accounts, cards = [], recurringExpenses = [], addRecurringExpense } = useFinance();
     
     // Basic Details
     const [name, setName] = useState('');
@@ -39,6 +39,12 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
     const [grantDate, setGrantDate] = useState(today);
     const [startDate, setStartDate] = useState(nextMonth); // First payment date
     
+    // Current month payment toggle state
+    const [isCurrentMonthPaid, setIsCurrentMonthPaid] = useState<boolean>(true);
+
+    const monthNames = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    const currentMonthName = monthNames[new Date().getMonth()];
+
     const [calculationMode, setCalculationMode] = useState<'quota' | 'months'>('quota');
     const [monthlyQuota, setMonthlyQuota] = useState<number | ''>('');
     const [months, setMonths] = useState<number | ''>('');
@@ -76,6 +82,14 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
             }
             if (editingLoan.startDate) {
                 setStartDate(new Date(editingLoan.startDate).toISOString().split('T')[0]);
+            }
+
+            // Check if current month is in ignoredPeriods of linked recurring expense
+            if (editingLoan.linkedRecurringExpenseId) {
+                const rec = recurringExpenses.find(r => r.id === editingLoan.linkedRecurringExpenseId);
+                const now = new Date();
+                const curPeriod = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                setIsCurrentMonthPaid(!!rec?.ignoredPeriods?.includes(curPeriod));
             }
             
             if (editingLoan.monthlyPayment) {
@@ -123,7 +137,30 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
             setEarlyAmortizationFee('');
             setShowAdvanced(false);
         }
-    }, [editingLoan, initialData, accounts]);
+    }, [editingLoan, initialData, accounts, recurringExpenses]);
+
+    useEffect(() => {
+        if (!editingLoan && startDate) {
+            const now = new Date();
+            const curY = now.getFullYear();
+            const curM = now.getMonth();
+            const curPeriod = `${curY}-${String(curM + 1).padStart(2, '0')}`;
+
+            const startD = new Date(startDate);
+            const startY = startD.getFullYear();
+            const startM = startD.getMonth();
+            const startPeriod = `${startY}-${String(startM + 1).padStart(2, '0')}`;
+            const payDay = startD.getDate() || 1;
+
+            if (startPeriod < curPeriod) {
+                setIsCurrentMonthPaid(true);
+            } else if (startPeriod === curPeriod) {
+                setIsCurrentMonthPaid(now.getDate() >= payDay);
+            } else {
+                setIsCurrentMonthPaid(false);
+            }
+        }
+    }, [startDate, editingLoan]);
 
     const calculateDaysBetween = (start: string, end: string) => {
         const d1 = new Date(start);
@@ -293,6 +330,42 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
             const remaining = Math.max(0, totalAmt - amortized);
             const payDay = new Date(startDate).getDate() || 1;
 
+            const now = new Date();
+            const curY = now.getFullYear();
+            const curM = now.getMonth();
+            const curPeriod = `${curY}-${String(curM + 1).padStart(2, '0')}`;
+
+            const startD = new Date(startDate);
+            const startY = startD.getFullYear();
+            const startM = startD.getMonth();
+            
+            // Build ignoredPeriods array for all past months + current month state
+            const ignoredSet = new Set<string>();
+            const existingRec = editingLoan?.linkedRecurringExpenseId
+                ? recurringExpenses.find(r => r.id === editingLoan.linkedRecurringExpenseId)
+                : undefined;
+            (existingRec?.ignoredPeriods || []).forEach(p => ignoredSet.add(p));
+
+            let tempY = startY;
+            let tempM = startM;
+            while (tempY < curY || (tempY === curY && tempM < curM)) {
+                const pStr = `${tempY}-${String(tempM + 1).padStart(2, '0')}`;
+                ignoredSet.add(pStr);
+                tempM++;
+                if (tempM > 11) {
+                    tempM = 0;
+                    tempY++;
+                }
+            }
+
+            if (isCurrentMonthPaid) {
+                ignoredSet.add(curPeriod);
+            } else {
+                ignoredSet.delete(curPeriod);
+            }
+
+            const finalIgnoredPeriods = Array.from(ignoredSet);
+
             if (editingLoan) {
                 const updatedLoan: Loan = {
                     ...editingLoan,
@@ -331,7 +404,8 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                         paymentDay: payDay,
                         active: remaining > 0,
                         sourceAccountId: supportedByCardId ? undefined : linkedAccountId,
-                        categoryId: 'cat_loans'
+                        categoryId: 'cat_loans',
+                        ignoredPeriods: finalIgnoredPeriods
                     } as any);
                 }
             } else {
@@ -346,7 +420,8 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                     paymentDay: payDay,
                     active: true,
                     sourceAccountId: supportedByCardId ? undefined : linkedAccountId,
-                    categoryId: 'cat_loans'
+                    categoryId: 'cat_loans',
+                    ignoredPeriods: finalIgnoredPeriods
                 } as any);
 
                 const newLoan: Loan = {
@@ -542,6 +617,31 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                         style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '0.75rem', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: 'white', fontSize: '0.95rem', boxSizing: 'border-box' }}
                     />
                 </div>
+            </div>
+
+            {/* Current Month Paid Toggle */}
+            <div style={{
+                padding: '0.85rem 1rem',
+                borderRadius: '0.75rem',
+                background: 'rgba(255, 255, 255, 0.04)',
+                border: '1px solid rgba(255, 255, 255, 0.12)'
+            }}>
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', margin: 0 }}>
+                    <div style={{ paddingRight: '0.75rem' }}>
+                        <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'white', display: 'block' }}>
+                            ¿Cuota del mes actual ({currentMonthName}) ya pagada?
+                        </span>
+                        <span style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.6)', marginTop: '2px', display: 'block' }}>
+                            Si la marcas como pagada, no aparecerá como pendiente en el Dashboard de este mes.
+                        </span>
+                    </div>
+                    <input
+                        type="checkbox"
+                        checked={isCurrentMonthPaid}
+                        onChange={e => setIsCurrentMonthPaid(e.target.checked)}
+                        style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: 'var(--color-primary)' }}
+                    />
+                </label>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>

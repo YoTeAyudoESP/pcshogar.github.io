@@ -26,7 +26,7 @@ const YearlyFinancialChart: React.FC = () => {
                 grossAccountExpenses, 
                 grossCardExpenses, 
                 grossCashExpenses 
-            } = calculateAvailableBalanceForMonth(index, currentYear, {
+            } = calculateAvailableBalanceForMonth(currentYear, index, {
                 fixedIncomes: fixedIncomes,
                 extraIncomes: extraIncomes,
                 expenses,

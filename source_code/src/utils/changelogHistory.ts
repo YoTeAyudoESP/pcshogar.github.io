@@ -5,6 +5,11 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.5.9',
+    releaseNotes: `Novedades v2.5.9:
+- 📈 Restablecimiento de la Gráfica de Evolución 2026: Corrección de la firma de año/mes en el cálculo de saldos para mostrar las curvas completas de ingresos y gastos reales.`
+  },
+  {
     version: '2.5.8',
     releaseNotes: `Novedades v2.5.8:
 - 🏦 Control de Cuotas de Préstamos: Autoselección y gestión manual de cuotas pasadas y del mes actual en préstamos sin generar pendientes desfasados en el Dashboard.

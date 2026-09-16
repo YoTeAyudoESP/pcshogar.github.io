@@ -175,7 +175,7 @@ const FinanceBreakdownModal: React.FC<FinanceBreakdownModalProps> = ({ isOpen, o
     const ahorrosYHuchas = aportacionesRealizadas + ahorroMensualPendiente;
 
     // Use exact formula from central utility to prevent mismatches
-    const { availableToSpend: totalDisponible } = calculateAvailableBalanceForMonth(selectedMonth, selectedYear, {
+    const { availableToSpend: totalDisponible } = calculateAvailableBalanceForMonth(selectedYear, selectedMonth, {
         fixedIncomes, extraIncomes, expenses, allocations, savings, recurringExpenses, overrides, cards
     });
 

@@ -5,6 +5,13 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.6.2',
+    releaseNotes: `Novedades v2.6.2:
+- 🐖 Financiación de Huchas Protegida (Límite 0€): Al registrar o confirmar gastos vinculados a una hucha, el descuento se limita al saldo disponible de la hucha sin generar saldos negativos.
+- 🎯 Descuento Preventivo en Disponible: Los gastos fijos pendientes vinculados a huchas con saldo insuficiente descuentan de forma preventiva la parte no cubierta en el disponible del mes.
+- 🛠️ Corrección de 'Ajustar al Disponible': Solucionada la aplicación directa del ajuste manual desde la alerta de descuadre de saldo.`
+  },
+  {
     version: '2.6.1',
     releaseNotes: `Novedades v2.6.1:
 - 🏦 Autoselección Dinámica en Préstamos: Ajuste reactivo al cambiar el día de cobro al crear un préstamo (menor o igual a hoy = pagado, mayor = pendiente).

@@ -500,42 +500,56 @@ class IncomeDB {
 
             // Deduct from savings goals if linked
             if (expense.savingGoalFunding && expense.savingGoalFunding.length > 0) {
+                const updatedFunding: Array<{ goalId: string; amount: number }> = [];
                 for (const fund of expense.savingGoalFunding) {
                     const goal = await savingsStore.get(fund.goalId);
                     if (goal) {
-                        goal.currentAmount -= fund.amount;
+                        const available = Math.max(0, goal.currentAmount || 0);
+                        const deduct = Math.min(fund.amount, available);
+                        if (deduct > 0) {
+                            goal.currentAmount -= deduct;
+                            goal.updatedAt = Date.now();
+                            await savingsStore.put(goal);
+
+                            // Record allocation
+                            await allocStore.add({
+                                id: `hucha_exp_${expense.id}_${fund.goalId}`,
+                                goalId: fund.goalId,
+                                amount: -deduct,
+                                type: 'adjustment',
+                                description: `Financiación de gasto: ${expense.description}`,
+                                date: expense.date,
+                                updatedAt: Date.now()
+                            });
+                        }
+                        updatedFunding.push({ goalId: fund.goalId, amount: deduct });
+                    }
+                }
+                expense.savingGoalFunding = updatedFunding;
+                await expenseStore.put(expense);
+            } else if (expense.linkedSavingGoalId) {
+                const goal = await savingsStore.get(expense.linkedSavingGoalId);
+                if (goal) {
+                    const available = Math.max(0, goal.currentAmount || 0);
+                    const deduct = Math.min(expense.amount, available);
+                    if (deduct > 0) {
+                        goal.currentAmount -= deduct;
                         goal.updatedAt = Date.now();
                         await savingsStore.put(goal);
 
                         // Record allocation
                         await allocStore.add({
-                            id: `hucha_exp_${expense.id}_${fund.goalId}`,
-                            goalId: fund.goalId,
-                            amount: -fund.amount,
+                            id: `hucha_exp_${expense.id}`,
+                            goalId: expense.linkedSavingGoalId,
+                            amount: -deduct,
                             type: 'adjustment',
                             description: `Financiación de gasto: ${expense.description}`,
                             date: expense.date,
                             updatedAt: Date.now()
                         });
                     }
-                }
-            } else if (expense.linkedSavingGoalId) {
-                const goal = await savingsStore.get(expense.linkedSavingGoalId);
-                if (goal) {
-                    goal.currentAmount -= expense.amount;
-                    goal.updatedAt = Date.now();
-                    await savingsStore.put(goal);
-
-                    // Record allocation
-                    await allocStore.add({
-                        id: `hucha_exp_${expense.id}`,
-                        goalId: expense.linkedSavingGoalId,
-                        amount: -expense.amount,
-                        type: 'adjustment',
-                        description: `Financiación de gasto: ${expense.description}`,
-                        date: expense.date,
-                        updatedAt: Date.now()
-                    });
+                    expense.savingGoalFunding = [{ goalId: expense.linkedSavingGoalId, amount: deduct }];
+                    await expenseStore.put(expense);
                 }
             }
         }

@@ -188,8 +188,15 @@ const BalanceDiscrepancyAlert: React.FC = () => {
         setDistributing(true);
         try {
             for (const [goalId, amount] of Object.entries(distributions)) {
-                if (goalId === 'disponible') continue;
-                if (amount > 0) {
+                if (amount <= 0) continue;
+                if (goalId === 'disponible') {
+                    const now = new Date();
+                    const cY = now.getFullYear();
+                    const cM = now.getMonth();
+                    const existing = (overrides || []).find(o => o.year === cY && o.month === cM);
+                    const newDelta = (existing?.delta || 0) + amount;
+                    await setMonthOverride(cY, cM, newDelta);
+                } else {
                     const src = accounts.find(a => a.type === 'bank') || accounts[0];
                     if (src) await adjustSavings(goalId, amount, src.id, false, undefined, undefined, undefined, 'adjustment', 'Ajuste por descuadre de saldo');
                 }
@@ -206,7 +213,15 @@ const BalanceDiscrepancyAlert: React.FC = () => {
         setReducing(true);
         try {
             for (const [goalId, amount] of Object.entries(reductions)) {
-                if (amount && amount > 0 && goalId !== 'disponible') {
+                if (!amount || amount <= 0) continue;
+                if (goalId === 'disponible') {
+                    const now = new Date();
+                    const cY = now.getFullYear();
+                    const cM = now.getMonth();
+                    const existing = (overrides || []).find(o => o.year === cY && o.month === cM);
+                    const newDelta = (existing?.delta || 0) - amount;
+                    await setMonthOverride(cY, cM, newDelta);
+                } else {
                     await adjustSavings(goalId, -amount, undefined, false, undefined, undefined, undefined, 'adjustment', 'Ajuste por descuadre de saldo');
                 }
             }

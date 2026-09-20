@@ -5,6 +5,11 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.6.3',
+    releaseNotes: `Novedades v2.6.3:
+- 🎯 Corrección en Alerta de Descuadre de Saldo: Solucionado el cálculo del disponible al pulsar 'Ajustar al disponible' para aplicar la resta o suma sobre el disponible actual de forma limpia.`
+  },
+  {
     version: '2.6.2',
     releaseNotes: `Novedades v2.6.2:
 - 🐖 Financiación de Huchas Protegida (Límite 0€): Al registrar o confirmar gastos vinculados a una hucha, el descuento se limita al saldo disponible de la hucha sin generar saldos negativos.

@@ -1,7 +1,7 @@
 {
-  "version": "2.6.2",
-  "versionCode": 26200,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.6.2/PCSHogar_Setup_v2.6.2.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.6.2/PCSHogar_Setup_v2.6.2.exe",
-  "releaseNotes": "Novedades versión 2.6.2:\n- 🐖 Financiación de Huchas Protegida (Límite 0€): Al registrar o confirmar gastos vinculados a una hucha, el descuento se limita al saldo disponible de la hucha sin generar saldos negativos.\n- 🎯 Descuento Preventivo en Disponible: Los gastos fijos pendientes vinculados a huchas con saldo insuficiente descuentan de forma preventiva la parte no cubierta en el disponible del mes.\n- 🛠️ Corrección de 'Ajustar al Disponible': Solucionada la aplicación directa del ajuste manual desde la alerta de descuadre de saldo."
+  "version": "2.6.3",
+  "versionCode": 26300,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.6.3/PCSHogar_Setup_v2.6.3.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.6.3/PCSHogar_Setup_v2.6.3.exe",
+  "releaseNotes": "Novedades versión 2.6.3:\n- 🎯 Corrección en Alerta de Descuadre de Saldo: Solucionado el cálculo del disponible al pulsar 'Ajustar al disponible' para aplicar la resta o suma sobre el disponible actual de forma limpia."
 }

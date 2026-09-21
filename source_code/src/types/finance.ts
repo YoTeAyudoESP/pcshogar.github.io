@@ -62,6 +62,53 @@ export interface Expense {
     settlementInfo?: string;
     linkedSavingGoalId?: string;
     savingGoalFunding?: { goalId: string; amount: number }[];
+    insuranceId?: string;
+    vehicleId?: string;
+}
+
+export interface Vehicle {
+    id: string;
+    name: string; // e.g., "Seat León", "Yamaha MT-07"
+    brand: string;
+    model: string;
+    year: number;
+    licensePlate: string;
+    fuelType: 'gasoline' | 'diesel' | 'hybrid' | 'electric' | 'motorcycle';
+    currentKm: number;
+    lastMaintenanceKm: number;
+    lastMaintenanceDate: number; // timestamp
+    maintenanceIntervalKm: number;
+    maintenanceIntervalMonths: number;
+    tireBrand?: string;
+    tireModel?: string;
+    tireInstallationKm?: number;
+    tireEstimatedKm?: number;
+    nextItvDate?: number;
+    insuranceId?: string;
+    notes?: string;
+    createdAt: number;
+    updatedAt: number;
+}
+
+export interface Insurance {
+    id: string;
+    name: string; // e.g., "Seguro Coche", "Seguro Hogar"
+    company: string;
+    policyNumber?: string;
+    contactPhone?: string;
+    type: 'vehicle' | 'home' | 'life' | 'health' | 'pet' | 'death' | 'other';
+    deductible?: number; // Franquicia (€)
+    expirationDate: number; // Fecha vencimiento
+    renewalDate: number; // Fecha aviso renovación
+    annualPremium: number;
+    paymentFrequency: 'yearly' | 'semi-annually' | 'quarterly' | 'monthly';
+    recurringExpenseId?: string; // Vínculo con gasto fijo
+    vehicleId?: string;
+    dismissedRenewalAlertUntil?: number;
+    status: 'active' | 'cancelled' | 'pending_renewal';
+    notes?: string;
+    createdAt: number;
+    updatedAt: number;
 }
 
 export interface SavingGoal {
@@ -112,6 +159,8 @@ export interface RecurringExpense {
     createdAt?: number;
     updatedAt?: number;
     ignoredPeriods?: string[]; // Array of strings like "2026-04"
+    insuranceId?: string;
+    vehicleId?: string;
 }
 
 export interface Loan {

@@ -19,7 +19,10 @@ export const UpdateService = {
     async checkUpdate(): Promise<UpdateInfo> {
         try {
             // Fetch version.json from GitHub Pages without caching (with cache buster)
-            const response = await fetch(`${UPDATE_JSON_URL}?t=${Date.now()}`, { cache: 'no-store' });
+            let response = await fetch(`${UPDATE_JSON_URL}?t=${Date.now()}`, { cache: 'no-store' });
+            if (!response.ok) {
+                response = await fetch(`https://pcshogar.es/app/version.json?t=${Date.now()}`, { cache: 'no-store' });
+            }
             if (!response.ok) throw new Error('No se pudo obtener la información de la versión remota.');
             const data = await response.json();
             

@@ -4,7 +4,7 @@ import type {
     Account, CreditCard, Expense, SavingGoal, 
     SavingAllocation, RecurringExpense, Loan,
     AccountMovement, Category, Transfer,
-    MonthClosing, MonthOverride
+    MonthClosing, MonthOverride, Vehicle, Insurance
 } from '../types/finance';
 import { 
     DEFAULT_CATEGORIES, 
@@ -43,7 +43,15 @@ interface FinanceContextType {
     incomes: Income[];
     fixedIncomes: FixedIncome[];
     extraIncomes: Income[];
+    vehicles: Vehicle[];
+    insurances: Insurance[];
     loading: boolean;
+    addVehicle: (vehicle: Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+    updateVehicle: (vehicle: Vehicle) => Promise<void>;
+    deleteVehicle: (id: string) => Promise<void>;
+    addInsurance: (insurance: Omit<Insurance, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+    updateInsurance: (insurance: Insurance) => Promise<void>;
+    deleteInsurance: (id: string) => Promise<void>;
     addCategory: (category: Omit<Category, 'id'>) => Promise<void>;
     updateCategory: (category: Category) => Promise<void>;
     deleteCategory: (id: string, reassignToId?: string) => Promise<void>;
@@ -118,6 +126,8 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
     const [incomes, setIncomes] = useState<Income[]>([]);
     const [fixedIncomes, setFixedIncomes] = useState<FixedIncome[]>([]);
     const [extraIncomes, setExtraIncomes] = useState<Income[]>([]);
+    const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+    const [insurances, setInsurances] = useState<Insurance[]>([]);
     const [loading, setLoading] = useState(true);
     const [pendingClosing, setPendingClosing] = useState<MonthClosing | null>(null);
 
@@ -136,7 +146,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         setLoading(true);
         try {
             const [
-                accs, cds, exps, svs, alls, recs, lns, mvms, cats, trns, clss, ovrs, incs
+                accs, cds, exps, svs, alls, recs, lns, mvms, cats, trns, clss, ovrs, incs, vhcls, insrs
             ] = await Promise.all([
                 incomeDB.getAllAccounts(),
                 incomeDB.getAllCards(),
@@ -150,7 +160,9 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                 incomeDB.getAllTransfers(),
                 incomeDB.getAllClosings(),
                 incomeDB.getAllOverrides(),
-                incomeDB.getAllIncomes()
+                incomeDB.getAllIncomes(),
+                incomeDB.getAllVehicles(),
+                incomeDB.getAllInsurances()
             ]);
             
             setAccounts(accs);
@@ -218,6 +230,43 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
             setTransfers(trns);
             setClosings(clss);
             setOverrides(ovrs);
+
+            setVehicles(vhcls || []);
+            
+            // Auto-migration: Detect recurring expenses that are insurances and auto-create Insurance records
+            let updatedInsurances = [...(insrs || [])];
+            let didInsuranceMigration = false;
+            if (recs && recs.length > 0) {
+                for (const re of recs) {
+                    const descLower = (re.description || '').toLowerCase();
+                    const isInsuranceCategory = re.categoryId === 'cat_housing' || descLower.includes('seguro') || descLower.includes('póliza') || descLower.includes('poliza') || descLower.includes('mutua');
+                    if (isInsuranceCategory && descLower.includes('seguro')) {
+                        const alreadyExists = updatedInsurances.some(i => i.recurringExpenseId === re.id || i.name.toLowerCase() === re.description.toLowerCase());
+                        if (!alreadyExists) {
+                            didInsuranceMigration = true;
+                            const now = Date.now();
+                            const isVehicleType = descLower.includes('coche') || descLower.includes('auto') || descLower.includes('moto') || descLower.includes('vehiculo');
+                            const newIns: Insurance = {
+                                id: uuidv4(),
+                                name: re.description,
+                                company: 'Por especificar',
+                                type: isVehicleType ? 'vehicle' : (descLower.includes('vida') ? 'life' : (descLower.includes('salud') ? 'health' : (descLower.includes('decesos') ? 'death' : 'home'))),
+                                expirationDate: now + (365 * 24 * 60 * 60 * 1000),
+                                renewalDate: now + (305 * 24 * 60 * 60 * 1000),
+                                annualPremium: re.frequency === 'yearly' ? re.amount : (re.frequency === 'semi-annually' ? re.amount * 2 : (re.frequency === 'quarterly' ? re.amount * 4 : re.amount * 12)),
+                                paymentFrequency: re.frequency === 'yearly' ? 'yearly' : (re.frequency === 'semi-annually' ? 'semi-annually' : (re.frequency === 'quarterly' ? 'quarterly' : 'monthly')),
+                                recurringExpenseId: re.id,
+                                status: 'active',
+                                createdAt: now,
+                                updatedAt: now
+                            };
+                            await incomeDB.updateInsurance(newIns);
+                            updatedInsurances.push(newIns);
+                        }
+                    }
+                }
+            }
+            setInsurances(updatedInsurances);
 
             // Auto-repair buggy fixed incomes saved as received
             let activeIncomes = [...incs];
@@ -1566,6 +1615,58 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         await refreshFinance();
     };
 
+    const addVehicle = async (vehicle: Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt'>) => {
+        const now = Date.now();
+        const newVehicle: Vehicle = {
+            ...vehicle,
+            id: uuidv4(),
+            createdAt: now,
+            updatedAt: now
+        };
+        await incomeDB.updateVehicle(newVehicle);
+        await refreshFinance();
+    };
+
+    const updateVehicle = async (vehicle: Vehicle) => {
+        const updated = {
+            ...vehicle,
+            updatedAt: Date.now()
+        };
+        await incomeDB.updateVehicle(updated);
+        await refreshFinance();
+    };
+
+    const deleteVehicle = async (id: string) => {
+        await incomeDB.deleteVehicle(id);
+        await refreshFinance();
+    };
+
+    const addInsurance = async (insurance: Omit<Insurance, 'id' | 'createdAt' | 'updatedAt'>) => {
+        const now = Date.now();
+        const newInsurance: Insurance = {
+            ...insurance,
+            id: uuidv4(),
+            createdAt: now,
+            updatedAt: now
+        };
+        await incomeDB.updateInsurance(newInsurance);
+        await refreshFinance();
+    };
+
+    const updateInsurance = async (insurance: Insurance) => {
+        const updated = {
+            ...insurance,
+            updatedAt: Date.now()
+        };
+        await incomeDB.updateInsurance(updated);
+        await refreshFinance();
+    };
+
+    const deleteInsurance = async (id: string) => {
+        await incomeDB.deleteInsurance(id);
+        await refreshFinance();
+    };
+
     return (
         <FinanceContext.Provider value={{
             accounts,
@@ -1583,7 +1684,15 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
             incomes,
             fixedIncomes,
             extraIncomes,
+            vehicles,
+            insurances,
             loading,
+            addVehicle,
+            updateVehicle,
+            deleteVehicle,
+            addInsurance,
+            updateInsurance,
+            deleteInsurance,
             addCategory,
             updateCategory,
             deleteCategory,

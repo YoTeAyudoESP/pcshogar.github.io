@@ -4,7 +4,7 @@ import type {
     Account, CreditCard, Expense, SavingGoal, 
     SavingAllocation, RecurringExpense, Loan,
     AccountMovement, Category, Transfer,
-    MonthClosing, MonthOverride 
+    MonthClosing, MonthOverride, Vehicle, Insurance 
 } from '../types/finance';
 
 interface DomesticEconomyDB extends DBSchema {
@@ -69,10 +69,18 @@ interface DomesticEconomyDB extends DBSchema {
         key: string; // StoreName:ID
         value: { id: string; store: string; deletedAt: number };
     };
+    vehicles: {
+        key: string;
+        value: Vehicle;
+    };
+    insurances: {
+        key: string;
+        value: Insurance;
+    };
 }
 
 const DB_NAME = 'domestic-economy-db';
-const ORG_VERSION = 7;
+const ORG_VERSION = 8;
 
 class IncomeDB {
     private dbPromise!: Promise<IDBPDatabase<DomesticEconomyDB>>;
@@ -171,6 +179,14 @@ class IncomeDB {
                 if (oldVersion < 7) {
                     if (!db.objectStoreNames.contains('deleted_items')) {
                         db.createObjectStore('deleted_items', { keyPath: 'id' });
+                    }
+                }
+                if (oldVersion < 8) {
+                    if (!db.objectStoreNames.contains('vehicles')) {
+                        db.createObjectStore('vehicles', { keyPath: 'id' });
+                    }
+                    if (!db.objectStoreNames.contains('insurances')) {
+                        db.createObjectStore('insurances', { keyPath: 'id' });
                     }
                 }
             },
@@ -1148,6 +1164,35 @@ class IncomeDB {
 
         await expenseStore.put(updatedExpense);
         await tx.done;
+    }
+
+    // ── Vehicles & Insurances ──────────────────────────────────────────────────
+    async getAllVehicles(): Promise<Vehicle[]> {
+        return (await this.dbPromise).getAll('vehicles');
+    }
+
+    async updateVehicle(vehicle: Vehicle): Promise<void> {
+        await (await this.dbPromise).put('vehicles', vehicle);
+    }
+
+    async deleteVehicle(id: string): Promise<void> {
+        const db = await this.dbPromise;
+        await db.delete('vehicles', id);
+        await this.recordDeletion('vehicles', id);
+    }
+
+    async getAllInsurances(): Promise<Insurance[]> {
+        return (await this.dbPromise).getAll('insurances');
+    }
+
+    async updateInsurance(insurance: Insurance): Promise<void> {
+        await (await this.dbPromise).put('insurances', insurance);
+    }
+
+    async deleteInsurance(id: string): Promise<void> {
+        const db = await this.dbPromise;
+        await db.delete('insurances', id);
+        await this.recordDeletion('insurances', id);
     }
 }
 

@@ -32,6 +32,8 @@ import EditTransactionModal from './EditTransactionModal';
 import BalanceTransferModal from './BalanceTransferModal';
 import ReportModal from './ReportModal';
 import BalanceDiscrepancyAlert from './BalanceDiscrepancyAlert';
+import InsuranceRenewalAlert from './InsuranceRenewalAlert';
+import VehicleMaintenanceAlert from './VehicleMaintenanceAlert';
 import CashUpdateNoticeModal from './CashUpdateNoticeModal';
 import type { Expense } from '../../types/finance';
 import type { Income } from '../../types/income';
@@ -114,7 +116,7 @@ const Dashboard: React.FC = () => {
     const { selectedMonth, selectedYear } = useDateSelection();
 
     const [currentView, setCurrentView] = useState<'dashboard' | 'settings'>('dashboard');
-    const [settingsTab, setSettingsTab] = useState<'accounts' | 'savings' | 'recurring' | 'loans' | 'balance' | 'categories' | 'app' | 'about'>('accounts');
+    const [settingsTab, setSettingsTab] = useState<'accounts' | 'savings' | 'recurring' | 'loans' | 'vehicles' | 'insurances' | 'balance' | 'categories' | 'app' | 'about'>('accounts');
     const [isIncomeFormOpen, setIsIncomeFormOpen] = useState(false);
     const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
     const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
@@ -541,6 +543,8 @@ const Dashboard: React.FC = () => {
                     <NextDayPaymentAlert />
                     <UnlinkedLoanAlert />
                     <BalanceDiscrepancyAlert />
+                    <InsuranceRenewalAlert onNavigateToInsurances={() => { setCurrentView('settings'); setSettingsTab('insurances'); }} />
+                    <VehicleMaintenanceAlert onNavigateToVehicles={() => { setCurrentView('settings'); setSettingsTab('vehicles'); }} />
                     <FinanceSummary />
                     <PendingActionsWidget onEdit={(item, type, isFromPending) => { setEditingTx(item); setEditingType(type); setIsEditingFromPendingWidget(!!isFromPending); }} />
                     <FinanceGlobalSummary />

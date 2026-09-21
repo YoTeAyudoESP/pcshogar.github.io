@@ -5,6 +5,14 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.7.0',
+    releaseNotes: `Novedades v2.7.0:
+- 🚘 Nuevo Módulo "Mis Vehículos": Pestaña en Gestión y Ajustes con control de kilometraje, revisiones por km o tiempo (lo que ocurra antes), caducidad de neumáticos e ITV.
+- 🛡️ Nuevo Módulo "Mis Seguros": Pestaña en Gestión y Ajustes para gestionar todas las pólizas (vehículos, hogar, vida, salud), con avisos de renovación a 60 días e integración con Gastos Fijos.
+- ⚡ Botón de Recomendaciones Inteligentes: Autocompletado de mantenimiento y neumáticos según tipo de vehículo con aviso informativo del sector.
+- 🔄 Detección Automática de Seguros: Migración silenciosa e inmediata de seguros existentes en Gastos Fijos.`
+  },
+  {
     version: '2.6.3',
     releaseNotes: `Novedades v2.6.3:
 - 🎯 Corrección en Alerta de Descuadre de Saldo: Solucionado el cálculo del disponible al pulsar 'Ajustar al disponible' para aplicar la resta o suma sobre el disponible actual de forma limpia.`

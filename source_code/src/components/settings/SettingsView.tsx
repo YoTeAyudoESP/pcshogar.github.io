@@ -37,12 +37,16 @@ import {
     BookOpen,
     Coffee,
     MessageSquare,
-    Users
+    Users,
+    Car,
+    ShieldCheck
 } from 'lucide-react';
 import SavingsView from '../savings/SavingsView';
+import VehicleList from '../vehicles/VehicleList';
+import InsuranceList from '../insurances/InsuranceList';
 
 interface SettingsViewProps {
-    initialTab?: 'accounts' | 'savings' | 'recurring' | 'loans' | 'balance' | 'categories' | 'app' | 'about' | 'users';
+    initialTab?: 'accounts' | 'savings' | 'recurring' | 'loans' | 'vehicles' | 'insurances' | 'balance' | 'categories' | 'app' | 'about' | 'users';
 }
 
 const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) => {
@@ -190,6 +194,8 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
         { id: 'savings', label: 'Huchas', icon: PiggyBank },
         { id: 'recurring', label: 'Movimientos Fijos', icon: CalendarClock },
         { id: 'loans', label: 'Préstamos', icon: Landmark },
+        { id: 'vehicles', label: 'Vehículos', icon: Car },
+        { id: 'insurances', label: 'Seguros', icon: ShieldCheck },
         { id: 'categories', label: 'Categorías', icon: Tag },
         { id: 'balance', label: 'Ajustes Saldo', icon: RefreshCw },
         { id: 'app', label: 'Aplicación', icon: Monitor },
@@ -380,6 +386,14 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
                             />
                         )}
                     </div>
+                )}
+
+                {activeTab === 'vehicles' && (
+                    <VehicleList />
+                )}
+
+                {activeTab === 'insurances' && (
+                    <InsuranceList />
                 )}
 
                 {activeTab === 'recurring' && (

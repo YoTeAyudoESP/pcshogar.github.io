@@ -29,7 +29,9 @@ const InsuranceForm: React.FC<InsuranceFormProps> = ({ insurance, onClose }) => 
     const [annualPremium, setAnnualPremium] = useState<number>(insurance?.annualPremium || 0);
     const [paymentFrequency, setPaymentFrequency] = useState<Insurance['paymentFrequency']>(insurance?.paymentFrequency || 'yearly');
     
-    const [recurringExpenseId, setRecurringExpenseId] = useState<string>(insurance?.recurringExpenseId || '');
+    const [linkedExpenseIds, setLinkedExpenseIds] = useState<string[]>(
+        insurance?.linkedRecurringExpenseIds || (insurance?.recurringExpenseId ? [insurance.recurringExpenseId] : [])
+    );
     const [createNewRecurring, setCreateNewRecurring] = useState<boolean>(false);
     const [vehicleId, setVehicleId] = useState<string>(insurance?.vehicleId || '');
     const [notes, setNotes] = useState(insurance?.notes || '');
@@ -44,14 +46,20 @@ const InsuranceForm: React.FC<InsuranceFormProps> = ({ insurance, onClose }) => 
         }
     };
 
+    const handleToggleRecurring = (id: string) => {
+        setLinkedExpenseIds(prev => 
+            prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+        );
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!name.trim()) return;
 
-        let finalRecurringId = recurringExpenseId;
+        let finalLinkedIds = [...linkedExpenseIds];
 
         // Si el usuario marcó crear un nuevo Gasto Fijo automáticamente
-        if (createNewRecurring && !finalRecurringId) {
+        if (createNewRecurring) {
             const monthlyPayment = paymentFrequency === 'yearly' ? annualPremium / 12 : (paymentFrequency === 'semi-annually' ? annualPremium / 6 : (paymentFrequency === 'quarterly' ? annualPremium / 4 : annualPremium));
             const newRecId = await addRecurringExpense({
                 description: `Seguro: ${name.trim()}`,
@@ -62,7 +70,9 @@ const InsuranceForm: React.FC<InsuranceFormProps> = ({ insurance, onClose }) => 
                 active: true,
                 categoryId: 'cat_housing'
             });
-            finalRecurringId = newRecId;
+            if (newRecId && !finalLinkedIds.includes(newRecId)) {
+                finalLinkedIds.push(newRecId);
+            }
         }
 
         const insuranceData = {
@@ -76,7 +86,9 @@ const InsuranceForm: React.FC<InsuranceFormProps> = ({ insurance, onClose }) => 
             renewalDate: new Date(renewalDate).getTime(),
             annualPremium: Number(annualPremium) || 0,
             paymentFrequency,
-            recurringExpenseId: finalRecurringId || undefined,
+            recurringExpenseId: finalLinkedIds[0] || undefined,
+            linkedRecurringExpenseIds: finalLinkedIds.length > 0 ? finalLinkedIds : undefined,
+            needsDateReview: false,
             vehicleId: vehicleId || undefined,
             status: 'active' as const,
             notes: notes.trim()
@@ -320,21 +332,54 @@ const InsuranceForm: React.FC<InsuranceFormProps> = ({ insurance, onClose }) => 
 
                                 <div style={{ gridColumn: '1 / -1' }}>
                                     <label style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                        <RefreshCw size={14} style={{ color: '#818cf8' }} /> Vincular a Gasto Fijo / Recurrente
+                                        <RefreshCw size={14} style={{ color: '#818cf8' }} /> Vincular a Gastos Fijos (puedes seleccionar varios para cuotas fraccionadas)
                                     </label>
-                                    <select
-                                        disabled={createNewRecurring}
-                                        value={recurringExpenseId}
-                                        onChange={(e) => setRecurringExpenseId(e.target.value)}
-                                        style={{ ...inputStyle, color: '#ffffff', background: '#0f172a', opacity: createNewRecurring ? 0.4 : 1 }}
-                                    >
-                                        <option value="">-- Sin vincular a gasto fijo --</option>
-                                        {recurringExpenses.map(re => (
-                                            <option key={re.id} value={re.id}>
-                                                {re.description} ({re.amount} € / {re.frequency})
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <div style={{
+                                        maxHeight: '140px',
+                                        overflowY: 'auto',
+                                        background: 'rgba(15, 23, 42, 0.6)',
+                                        border: '1px solid rgba(255, 255, 255, 0.12)',
+                                        borderRadius: '10px',
+                                        padding: '0.5rem',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: '0.35rem',
+                                        opacity: createNewRecurring ? 0.4 : 1,
+                                        pointerEvents: createNewRecurring ? 'none' : 'auto'
+                                    }}>
+                                        {recurringExpenses.length === 0 ? (
+                                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', padding: '0.25rem' }}>No hay gastos fijos registrados.</span>
+                                        ) : (
+                                            recurringExpenses.map(re => {
+                                                const isChecked = linkedExpenseIds.includes(re.id);
+                                                return (
+                                                    <label 
+                                                        key={re.id}
+                                                        style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '0.5rem',
+                                                            fontSize: '0.75rem',
+                                                            color: isChecked ? '#ffffff' : '#94a3b8',
+                                                            background: isChecked ? 'rgba(99, 102, 241, 0.15)' : 'transparent',
+                                                            padding: '0.3rem 0.5rem',
+                                                            borderRadius: '6px',
+                                                            cursor: 'pointer'
+                                                        }}
+                                                    >
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={isChecked}
+                                                            onChange={() => handleToggleRecurring(re.id)}
+                                                        />
+                                                        <span style={{ fontWeight: isChecked ? 600 : 400 }}>
+                                                            {re.description} ({re.amount} € / {re.frequency})
+                                                        </span>
+                                                    </label>
+                                                );
+                                            })
+                                        )}
+                                    </div>
                                     <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                         <input
                                             type="checkbox"
@@ -342,12 +387,12 @@ const InsuranceForm: React.FC<InsuranceFormProps> = ({ insurance, onClose }) => 
                                             checked={createNewRecurring}
                                             onChange={(e) => {
                                                 setCreateNewRecurring(e.target.checked);
-                                                if (e.target.checked) setRecurringExpenseId('');
+                                                if (e.target.checked) setLinkedExpenseIds([]);
                                             }}
                                             style={{ cursor: 'pointer' }}
                                         />
                                         <label htmlFor="createNewRec" style={{ fontSize: '0.75rem', color: '#e2e8f0', cursor: 'pointer' }}>
-                                            Crear automáticamente un nuevo Gasto Fijo con esta cuota
+                                            Crear automáticamente un nuevo Gasto Fijo adicional con esta cuota
                                         </label>
                                     </div>
                                 </div>

@@ -52,6 +52,7 @@ interface FinanceContextType {
     addInsurance: (insurance: Omit<Insurance, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
     updateInsurance: (insurance: Insurance) => Promise<void>;
     deleteInsurance: (id: string) => Promise<void>;
+    mergeInsurances: (targetInsuranceId: string, sourceInsuranceIds: string[]) => Promise<void>;
     addCategory: (category: Omit<Category, 'id'>) => Promise<void>;
     updateCategory: (category: Category) => Promise<void>;
     deleteCategory: (id: string, reassignToId?: string) => Promise<void>;
@@ -241,21 +242,36 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                     const descLower = (re.description || '').toLowerCase();
                     const isInsuranceCategory = re.categoryId === 'cat_housing' || descLower.includes('seguro') || descLower.includes('póliza') || descLower.includes('poliza') || descLower.includes('mutua');
                     if (isInsuranceCategory && descLower.includes('seguro')) {
-                        const alreadyExists = updatedInsurances.some(i => i.recurringExpenseId === re.id || i.name.toLowerCase() === re.description.toLowerCase());
+                        const alreadyExists = updatedInsurances.some(i => i.recurringExpenseId === re.id || (i.linkedRecurringExpenseIds && i.linkedRecurringExpenseIds.includes(re.id)) || i.name.toLowerCase() === re.description.toLowerCase());
                         if (!alreadyExists) {
                             didInsuranceMigration = true;
                             const now = Date.now();
                             const isVehicleType = descLower.includes('coche') || descLower.includes('auto') || descLower.includes('moto') || descLower.includes('vehiculo');
+                            
+                            // Calculate smart default date from fixed expense paymentDay and paymentMonth
+                            const pDay = re.paymentDay || 1;
+                            const pMonth = re.paymentMonth ? re.paymentMonth - 1 : new Date().getMonth();
+                            const today = new Date();
+                            let expYear = today.getFullYear();
+                            let candidateDate = new Date(expYear, pMonth, pDay);
+                            if (candidateDate.getTime() < today.getTime()) {
+                                candidateDate = new Date(expYear + 1, pMonth, pDay);
+                            }
+                            const expTime = candidateDate.getTime();
+                            const renTime = expTime - (60 * 24 * 60 * 60 * 1000);
+
                             const newIns: Insurance = {
                                 id: uuidv4(),
                                 name: re.description,
                                 company: 'Por especificar',
                                 type: isVehicleType ? 'vehicle' : (descLower.includes('vida') ? 'life' : (descLower.includes('salud') ? 'health' : (descLower.includes('decesos') ? 'death' : 'home'))),
-                                expirationDate: now + (365 * 24 * 60 * 60 * 1000),
-                                renewalDate: now + (305 * 24 * 60 * 60 * 1000),
+                                expirationDate: expTime,
+                                renewalDate: renTime,
                                 annualPremium: re.frequency === 'yearly' ? re.amount : (re.frequency === 'semi-annually' ? re.amount * 2 : (re.frequency === 'quarterly' ? re.amount * 4 : re.amount * 12)),
                                 paymentFrequency: re.frequency === 'yearly' ? 'yearly' : (re.frequency === 'semi-annually' ? 'semi-annually' : (re.frequency === 'quarterly' ? 'quarterly' : 'monthly')),
                                 recurringExpenseId: re.id,
+                                linkedRecurringExpenseIds: [re.id],
+                                needsDateReview: true,
                                 status: 'active',
                                 createdAt: now,
                                 updatedAt: now
@@ -1667,6 +1683,35 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         await refreshFinance();
     };
 
+    const mergeInsurances = async (targetInsuranceId: string, sourceInsuranceIds: string[]) => {
+        const target = insurances.find(i => i.id === targetInsuranceId);
+        if (!target) return;
+
+        const sources = insurances.filter(i => sourceInsuranceIds.includes(i.id));
+        if (sources.length === 0) return;
+
+        let combinedRecIds = [...(target.linkedRecurringExpenseIds || (target.recurringExpenseId ? [target.recurringExpenseId] : []))];
+
+        for (const src of sources) {
+            const srcRecIds = src.linkedRecurringExpenseIds || (src.recurringExpenseId ? [src.recurringExpenseId] : []);
+            for (const rid of srcRecIds) {
+                if (!combinedRecIds.includes(rid)) {
+                    combinedRecIds.push(rid);
+                }
+            }
+            await incomeDB.deleteInsurance(src.id);
+        }
+
+        const updatedTarget: Insurance = {
+            ...target,
+            linkedRecurringExpenseIds: combinedRecIds,
+            updatedAt: Date.now()
+        };
+
+        await incomeDB.updateInsurance(updatedTarget);
+        await refreshFinance();
+    };
+
     return (
         <FinanceContext.Provider value={{
             accounts,
@@ -1693,6 +1738,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
             addInsurance,
             updateInsurance,
             deleteInsurance,
+            mergeInsurances,
             addCategory,
             updateCategory,
             deleteCategory,

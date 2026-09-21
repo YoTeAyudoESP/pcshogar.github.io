@@ -5,11 +5,19 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.7.2',
+    releaseNotes: `Novedades v2.7.2:
+- 🔗 Unificación de Seguros: Fusión limpia de pólizas duplicadas y desglose de cuotas en una sola tarjeta.
+- 💳 Seguros Fraccionados: Vinculación múltiple de gastos fijos por seguro sin alterar la economía.
+- 📅 Fechas Inteligentes: Cálculo inicial de vencimientos desde la fecha de cobro de gastos fijos con aviso sutil de confirmación.
+- ✨ UI Pulida: Corrección de botones duplicados y textos en Vehículos y Dashboard.`
+  },
+  {
     version: '2.7.1',
     releaseNotes: `Novedades v2.7.1:
 - 🎨 Rediseño Nativo Glassmorphism: Integración estética completa de "Mis Vehículos" y "Mis Seguros" con el diseño oscuro traslúcido de PCS Hogar.
 - 🔔 Alerta Inteligente en Dashboard: Recomendación sutil cuando existen seguros de vehículos sin vehículo registrado.
-- 📱 Modales Optimizados: Formularios emergentes integrados con ventanas traslúcidas (ModalPortal).`
+- 📱 Modales Optimizados: Formularios integrados mediante ventanas emergentes traslúcidas (ModalPortal).`
   },
   {
     version: '2.7.0',

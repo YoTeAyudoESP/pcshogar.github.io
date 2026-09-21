@@ -102,7 +102,9 @@ export interface Insurance {
     renewalDate: number; // Fecha aviso renovación
     annualPremium: number;
     paymentFrequency: 'yearly' | 'semi-annually' | 'quarterly' | 'monthly';
-    recurringExpenseId?: string; // Vínculo con gasto fijo
+    recurringExpenseId?: string; // Vínculo con gasto fijo principal (compatibilidad)
+    linkedRecurringExpenseIds?: string[]; // Vínculo con múltiples gastos fijos (cuotas fraccionadas)
+    needsDateReview?: boolean; // Marca de fecha pendiente de confirmar
     vehicleId?: string;
     dismissedRenewalAlertUntil?: number;
     status: 'active' | 'cancelled' | 'pending_renewal';

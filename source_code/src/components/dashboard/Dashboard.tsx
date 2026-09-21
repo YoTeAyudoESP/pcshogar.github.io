@@ -35,6 +35,7 @@ import BalanceDiscrepancyAlert from './BalanceDiscrepancyAlert';
 import InsuranceRenewalAlert from './InsuranceRenewalAlert';
 import VehicleMaintenanceAlert from './VehicleMaintenanceAlert';
 import UnlinkedVehicleAlert from './UnlinkedVehicleAlert';
+import InsurancesDateReviewAlert from './InsurancesDateReviewAlert';
 import CashUpdateNoticeModal from './CashUpdateNoticeModal';
 import type { Expense } from '../../types/finance';
 import type { Income } from '../../types/income';
@@ -545,6 +546,7 @@ const Dashboard: React.FC = () => {
                     <UnlinkedLoanAlert />
                     <BalanceDiscrepancyAlert />
                     <UnlinkedVehicleAlert onNavigateToVehicles={() => { setCurrentView('settings'); setSettingsTab('vehicles'); }} />
+                    <InsurancesDateReviewAlert onNavigateToInsurances={() => { setCurrentView('settings'); setSettingsTab('insurances'); }} />
                     <InsuranceRenewalAlert onNavigateToInsurances={() => { setCurrentView('settings'); setSettingsTab('insurances'); }} />
                     <VehicleMaintenanceAlert onNavigateToVehicles={() => { setCurrentView('settings'); setSettingsTab('vehicles'); }} />
                     <FinanceSummary />

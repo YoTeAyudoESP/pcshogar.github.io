@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
-import { Car, ShieldCheck, X, Plus } from 'lucide-react';
+import { ShieldCheck, Calendar, X, ExternalLink } from 'lucide-react';
 
-interface UnlinkedVehicleAlertProps {
-    onNavigateToVehicles: () => void;
+interface InsurancesDateReviewAlertProps {
+    onNavigateToInsurances: () => void;
 }
 
-const UnlinkedVehicleAlert: React.FC<UnlinkedVehicleAlertProps> = ({ onNavigateToVehicles }) => {
-    const { insurances, vehicles } = useFinance();
+const InsurancesDateReviewAlert: React.FC<InsurancesDateReviewAlertProps> = ({ onNavigateToInsurances }) => {
+    const { insurances } = useFinance();
     const [dismissed, setDismissed] = useState(() => {
         try {
-            return localStorage.getItem('pcshogar_unlinked_vehicle_alert_dismissed') === 'true';
+            return localStorage.getItem('pcshogar_date_review_alert_dismissed') === 'true';
         } catch {
             return false;
         }
@@ -18,39 +18,25 @@ const UnlinkedVehicleAlert: React.FC<UnlinkedVehicleAlertProps> = ({ onNavigateT
 
     if (dismissed) return null;
 
-    // Detectar seguros que sean de vehículo o cuyo nombre indique vehículo
-    const vehicleInsurances = insurances.filter(ins => 
-        ins.type === 'vehicle' || 
-        !!ins.vehicleId || 
-        ins.name.toLowerCase().includes('coche') || 
-        ins.name.toLowerCase().includes('moto') || 
-        ins.name.toLowerCase().includes('vehiculo') || 
-        ins.name.toLowerCase().includes('vehículo') ||
-        ins.name.toLowerCase().includes('auto')
-    );
+    const pendingReviewInsurances = insurances.filter(i => i.needsDateReview === true);
 
-    if (vehicleInsurances.length === 0) return null;
-
-    // Si existen seguros de vehículo y no hay vehículos o hay seguros sin vehículo asociado
-    const hasUnlinkedVehicle = vehicles.length === 0 || vehicleInsurances.some(ins => !ins.vehicleId);
-
-    if (!hasUnlinkedVehicle) return null;
+    if (pendingReviewInsurances.length === 0) return null;
 
     const handleDismiss = () => {
         setDismissed(true);
         try {
-            localStorage.setItem('pcshogar_unlinked_vehicle_alert_dismissed', 'true');
+            localStorage.setItem('pcshogar_date_review_alert_dismissed', 'true');
         } catch (e) {
             console.error(e);
         }
     };
 
-    const insuranceNames = vehicleInsurances.map(i => i.name).join(', ');
+    const insuranceNames = pendingReviewInsurances.map(i => i.name).join(', ');
 
     return (
         <div style={{
-            background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(99, 102, 241, 0.06) 100%)',
-            border: '1px solid rgba(59, 130, 246, 0.25)',
+            background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(217, 119, 6, 0.06) 100%)',
+            border: '1px solid rgba(245, 158, 11, 0.25)',
             borderRadius: '16px',
             padding: '1.25rem',
             marginBottom: '1.5rem',
@@ -77,15 +63,15 @@ const UnlinkedVehicleAlert: React.FC<UnlinkedVehicleAlertProps> = ({ onNavigateT
                     display: 'flex',
                     alignItems: 'center'
                 }}
-                title="Descartar recomendación"
+                title="Descartar aviso"
             >
                 <X size={16} />
             </button>
 
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.85rem', flex: 1, minWidth: '280px' }}>
                 <div style={{
-                    background: 'rgba(59, 130, 246, 0.18)',
-                    color: '#60a5fa',
+                    background: 'rgba(245, 158, 11, 0.18)',
+                    color: '#f59e0b',
                     padding: '0.75rem',
                     borderRadius: '12px',
                     display: 'flex',
@@ -93,24 +79,24 @@ const UnlinkedVehicleAlert: React.FC<UnlinkedVehicleAlertProps> = ({ onNavigateT
                     justifyContent: 'center',
                     flexShrink: 0
                 }}>
-                    <Car size={24} />
+                    <Calendar size={24} />
                 </div>
                 <div>
                     <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 800, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <ShieldCheck size={16} style={{ color: '#60a5fa' }} />
-                        Seguro de vehículo detectado sin vehículo registrado
+                        <ShieldCheck size={16} style={{ color: '#f59e0b' }} />
+                        Revisa la fecha de vencimiento de tus seguros
                     </h4>
                     <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#cbd5e1', lineHeight: '1.4' }}>
-                        Hemos detectado que tienes seguro(s) de vehículo (<strong>{insuranceNames}</strong>), pero aún no has dado de alta tu vehículo en <strong>Mis Vehículos</strong>. Te aconsejamos registrarlo para llevar el control preventivo de revisiones por km o tiempo, ITV y neumáticos junto a tu seguro.
+                        Se han detectado seguros migrados automáticamente (<strong>{insuranceNames}</strong>). Te aconsejamos comprobar la fecha de vencimiento real de tu póliza para que los avisos a 60 días te lleguen en tu fecha exacta.
                     </p>
                 </div>
             </div>
 
             <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
                 <button
-                    onClick={onNavigateToVehicles}
+                    onClick={onNavigateToInsurances}
                     style={{
-                        background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                        background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
                         color: 'white',
                         border: 'none',
                         padding: '0.65rem 1.15rem',
@@ -121,15 +107,15 @@ const UnlinkedVehicleAlert: React.FC<UnlinkedVehicleAlertProps> = ({ onNavigateT
                         display: 'flex',
                         alignItems: 'center',
                         gap: '0.4rem',
-                        boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
+                        boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)'
                     }}
                 >
-                    <Plus size={16} />
-                    <span>Registrar Vehículo</span>
+                    <ExternalLink size={15} />
+                    <span>Revisar Fechas</span>
                 </button>
             </div>
         </div>
     );
 };
 
-export default UnlinkedVehicleAlert;
+export default InsurancesDateReviewAlert;

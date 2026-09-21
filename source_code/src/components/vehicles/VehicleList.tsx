@@ -115,29 +115,9 @@ const VehicleList: React.FC = () => {
                     <div>
                         <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, color: '#ffffff' }}>No hay vehículos registrados</h3>
                         <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', maxWidth: '420px', margin: '0.5rem auto 0 auto', lineHeight: '1.5' }}>
-                            Añade tu coche o moto para llevar el control de los km, próximos mantenimientos y fechas de ITV o seguro.
+                            Añade tu coche o moto con el botón superior para llevar el control de los km, próximos mantenimientos y fechas de ITV o seguro.
                         </p>
                     </div>
-                    <button
-                        onClick={handleAddNew}
-                        style={{
-                            background: 'rgba(99, 102, 241, 0.15)',
-                            border: '1px solid rgba(99, 102, 241, 0.3)',
-                            color: '#818cf8',
-                            padding: '0.6rem 1.2rem',
-                            borderRadius: '10px',
-                            fontWeight: 600,
-                            fontSize: '0.85rem',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.4rem',
-                            marginTop: '0.5rem'
-                        }}
-                    >
-                        <Plus size={16} />
-                        <span>Registrar Primer Vehículo</span>
-                    </button>
                 </div>
             ) : (
                 <div style={{ 

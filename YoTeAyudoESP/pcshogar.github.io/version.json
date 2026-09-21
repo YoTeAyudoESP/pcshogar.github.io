@@ -1,0 +1,7 @@
+{
+  "version": "2.7.0",
+  "versionCode": 27000,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.7.0/PCSHogar_Setup_v2.7.0.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.7.0/PCSHogar_Setup_v2.7.0.exe",
+  "releaseNotes": "Novedades versión 2.7.0:\n- 🚘 Módulo Mis Vehículos: Control de kilometraje, revisiones por km o tiempo, caducidad de neumáticos e ITV.\n- 🛡️ Módulo Mis Seguros: Pólizas, avisos a 60 días de la autorrenovación e integración con Gastos Fijos.\n- ⚡ Recomendaciones Inteligentes: Presets por tipo de vehículo y descargo informativo.\n- 🔄 Migración Automática: Detección sutil e inmediata de seguros existentes en Gastos Fijos."
+}

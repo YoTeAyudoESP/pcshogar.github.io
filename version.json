@@ -1,7 +1,7 @@
 {
-  "version": "2.7.2",
-  "versionCode": 27200,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.7.2/PCSHogar_Setup_v2.7.2.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.7.2/PCSHogar_Setup_v2.7.2.exe",
-  "releaseNotes": "Novedades versión 2.7.2:\n- 🔗 Unificación de Seguros: Fusión limpia de pólizas duplicadas y desglose de cuotas en una sola tarjeta.\n- 💳 Seguros Fraccionados: Vinculación múltiple de gastos fijos por seguro sin alterar la economía.\n- 📅 Fechas Inteligentes: Cálculo inicial de vencimientos desde la fecha de cobro de gastos fijos con aviso sutil de confirmación.\n- ✨ UI Pulida: Corrección de botones duplicados y textos en Vehículos y Dashboard."
+  "version": "2.7.3",
+  "versionCode": 27300,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.7.3/PCSHogar_Setup_v2.7.3.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.7.3/PCSHogar_Setup_v2.7.3.exe",
+  "releaseNotes": "Novedades versión 2.7.3:\n- ☁️ Sincronización Total Nube: Inclusión completa de Vehículos y Seguros en el motor de sincronización de Dropbox y Google Drive para mantener todos tus dispositivos perfectamente al día."
 }

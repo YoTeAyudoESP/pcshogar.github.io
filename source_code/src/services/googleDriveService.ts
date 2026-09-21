@@ -334,7 +334,7 @@ export class GoogleDriveService {
         const collections = [
             'accounts', 'cards', 'expenses', 'incomes', 'recurring_expenses', 
             'savings', 'allocations', 'loans', 'transfers', 
-            'categories', 'closings', 'overrides', 'movements', 'deleted_items'
+            'categories', 'closings', 'overrides', 'movements', 'vehicles', 'insurances', 'deleted_items'
         ];
 
         collections.forEach(col => {
@@ -350,7 +350,7 @@ export class GoogleDriveService {
         const collections = [
             'accounts', 'cards', 'expenses', 'incomes', 'recurring_expenses', 
             'savings', 'allocations', 'loans', 'transfers', 
-            'categories', 'closings', 'overrides', 'movements', 'deleted_items'
+            'categories', 'closings', 'overrides', 'movements', 'vehicles', 'insurances', 'deleted_items'
         ];
 
         for (const col of collections) {
@@ -443,7 +443,7 @@ export class GoogleDriveService {
         const collections = [
             'accounts', 'cards', 'expenses', 'incomes', 'recurring_expenses', 
             'savings', 'allocations', 'loans', 'transfers', 
-            'categories', 'closings', 'overrides', 'movements'
+            'categories', 'closings', 'overrides', 'movements', 'vehicles', 'insurances'
         ];
 
         const localTombstones = localData['deleted_items'] || [];

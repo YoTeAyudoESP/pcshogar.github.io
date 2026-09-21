@@ -5,6 +5,11 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.7.3',
+    releaseNotes: `Novedades v2.7.3:
+- ☁️ Sincronización Total Nube: Inclusión completa de Vehículos y Seguros en el motor de sincronización de Dropbox y Google Drive para mantener todos tus dispositivos perfectamente al día.`
+  },
+  {
     version: '2.7.2',
     releaseNotes: `Novedades v2.7.2:
 - 🔗 Unificación de Seguros: Fusión limpia de pólizas duplicadas y desglose de cuotas en una sola tarjeta.

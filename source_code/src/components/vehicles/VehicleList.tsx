@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import type { Vehicle } from '../../types/finance';
 import { useFinance } from '../../contexts/FinanceContext';
 import VehicleForm from './VehicleForm';
-import { Car, Plus, Wrench, Gauge, Calendar, Shield, Trash2, Edit, AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import { Car, Plus, Wrench, Gauge, Calendar, Shield, Trash2, Edit, AlertTriangle, CheckCircle } from 'lucide-react';
 
 const VehicleList: React.FC = () => {
     const { vehicles, deleteVehicle, updateVehicle, insurances } = useFinance();
@@ -51,42 +51,100 @@ const VehicleList: React.FC = () => {
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            {/* Cabecera de Sección */}
+            <div className="glass-panel" style={{ 
+                padding: '1.25rem 1.5rem', 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                flexWrap: 'wrap', 
+                gap: '1rem',
+                borderRadius: '16px'
+            }}>
                 <div>
-                    <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                        <Car className="w-6 h-6 text-indigo-600" /> Mis Vehículos
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                        <Car size={22} style={{ color: '#818cf8' }} /> Mis Vehículos
                     </h2>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
                         Control preventivo de mantenimientos, kilometraje, neumáticos y vinculación con seguros.
                     </p>
                 </div>
                 <button
                     onClick={handleAddNew}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2.5 rounded-lg flex items-center space-x-2 transition shadow-sm"
+                    style={{
+                        background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                        color: 'white',
+                        border: 'none',
+                        padding: '0.65rem 1.25rem',
+                        borderRadius: '12px',
+                        fontWeight: 700,
+                        fontSize: '0.85rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        boxShadow: '0 4px 14px rgba(99, 102, 241, 0.35)',
+                        transition: 'all 0.2s ease'
+                    }}
                 >
-                    <Plus className="w-4 h-4" />
+                    <Plus size={16} />
                     <span>Añadir Vehículo</span>
                 </button>
             </div>
 
+            {/* Lista o Estado Vacío */}
             {vehicles.length === 0 ? (
-                <div className="bg-white rounded-xl border border-gray-100 p-12 text-center">
-                    <Car className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <h3 className="text-base font-semibold text-gray-700">No hay vehículos registrados</h3>
-                    <p className="text-xs text-gray-500 max-w-md mx-auto mt-1 mb-4">
-                        Añade tu coche o moto para llevar el control de los km, próximos mantenimientos y fechas de ITV o seguro.
-                    </p>
+                <div className="glass-panel" style={{ 
+                    padding: '3.5rem 1.5rem', 
+                    textAlign: 'center', 
+                    borderRadius: '16px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '1rem'
+                }}>
+                    <div style={{ 
+                        background: 'rgba(99, 102, 241, 0.1)', 
+                        padding: '1rem', 
+                        borderRadius: '50%',
+                        color: '#818cf8'
+                    }}>
+                        <Car size={36} />
+                    </div>
+                    <div>
+                        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, color: '#ffffff' }}>No hay vehículos registrados</h3>
+                        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', maxWidth: '420px', margin: '0.5rem auto 0 auto', lineHeight: '1.5' }}>
+                            Añade tu coche o moto para llevar el control de los km, próximos mantenimientos y fechas de ITV o seguro.
+                        </p>
+                    </div>
                     <button
                         onClick={handleAddNew}
-                        className="inline-flex items-center space-x-2 text-sm font-medium text-indigo-600 bg-indigo-50 px-4 py-2 rounded-lg hover:bg-indigo-100 transition"
+                        style={{
+                            background: 'rgba(99, 102, 241, 0.15)',
+                            border: '1px solid rgba(99, 102, 241, 0.3)',
+                            color: '#818cf8',
+                            padding: '0.6rem 1.2rem',
+                            borderRadius: '10px',
+                            fontWeight: 600,
+                            fontSize: '0.85rem',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.4rem',
+                            marginTop: '0.5rem'
+                        }}
                     >
-                        <Plus className="w-4 h-4" />
+                        <Plus size={16} />
                         <span>Registrar Primer Vehículo</span>
                     </button>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', 
+                    gap: '1.25rem' 
+                }}>
                     {vehicles.map((vh) => {
                         const linkedInsurance = insurances.find(i => i.id === vh.insuranceId);
 
@@ -108,68 +166,131 @@ const VehicleList: React.FC = () => {
                         const tireKmLeft = (vh.tireEstimatedKm || 40000) - tireKmUsed;
 
                         return (
-                            <div key={vh.id} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col justify-between">
-                                <div className="p-5">
-                                    <div className="flex justify-between items-start mb-3">
+                            <div 
+                                key={vh.id} 
+                                className="glass-panel" 
+                                style={{ 
+                                    padding: '1.25rem', 
+                                    borderRadius: '16px',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'space-between',
+                                    borderLeft: `4px solid ${isMaintenanceOverdue ? '#f43f5e' : (isKmUrgent || isTimeUrgent) ? '#f59e0b' : '#6366f1'}`,
+                                    background: 'rgba(255, 255, 255, 0.02)',
+                                    gap: '1rem'
+                                }}
+                            >
+                                <div>
+                                    {/* Cabecera Tarjeta */}
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
                                         <div>
-                                            <div className="flex items-center gap-2">
-                                                <span className="font-bold text-lg text-gray-900">{vh.name}</span>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                                <h4 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#ffffff' }}>{vh.name}</h4>
                                                 {vh.licensePlate && (
-                                                    <span className="bg-gray-100 text-gray-700 text-xs font-mono font-bold px-2 py-0.5 rounded border border-gray-300">
+                                                    <span style={{ 
+                                                        background: 'rgba(255, 255, 255, 0.08)', 
+                                                        border: '1px solid rgba(255, 255, 255, 0.15)',
+                                                        color: '#e2e8f0', 
+                                                        fontSize: '0.7rem', 
+                                                        fontFamily: 'monospace', 
+                                                        fontWeight: 700, 
+                                                        padding: '2px 6px', 
+                                                        borderRadius: '6px' 
+                                                    }}>
                                                         {vh.licensePlate}
                                                     </span>
                                                 )}
                                             </div>
-                                            <p className="text-xs text-gray-500 mt-0.5">
-                                                {vh.brand} {vh.model} ({vh.year}) • <span className="capitalize">{getFuelTypeName(vh.fuelType)}</span>
+                                            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
+                                                {vh.brand} {vh.model} ({vh.year}) • <span>{getFuelTypeName(vh.fuelType)}</span>
                                             </p>
                                         </div>
-                                        <div className="flex items-center space-x-1">
+                                        <div style={{ display: 'flex', gap: '0.3rem' }}>
                                             <button
                                                 onClick={() => handleEdit(vh)}
-                                                className="p-1.5 text-gray-400 hover:text-indigo-600 rounded-lg hover:bg-gray-50"
+                                                style={{ 
+                                                    background: 'rgba(255,255,255,0.05)', 
+                                                    border: 'none', 
+                                                    color: 'var(--text-muted)', 
+                                                    padding: '0.4rem', 
+                                                    borderRadius: '8px', 
+                                                    cursor: 'pointer' 
+                                                }}
                                                 title="Editar"
                                             >
-                                                <Edit className="w-4 h-4" />
+                                                <Edit size={14} />
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(vh.id)}
-                                                className="p-1.5 text-gray-400 hover:text-rose-600 rounded-lg hover:bg-gray-50"
+                                                style={{ 
+                                                    background: 'rgba(244, 63, 94, 0.1)', 
+                                                    border: 'none', 
+                                                    color: '#f43f5e', 
+                                                    padding: '0.4rem', 
+                                                    borderRadius: '8px', 
+                                                    cursor: 'pointer' 
+                                                }}
                                                 title="Eliminar"
                                             >
-                                                <Trash2 className="w-4 h-4" />
+                                                <Trash2 size={14} />
                                             </button>
                                         </div>
                                     </div>
 
                                     {/* Kilometraje Actual y Acción rápida */}
-                                    <div className="bg-indigo-50/60 rounded-lg p-3 mb-4 flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <Gauge className="w-5 h-5 text-indigo-600" />
+                                    <div style={{ 
+                                        background: 'rgba(99, 102, 241, 0.08)', 
+                                        border: '1px solid rgba(99, 102, 241, 0.18)',
+                                        borderRadius: '12px', 
+                                        padding: '0.75rem 1rem', 
+                                        marginBottom: '1rem',
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        justifyContent: 'space-between'
+                                    }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                                            <Gauge size={20} style={{ color: '#818cf8' }} />
                                             <div>
-                                                <span className="text-[10px] text-gray-500 uppercase font-semibold block">Kilometraje Actual</span>
-                                                <span className="text-base font-extrabold text-indigo-950">
+                                                <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 700, color: 'var(--text-muted)', display: 'block' }}>Kilometraje Actual</span>
+                                                <span style={{ fontSize: '1rem', fontWeight: 800, color: '#ffffff' }}>
                                                     {vh.currentKm.toLocaleString('es-ES')} km
                                                 </span>
                                             </div>
                                         </div>
                                         {updatingKmVehicleId === vh.id ? (
-                                            <div className="flex items-center gap-1.5">
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                                                 <input
                                                     type="number"
-                                                    className="w-24 px-2 py-1 text-xs border border-indigo-300 rounded"
+                                                    style={{ 
+                                                        width: '90px', 
+                                                        padding: '4px 8px', 
+                                                        fontSize: '0.75rem', 
+                                                        background: 'rgba(0,0,0,0.3)', 
+                                                        border: '1px solid #6366f1', 
+                                                        borderRadius: '6px',
+                                                        color: 'white'
+                                                    }}
                                                     value={newKmInput}
                                                     onChange={(e) => setNewKmInput(Number(e.target.value))}
                                                 />
                                                 <button
                                                     onClick={() => handleQuickKmUpdate(vh)}
-                                                    className="bg-indigo-600 text-white text-xs px-2 py-1 rounded font-medium"
+                                                    style={{ 
+                                                        background: '#6366f1', 
+                                                        color: 'white', 
+                                                        border: 'none', 
+                                                        fontSize: '0.7rem', 
+                                                        padding: '4px 8px', 
+                                                        borderRadius: '6px', 
+                                                        fontWeight: 700,
+                                                        cursor: 'pointer' 
+                                                    }}
                                                 >
                                                     OK
                                                 </button>
                                                 <button
                                                     onClick={() => setUpdatingKmVehicleId(null)}
-                                                    className="text-gray-400 text-xs hover:text-gray-600"
+                                                    style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '0.8rem', cursor: 'pointer' }}
                                                 >
                                                     ✕
                                                 </button>
@@ -180,7 +301,16 @@ const VehicleList: React.FC = () => {
                                                     setUpdatingKmVehicleId(vh.id);
                                                     setNewKmInput(vh.currentKm);
                                                 }}
-                                                className="text-xs text-indigo-700 bg-white hover:bg-indigo-100 font-medium px-2.5 py-1 rounded border border-indigo-200 transition"
+                                                style={{ 
+                                                    fontSize: '0.75rem', 
+                                                    color: '#818cf8', 
+                                                    background: 'rgba(99, 102, 241, 0.12)', 
+                                                    border: '1px solid rgba(99, 102, 241, 0.25)', 
+                                                    fontWeight: 600, 
+                                                    padding: '4px 10px', 
+                                                    borderRadius: '8px', 
+                                                    cursor: 'pointer' 
+                                                }}
                                             >
                                                 Actualizar km
                                             </button>
@@ -188,42 +318,42 @@ const VehicleList: React.FC = () => {
                                     </div>
 
                                     {/* Mantenimiento */}
-                                    <div className="border-t border-gray-100 pt-3 mb-3">
-                                        <div className="flex items-center justify-between text-xs mb-1.5">
-                                            <span className="font-semibold text-gray-700 flex items-center gap-1">
-                                                <Wrench className="w-3.5 h-3.5 text-gray-500" /> Próximo Mantenimiento
+                                    <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.06)', paddingTop: '0.75rem', marginBottom: '0.75rem' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '0.4rem' }}>
+                                            <span style={{ fontWeight: 700, color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                                <Wrench size={14} style={{ color: 'var(--text-muted)' }} /> Próximo Mantenimiento
                                             </span>
                                             {isMaintenanceOverdue ? (
-                                                <span className="bg-rose-100 text-rose-700 text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1">
-                                                    <AlertTriangle className="w-3 h-3" /> Mantenimiento pendiente
+                                                <span style={{ background: 'rgba(244, 63, 94, 0.15)', color: '#f43f5e', border: '1px solid rgba(244, 63, 94, 0.3)', fontSize: '0.65rem', fontWeight: 700, padding: '2px 6px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                                    <AlertTriangle size={12} /> Pendiente
                                                 </span>
                                             ) : isKmUrgent || isTimeUrgent ? (
-                                                <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1">
-                                                    <AlertTriangle className="w-3 h-3" /> Próximo pronto
+                                                <span style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', border: '1px solid rgba(245, 158, 11, 0.3)', fontSize: '0.65rem', fontWeight: 700, padding: '2px 6px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                                    <AlertTriangle size={12} /> Próximo pronto
                                                 </span>
                                             ) : (
-                                                <span className="bg-emerald-100 text-emerald-800 text-[10px] font-semibold px-2 py-0.5 rounded flex items-center gap-1">
-                                                    <CheckCircle className="w-3 h-3" /> En regla
+                                                <span style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.3)', fontSize: '0.65rem', fontWeight: 700, padding: '2px 6px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                                    <CheckCircle size={12} /> En regla
                                                 </span>
                                             )}
                                         </div>
-                                        <p className="text-xs text-gray-600">
-                                            Faltan <strong className={kmRemaining < 1000 ? 'text-rose-600' : 'text-gray-900'}>{kmRemaining.toLocaleString('es-ES')} km</strong> o{' '}
-                                            <strong className={daysRemaining < 30 ? 'text-rose-600' : 'text-gray-900'}>{daysRemaining} días</strong> (lo que ocurra antes).
+                                        <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0 }}>
+                                            Faltan <strong style={{ color: kmRemaining < 1000 ? '#f43f5e' : '#ffffff' }}>{kmRemaining.toLocaleString('es-ES')} km</strong> o{' '}
+                                            <strong style={{ color: daysRemaining < 30 ? '#f43f5e' : '#ffffff' }}>{daysRemaining} días</strong> (lo que ocurra antes).
                                         </p>
                                     </div>
 
                                     {/* Neumáticos e ITV */}
-                                    <div className="grid grid-cols-2 gap-2 text-xs border-t border-gray-100 pt-3">
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.75rem', borderTop: '1px solid rgba(255, 255, 255, 0.06)', paddingTop: '0.75rem' }}>
                                         <div>
-                                            <span className="text-gray-400 block text-[10px] font-medium">Neumáticos</span>
-                                            <span className="font-medium text-gray-800">
+                                            <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.65rem', fontWeight: 600 }}>Neumáticos</span>
+                                            <span style={{ fontWeight: 600, color: '#ffffff' }}>
                                                 {tireKmLeft > 0 ? `Quedan ~${tireKmLeft.toLocaleString('es-ES')} km` : 'Revisar desgaste'}
                                             </span>
                                         </div>
                                         <div>
-                                            <span className="text-gray-400 block text-[10px] font-medium">Próxima ITV</span>
-                                            <span className="font-medium text-gray-800">
+                                            <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.65rem', fontWeight: 600 }}>Próxima ITV</span>
+                                            <span style={{ fontWeight: 600, color: '#ffffff' }}>
                                                 {vh.nextItvDate ? new Date(vh.nextItvDate).toLocaleDateString('es-ES') : 'Sin fecha'}
                                             </span>
                                         </div>
@@ -231,16 +361,26 @@ const VehicleList: React.FC = () => {
                                 </div>
 
                                 {/* Footer con Seguro Vinculado */}
-                                <div className="bg-gray-50 border-t border-gray-100 px-5 py-2.5 flex items-center justify-between text-xs text-gray-600">
-                                    <div className="flex items-center gap-1.5">
-                                        <Shield className="w-4 h-4 text-indigo-500" />
+                                <div style={{ 
+                                    background: 'rgba(0, 0, 0, 0.2)', 
+                                    borderTop: '1px solid rgba(255, 255, 255, 0.06)', 
+                                    padding: '0.6rem 0.85rem', 
+                                    borderRadius: '10px',
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'space-between', 
+                                    fontSize: '0.75rem', 
+                                    color: 'var(--text-muted)' 
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                        <Shield size={14} style={{ color: '#818cf8' }} />
                                         <span>Seguro:</span>
-                                        <strong className="text-gray-800 font-medium">
+                                        <strong style={{ color: '#ffffff', fontWeight: 600 }}>
                                             {linkedInsurance ? linkedInsurance.name : 'No vinculado'}
                                         </strong>
                                     </div>
                                     {linkedInsurance && (
-                                        <span className="text-[10px] bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded font-medium">
+                                        <span style={{ fontSize: '0.65rem', background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
                                             {linkedInsurance.company}
                                         </span>
                                     )}

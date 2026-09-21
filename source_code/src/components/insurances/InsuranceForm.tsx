@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { Insurance } from '../../types/finance';
 import { useFinance } from '../../contexts/FinanceContext';
 import { Save, X, Shield, Phone, FileText, Calendar, DollarSign, Car, RefreshCw } from 'lucide-react';
+import ModalPortal from '../common/ModalPortal';
 
 interface InsuranceFormProps {
     insurance?: Insurance;
@@ -92,246 +93,348 @@ const InsuranceForm: React.FC<InsuranceFormProps> = ({ insurance, onClose }) => 
         onClose();
     };
 
+    const inputStyle: React.CSSProperties = {
+        width: '100%',
+        padding: '0.65rem 0.85rem',
+        background: 'rgba(255, 255, 255, 0.05)',
+        border: '1px solid rgba(255, 255, 255, 0.12)',
+        borderRadius: '10px',
+        color: '#ffffff',
+        fontSize: '0.85rem',
+        outline: 'none'
+    };
+
+    const labelStyle: React.CSSProperties = {
+        display: 'block',
+        fontSize: '0.75rem',
+        fontWeight: 600,
+        color: 'var(--text-muted)',
+        marginBottom: '4px'
+    };
+
+    const sectionTitleStyle: React.CSSProperties = {
+        fontSize: '0.8rem',
+        fontWeight: 800,
+        color: '#818cf8',
+        textTransform: 'uppercase',
+        letterSpacing: '0.05em',
+        marginBottom: '0.85rem',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.4rem'
+    };
+
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-            <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6 my-8 max-h-[90vh] overflow-y-auto">
-                <div className="flex justify-between items-center pb-4 border-b border-gray-100 mb-4">
-                    <div className="flex items-center space-x-2">
-                        <Shield className="w-6 h-6 text-indigo-600" />
-                        <h2 className="text-xl font-bold text-gray-800">
-                            {insurance ? 'Editar Seguro' : 'Nuevo Seguro'}
-                        </h2>
-                    </div>
-                    <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-lg text-gray-500">
-                        <X className="w-5 h-5" />
-                    </button>
-                </div>
-
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Datos Generales */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-1">Nombre / Identificador *</label>
-                            <input
-                                type="text"
-                                required
-                                placeholder="Ej. Seguro Coche, Seguro Hogar"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm"
-                            />
+        <ModalPortal>
+            <div style={{
+                position: 'fixed',
+                inset: 0,
+                backgroundColor: 'rgba(15, 23, 42, 0.75)',
+                backdropFilter: 'blur(8px)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '1rem',
+                zIndex: 99999,
+                overflowY: 'auto'
+            }}>
+                <div className="glass-panel" style={{
+                    background: '#1e293b',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    borderRadius: '20px',
+                    width: '100%',
+                    maxWidth: '640px',
+                    maxHeight: '90vh',
+                    overflowY: 'auto',
+                    padding: '1.5rem',
+                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+                }}>
+                    {/* Header Modal */}
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        paddingBottom: '1rem',
+                        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                        marginBottom: '1.25rem'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                            <Shield size={22} style={{ color: '#818cf8' }} />
+                            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#ffffff', margin: 0 }}>
+                                {insurance ? 'Editar Seguro' : 'Nuevo Seguro'}
+                            </h2>
                         </div>
-                        <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-1">Compañía Aseguradora</label>
-                            <input
-                                type="text"
-                                placeholder="Ej. Mapfre, Línea Directa, Allianz"
-                                value={company}
-                                onChange={(e) => setCompany(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-1 flex items-center gap-1">
-                                <FileText className="w-3.5 h-3.5 text-gray-400" /> Número de Póliza
-                            </label>
-                            <input
-                                type="text"
-                                placeholder="Ej. POL-987654321"
-                                value={policyNumber}
-                                onChange={(e) => setPolicyNumber(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-1 flex items-center gap-1">
-                                <Phone className="w-3.5 h-3.5 text-emerald-600" /> Teléfono de Asistencia / Grúa
-                            </label>
-                            <input
-                                type="text"
-                                placeholder="Ej. 900 123 456"
-                                value={contactPhone}
-                                onChange={(e) => setContactPhone(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-1">Tipo de Seguro</label>
-                            <select
-                                value={type}
-                                onChange={(e) => setType(e.target.value as any)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm"
-                            >
-                                <option value="vehicle">Vehículo (Coche/Moto)</option>
-                                <option value="home">Hogar / Vivienda</option>
-                                <option value="life">Vida</option>
-                                <option value="health">Salud / Médico</option>
-                                <option value="pet">Mascotas</option>
-                                <option value="death">Decesos</option>
-                                <option value="other">Otro</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-1">Franquicia (€)</label>
-                            <input
-                                type="number"
-                                min="0"
-                                placeholder="Ej. 150, 200 (dejar en blanco si no tiene)"
-                                value={deductible}
-                                onChange={(e) => setDeductible(e.target.value === '' ? '' : Number(e.target.value))}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm"
-                            />
-                        </div>
+                        <button
+                            onClick={onClose}
+                            style={{
+                                background: 'rgba(255, 255, 255, 0.05)',
+                                border: 'none',
+                                color: 'var(--text-muted)',
+                                padding: '0.4rem',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center'
+                            }}
+                        >
+                            <X size={18} />
+                        </button>
                     </div>
 
-                    {/* Vencimientos y Avisos */}
-                    <div className="border-t pt-4 border-gray-100">
-                        <h3 className="text-sm font-semibold text-indigo-700 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                            <Calendar className="w-4 h-4" /> Fechas de Vencimiento y Renovación
-                        </h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                        {/* Datos Generales */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.85rem' }}>
                             <div>
-                                <label className="block text-xs font-medium text-gray-700 mb-1">Fecha Vencimiento Póliza *</label>
+                                <label style={labelStyle}>Nombre / Identificador *</label>
                                 <input
-                                    type="date"
+                                    type="text"
                                     required
-                                    value={expirationDate}
-                                    onChange={(e) => handleExpirationChange(e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm"
+                                    placeholder="Ej. Seguro Coche, Seguro Hogar"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    style={inputStyle}
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-gray-700 mb-1">Fecha Inicio Avisos (60 días antes) *</label>
+                                <label style={labelStyle}>Compañía Aseguradora</label>
                                 <input
-                                    type="date"
-                                    required
-                                    value={renewalDate}
-                                    onChange={(e) => setRenewalDate(e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm"
+                                    type="text"
+                                    placeholder="Ej. Mapfre, Línea Directa, Allianz"
+                                    value={company}
+                                    onChange={(e) => setCompany(e.target.value)}
+                                    style={inputStyle}
                                 />
                             </div>
-                        </div>
-                    </div>
-
-                    {/* Importe y Gastos Fijos */}
-                    <div className="border-t pt-4 border-gray-100">
-                        <h3 className="text-sm font-semibold text-indigo-700 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                            <DollarSign className="w-4 h-4" /> Prima y Vinculación Financiera
-                        </h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-xs font-medium text-gray-700 mb-1">Prima Anual Total (€)</label>
+                                <label style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    <FileText size={14} style={{ color: 'var(--text-muted)' }} /> Número de Póliza
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="Ej. POL-987654321"
+                                    value={policyNumber}
+                                    onChange={(e) => setPolicyNumber(e.target.value)}
+                                    style={inputStyle}
+                                />
+                            </div>
+                            <div>
+                                <label style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    <Phone size={14} style={{ color: '#10b981' }} /> Teléfono de Asistencia / Grúa
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="Ej. 900 123 456"
+                                    value={contactPhone}
+                                    onChange={(e) => setContactPhone(e.target.value)}
+                                    style={inputStyle}
+                                />
+                            </div>
+                            <div>
+                                <label style={labelStyle}>Tipo de Seguro</label>
+                                <select
+                                    value={type}
+                                    onChange={(e) => setType(e.target.value as any)}
+                                    style={{ ...inputStyle, color: '#ffffff', background: '#0f172a' }}
+                                >
+                                    <option value="vehicle">Vehículo (Coche/Moto)</option>
+                                    <option value="home">Hogar / Vivienda</option>
+                                    <option value="life">Vida</option>
+                                    <option value="health">Salud / Médico</option>
+                                    <option value="pet">Mascotas</option>
+                                    <option value="death">Decesos</option>
+                                    <option value="other">Otro</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style={labelStyle}>Franquicia (€)</label>
                                 <input
                                     type="number"
-                                    step="0.01"
                                     min="0"
-                                    value={annualPremium}
-                                    onChange={(e) => setAnnualPremium(Number(e.target.value))}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm font-semibold text-indigo-950"
+                                    placeholder="Ej. 150 (dejar en blanco si no tiene)"
+                                    value={deductible}
+                                    onChange={(e) => setDeductible(e.target.value === '' ? '' : Number(e.target.value))}
+                                    style={inputStyle}
                                 />
                             </div>
-                            <div>
-                                <label className="block text-xs font-medium text-gray-700 mb-1">Frecuencia de Pago</label>
-                                <select
-                                    value={paymentFrequency}
-                                    onChange={(e) => setPaymentFrequency(e.target.value as any)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm"
-                                >
-                                    <option value="yearly">Anual</option>
-                                    <option value="semi-annually">Semestral</option>
-                                    <option value="quarterly">Trimestral</option>
-                                    <option value="monthly">Mensual</option>
-                                </select>
-                            </div>
+                        </div>
 
-                            <div className="sm:col-span-2">
-                                <label className="block text-xs font-medium text-gray-700 mb-1 flex items-center gap-1">
-                                    <RefreshCw className="w-3.5 h-3.5 text-indigo-500" /> Vincular a Gasto Fijo / Recurrente
-                                </label>
-                                <select
-                                    disabled={createNewRecurring}
-                                    value={recurringExpenseId}
-                                    onChange={(e) => setRecurringExpenseId(e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm disabled:opacity-50"
-                                >
-                                    <option value="">-- Sin vincular a gasto fijo --</option>
-                                    {recurringExpenses.map(re => (
-                                        <option key={re.id} value={re.id}>
-                                            {re.description} ({re.amount} € / {re.frequency})
-                                        </option>
-                                    ))}
-                                </select>
-                                <div className="mt-2 flex items-center gap-2">
+                        {/* Vencimientos y Avisos */}
+                        <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '1rem' }}>
+                            <span style={sectionTitleStyle}>
+                                <Calendar size={16} /> Vencimiento y Renovación
+                            </span>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.85rem' }}>
+                                <div>
+                                    <label style={labelStyle}>Fecha Vencimiento Póliza *</label>
                                     <input
-                                        type="checkbox"
-                                        id="createNewRec"
-                                        checked={createNewRecurring}
-                                        onChange={(e) => {
-                                            setCreateNewRecurring(e.target.checked);
-                                            if (e.target.checked) setRecurringExpenseId('');
-                                        }}
-                                        className="rounded text-indigo-600 focus:ring-indigo-500"
+                                        type="date"
+                                        required
+                                        value={expirationDate}
+                                        onChange={(e) => handleExpirationChange(e.target.value)}
+                                        style={inputStyle}
                                     />
-                                    <label htmlFor="createNewRec" className="text-xs text-gray-700">
-                                        Crear automáticamente un nuevo Gasto Fijo con esta cuota
-                                    </label>
+                                </div>
+                                <div>
+                                    <label style={labelStyle}>Inicio Avisos (60 días antes) *</label>
+                                    <input
+                                        type="date"
+                                        required
+                                        value={renewalDate}
+                                        onChange={(e) => setRenewalDate(e.target.value)}
+                                        style={inputStyle}
+                                    />
                                 </div>
                             </div>
+                        </div>
 
-                            {type === 'vehicle' && (
-                                <div className="sm:col-span-2">
-                                    <label className="block text-xs font-medium text-gray-700 mb-1 flex items-center gap-1">
-                                        <Car className="w-3.5 h-3.5 text-indigo-500" /> Vehículo Vinculado
+                        {/* Prima y Vinculación Financiera */}
+                        <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '1rem' }}>
+                            <span style={sectionTitleStyle}>
+                                <DollarSign size={16} /> Prima y Vinculación Financiera
+                            </span>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.85rem' }}>
+                                <div>
+                                    <label style={labelStyle}>Prima Anual Total (€)</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        value={annualPremium}
+                                        onChange={(e) => setAnnualPremium(Number(e.target.value))}
+                                        style={{ ...inputStyle, fontSize: '1rem', fontWeight: 800, color: '#818cf8' }}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={labelStyle}>Frecuencia de Pago</label>
+                                    <select
+                                        value={paymentFrequency}
+                                        onChange={(e) => setPaymentFrequency(e.target.value as any)}
+                                        style={{ ...inputStyle, color: '#ffffff', background: '#0f172a' }}
+                                    >
+                                        <option value="yearly">Anual</option>
+                                        <option value="semi-annually">Semestral</option>
+                                        <option value="quarterly">Trimestral</option>
+                                        <option value="monthly">Mensual</option>
+                                    </select>
+                                </div>
+
+                                <div style={{ gridColumn: '1 / -1' }}>
+                                    <label style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <RefreshCw size={14} style={{ color: '#818cf8' }} /> Vincular a Gasto Fijo / Recurrente
                                     </label>
                                     <select
-                                        value={vehicleId}
-                                        onChange={(e) => setVehicleId(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm"
+                                        disabled={createNewRecurring}
+                                        value={recurringExpenseId}
+                                        onChange={(e) => setRecurringExpenseId(e.target.value)}
+                                        style={{ ...inputStyle, color: '#ffffff', background: '#0f172a', opacity: createNewRecurring ? 0.4 : 1 }}
                                     >
-                                        <option value="">-- Seleccionar vehículo --</option>
-                                        {vehicles.map(v => (
-                                            <option key={v.id} value={v.id}>
-                                                {v.name} ({v.licensePlate || `${v.brand} ${v.model}`})
+                                        <option value="">-- Sin vincular a gasto fijo --</option>
+                                        {recurringExpenses.map(re => (
+                                            <option key={re.id} value={re.id}>
+                                                {re.description} ({re.amount} € / {re.frequency})
                                             </option>
                                         ))}
                                     </select>
+                                    <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <input
+                                            type="checkbox"
+                                            id="createNewRec"
+                                            checked={createNewRecurring}
+                                            onChange={(e) => {
+                                                setCreateNewRecurring(e.target.checked);
+                                                if (e.target.checked) setRecurringExpenseId('');
+                                            }}
+                                            style={{ cursor: 'pointer' }}
+                                        />
+                                        <label htmlFor="createNewRec" style={{ fontSize: '0.75rem', color: '#e2e8f0', cursor: 'pointer' }}>
+                                            Crear automáticamente un nuevo Gasto Fijo con esta cuota
+                                        </label>
+                                    </div>
                                 </div>
-                            )}
+
+                                {type === 'vehicle' && (
+                                    <div style={{ gridColumn: '1 / -1' }}>
+                                        <label style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                            <Car size={14} style={{ color: '#818cf8' }} /> Vehículo Vinculado
+                                        </label>
+                                        <select
+                                            value={vehicleId}
+                                            onChange={(e) => setVehicleId(e.target.value)}
+                                            style={{ ...inputStyle, color: '#ffffff', background: '#0f172a' }}
+                                        >
+                                            <option value="">-- Seleccionar vehículo --</option>
+                                            {vehicles.map(v => (
+                                                <option key={v.id} value={v.id}>
+                                                    {v.name} ({v.licensePlate || `${v.brand} ${v.model}`})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    </div>
 
-                    {/* Observaciones */}
-                    <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Notas / Observaciones</label>
-                        <textarea
-                            rows={2}
-                            placeholder="Ej. Cobertura de cristales, vehículo sustitutivo, condicionado especial..."
-                            value={notes}
-                            onChange={(e) => setNotes(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 text-sm"
-                        />
-                    </div>
+                        {/* Observaciones */}
+                        <div>
+                            <label style={labelStyle}>Notas / Observaciones</label>
+                            <textarea
+                                rows={2}
+                                placeholder="Ej. Cobertura de cristales, vehículo sustitutivo..."
+                                value={notes}
+                                onChange={(e) => setNotes(e.target.value)}
+                                style={{ ...inputStyle, resize: 'vertical' }}
+                            />
+                        </div>
 
-                    {/* Botones de acción */}
-                    <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
-                        >
-                            Cancelar
-                        </button>
-                        <button
-                            type="submit"
-                            className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 flex items-center space-x-2"
-                        >
-                            <Save className="w-4 h-4" />
-                            <span>Guardar Seguro</span>
-                        </button>
-                    </div>
-                </form>
+                        {/* Botones de acción */}
+                        <div style={{
+                            display: 'flex',
+                            justifyContent: 'flex-end',
+                            gap: '0.75rem',
+                            paddingTop: '1rem',
+                            borderTop: '1px solid rgba(255, 255, 255, 0.08)'
+                        }}>
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                style={{
+                                    padding: '0.65rem 1.25rem',
+                                    borderRadius: '10px',
+                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                    background: 'rgba(255, 255, 255, 0.05)',
+                                    color: '#ffffff',
+                                    fontSize: '0.85rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                type="submit"
+                                style={{
+                                    padding: '0.65rem 1.25rem',
+                                    borderRadius: '10px',
+                                    border: 'none',
+                                    background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                                    color: 'white',
+                                    fontSize: '0.85rem',
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.4rem',
+                                    boxShadow: '0 4px 14px rgba(99, 102, 241, 0.35)'
+                                }}
+                            >
+                                <Save size={16} />
+                                <span>Guardar Seguro</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </div>
+        </ModalPortal>
     );
 };
 

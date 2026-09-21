@@ -5,6 +5,13 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.7.1',
+    releaseNotes: `Novedades v2.7.1:
+- 🎨 Rediseño Nativo Glassmorphism: Integración estética completa de "Mis Vehículos" y "Mis Seguros" con el diseño oscuro traslúcido de PCS Hogar.
+- 🔔 Alerta Inteligente en Dashboard: Recomendación sutil cuando existen seguros de vehículos sin vehículo registrado.
+- 📱 Modales Optimizados: Formularios emergentes integrados con ventanas traslúcidas (ModalPortal).`
+  },
+  {
     version: '2.7.0',
     releaseNotes: `Novedades v2.7.0:
 - 🚘 Nuevo Módulo "Mis Vehículos": Pestaña en Gestión y Ajustes con control de kilometraje, revisiones por km o tiempo (lo que ocurra antes), caducidad de neumáticos e ITV.

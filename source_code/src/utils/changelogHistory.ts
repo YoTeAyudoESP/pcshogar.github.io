@@ -5,6 +5,14 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.7.5',
+    releaseNotes: `Novedades v2.7.5:
+- 🚗 Vinculación Retroactiva de Vehículos: Ahora puedes editar cualquier gasto pasado pagado y asignarlo o reasignarlo a un vehículo específico.
+- 🔁 Vehículos en Gastos Fijos con Auto-Detección: Asignación manual de vehículo en gastos fijos y vinculación automática directa si el gasto pertenece a un seguro asociado a vehículo.
+- 🏷️ Subtipo Explícito de Gasto de Vehículo: Clasificación precisa (Combustible, Taller/Mantenimiento, Seguro, Impuestos/Multas, Otros) con sugerencia inteligente basada en categoría/concepto.
+- 🏛️ Desglose de Impuestos, Tasas y Multas: Nueva sección dedicada en la tarjeta de cada vehículo para seguimiento de IVTM, tasas municipales y sanciones por periodos.`
+  },
+  {
     version: '2.7.4',
     releaseNotes: `Novedades v2.7.4:
 - 🛡️ Nuevo Módulo "Garantías Hogar": Pestaña dedicada en Gestión y Ajustes para registrar electrodomésticos, tecnología y compras del hogar con facturas/tickets adjuntos (vista previa en 1 clic).

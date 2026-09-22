@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import type { Vehicle } from '../../types/finance';
 import { useFinance } from '../../contexts/FinanceContext';
 import VehicleForm from './VehicleForm';
-import { Car, Plus, Wrench, Gauge, Calendar, Shield, Trash2, Edit, AlertTriangle, CheckCircle, ChevronDown, ChevronUp, DollarSign, Fuel } from 'lucide-react';
+import { Car, Plus, Wrench, Gauge, Calendar, Shield, Trash2, Edit, AlertTriangle, CheckCircle, ChevronDown, ChevronUp, DollarSign, Fuel, Landmark } from 'lucide-react';
 
 const VehicleList: React.FC = () => {
     const { vehicles, deleteVehicle, updateVehicle, insurances, expenses, categories } = useFinance();
@@ -72,6 +72,7 @@ const VehicleList: React.FC = () => {
         let fuel = 0;
         let maintenance = 0;
         let insurance = 0;
+        let taxFine = 0;
         let other = 0;
 
         vhExpenses.forEach(exp => {
@@ -80,8 +81,25 @@ const VehicleList: React.FC = () => {
             const categoryLower = (catObj?.name || '').toLowerCase();
             const conceptLower = (exp.description || '').toLowerCase();
 
-            if (exp.insuranceId === insuranceId || categoryLower.includes('seguro')) {
+            if (exp.vehicleExpenseType === 'insurance') {
                 insurance += amount;
+            } else if (exp.vehicleExpenseType === 'fuel') {
+                fuel += amount;
+            } else if (exp.vehicleExpenseType === 'maintenance') {
+                maintenance += amount;
+            } else if (exp.vehicleExpenseType === 'tax_fine') {
+                taxFine += amount;
+            } else if (exp.vehicleExpenseType === 'other') {
+                other += amount;
+            } else if (exp.insuranceId === insuranceId || categoryLower.includes('seguro')) {
+                insurance += amount;
+            } else if (
+                categoryLower.includes('impuesto') || categoryLower.includes('multa') || 
+                categoryLower.includes('tasa') || categoryLower.includes('ivtm') ||
+                conceptLower.includes('impuesto') || conceptLower.includes('multa') || 
+                conceptLower.includes('tasa') || conceptLower.includes('rodaje') || conceptLower.includes('ivtm')
+            ) {
+                taxFine += amount;
             } else if (categoryLower.includes('gasolina') || categoryLower.includes('combustible') || conceptLower.includes('gasolina') || conceptLower.includes('repost')) {
                 fuel += amount;
             } else if (categoryLower.includes('taller') || categoryLower.includes('mantenimiento') || categoryLower.includes('itv') || categoryLower.includes('neumatic')) {
@@ -91,7 +109,7 @@ const VehicleList: React.FC = () => {
             }
         });
 
-        return { fuel, maintenance, insurance, other, total: fuel + maintenance + insurance + other };
+        return { fuel, maintenance, insurance, taxFine, other, total: fuel + maintenance + insurance + taxFine + other };
     };
 
     return (
@@ -483,6 +501,12 @@ const VehicleList: React.FC = () => {
                                                         <Shield size={12} style={{ color: '#818cf8' }} /> Seguro:
                                                     </span>
                                                     <strong>{costs.insurance.toFixed(2)} €</strong>
+                                                </div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#e2e8f0' }}>
+                                                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                        <Landmark size={12} style={{ color: '#ec4899' }} /> Impuestos, Tasas y Multas:
+                                                    </span>
+                                                    <strong>{costs.taxFine.toFixed(2)} €</strong>
                                                 </div>
                                                 {costs.other > 0 && (
                                                     <div style={{ display: 'flex', justifyContent: 'space-between', color: '#e2e8f0' }}>

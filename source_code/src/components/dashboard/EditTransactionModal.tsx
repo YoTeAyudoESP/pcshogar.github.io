@@ -15,7 +15,7 @@ interface EditTransactionModalProps {
 }
 
 const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction, type, lockStatusToPending, onClose }) => {
-    const { updateIncome, updateExpense, accounts, cards, categories, savings, loans = [], expenses = [] } = useFinance();
+    const { updateIncome, updateExpense, accounts, cards, categories, savings, loans = [], expenses = [], vehicles = [] } = useFinance();
     
     const isRefund = type === 'expense' && (transaction as Expense).amount < 0;
 
@@ -33,6 +33,14 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction
     });
     
     // Expense specific fields
+    const [vehicleId, setVehicleId] = useState(() => {
+        if (type !== 'expense') return '';
+        return (transaction as Expense).vehicleId || '';
+    });
+    const [vehicleExpenseType, setVehicleExpenseType] = useState<'fuel' | 'maintenance' | 'insurance' | 'tax_fine' | 'other'>(() => {
+        if (type !== 'expense') return 'other';
+        return (transaction as Expense).vehicleExpenseType || 'other';
+    });
     const [paymentMethodType, setPaymentMethodType] = useState<'account' | 'card' | 'cash'>(
         type === 'expense' ? (transaction as Expense).paymentMethod.type : 'account'
     );
@@ -56,6 +64,24 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction
         return !!((exp.savingGoalFunding && exp.savingGoalFunding.length > 0) || exp.linkedSavingGoalId);
     });
     const [isHuchaConfigOpen, setIsHuchaConfigOpen] = useState(false);
+
+    // Auto-sugerencia del tipo de gasto del vehículo
+    useEffect(() => {
+        if (!vehicleId) return;
+        const catObj = categories.find(c => c.id === categoryId);
+        const catName = (catObj?.name || '').toLowerCase();
+        const desc = (description || '').toLowerCase();
+
+        if (catName.includes('seguro') || desc.includes('seguro')) {
+            setVehicleExpenseType('insurance');
+        } else if (catName.includes('gasolina') || catName.includes('combustible') || desc.includes('gasolina') || desc.includes('diesel') || desc.includes('repost')) {
+            setVehicleExpenseType('fuel');
+        } else if (catName.includes('taller') || catName.includes('mantenimiento') || catName.includes('itv') || desc.includes('taller') || desc.includes('mantenimiento') || desc.includes('reparac') || desc.includes('neumat')) {
+            setVehicleExpenseType('maintenance');
+        } else if (catName.includes('impuesto') || catName.includes('tasa') || catName.includes('multa') || desc.includes('impuesto') || desc.includes('ivtm') || desc.includes('circula') || desc.includes('multa') || desc.includes('peaje') || desc.includes('parking') || desc.includes('zona azul')) {
+            setVehicleExpenseType('tax_fine');
+        }
+    }, [vehicleId, categoryId, description, categories]);
 
     const [selectedHuchas, setSelectedHuchas] = useState<Record<string, boolean>>(() => {
         if (type !== 'expense') return {};
@@ -197,6 +223,8 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction
                     amount: finalAmount,
                     date: new Date(date).getTime(),
                     categoryId,
+                    vehicleId: vehicleId || undefined,
+                    vehicleExpenseType: vehicleId ? vehicleExpenseType : undefined,
                     paymentMethod,
                     status,
                     isSettled,
@@ -312,6 +340,36 @@ const EditTransactionModal: React.FC<EditTransactionModalProps> = ({ transaction
                             </div>
                         )}
                     </div>
+
+                    {type === 'expense' && vehicles.length > 0 && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            <div>
+                                <label style={labelStyle}>Vehículo Vinculado (Opcional)</label>
+                                <select style={inputStyle} value={vehicleId} onChange={e => setVehicleId(e.target.value)}>
+                                    <option value="">-- Sin vehículo asignado --</option>
+                                    {vehicles.map(v => (
+                                        <option key={v.id} value={v.id}>{v.name} ({v.brand} {v.model})</option>
+                                    ))}
+                                </select>
+                            </div>
+                            {vehicleId && (
+                                <div>
+                                    <label style={labelStyle}>Tipo de Gasto del Vehículo</label>
+                                    <select 
+                                        style={{ ...inputStyle, background: 'rgba(99, 102, 241, 0.1)', borderColor: 'rgba(99, 102, 241, 0.3)' }} 
+                                        value={vehicleExpenseType} 
+                                        onChange={e => setVehicleExpenseType(e.target.value as any)}
+                                    >
+                                        <option value="fuel">⛽ Combustible / Repostaje</option>
+                                        <option value="maintenance">🛠️ Taller, Mantenimiento e ITV</option>
+                                        <option value="insurance">🛡️ Seguro de Vehículo</option>
+                                        <option value="tax_fine">🏛️ Impuestos, Tasas y Multas (IVTM, Parkings, Peajes)</option>
+                                        <option value="other">➕ Otros Gastos de Vehículo</option>
+                                    </select>
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     {type === 'expense' && (
                         <>

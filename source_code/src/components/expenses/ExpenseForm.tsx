@@ -24,6 +24,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [categoryId, setCategoryId] = useState('');
     const [vehicleId, setVehicleId] = useState('');
+    const [vehicleExpenseType, setVehicleExpenseType] = useState<'fuel' | 'maintenance' | 'insurance' | 'tax_fine' | 'other'>('other');
     const [paymentMethodType, setPaymentMethodType] = useState<'account' | 'card' | 'cash'>('account');
     const [selectedMethodId, setSelectedMethodId] = useState('');
     const [status, setStatus] = useState<'paid' | 'pending'>('paid');
@@ -46,6 +47,24 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
             setCategoryId(expenseCategories[0].id);
         }
     }, [expenseCategories, categoryId]);
+
+    // Auto-sugerencia inteligente del tipo de gasto del vehículo
+    useEffect(() => {
+        if (!vehicleId) return;
+        const catObj = categories.find(c => c.id === categoryId);
+        const catName = (catObj?.name || '').toLowerCase();
+        const desc = (description || '').toLowerCase();
+
+        if (catName.includes('seguro') || desc.includes('seguro')) {
+            setVehicleExpenseType('insurance');
+        } else if (catName.includes('gasolina') || catName.includes('combustible') || desc.includes('gasolina') || desc.includes('diesel') || desc.includes('repost')) {
+            setVehicleExpenseType('fuel');
+        } else if (catName.includes('taller') || catName.includes('mantenimiento') || catName.includes('itv') || desc.includes('taller') || desc.includes('mantenimiento') || desc.includes('reparac') || desc.includes('neumat')) {
+            setVehicleExpenseType('maintenance');
+        } else if (catName.includes('impuesto') || catName.includes('tasa') || catName.includes('multa') || desc.includes('impuesto') || desc.includes('ivtm') || desc.includes('circula') || desc.includes('multa') || desc.includes('peaje') || desc.includes('parking') || desc.includes('zona azul')) {
+            setVehicleExpenseType('tax_fine');
+        }
+    }, [vehicleId, categoryId, description, categories]);
 
     useEffect(() => {
         if (paymentMethodType === 'account' && accounts.length === 1) {
@@ -130,6 +149,8 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                 paymentDay: parseInt(paymentDay) || 1,
                 active: true,
                 categoryId,
+                vehicleId: vehicleId || undefined,
+                vehicleExpenseType: vehicleId ? vehicleExpenseType : undefined,
                 paymentMethod,
                 sourceAccountId: paymentMethodType === 'account' ? selectedMethodId : undefined
             });
@@ -145,6 +166,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                     date: dateObj.getTime(),
                     categoryId,
                     vehicleId: vehicleId || undefined,
+                    vehicleExpenseType: vehicleId ? vehicleExpenseType : undefined,
                     paymentMethod,
                     isFixed: true,
                     status: 'paid',
@@ -166,6 +188,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                 date: new Date(date).getTime(),
                 categoryId,
                 vehicleId: vehicleId || undefined,
+                vehicleExpenseType: vehicleId ? vehicleExpenseType : undefined,
                 paymentMethod,
                 isFixed: false,
                 status,
@@ -406,14 +429,32 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                     </div>
 
                     {vehicles.length > 0 && (
-                        <div>
-                            <label style={labelStyle}>Vehículo Vinculado (Opcional)</label>
-                            <select style={inputStyle} value={vehicleId} onChange={e => setVehicleId(e.target.value)}>
-                                <option value="">-- Sin vehículo asignado --</option>
-                                {vehicles.map(v => (
-                                    <option key={v.id} value={v.id}>{v.name} ({v.brand} {v.model})</option>
-                                ))}
-                            </select>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            <div>
+                                <label style={labelStyle}>Vehículo Vinculado (Opcional)</label>
+                                <select style={inputStyle} value={vehicleId} onChange={e => setVehicleId(e.target.value)}>
+                                    <option value="">-- Sin vehículo asignado --</option>
+                                    {vehicles.map(v => (
+                                        <option key={v.id} value={v.id}>{v.name} ({v.brand} {v.model})</option>
+                                    ))}
+                                </select>
+                            </div>
+                            {vehicleId && (
+                                <div>
+                                    <label style={labelStyle}>Tipo de Gasto del Vehículo</label>
+                                    <select 
+                                        style={{ ...inputStyle, background: 'rgba(99, 102, 241, 0.1)', borderColor: 'rgba(99, 102, 241, 0.3)' }} 
+                                        value={vehicleExpenseType} 
+                                        onChange={e => setVehicleExpenseType(e.target.value as any)}
+                                    >
+                                        <option value="fuel">⛽ Combustible / Repostaje</option>
+                                        <option value="maintenance">🛠️ Taller, Mantenimiento e ITV</option>
+                                        <option value="insurance">🛡️ Seguro de Vehículo</option>
+                                        <option value="tax_fine">🏛️ Impuestos, Tasas y Multas (IVTM, Parkings, Peajes)</option>
+                                        <option value="other">➕ Otros Gastos de Vehículo</option>
+                                    </select>
+                                </div>
+                            )}
                         </div>
                     )}
 

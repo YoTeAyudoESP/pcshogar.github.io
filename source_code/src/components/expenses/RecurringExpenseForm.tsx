@@ -10,7 +10,7 @@ interface RecurringExpenseFormProps {
 }
 
 const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpense, onClose, onNavigateToSettings }) => {
-    const { addRecurringExpense, updateRecurringExpense, accounts, cards, categories, loans, savings } = useFinance();
+    const { addRecurringExpense, updateRecurringExpense, accounts, cards, categories, loans, savings, vehicles = [], insurances = [] } = useFinance();
     const expenseCategories = categories
         .filter(c => c.type === 'expense')
         .sort((a, b) => a.name.localeCompare(b.name, 'es', { sensitivity: 'base' }));
@@ -22,6 +22,8 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
     const [paymentDay, setPaymentDay] = useState(editingExpense?.paymentDay?.toString() || '1');
     const [paymentMonth, setPaymentMonth] = useState(editingExpense?.paymentMonth?.toString() || '1');
     const [categoryId, setCategoryId] = useState(editingExpense?.categoryId || expenseCategories[0]?.id || '');
+    const [vehicleId, setVehicleId] = useState(editingExpense?.vehicleId || '');
+    const [vehicleExpenseType, setVehicleExpenseType] = useState<'fuel' | 'maintenance' | 'insurance' | 'tax_fine' | 'other'>(editingExpense?.vehicleExpenseType || 'other');
     const [financingSavingGoalId, setFinancingSavingGoalId] = useState(editingExpense?.financingSavingGoalId || '');
     
     // Payment Method State
@@ -37,6 +39,38 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
     const hasNoLoans = (loans || []).filter(l => l.status === 'active' && !(l.isPaid || (l.currentDebt ?? 0) <= 0)).length === 0;
     const showLoansWarning = categoryId === 'cat_loans' && hasNoLoans;
     const isFormBlocked = hasNoAccounts || showLoansWarning;
+
+    // Auto-detectar vehículo vinculado desde Seguros
+    useEffect(() => {
+        if (editingExpense?.id) {
+            const linkedIns = insurances.find(ins => 
+                ins.recurringExpenseId === editingExpense.id || 
+                ins.linkedRecurringExpenseIds?.includes(editingExpense.id)
+            );
+            if (linkedIns && linkedIns.vehicleId && !vehicleId) {
+                setVehicleId(linkedIns.vehicleId);
+                setVehicleExpenseType('insurance');
+            }
+        }
+    }, [editingExpense, insurances, vehicleId]);
+
+    // Auto-sugerencia inteligente del tipo de gasto del vehículo
+    useEffect(() => {
+        if (!vehicleId) return;
+        const catObj = categories.find(c => c.id === categoryId);
+        const catName = (catObj?.name || '').toLowerCase();
+        const desc = (description || '').toLowerCase();
+
+        if (catName.includes('seguro') || desc.includes('seguro')) {
+            setVehicleExpenseType('insurance');
+        } else if (catName.includes('gasolina') || catName.includes('combustible') || desc.includes('gasolina') || desc.includes('diesel') || desc.includes('repost')) {
+            setVehicleExpenseType('fuel');
+        } else if (catName.includes('taller') || catName.includes('mantenimiento') || catName.includes('itv') || desc.includes('taller') || desc.includes('mantenimiento') || desc.includes('reparac') || desc.includes('neumat')) {
+            setVehicleExpenseType('maintenance');
+        } else if (catName.includes('impuesto') || catName.includes('tasa') || catName.includes('multa') || desc.includes('impuesto') || desc.includes('ivtm') || desc.includes('circula') || desc.includes('multa') || desc.includes('peaje') || desc.includes('parking') || desc.includes('zona azul')) {
+            setVehicleExpenseType('tax_fine');
+        }
+    }, [vehicleId, categoryId, description, categories]);
 
     useEffect(() => {
         const handleBack = (e: Event) => {

@@ -64,6 +64,7 @@ export interface Expense {
     savingGoalFunding?: { goalId: string; amount: number }[];
     insuranceId?: string;
     vehicleId?: string;
+    vehicleExpenseType?: 'fuel' | 'maintenance' | 'insurance' | 'tax_fine' | 'other';
 }
 
 export interface Vehicle {
@@ -186,6 +187,7 @@ export interface RecurringExpense {
     ignoredPeriods?: string[]; // Array of strings like "2026-04"
     insuranceId?: string;
     vehicleId?: string;
+    vehicleExpenseType?: 'fuel' | 'maintenance' | 'insurance' | 'tax_fine' | 'other';
 }
 
 export interface Loan {

@@ -994,6 +994,8 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                 period,
                 recurringExpenseId: fixedId,
                 linkedSavingGoalId: recTemplate?.financingSavingGoalId,
+                vehicleId: recTemplate?.vehicleId,
+                vehicleExpenseType: recTemplate?.vehicleExpenseType,
                 updatedAt: Date.now()
             };
             await incomeDB.addExpenseWithTransaction(newExpense);

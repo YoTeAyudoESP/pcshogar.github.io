@@ -44,9 +44,10 @@ import {
 import SavingsView from '../savings/SavingsView';
 import VehicleList from '../vehicles/VehicleList';
 import InsuranceList from '../insurances/InsuranceList';
+import HomeWarrantyList from '../warranties/HomeWarrantyList';
 
 interface SettingsViewProps {
-    initialTab?: 'accounts' | 'savings' | 'recurring' | 'loans' | 'vehicles' | 'insurances' | 'balance' | 'categories' | 'app' | 'about' | 'users';
+    initialTab?: 'accounts' | 'savings' | 'recurring' | 'loans' | 'vehicles' | 'insurances' | 'warranties' | 'balance' | 'categories' | 'app' | 'about' | 'users';
 }
 
 const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) => {
@@ -196,6 +197,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
         { id: 'loans', label: 'Préstamos', icon: Landmark },
         { id: 'vehicles', label: 'Vehículos', icon: Car },
         { id: 'insurances', label: 'Seguros', icon: ShieldCheck },
+        { id: 'warranties', label: 'Garantías Hogar', icon: ShieldCheck },
         { id: 'categories', label: 'Categorías', icon: Tag },
         { id: 'balance', label: 'Ajustes Saldo', icon: RefreshCw },
         { id: 'app', label: 'Aplicación', icon: Monitor },
@@ -394,6 +396,10 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
 
                 {activeTab === 'insurances' && (
                     <InsuranceList />
+                )}
+
+                {activeTab === 'warranties' && (
+                    <HomeWarrantyList />
                 )}
 
                 {activeTab === 'recurring' && (

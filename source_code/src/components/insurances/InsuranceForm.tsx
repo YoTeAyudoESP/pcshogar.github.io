@@ -26,9 +26,9 @@ const InsuranceForm: React.FC<InsuranceFormProps> = ({ insurance, onClose }) => 
         insurance?.renewalDate ? new Date(insurance.renewalDate).toISOString().split('T')[0] : new Date(Date.now() + 305*24*60*60*1000).toISOString().split('T')[0]
     );
 
-    const [annualPremium, setAnnualPremium] = useState<number>(insurance?.annualPremium || 0);
+    const [annualPremium, setAnnualPremium] = useState<number | ''>(insurance?.annualPremium ?? '');
     const [paymentFrequency, setPaymentFrequency] = useState<Insurance['paymentFrequency']>(insurance?.paymentFrequency || 'yearly');
-    
+
     const [linkedExpenseIds, setLinkedExpenseIds] = useState<string[]>(
         insurance?.linkedRecurringExpenseIds || (insurance?.recurringExpenseId ? [insurance.recurringExpenseId] : [])
     );
@@ -60,7 +60,8 @@ const InsuranceForm: React.FC<InsuranceFormProps> = ({ insurance, onClose }) => 
 
         // Si el usuario marcó crear un nuevo Gasto Fijo automáticamente
         if (createNewRecurring) {
-            const monthlyPayment = paymentFrequency === 'yearly' ? annualPremium / 12 : (paymentFrequency === 'semi-annually' ? annualPremium / 6 : (paymentFrequency === 'quarterly' ? annualPremium / 4 : annualPremium));
+            const premiumNum = Number(annualPremium) || 0;
+            const monthlyPayment = paymentFrequency === 'yearly' ? premiumNum / 12 : (paymentFrequency === 'semi-annually' ? premiumNum / 6 : (paymentFrequency === 'quarterly' ? premiumNum / 4 : premiumNum));
             const newRecId = await addRecurringExpense({
                 description: `Seguro: ${name.trim()}`,
                 amount: Math.round(monthlyPayment * 100) / 100,
@@ -84,7 +85,7 @@ const InsuranceForm: React.FC<InsuranceFormProps> = ({ insurance, onClose }) => 
             deductible: deductible !== '' ? Number(deductible) : undefined,
             expirationDate: new Date(expirationDate).getTime(),
             renewalDate: new Date(renewalDate).getTime(),
-            annualPremium: Number(annualPremium) || 0,
+            annualPremium: annualPremium !== '' ? Number(annualPremium) : 0,
             paymentFrequency,
             recurringExpenseId: finalLinkedIds[0] || undefined,
             linkedRecurringExpenseIds: finalLinkedIds.length > 0 ? finalLinkedIds : undefined,
@@ -297,6 +298,19 @@ const InsuranceForm: React.FC<InsuranceFormProps> = ({ insurance, onClose }) => 
                                     />
                                 </div>
                             </div>
+                            <p style={{
+                                fontSize: '0.7rem',
+                                color: 'var(--text-muted)',
+                                background: 'rgba(99, 102, 241, 0.05)',
+                                border: '1px solid rgba(99, 102, 241, 0.15)',
+                                padding: '0.6rem 0.85rem',
+                                borderRadius: '8px',
+                                marginTop: '0.75rem',
+                                marginBottom: 0,
+                                lineHeight: '1.4'
+                            }}>
+                                ℹ️ <strong>Diferencia entre Fechas:</strong> La <em>Fecha de Vencimiento de la Póliza</em> es el fin contractual (usada para calcular los 60 días de preaviso para cancelar/cambiar de seguro). La <em>Fecha de Cobro Bancario</em> se configura independientemente en el <strong>Gasto Fijo vinculado</strong> para reflejar exactamente el día en que tu banco te cargará la cuota.
+                            </p>
                         </div>
 
                         {/* Prima y Vinculación Financiera */}
@@ -311,8 +325,9 @@ const InsuranceForm: React.FC<InsuranceFormProps> = ({ insurance, onClose }) => 
                                         type="number"
                                         step="0.01"
                                         min="0"
+                                        placeholder="Ej. 350.00"
                                         value={annualPremium}
-                                        onChange={(e) => setAnnualPremium(Number(e.target.value))}
+                                        onChange={(e) => setAnnualPremium(e.target.value === '' ? '' : Number(e.target.value))}
                                         style={{ ...inputStyle, fontSize: '1rem', fontWeight: 800, color: '#818cf8' }}
                                     />
                                 </div>

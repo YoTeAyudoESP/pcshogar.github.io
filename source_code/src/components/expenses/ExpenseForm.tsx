@@ -13,7 +13,7 @@ interface ExpenseFormProps {
 }
 
 const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, onNavigateToSettings }) => {
-    const { addExpense, addRecurringExpense, accounts, cards, categories, savings, loans = [], expenses = [] } = useFinance();
+    const { addExpense, addRecurringExpense, accounts, cards, categories, savings, loans = [], expenses = [], vehicles = [] } = useFinance();
     const expenseCategories = categories
         .filter(c => c.type === 'expense')
         .sort((a, b) => a.name.localeCompare(b.name, 'es', { sensitivity: 'base' }));
@@ -23,6 +23,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
     const [amount, setAmount] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [categoryId, setCategoryId] = useState('');
+    const [vehicleId, setVehicleId] = useState('');
     const [paymentMethodType, setPaymentMethodType] = useState<'account' | 'card' | 'cash'>('account');
     const [selectedMethodId, setSelectedMethodId] = useState('');
     const [status, setStatus] = useState<'paid' | 'pending'>('paid');
@@ -143,6 +144,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                     currency: 'EUR',
                     date: dateObj.getTime(),
                     categoryId,
+                    vehicleId: vehicleId || undefined,
                     paymentMethod,
                     isFixed: true,
                     status: 'paid',
@@ -163,6 +165,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                 currency: 'EUR',
                 date: new Date(date).getTime(),
                 categoryId,
+                vehicleId: vehicleId || undefined,
                 paymentMethod,
                 isFixed: false,
                 status,
@@ -401,6 +404,18 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                             </select>
                         </div>
                     </div>
+
+                    {vehicles.length > 0 && (
+                        <div>
+                            <label style={labelStyle}>Vehículo Vinculado (Opcional)</label>
+                            <select style={inputStyle} value={vehicleId} onChange={e => setVehicleId(e.target.value)}>
+                                <option value="">-- Sin vehículo asignado --</option>
+                                {vehicles.map(v => (
+                                    <option key={v.id} value={v.id}>{v.name} ({v.brand} {v.model})</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
 
                     <div style={{ display: 'flex', gap: '1rem' }}>
                         {paymentMethodType === 'card' && selectedMethodId && cards.find(c => c.id === selectedMethodId)?.type !== 'virtual' && (

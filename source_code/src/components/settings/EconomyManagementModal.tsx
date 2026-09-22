@@ -129,7 +129,7 @@ const EconomyManagementModal: React.FC<EconomyManagementModalProps> = ({ isOpen,
                 const emptyData = {
                     accounts: [], cards: [], expenses: [], incomes: [], recurring_expenses: [],
                     savings: [], allocations: [], loans: [], transfers: [],
-                    categories: [], closings: [], overrides: [], movements: [], vehicles: [], insurances: [], deleted_items: []
+                    categories: [], closings: [], overrides: [], movements: [], vehicles: [], insurances: [], warranties: [], deleted_items: []
                 };
                 if (syncType === 'dropbox') {
                     DropboxService.init(settings.sync.dropboxToken!, syncPath);

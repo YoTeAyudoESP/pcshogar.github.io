@@ -2,14 +2,16 @@ import React, { useState } from 'react';
 import type { Vehicle } from '../../types/finance';
 import { useFinance } from '../../contexts/FinanceContext';
 import VehicleForm from './VehicleForm';
-import { Car, Plus, Wrench, Gauge, Calendar, Shield, Trash2, Edit, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Car, Plus, Wrench, Gauge, Calendar, Shield, Trash2, Edit, AlertTriangle, CheckCircle, ChevronDown, ChevronUp, DollarSign, Fuel } from 'lucide-react';
 
 const VehicleList: React.FC = () => {
-    const { vehicles, deleteVehicle, updateVehicle, insurances } = useFinance();
+    const { vehicles, deleteVehicle, updateVehicle, insurances, expenses, categories } = useFinance();
     const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | undefined>(undefined);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [updatingKmVehicleId, setUpdatingKmVehicleId] = useState<string | null>(null);
     const [newKmInput, setNewKmInput] = useState<number>(0);
+    const [expandedVehicleExpenses, setExpandedVehicleExpenses] = useState<string | null>(null);
+    const [costPeriod, setCostPeriod] = useState<'month' | 'year' | 'last12' | 'all'>('year');
 
     const handleEdit = (vehicle: Vehicle) => {
         setSelectedVehicle(vehicle);
@@ -50,6 +52,48 @@ const VehicleList: React.FC = () => {
         }
     };
 
+    const getVehicleCosts = (vehicleId: string, insuranceId?: string) => {
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+        const startOfYear = new Date(now.getFullYear(), 0, 1).getTime();
+        const last12Months = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate()).getTime();
+
+        const vhExpenses = expenses.filter(exp => {
+            const isVehicleExpense = exp.vehicleId === vehicleId || (insuranceId && exp.insuranceId === insuranceId);
+            if (!isVehicleExpense) return false;
+
+            const expTime = new Date(exp.date).getTime();
+            if (costPeriod === 'month') return expTime >= startOfMonth;
+            if (costPeriod === 'year') return expTime >= startOfYear;
+            if (costPeriod === 'last12') return expTime >= last12Months;
+            return true;
+        });
+
+        let fuel = 0;
+        let maintenance = 0;
+        let insurance = 0;
+        let other = 0;
+
+        vhExpenses.forEach(exp => {
+            const amount = Math.abs(exp.amount);
+            const catObj = categories.find(c => c.id === exp.categoryId);
+            const categoryLower = (catObj?.name || '').toLowerCase();
+            const conceptLower = (exp.description || '').toLowerCase();
+
+            if (exp.insuranceId === insuranceId || categoryLower.includes('seguro')) {
+                insurance += amount;
+            } else if (categoryLower.includes('gasolina') || categoryLower.includes('combustible') || conceptLower.includes('gasolina') || conceptLower.includes('repost')) {
+                fuel += amount;
+            } else if (categoryLower.includes('taller') || categoryLower.includes('mantenimiento') || categoryLower.includes('itv') || categoryLower.includes('neumatic')) {
+                maintenance += amount;
+            } else {
+                other += amount;
+            }
+        });
+
+        return { fuel, maintenance, insurance, other, total: fuel + maintenance + insurance + other };
+    };
+
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             {/* Cabecera de Sección */}
@@ -67,7 +111,7 @@ const VehicleList: React.FC = () => {
                         <Car size={22} style={{ color: '#818cf8' }} /> Mis Vehículos
                     </h2>
                     <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
-                        Control preventivo de mantenimientos, kilometraje, neumáticos y vinculación con seguros.
+                        Control preventivo de mantenimientos, kilometraje, garantía, neumáticos y gastos acumulados.
                     </p>
                 </div>
                 <button
@@ -144,6 +188,15 @@ const VehicleList: React.FC = () => {
                         // Neumáticos
                         const tireKmUsed = vh.currentKm - (vh.tireInstallationKm || 0);
                         const tireKmLeft = (vh.tireEstimatedKm || 40000) - tireKmUsed;
+
+                        // Evaluación Garantía
+                        const hasWarrantyConfig = Boolean(vh.warrantyExpirationDate || vh.warrantyLimitKm);
+                        const isDateWarrantyExpired = vh.warrantyExpirationDate ? vh.warrantyExpirationDate < Date.now() : false;
+                        const isKmWarrantyExpired = vh.warrantyLimitKm ? vh.currentKm >= vh.warrantyLimitKm : false;
+                        const isWarrantyActive = hasWarrantyConfig && !isDateWarrantyExpired && !isKmWarrantyExpired;
+
+                        const isExpenseExpanded = expandedVehicleExpenses === vh.id;
+                        const costs = getVehicleCosts(vh.id, vh.insuranceId);
 
                         return (
                             <div 
@@ -323,8 +376,8 @@ const VehicleList: React.FC = () => {
                                         </p>
                                     </div>
 
-                                    {/* Neumáticos e ITV */}
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.75rem', borderTop: '1px solid rgba(255, 255, 255, 0.06)', paddingTop: '0.75rem' }}>
+                                    {/* Neumáticos, ITV y Garantía */}
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.75rem', borderTop: '1px solid rgba(255, 255, 255, 0.06)', paddingTop: '0.75rem', marginBottom: '0.75rem' }}>
                                         <div>
                                             <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.65rem', fontWeight: 600 }}>Neumáticos</span>
                                             <span style={{ fontWeight: 600, color: '#ffffff' }}>
@@ -337,7 +390,113 @@ const VehicleList: React.FC = () => {
                                                 {vh.nextItvDate ? new Date(vh.nextItvDate).toLocaleDateString('es-ES') : 'Sin fecha'}
                                             </span>
                                         </div>
+                                        <div style={{ gridColumn: '1 / -1' }}>
+                                            <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.65rem', fontWeight: 600 }}>Garantía del Fabricante</span>
+                                            {isWarrantyActive ? (
+                                                <span style={{ color: '#10b981', fontWeight: 700, fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                    <CheckCircle size={12} /> Vigente {vh.warrantyExpirationDate && `(hasta ${new Date(vh.warrantyExpirationDate).toLocaleDateString('es-ES')})`} {vh.warrantyLimitKm && `(${vh.warrantyLimitKm.toLocaleString('es-ES')} km max)`}
+                                                </span>
+                                            ) : hasWarrantyConfig ? (
+                                                <span style={{ color: '#f43f5e', fontWeight: 600, fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                    <AlertTriangle size={12} /> Fuera de Garantía {isKmWarrantyExpired ? '(por km)' : '(por fecha)'}
+                                                </span>
+                                            ) : (
+                                                <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.75rem' }}>
+                                                    Fuera de garantía / Sin configurar
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
+                                </div>
+
+                                {/* Desplegable Gastos Acumulados */}
+                                <div style={{ background: 'rgba(0, 0, 0, 0.2)', border: '1px solid rgba(255, 255, 255, 0.06)', borderRadius: '10px', overflow: 'hidden' }}>
+                                    <button
+                                        onClick={() => setExpandedVehicleExpenses(isExpenseExpanded ? null : vh.id)}
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.6rem 0.85rem',
+                                            background: 'transparent',
+                                            border: 'none',
+                                            color: '#ffffff',
+                                            fontSize: '0.75rem',
+                                            fontWeight: 700,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'space-between',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                            <DollarSign size={14} style={{ color: '#10b981' }} />
+                                            <span>Gastos del Vehículo ({costs.total.toLocaleString('es-ES', { minimumFractionDigits: 2 })} €)</span>
+                                        </span>
+                                        {isExpenseExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                                    </button>
+
+                                    {isExpenseExpanded && (
+                                        <div style={{ padding: '0.75rem 0.85rem', borderTop: '1px solid rgba(255, 255, 255, 0.06)', background: 'rgba(15, 23, 42, 0.4)' }}>
+                                            {/* Selector Periodo */}
+                                            <div style={{ display: 'flex', gap: '0.3rem', marginBottom: '0.75rem' }}>
+                                                {[
+                                                    { id: 'month', label: 'Este Mes' },
+                                                    { id: 'year', label: 'Año Actual' },
+                                                    { id: 'last12', label: '12 Meses' },
+                                                    { id: 'all', label: 'Histórico' }
+                                                ].map(p => (
+                                                    <button
+                                                        key={p.id}
+                                                        onClick={() => setCostPeriod(p.id as any)}
+                                                        style={{
+                                                            flex: 1,
+                                                            padding: '4px 2px',
+                                                            fontSize: '0.65rem',
+                                                            borderRadius: '6px',
+                                                            border: 'none',
+                                                            background: costPeriod === p.id ? '#6366f1' : 'rgba(255, 255, 255, 0.05)',
+                                                            color: costPeriod === p.id ? 'white' : 'var(--text-muted)',
+                                                            fontWeight: costPeriod === p.id ? 700 : 500,
+                                                            cursor: 'pointer'
+                                                        }}
+                                                    >
+                                                        {p.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+
+                                            {/* Breakdown items */}
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.75rem' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#e2e8f0' }}>
+                                                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                        <Fuel size={12} style={{ color: '#f59e0b' }} /> Combustible:
+                                                    </span>
+                                                    <strong>{costs.fuel.toFixed(2)} €</strong>
+                                                </div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#e2e8f0' }}>
+                                                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                        <Wrench size={12} style={{ color: '#3b82f6' }} /> Taller / Mantenimiento:
+                                                    </span>
+                                                    <strong>{costs.maintenance.toFixed(2)} €</strong>
+                                                </div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#e2e8f0' }}>
+                                                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                        <Shield size={12} style={{ color: '#818cf8' }} /> Seguro:
+                                                    </span>
+                                                    <strong>{costs.insurance.toFixed(2)} €</strong>
+                                                </div>
+                                                {costs.other > 0 && (
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#e2e8f0' }}>
+                                                        <span>Otros gastos:</span>
+                                                        <strong>{costs.other.toFixed(2)} €</strong>
+                                                    </div>
+                                                )}
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px dashed rgba(255, 255, 255, 0.1)', paddingTop: '0.4rem', marginTop: '0.2rem', color: '#ffffff', fontWeight: 800 }}>
+                                                    <span>Total Acumulado:</span>
+                                                    <span style={{ color: '#10b981' }}>{costs.total.toFixed(2)} €</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Footer con Seguro Vinculado */}

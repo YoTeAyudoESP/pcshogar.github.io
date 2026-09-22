@@ -15,29 +15,33 @@ const VehicleForm: React.FC<VehicleFormProps> = ({ vehicle, onClose }) => {
     const [name, setName] = useState(vehicle?.name || '');
     const [brand, setBrand] = useState(vehicle?.brand || '');
     const [model, setModel] = useState(vehicle?.model || '');
-    const [year, setYear] = useState<number>(vehicle?.year || new Date().getFullYear());
+    const [year, setYear] = useState<number | ''>(vehicle?.year || new Date().getFullYear());
     const [licensePlate, setLicensePlate] = useState(vehicle?.licensePlate || '');
     const [fuelType, setFuelType] = useState<Vehicle['fuelType']>(vehicle?.fuelType || 'gasoline');
-    const [currentKm, setCurrentKm] = useState<number>(vehicle?.currentKm || 0);
+    const [currentKm, setCurrentKm] = useState<number | ''>(vehicle?.currentKm ?? '');
     
     // Mantenimiento
-    const [lastMaintenanceKm, setLastMaintenanceKm] = useState<number>(vehicle?.lastMaintenanceKm || 0);
+    const [lastMaintenanceKm, setLastMaintenanceKm] = useState<number | ''>(vehicle?.lastMaintenanceKm ?? '');
     const [lastMaintenanceDate, setLastMaintenanceDate] = useState<string>(
         vehicle?.lastMaintenanceDate ? new Date(vehicle.lastMaintenanceDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
     );
-    const [maintenanceIntervalKm, setMaintenanceIntervalKm] = useState<number>(vehicle?.maintenanceIntervalKm || 15000);
-    const [maintenanceIntervalMonths, setMaintenanceIntervalMonths] = useState<number>(vehicle?.maintenanceIntervalMonths || 12);
+    const [maintenanceIntervalKm, setMaintenanceIntervalKm] = useState<number | ''>(vehicle?.maintenanceIntervalKm ?? 15000);
+    const [maintenanceIntervalMonths, setMaintenanceIntervalMonths] = useState<number | ''>(vehicle?.maintenanceIntervalMonths ?? 12);
 
     // Neumáticos
     const [tireBrand, setTireBrand] = useState(vehicle?.tireBrand || '');
     const [tireModel, setTireModel] = useState(vehicle?.tireModel || '');
-    const [tireInstallationKm, setTireInstallationKm] = useState<number>(vehicle?.tireInstallationKm || 0);
-    const [tireEstimatedKm, setTireEstimatedKm] = useState<number>(vehicle?.tireEstimatedKm || 40000);
+    const [tireInstallationKm, setTireInstallationKm] = useState<number | ''>(vehicle?.tireInstallationKm ?? '');
+    const [tireEstimatedKm, setTireEstimatedKm] = useState<number | ''>(vehicle?.tireEstimatedKm ?? 40000);
 
-    // ITV y Seguro
+    // ITV, Garantía y Seguro
     const [nextItvDate, setNextItvDate] = useState<string>(
         vehicle?.nextItvDate ? new Date(vehicle.nextItvDate).toISOString().split('T')[0] : ''
     );
+    const [warrantyExpirationDate, setWarrantyExpirationDate] = useState<string>(
+        vehicle?.warrantyExpirationDate ? new Date(vehicle.warrantyExpirationDate).toISOString().split('T')[0] : ''
+    );
+    const [warrantyLimitKm, setWarrantyLimitKm] = useState<number | ''>(vehicle?.warrantyLimitKm ?? '');
     const [insuranceId, setInsuranceId] = useState(vehicle?.insuranceId || '');
     const [notes, setNotes] = useState(vehicle?.notes || '');
 
@@ -73,16 +77,18 @@ const VehicleForm: React.FC<VehicleFormProps> = ({ vehicle, onClose }) => {
             year: Number(year) || new Date().getFullYear(),
             licensePlate: licensePlate.trim().toUpperCase(),
             fuelType,
-            currentKm: Number(currentKm) || 0,
-            lastMaintenanceKm: Number(lastMaintenanceKm) || 0,
+            currentKm: currentKm !== '' ? Number(currentKm) : 0,
+            lastMaintenanceKm: lastMaintenanceKm !== '' ? Number(lastMaintenanceKm) : 0,
             lastMaintenanceDate: lastMaintenanceDate ? new Date(lastMaintenanceDate).getTime() : Date.now(),
-            maintenanceIntervalKm: Number(maintenanceIntervalKm) || 15000,
-            maintenanceIntervalMonths: Number(maintenanceIntervalMonths) || 12,
+            maintenanceIntervalKm: maintenanceIntervalKm !== '' ? Number(maintenanceIntervalKm) : 15000,
+            maintenanceIntervalMonths: maintenanceIntervalMonths !== '' ? Number(maintenanceIntervalMonths) : 12,
             tireBrand: tireBrand.trim(),
             tireModel: tireModel.trim(),
-            tireInstallationKm: Number(tireInstallationKm) || 0,
-            tireEstimatedKm: Number(tireEstimatedKm) || 40000,
+            tireInstallationKm: tireInstallationKm !== '' ? Number(tireInstallationKm) : 0,
+            tireEstimatedKm: tireEstimatedKm !== '' ? Number(tireEstimatedKm) : 40000,
             nextItvDate: nextItvDate ? new Date(nextItvDate).getTime() : undefined,
+            warrantyExpirationDate: warrantyExpirationDate ? new Date(warrantyExpirationDate).getTime() : undefined,
+            warrantyLimitKm: warrantyLimitKm !== '' ? Number(warrantyLimitKm) : undefined,
             insuranceId: insuranceId || undefined,
             notes: notes.trim()
         };
@@ -240,8 +246,9 @@ const VehicleForm: React.FC<VehicleFormProps> = ({ vehicle, onClose }) => {
                                         type="number"
                                         min="1950"
                                         max={new Date().getFullYear() + 1}
+                                        placeholder="Ej. 2020"
                                         value={year}
-                                        onChange={(e) => setYear(Number(e.target.value))}
+                                        onChange={(e) => setYear(e.target.value === '' ? '' : Number(e.target.value))}
                                         style={inputStyle}
                                     />
                                 </div>
@@ -266,8 +273,9 @@ const VehicleForm: React.FC<VehicleFormProps> = ({ vehicle, onClose }) => {
                                     <input
                                         type="number"
                                         min="0"
+                                        placeholder="Ej. 85000"
                                         value={currentKm}
-                                        onChange={(e) => setCurrentKm(Number(e.target.value))}
+                                        onChange={(e) => setCurrentKm(e.target.value === '' ? '' : Number(e.target.value))}
                                         style={{ ...inputStyle, fontSize: '1rem', fontWeight: 800, color: '#818cf8', borderColor: 'rgba(99, 102, 241, 0.4)' }}
                                     />
                                 </div>
@@ -339,8 +347,9 @@ const VehicleForm: React.FC<VehicleFormProps> = ({ vehicle, onClose }) => {
                                     <input
                                         type="number"
                                         min="0"
+                                        placeholder="Ej. 75000"
                                         value={lastMaintenanceKm}
-                                        onChange={(e) => setLastMaintenanceKm(Number(e.target.value))}
+                                        onChange={(e) => setLastMaintenanceKm(e.target.value === '' ? '' : Number(e.target.value))}
                                         style={inputStyle}
                                     />
                                 </div>
@@ -359,8 +368,9 @@ const VehicleForm: React.FC<VehicleFormProps> = ({ vehicle, onClose }) => {
                                         type="number"
                                         min="1000"
                                         step="500"
+                                        placeholder="Ej. 15000"
                                         value={maintenanceIntervalKm}
-                                        onChange={(e) => setMaintenanceIntervalKm(Number(e.target.value))}
+                                        onChange={(e) => setMaintenanceIntervalKm(e.target.value === '' ? '' : Number(e.target.value))}
                                         style={inputStyle}
                                     />
                                 </div>
@@ -370,18 +380,19 @@ const VehicleForm: React.FC<VehicleFormProps> = ({ vehicle, onClose }) => {
                                         type="number"
                                         min="1"
                                         max="60"
+                                        placeholder="Ej. 12"
                                         value={maintenanceIntervalMonths}
-                                        onChange={(e) => setMaintenanceIntervalMonths(Number(e.target.value))}
+                                        onChange={(e) => setMaintenanceIntervalMonths(e.target.value === '' ? '' : Number(e.target.value))}
                                         style={inputStyle}
                                     />
                                 </div>
                             </div>
                         </div>
 
-                        {/* Sección 3: Neumáticos e ITV */}
+                        {/* Sección 3: Neumáticos, Garantía y Seguro */}
                         <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '1rem' }}>
                             <span style={sectionTitleStyle}>
-                                <Gauge size={16} /> Neumáticos, ITV y Seguro
+                                <Gauge size={16} /> Neumáticos, ITV, Garantía y Seguro
                             </span>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.85rem' }}>
                                 <div>
@@ -409,8 +420,9 @@ const VehicleForm: React.FC<VehicleFormProps> = ({ vehicle, onClose }) => {
                                     <input
                                         type="number"
                                         min="0"
+                                        placeholder="Ej. 60000"
                                         value={tireInstallationKm}
-                                        onChange={(e) => setTireInstallationKm(Number(e.target.value))}
+                                        onChange={(e) => setTireInstallationKm(e.target.value === '' ? '' : Number(e.target.value))}
                                         style={inputStyle}
                                     />
                                 </div>
@@ -420,8 +432,9 @@ const VehicleForm: React.FC<VehicleFormProps> = ({ vehicle, onClose }) => {
                                         type="number"
                                         min="5000"
                                         step="1000"
+                                        placeholder="Ej. 40000"
                                         value={tireEstimatedKm}
-                                        onChange={(e) => setTireEstimatedKm(Number(e.target.value))}
+                                        onChange={(e) => setTireEstimatedKm(e.target.value === '' ? '' : Number(e.target.value))}
                                         style={inputStyle}
                                     />
                                 </div>
@@ -433,6 +446,31 @@ const VehicleForm: React.FC<VehicleFormProps> = ({ vehicle, onClose }) => {
                                         type="date"
                                         value={nextItvDate}
                                         onChange={(e) => setNextItvDate(e.target.value)}
+                                        style={inputStyle}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <Shield size={14} style={{ color: '#818cf8' }} /> Fin Garantía Fabricante (Fecha)
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={warrantyExpirationDate}
+                                        onChange={(e) => setWarrantyExpirationDate(e.target.value)}
+                                        style={inputStyle}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <Shield size={14} style={{ color: '#818cf8' }} /> Límite Garantía Fabricante (km)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="1000"
+                                        placeholder="Ej. 100000 km"
+                                        value={warrantyLimitKm}
+                                        onChange={(e) => setWarrantyLimitKm(e.target.value === '' ? '' : Number(e.target.value))}
                                         style={inputStyle}
                                     />
                                 </div>

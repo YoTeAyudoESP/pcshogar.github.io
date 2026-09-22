@@ -1,7 +1,7 @@
 {
-  "version": "2.7.3",
-  "versionCode": 27300,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.7.3/PCSHogar_Setup_v2.7.3.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.7.3/PCSHogar_Setup_v2.7.3.exe",
-  "releaseNotes": "Novedades versión 2.7.3:\n- ☁️ Sincronización Total Nube: Inclusión completa de Vehículos y Seguros en el motor de sincronización de Dropbox y Google Drive para mantener todos tus dispositivos perfectamente al día."
+  "version": "2.7.4",
+  "versionCode": 27400,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.7.4/PCSHogar_Setup_v2.7.4.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.7.4/PCSHogar_Setup_v2.7.4.exe",
+  "releaseNotes": "Novedades versión 2.7.4:\n- 🛡️ Garantías Hogar: Nuevo módulo para tus compras y electrodomésticos con visor de facturas/tickets en 1 clic.\n- 🏷️ Garantía Fabricante Vehículos: Control por fecha y kilometraje con estados en tiempo real.\n- 📊 Gastos del Vehículo: Desglose acumulado (Combustible, Taller, Seguro, Total) por periodo.\n- ✨ Formularios Limpios: Eliminados los 0 a la izquierda predefinidos y nota explicativa en Seguros."
 }

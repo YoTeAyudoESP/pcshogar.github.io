@@ -4,7 +4,7 @@ import type {
     Account, CreditCard, Expense, SavingGoal, 
     SavingAllocation, RecurringExpense, Loan,
     AccountMovement, Category, Transfer,
-    MonthClosing, MonthOverride, Vehicle, Insurance 
+    MonthClosing, MonthOverride, Vehicle, Insurance, HomeWarranty 
 } from '../types/finance';
 
 interface DomesticEconomyDB extends DBSchema {
@@ -77,10 +77,14 @@ interface DomesticEconomyDB extends DBSchema {
         key: string;
         value: Insurance;
     };
+    warranties: {
+        key: string;
+        value: HomeWarranty;
+    };
 }
 
 const DB_NAME = 'domestic-economy-db';
-const ORG_VERSION = 8;
+const ORG_VERSION = 9;
 
 class IncomeDB {
     private dbPromise!: Promise<IDBPDatabase<DomesticEconomyDB>>;
@@ -187,6 +191,11 @@ class IncomeDB {
                     }
                     if (!db.objectStoreNames.contains('insurances')) {
                         db.createObjectStore('insurances', { keyPath: 'id' });
+                    }
+                }
+                if (oldVersion < 9) {
+                    if (!db.objectStoreNames.contains('warranties')) {
+                        db.createObjectStore('warranties', { keyPath: 'id' });
                     }
                 }
             },
@@ -1193,6 +1202,21 @@ class IncomeDB {
         const db = await this.dbPromise;
         await db.delete('insurances', id);
         await this.recordDeletion('insurances', id);
+    }
+
+    // ── Home Warranties ────────────────────────────────────────────────────────
+    async getAllWarranties(): Promise<HomeWarranty[]> {
+        return (await this.dbPromise).getAll('warranties');
+    }
+
+    async updateWarranty(warranty: HomeWarranty): Promise<void> {
+        await (await this.dbPromise).put('warranties', warranty);
+    }
+
+    async deleteWarranty(id: string): Promise<void> {
+        const db = await this.dbPromise;
+        await db.delete('warranties', id);
+        await this.recordDeletion('warranties', id);
     }
 }
 

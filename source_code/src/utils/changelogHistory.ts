@@ -5,6 +5,14 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.7.4',
+    releaseNotes: `Novedades v2.7.4:
+- 🛡️ Nuevo Módulo "Garantías Hogar": Pestaña dedicada en Gestión y Ajustes para registrar electrodomésticos, tecnología y compras del hogar con facturas/tickets adjuntos (vista previa en 1 clic).
+- 🏷️ Garantía del Fabricante en Vehículos: Control inteligente por fecha y kilometraje máximo con estados en tiempo real (Vigente / Fuera de Garantía).
+- 📊 Gastos Acumulados por Vehículo: Desglose interactivo en cada tarjeta de vehículo (Combustible, Taller, Seguro, Total) con filtro por periodo (Este Mes, Año, 12 Meses, Histórico).
+- ✨ Formularios Limpios y Claridad UX: Campos numéricos sin '0' forzados a la izquierda y nota aclaratoria sobre Vencimiento de Póliza vs Cobro Bancario.`
+  },
+  {
     version: '2.7.3',
     releaseNotes: `Novedades v2.7.3:
 - ☁️ Sincronización Total Nube: Inclusión completa de Vehículos y Seguros en el motor de sincronización de Dropbox y Google Drive para mantener todos tus dispositivos perfectamente al día.`

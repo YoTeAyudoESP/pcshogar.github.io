@@ -85,9 +85,32 @@ export interface Vehicle {
     tireEstimatedKm?: number;
     nextItvDate?: number;
     insuranceId?: string;
+    warrantyExpirationDate?: number;
+    warrantyLimitKm?: number;
     notes?: string;
     createdAt: number;
     updatedAt: number;
+}
+
+export interface HomeWarranty {
+    id: string;
+    name: string;
+    category: 'appliance' | 'tech' | 'furniture' | 'home_improvement' | 'appliances' | 'electronics' | 'tools' | 'audio_video' | 'climate' | 'other';
+    brand?: string;
+    model?: string;
+    serialNumber?: string;
+    storeName?: string;
+    store?: string;
+    purchaseDate: number;
+    warrantyMonths?: number;
+    expirationDate: number;
+    warrantyExpirationDate?: number;
+    price?: number;
+    invoiceNumber?: string;
+    invoiceAttachment?: string; // Data URL or base64 file string
+    notes?: string;
+    createdAt?: number;
+    updatedAt?: number;
 }
 
 export interface Insurance {

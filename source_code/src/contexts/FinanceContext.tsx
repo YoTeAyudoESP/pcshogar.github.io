@@ -4,7 +4,7 @@ import type {
     Account, CreditCard, Expense, SavingGoal, 
     SavingAllocation, RecurringExpense, Loan,
     AccountMovement, Category, Transfer,
-    MonthClosing, MonthOverride, Vehicle, Insurance
+    MonthClosing, MonthOverride, Vehicle, Insurance, HomeWarranty
 } from '../types/finance';
 import { 
     DEFAULT_CATEGORIES, 
@@ -45,6 +45,7 @@ interface FinanceContextType {
     extraIncomes: Income[];
     vehicles: Vehicle[];
     insurances: Insurance[];
+    warranties: HomeWarranty[];
     loading: boolean;
     addVehicle: (vehicle: Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
     updateVehicle: (vehicle: Vehicle) => Promise<void>;
@@ -53,6 +54,9 @@ interface FinanceContextType {
     updateInsurance: (insurance: Insurance) => Promise<void>;
     deleteInsurance: (id: string) => Promise<void>;
     mergeInsurances: (targetInsuranceId: string, sourceInsuranceIds: string[]) => Promise<void>;
+    addWarranty: (warranty: Omit<HomeWarranty, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+    updateWarranty: (warranty: HomeWarranty) => Promise<void>;
+    deleteWarranty: (id: string) => Promise<void>;
     addCategory: (category: Omit<Category, 'id'>) => Promise<void>;
     updateCategory: (category: Category) => Promise<void>;
     deleteCategory: (id: string, reassignToId?: string) => Promise<void>;
@@ -129,6 +133,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
     const [extraIncomes, setExtraIncomes] = useState<Income[]>([]);
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [insurances, setInsurances] = useState<Insurance[]>([]);
+    const [warranties, setWarranties] = useState<HomeWarranty[]>([]);
     const [loading, setLoading] = useState(true);
     const [pendingClosing, setPendingClosing] = useState<MonthClosing | null>(null);
 
@@ -147,7 +152,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         setLoading(true);
         try {
             const [
-                accs, cds, exps, svs, alls, recs, lns, mvms, cats, trns, clss, ovrs, incs, vhcls, insrs
+                accs, cds, exps, svs, alls, recs, lns, mvms, cats, trns, clss, ovrs, incs, vhcls, insrs, wrrnts
             ] = await Promise.all([
                 incomeDB.getAllAccounts(),
                 incomeDB.getAllCards(),
@@ -163,11 +168,15 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                 incomeDB.getAllOverrides(),
                 incomeDB.getAllIncomes(),
                 incomeDB.getAllVehicles(),
-                incomeDB.getAllInsurances()
+                incomeDB.getAllInsurances(),
+                incomeDB.getAllWarranties()
             ]);
             
             setAccounts(accs);
             setCards(cds);
+            setVehicles(vhcls);
+            setInsurances(insrs);
+            setWarranties(wrrnts);
             
             // Migration: Repair legacy card settlements in local IndexedDB
             let didSettlementMigration = false;
@@ -1712,6 +1721,31 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         await refreshFinance();
     };
 
+    const addWarranty = async (warrantyData: Omit<HomeWarranty, 'id' | 'createdAt' | 'updatedAt'>) => {
+        const newWarranty: HomeWarranty = {
+            ...warrantyData,
+            id: uuidv4(),
+            createdAt: Date.now(),
+            updatedAt: Date.now()
+        };
+        await incomeDB.updateWarranty(newWarranty);
+        await refreshFinance();
+    };
+
+    const updateWarranty = async (warranty: HomeWarranty) => {
+        const updated = {
+            ...warranty,
+            updatedAt: Date.now()
+        };
+        await incomeDB.updateWarranty(updated);
+        await refreshFinance();
+    };
+
+    const deleteWarranty = async (id: string) => {
+        await incomeDB.deleteWarranty(id);
+        await refreshFinance();
+    };
+
     return (
         <FinanceContext.Provider value={{
             accounts,
@@ -1731,6 +1765,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
             extraIncomes,
             vehicles,
             insurances,
+            warranties,
             loading,
             addVehicle,
             updateVehicle,
@@ -1739,6 +1774,9 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
             updateInsurance,
             deleteInsurance,
             mergeInsurances,
+            addWarranty,
+            updateWarranty,
+            deleteWarranty,
             addCategory,
             updateCategory,
             deleteCategory,

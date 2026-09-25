@@ -1,6 +1,7 @@
 {
-    "releaseNotes":  "🎉 Novedades: Restaurada y mejorada la versión con Préstamos Avanzados y Financiación de Tarjetas.\n- Interfaz del Desajuste de Balance corregida para Android.\n- Opción de Disponible Libre incorporada.\n- Símbolo de moneda corregido en entradas numéricas.",
-    "url":  "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.8.0/PCSHogar_Setup_v1.8.0.apk",
-    "version":  "1.8.0",
-    "windowsUrl":  "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v1.8.0/PCSHogar_Setup_v1.8.0.exe"
+  "version": "2.7.7",
+  "versionCode": 27700,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.7.7/PCSHogar_Setup_v2.7.7.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.7.7/PCSHogar_Setup_v2.7.7.exe",
+  "releaseNotes": "Novedades versión 2.7.7:\n- 📐 Gráfica de Huchas: Margen y ancho del eje Y ampliados para evitar que los números se corten en pantallas móviles de Android.\n- 🛡️ Corrección de Devoluciones Pendientes: Exclusión de devoluciones pendientes en los compromisos de gasto para evitar falsas alertas de desajuste de patrimonio."
 }

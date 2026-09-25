@@ -665,6 +665,8 @@ export function calculateBalanceDiscrepancy(
     // Includes: account payments, cash payments, card payments (debit, credit, virtual)
     const gastosPendientes = expenses.filter(exp => {
         if (exp.status !== 'pending') return false;
+        // Exclude pending refunds (negative amount) so they don't lower commitments before being received/confirmed
+        if (exp.amount < 0) return false;
 
         // Match by period field or by the expense date falling in current month
         const expPeriod = exp.period ?? `${new Date(exp.date).getFullYear()}-${String(new Date(exp.date).getMonth() + 1).padStart(2, '0')}`;

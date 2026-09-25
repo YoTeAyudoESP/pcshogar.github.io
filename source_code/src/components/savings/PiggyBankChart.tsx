@@ -91,7 +91,7 @@ const PiggyBankChart: React.FC = () => {
             </h3>
             
             <ResponsiveContainer width="100%" height="80%">
-                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                     <defs>
                         {savings.map((goal, index) => {
                             const color = goal.color || colors[index % colors.length];
@@ -117,6 +117,7 @@ const PiggyBankChart: React.FC = () => {
                     />
                     
                     <YAxis 
+                        width={55}
                         stroke="rgba(255,255,255,0.3)" 
                         fontSize={12} 
                         tickLine={false} 

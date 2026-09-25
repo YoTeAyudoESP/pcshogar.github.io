@@ -5,6 +5,12 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.7.7',
+    releaseNotes: `Novedades v2.7.7:
+- 📐 Margen de Eje Y en Gráfica de Huchas: Margen y ancho del eje Y ampliados para garantizar que cifras altas de huchas (ej. 6.000€) se vean perfectamente en teléfonos Android sin recortarse.
+- 🛡️ Corrección de Devoluciones Pendientes: Exclusión de devoluciones pendientes en los compromisos de gasto para evitar falsas alertas de desajuste de patrimonio.`
+  },
+  {
     version: '2.7.6',
     releaseNotes: `Novedades v2.7.6:
 - 📊 Gráfica de Huchas con Escala Y Dinámica: Ajuste dinámico de escala con margen superior del 15% para que las huchas de más de 5.000€ muestren curvas suaves sin aplanarse.

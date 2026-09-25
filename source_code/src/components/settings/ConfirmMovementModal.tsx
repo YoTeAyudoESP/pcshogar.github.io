@@ -14,7 +14,7 @@ interface ConfirmMovementModalProps {
 }
 
 const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item, onClose }) => {
-    const { accounts, confirmFixedMovement, discardFixedMovement, savings, confirmExtraIncome, deleteIncome, incomes, updateExpense, deleteExpense } = useFinance();
+    const { accounts, confirmFixedMovement, discardFixedMovement, savings, confirmExtraIncome, deleteIncome, incomes, expenses, updateExpense, deleteExpense } = useFinance();
     const { showToast } = useToast();
 
     const currentRealPeriod = new Date().toISOString().substring(0, 7);
@@ -29,6 +29,7 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
     const isForNextMonthDefault = type === 'income' && (item.accountForNextMonth || (item as any).countForNextMonth);
     const targetDefaultPeriod = isForNextMonthDefault ? nextMonthPeriod : currentRealPeriod;
     const isDuplicateIncome = type === 'income' && !isExtraIncomePending && (incomes || []).some(inc => inc.fixedIncomeId === item.id && inc.period === targetDefaultPeriod);
+    const isDuplicateExpense = type === 'expense' && (expenses || []).some(exp => exp.recurringExpenseId === item.id && exp.period === currentRealPeriod);
 
     const [amountStr, setAmountStr] = useState<string>(() => String(Math.abs(item.amount || 0)));
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -275,6 +276,25 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
                                 Ingreso extra en el mes actual ({currentRealPeriod})
                             </label>
                         </div>
+                    </div>
+                ) : isDuplicateExpense ? (
+                    <div style={{
+                        background: 'rgba(251, 191, 36, 0.08)',
+                        border: '1px solid rgba(251, 191, 36, 0.2)',
+                        borderRadius: '12px',
+                        padding: '1rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.5rem',
+                        marginTop: '-0.5rem',
+                        marginBottom: '1rem'
+                    }}>
+                        <span style={{ fontSize: '0.85rem', color: '#fbbf24', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            ⚠️ Gasto ya registrado en este periodo ({currentRealPeriod})
+                        </span>
+                        <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)', margin: 0, lineHeight: 1.4 }}>
+                            Este gasto fijo ya consta como pagado en tus cuentas para este mes. Si continúas, registrarás un <strong>pago adicional duplicado</strong> en tu economía.
+                        </p>
                     </div>
                 ) : isForNextMonthDefault && (
                     <div style={{

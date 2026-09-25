@@ -1,7 +1,7 @@
 {
-  "version": "2.7.5",
-  "versionCode": 27500,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.7.5/PCSHogar_Setup_v2.7.5.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.7.5/PCSHogar_Setup_v2.7.5.exe",
-  "releaseNotes": "Novedades versión 2.7.5:\n- 🚗 Vinculación Retroactiva: Edición de gastos pasados para asignación a vehículo.\n- 🔁 Gastos Fijos de Vehículo: Asignación explícita y detección automática desde Seguros.\n- 🏷️ Subtipo de Gasto: Categorización precisa (Combustible, Taller, Seguro, Impuestos/Multas, Otros) con sugerencia inteligente.\n- 🏛️ Desglose de Impuestos, Tasas y Multas: Nueva sección en la tarjeta de vehículo con filtros temporales."
+  "version": "2.7.6",
+  "versionCode": 27600,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.7.6/PCSHogar_Setup_v2.7.6.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.7.6/PCSHogar_Setup_v2.7.6.exe",
+  "releaseNotes": "Novedades versión 2.7.6:\n- 📊 Huchas: Eje Y dinámico con 15% de margen superior para escalas limpias.\n- 🌐 Seguros en Español: Cuotas de seguros mostradas en español (Anual, Mensual, Trimestral, Semestral).\n- 🎨 Dashboard Glassmorphism: Rediseño oscuro traslúcido para aviso de renovación de seguros.\n- 🔤 Orden Alfabético: Gastos e Ingresos Fijos organizados A-Z.\n- ⚠️ Confirmaciones Duplicadas: Advertencia clara preventiva en el modal de confirmación.\n- 🛡️ Unificación y Borrado de Seguros: Persistencia de desvinculación para evitar re-creación automática."
 }

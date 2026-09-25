@@ -121,6 +121,7 @@ const PiggyBankChart: React.FC = () => {
                         fontSize={12} 
                         tickLine={false} 
                         axisLine={false}
+                        domain={[0, (dataMax: number) => Math.max(100, Math.ceil((dataMax * 1.15) / 500) * 500)]}
                         tickFormatter={(value) => `${value}€`}
                     />
                     

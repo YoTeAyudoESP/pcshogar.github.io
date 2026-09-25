@@ -5,6 +5,16 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.7.6',
+    releaseNotes: `Novedades v2.7.6:
+- 📊 Gráfica de Huchas con Escala Y Dinámica: Ajuste dinámico de escala con margen superior del 15% para que las huchas de más de 5.000€ muestren curvas suaves sin aplanarse.
+- 🌐 Frecuencias de Seguros en Español: Visualización nativa en español para cuotas de seguros (Anual, Mensual, Trimestral, Semestral).
+- 🎨 Rediseño Glassmorphism en Alerta de Renovación: Aviso de vencimiento de seguros en el Dashboard con diseño oscuro traslúcido y resplandor ámbar.
+- 🔤 Orden Alfabético en Movimientos Fijos: Gastos e Ingresos Fijos organizados automáticamente de la A a la Z.
+- ⚠️ Advertencia de Confirmación Duplicada: Aviso amigable preventivo al confirmar un gasto o ingreso fijo que ya fue registrado en el periodo actual.
+- 🛡️ Unificación y Borrado de Seguros: Persistencia inteligente de desvinculación para evitar que seguros borrados vuelvan a auto-crearse.`
+  },
+  {
     version: '2.7.5',
     releaseNotes: `Novedades v2.7.5:
 - 🚗 Vinculación Retroactiva de Vehículos: Ahora puedes editar cualquier gasto pasado pagado y asignarlo o reasignarlo a un vehículo específico.

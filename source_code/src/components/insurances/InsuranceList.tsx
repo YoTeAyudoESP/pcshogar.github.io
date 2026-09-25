@@ -8,6 +8,16 @@ import {
     AlertTriangle, CheckCircle, Edit, Trash2, Clock, Link2, X, RefreshCw 
 } from 'lucide-react';
 
+const formatFrequencyEs = (freq?: string) => {
+    switch (freq) {
+        case 'yearly': return 'Anual';
+        case 'monthly': return 'Mensual';
+        case 'quarterly': return 'Trimestral';
+        case 'semi-annually': return 'Semestral';
+        default: return freq || 'Anual';
+    }
+};
+
 const InsuranceList: React.FC = () => {
     const { insurances, deleteInsurance, mergeInsurances, recurringExpenses, vehicles } = useFinance();
     const [selectedInsurance, setSelectedInsurance] = useState<Insurance | undefined>(undefined);
@@ -373,7 +383,7 @@ const InsuranceList: React.FC = () => {
                                         {linkedRecs.map(rec => (
                                             <div key={rec.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '3px' }}>
                                                 <span style={{ color: '#cbd5e1' }}>{rec.description}</span>
-                                                <strong style={{ color: '#10b981' }}>{rec.amount} € <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>({rec.frequency})</span></strong>
+                                                <strong style={{ color: '#10b981' }}>{rec.amount} € <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>({formatFrequencyEs(rec.frequency)})</span></strong>
                                             </div>
                                         ))}
                                     </div>
@@ -394,7 +404,7 @@ const InsuranceList: React.FC = () => {
                                         <DollarSign size={14} style={{ color: '#818cf8' }} />
                                         <span>Prima:</span>
                                         <strong style={{ color: '#ffffff', fontWeight: 700 }}>{ins.annualPremium} €/año</strong>
-                                        <span style={{ fontSize: '0.65rem' }}>({ins.paymentFrequency})</span>
+                                        <span style={{ fontSize: '0.65rem' }}>({formatFrequencyEs(ins.paymentFrequency)})</span>
                                     </div>
                                     {linkedRecs.length > 0 ? (
                                         <span style={{ fontSize: '0.65rem', background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.25)', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>

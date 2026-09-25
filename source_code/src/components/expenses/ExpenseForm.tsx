@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
+import { useToast } from '../../contexts/ToastContext';
 import { X, Calendar, Info, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
 import { predictSettlementDate, formatMoney, getCardAvailableCredit } from '../../utils/financeCalculations';
 import type { CreditCard } from '../../types/finance';
@@ -14,6 +15,7 @@ interface ExpenseFormProps {
 
 const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, onNavigateToSettings }) => {
     const { addExpense, addRecurringExpense, accounts, cards, categories, savings, loans = [], expenses = [], vehicles = [] } = useFinance();
+    const { showToast } = useToast();
     const expenseCategories = categories
         .filter(c => c.type === 'expense')
         .sort((a, b) => a.name.localeCompare(b.name, 'es', { sensitivity: 'base' }));
@@ -181,6 +183,15 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                     .map(([id, val]) => ({ goalId: id, amount: parseFloat(val) }))
                 : undefined;
 
+            const isDuplicateToday = (expenses || []).some(exp => {
+                const expDateStr = new Date(exp.date).toDateString();
+                const targetDateStr = new Date(date).toDateString();
+                return expDateStr === targetDateStr &&
+                       exp.categoryId === categoryId &&
+                       Math.abs(exp.amount) === Math.abs(finalAmount) &&
+                       exp.description.trim().toLowerCase() === finalDescription.toLowerCase();
+            });
+
             await addExpense({
                 description: finalDescription,
                 amount: finalAmount,
@@ -194,6 +205,10 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onClose, isRefund = false, on
                 status,
                 savingGoalFunding: fundingList
             });
+
+            if (isDuplicateToday) {
+                showToast("Gasto guardado. Detectamos otro idéntico hoy por si fue accidental.", "info");
+            }
         }
 
         onClose();

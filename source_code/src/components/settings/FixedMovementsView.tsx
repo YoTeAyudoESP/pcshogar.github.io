@@ -63,9 +63,11 @@ const FixedMovementsView: React.FC<FixedMovementsViewProps> = ({ onBack, onNavig
     const currentMonthPeriod = `${selectedYear}-${(selectedMonth + 1).toString().padStart(2, '0')}`;
 
     const filteredFixedIncomes = incomes
-        .filter((i): i is FixedIncome => i.type === 'fixed');
+        .filter((i): i is FixedIncome => i.type === 'fixed')
+        .sort((a, b) => (a.name || '').localeCompare(b.name || '', 'es', { sensitivity: 'base' }));
 
-    const filteredRecurringExpenses = recurringExpenses;
+    const filteredRecurringExpenses = [...recurringExpenses]
+        .sort((a, b) => (a.description || '').localeCompare(b.description || '', 'es', { sensitivity: 'base' }));
 
     const isIgnored = (item: FixedIncome | RecurringExpense) => {
         return item.ignoredPeriods?.includes(currentMonthPeriod) || false;

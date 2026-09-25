@@ -28,42 +28,98 @@ const InsuranceRenewalAlert: React.FC<InsuranceRenewalAlertProps> = ({ onNavigat
     };
 
     return (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 shadow-sm mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div className="flex items-start gap-3">
-                <div className="bg-amber-100 p-2 rounded-lg shrink-0 text-amber-700 mt-0.5">
-                    <Shield className="w-5 h-5" />
+        <div 
+            className="glass-panel" 
+            style={{ 
+                padding: '1rem 1.25rem', 
+                borderRadius: '16px', 
+                marginBottom: '1.25rem', 
+                background: 'rgba(245, 158, 11, 0.08)',
+                border: '1px solid rgba(245, 158, 11, 0.25)',
+                borderLeft: '4px solid #f59e0b',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '0.75rem'
+            }}
+        >
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', flex: 1, minWidth: '260px' }}>
+                <div style={{ 
+                    background: 'rgba(245, 158, 11, 0.15)', 
+                    border: '1px solid rgba(245, 158, 11, 0.3)', 
+                    padding: '0.5rem', 
+                    borderRadius: '10px', 
+                    color: '#f59e0b', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    flexShrink: 0
+                }}>
+                    <Shield size={20} />
                 </div>
                 <div>
-                    <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm text-amber-950">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#ffffff' }}>
                             Aviso de Renovación de Seguro ({targetIns.name})
                         </span>
-                        <span className="text-[10px] bg-amber-200 text-amber-800 font-bold px-1.5 py-0.5 rounded">
+                        <span style={{ 
+                            fontSize: '0.65rem', 
+                            background: daysLeft <= 0 ? 'rgba(244, 63, 94, 0.2)' : 'rgba(245, 158, 11, 0.2)', 
+                            color: daysLeft <= 0 ? '#f43f5e' : '#f59e0b', 
+                            border: daysLeft <= 0 ? '1px solid rgba(244, 63, 94, 0.3)' : '1px solid rgba(245, 158, 11, 0.3)',
+                            fontWeight: 700, 
+                            padding: '2px 8px', 
+                            borderRadius: '6px' 
+                        }}>
                             {daysLeft <= 0 ? 'Vencido' : `Vence en ${daysLeft} días`}
                         </span>
                     </div>
-                    <p className="text-xs text-amber-900 mt-0.5">
-                        Tu póliza con <strong>{targetIns.company}</strong> vence el {new Date(targetIns.expirationDate).toLocaleDateString('es-ES')}. Revisa el precio de renovación antes de que se autorrenueve automáticamente.
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '4px 0 0 0', lineHeight: '1.4' }}>
+                        Tu póliza con <strong style={{ color: '#ffffff' }}>{targetIns.company}</strong> vence el {new Date(targetIns.expirationDate).toLocaleDateString('es-ES')}. Revisa el precio de renovación antes de que se autorrenueve automáticamente.
                     </p>
                 </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 {onNavigateToInsurances && (
                     <button
                         onClick={onNavigateToInsurances}
-                        className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1 transition shadow-sm"
+                        style={{
+                            background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                            color: 'white',
+                            border: 'none',
+                            fontSize: '0.75rem',
+                            fontWeight: 700,
+                            padding: '0.5rem 0.9rem',
+                            borderRadius: '10px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.4rem',
+                            boxShadow: '0 4px 12px rgba(245, 158, 11, 0.25)'
+                        }}
                     >
                         <span>Ver Seguros</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
+                        <ArrowRight size={14} />
                     </button>
                 )}
                 <button
                     onClick={() => handleDismiss(targetIns.id)}
-                    className="text-amber-700 hover:bg-amber-100 p-1.5 rounded-lg text-xs"
+                    style={{
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        color: 'var(--text-muted)',
+                        padding: '0.5rem',
+                        borderRadius: '10px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}
                     title="Descartar por ahora"
                 >
-                    <X className="w-4 h-4" />
+                    <X size={16} />
                 </button>
             </div>
         </div>

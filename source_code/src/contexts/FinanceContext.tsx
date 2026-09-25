@@ -246,12 +246,14 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
             // Auto-migration: Detect recurring expenses that are insurances and auto-create Insurance records
             let updatedInsurances = [...(insrs || [])];
             let didInsuranceMigration = false;
+            const dismissedAutoIds: string[] = JSON.parse(localStorage.getItem('pcs_dismissed_auto_insurances') || '[]');
             if (recs && recs.length > 0) {
                 for (const re of recs) {
                     const descLower = (re.description || '').toLowerCase();
                     const isInsuranceCategory = re.categoryId === 'cat_housing' || descLower.includes('seguro') || descLower.includes('póliza') || descLower.includes('poliza') || descLower.includes('mutua');
                     if (isInsuranceCategory && descLower.includes('seguro')) {
-                        const alreadyExists = updatedInsurances.some(i => i.recurringExpenseId === re.id || (i.linkedRecurringExpenseIds && i.linkedRecurringExpenseIds.includes(re.id)) || i.name.toLowerCase() === re.description.toLowerCase());
+                        const isDismissed = dismissedAutoIds.includes(re.id);
+                        const alreadyExists = isDismissed || updatedInsurances.some(i => i.recurringExpenseId === re.id || (i.linkedRecurringExpenseIds && i.linkedRecurringExpenseIds.includes(re.id)) || i.name.toLowerCase() === re.description.toLowerCase());
                         if (!alreadyExists) {
                             didInsuranceMigration = true;
                             const now = Date.now();
@@ -1690,6 +1692,15 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const deleteInsurance = async (id: string) => {
+        const insToDelete = insurances.find(i => i.id === id);
+        if (insToDelete) {
+            const recIds = insToDelete.linkedRecurringExpenseIds || (insToDelete.recurringExpenseId ? [insToDelete.recurringExpenseId] : []);
+            if (recIds.length > 0) {
+                const dismissedAutoIds: string[] = JSON.parse(localStorage.getItem('pcs_dismissed_auto_insurances') || '[]');
+                const updatedDismissed = Array.from(new Set([...dismissedAutoIds, ...recIds]));
+                localStorage.setItem('pcs_dismissed_auto_insurances', JSON.stringify(updatedDismissed));
+            }
+        }
         await incomeDB.deleteInsurance(id);
         await refreshFinance();
     };

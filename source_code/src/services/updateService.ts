@@ -35,10 +35,18 @@ export const UpdateService = {
             const releaseNotes = data.releaseNotes;
 
             // Get current local version from Capacitor/Electron
-            let currentVersion = '0.0.0'; // Safe fallback: never triggers a false update
+            const bundledVersion = versionInfo.version || '0.0.0';
+            let currentVersion = bundledVersion;
+
             if (Capacitor.isNativePlatform()) {
-                const info = await App.getInfo();
-                currentVersion = info.version;
+                try {
+                    const info = await App.getInfo();
+                    if (info && info.version && info.version !== '1.9.6' && info.version !== '0.0.0') {
+                        currentVersion = info.version;
+                    }
+                } catch (e) {
+                    console.warn('Could not read native app info:', e);
+                }
             } else if (isElectron) {
                 // Read the real installed version from the Electron main process
                 const { ipcRenderer } = (window as any).require('electron');
@@ -46,18 +54,21 @@ export const UpdateService = {
                     currentVersion = await ipcRenderer.invoke('get-app-version');
                 } catch (e) {
                     console.warn('Could not read app version from Electron, using package fallback', e);
-                    currentVersion = versionInfo.version; // fallback to current build version
+                    currentVersion = bundledVersion;
                 }
-            } else {
-                currentVersion = versionInfo.version;
             }
 
             // Compare versions using semver
-            const hasUpdate = this.isNewerVersion(currentVersion, latestVersion);
+            let hasUpdate = this.isNewerVersion(currentVersion, latestVersion);
+
+            // Double safety check: If the bundled web app version is not older than the remote version, no update needed!
+            if (!this.isNewerVersion(bundledVersion, latestVersion)) {
+                hasUpdate = false;
+            }
 
             return {
                 hasUpdate,
-                currentVersion,
+                currentVersion: (currentVersion === '1.9.6' || currentVersion === '0.0.0') ? bundledVersion : currentVersion,
                 latestVersion,
                 downloadUrl,
                 releaseNotes

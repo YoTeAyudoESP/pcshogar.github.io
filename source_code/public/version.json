@@ -1,7 +1,7 @@
 {
-  "version": "2.7.8",
-  "versionCode": 27800,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.7.8/PCSHogar_Setup_v2.7.8.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.7.8/PCSHogar_Setup_v2.7.8.exe",
-  "releaseNotes": "Novedades versión 2.7.8:\n- 🛡️ Persistencia de Avisos de Renovación: Opción de descartar permanentemente el aviso de vencimiento de seguros por cada ciclo de renovación anual.\n- 💬 Rediseño de Sugerencias y Colaboración: Retirada de botones monetarios y nuevo módulo centrado en feedback, recomendaciones y contacto directo por email."
+  "version": "2.7.9",
+  "versionCode": 27900,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.7.9/PCSHogar_Setup_v2.7.9.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.7.9/PCSHogar_Setup_v2.7.9.exe",
+  "releaseNotes": "Novedades versión 2.7.9:\n- 💬 Limpieza Completa de Textos: Retirada definitiva de cualquier texto o mención a apoyo económico en la pestaña 'Acerca de' y popups de la app, homogeneizándolo con el módulo de colaboración comunitaria (sugerencias, recomendaciones y feedback).\n- 🛡️ Persistencia de Avisos de Renovación: Opción de descartar permanentemente el aviso de vencimiento de seguros por cada ciclo de renovación anual."
 }

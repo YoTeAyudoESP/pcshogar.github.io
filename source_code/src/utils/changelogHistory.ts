@@ -5,6 +5,12 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.7.9',
+    releaseNotes: `Novedades v2.7.9:
+- 💬 Limpieza Completa de Textos: Retirada definitiva de cualquier texto o mención a apoyo económico en la pestaña 'Acerca de' y popups de la app, homogeneizándolo con el módulo de colaboración comunitaria (sugerencias, recomendaciones y feedback).
+- 🛡️ Persistencia de Avisos de Renovación: Opción de descartar permanentemente el aviso de vencimiento de seguros por cada ciclo de renovación anual al pulsar la X.`
+  },
+  {
     version: '2.7.8',
     releaseNotes: `Novedades v2.7.8:
 - 🛡️ Persistencia de Avisos de Renovación: Opción de descartar permanentemente el aviso de vencimiento de seguros por cada ciclo de renovación anual al pulsar la X.

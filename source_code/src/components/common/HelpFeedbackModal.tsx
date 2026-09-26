@@ -239,7 +239,7 @@ const HelpFeedbackModal: React.FC<HelpFeedbackModalProps> = ({ isOpen, onClose }
                         }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', color: '#a855f7', fontWeight: 700, fontSize: '0.9rem' }}>
                                 <Sparkles size={16} />
-                                <span>¿Te resulta útil y quieres apoyar el proyecto?</span>
+                                <span>¿Te resulta útil y quieres colaborar con el proyecto?</span>
                             </div>
                             <ul style={{ margin: 0, paddingLeft: '1.2rem', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', lineHeight: '1.6' }}>
                                 <li><strong>Recomienda la app</strong> a tus familiares o amigos.</li>

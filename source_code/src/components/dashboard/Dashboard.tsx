@@ -719,23 +719,6 @@ const Dashboard: React.FC = () => {
                                 <button
                                     onClick={() => {
                                         const subject = encodeURIComponent('Sugerencia app PCSHogar');
-                                        const mailtoUrl = `mailto:yoayudo2020@gmail.com?subject=${subject}`;
-                                        window.open(mailtoUrl, '_system');
-                                    }}
-                                    style={{
-                                        width: '100%', padding: '12px', borderRadius: '10px',
-                                        background: '#1e2028', color: 'white',
-                                        border: '1px solid rgba(255, 255, 255, 0.12)',
-                                        fontWeight: 600, fontSize: '0.95rem', cursor: 'pointer',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        gap: '8px', boxSizing: 'border-box'
-                                    }}
-                                >
-                                    <Mail size={18} /> Enviar sugerencia por email
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        const subject = encodeURIComponent('Sugerencia app PCSHogar');
                                         window.open(`mailto:yoayudo2020@gmail.com?subject=${subject}`, '_system');
                                         if (isMilestone) {
                                             localStorage.setItem('pcshogar_last_action_milestone_shown', activeMilestone.toString());
@@ -752,7 +735,7 @@ const Dashboard: React.FC = () => {
                                         boxSizing: 'border-box'
                                     }}
                                 >
-                                    <Mail size={16} /> Enviar sugerencia por email
+                                    <Mail size={18} /> Enviar sugerencia por email
                                 </button>
                             </div>
                             {/* Close button */}

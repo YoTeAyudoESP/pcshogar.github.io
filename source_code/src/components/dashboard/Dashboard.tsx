@@ -228,15 +228,6 @@ const Dashboard: React.FC = () => {
             }
             const installTime = parseInt(installDateStr);
 
-            // PayPal silent period checking (3 months / 90 days)
-            const paypalClickTimeStr = localStorage.getItem('pcshogar_paypal_click_time');
-            if (paypalClickTimeStr) {
-                const paypalTime = parseInt(paypalClickTimeStr);
-                if (now - paypalTime < 7776000000) {
-                    return;
-                }
-            }
-
             const lastShownStr = localStorage.getItem('pcshogar_reminder_last_shown');
             const reminderCount = parseInt(localStorage.getItem('pcshogar_reminder_count') || '0');
 

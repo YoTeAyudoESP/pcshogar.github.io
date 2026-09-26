@@ -39,7 +39,8 @@ import {
     MessageSquare,
     Users,
     Car,
-    ShieldCheck
+    ShieldCheck,
+    Sparkles
 } from 'lucide-react';
 import SavingsView from '../savings/SavingsView';
 import VehicleList from '../vehicles/VehicleList';
@@ -70,11 +71,6 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
         } else {
             window.location.href = '/manual.html';
         }
-    };
-
-    const handlePayPal = () => {
-        const paypalUrl = 'https://www.paypal.me/pherba/5';
-        window.open(paypalUrl, '_system');
     };
 
     const handleSuggestion = () => {
@@ -440,10 +436,30 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
                                 lineHeight: '1.6', 
                                 opacity: 0.9, 
                                 maxWidth: '500px',
-                                margin: '0 auto'
+                                margin: '0 auto 1.25rem auto'
                             }}>
-                                Esta aplicación ha sido desarrollada de forma independiente por <strong>Yo Te Ayudo (ESP)</strong> y su uso es 100% gratuito, independiente y sin publicidad. Si deseas colaborar con el proyecto, la mejor forma de hacerlo es recomendando la app a tus familiares o enviándonos tus sugerencias por email.
+                                Esta aplicación ha sido desarrollada de forma independiente por <strong>Yo Te Ayudo (ESP)</strong> y su uso es 100% gratuito, independiente y sin publicidad.
                             </p>
+                        </div>
+
+                        <div style={{
+                            background: 'rgba(255, 255, 255, 0.03)',
+                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                            borderRadius: '16px',
+                            padding: '1.25rem',
+                            textAlign: 'left',
+                            maxWidth: '500px',
+                            width: '100%'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: '#a855f7', fontWeight: 700, fontSize: '0.9rem' }}>
+                                <Sparkles size={16} />
+                                <span>¿Te resulta útil y quieres apoyar el proyecto?</span>
+                            </div>
+                            <ul style={{ margin: 0, paddingLeft: '1.2rem', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', lineHeight: '1.6' }}>
+                                <li><strong>Recomienda la app</strong> a tus familiares o amigos.</li>
+                                <li><strong>Envíanos tus sugerencias</strong> por email para seguir mejorando.</li>
+                                <li><strong>Reporta cualquier fallo</strong> para corregirlo rápidamente.</li>
+                            </ul>
                         </div>
 
                         <div style={{ 
@@ -480,7 +496,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
                                     color: 'white',
                                     border: '1px solid rgba(255, 255, 255, 0.1)',
                                     padding: '0.75rem',
-                                    borderRadius: '4px',
+                                    borderRadius: '8px',
                                     fontWeight: 700,
                                     display: 'flex',
                                     alignItems: 'center',
@@ -490,7 +506,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
                                     fontSize: '0.85rem'
                                 }}
                             >
-                                <MessageSquare size={18} /> Enviar Sugerencia
+                                <MessageSquare size={18} /> Enviar Sugerencia por Email
                             </button>
                         </div>
 
@@ -505,7 +521,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
                             border: '1px solid rgba(255,255,255,0.05)',
                             maxWidth: '500px'
                         }}>
-                            <strong>Aviso legal y protección de datos:</strong> La aportación económica es 100% voluntaria, de carácter final y no reembolsable bajo ninguna circunstancia. Al realizarla aceptas expresamente que no constituye el pago por un servicio profesional, ni el despliegue de ventajas en la app, ni la compra de artículos. Esta aplicación no requiere pagos para funcionar. <strong>Yo Te Ayudo (ESP)</strong> no almacena, recopila ni procesa ningún dato personal, financiero ni tarjeta bancaria del usuario. El procesamiento íntegro y seguro de los pagos se deriva de forma exclusiva y externa a los servidores de PayPal, aplicando únicamente su propia Política de Privacidad y Términos de Servicio.
+                            <strong>Aviso legal y privacidad:</strong> PCS Hogar es una aplicación de uso local y 100% gratuito. <strong>Yo Te Ayudo (ESP)</strong> no almacena, recopila ni procesa ningún dato personal ni financiero en servidores externos. Todos tus datos financieros residen exclusivamente de forma segura en tu propio dispositivo.
                         </div>
 
                         <p style={{ fontSize: '0.85rem', opacity: 0.4, marginTop: '0.5rem' }}>

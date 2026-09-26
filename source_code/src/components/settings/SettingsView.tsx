@@ -202,7 +202,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
         { id: 'balance', label: 'Ajustes Saldo', icon: RefreshCw },
         { id: 'app', label: 'Aplicación', icon: Monitor },
         ...(isPrincipal ? [{ id: 'users', label: 'Gestión de Usuarios', icon: Users }] : []),
-        { id: 'about', label: 'Acerca de', icon: Heart },
+        { id: 'about', label: 'Acerca de', icon: ShieldCheck },
     ] as const;
 
     return (
@@ -431,7 +431,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
                         gap: '1.25rem',
                         textAlign: 'center' 
                     }}>
-                        <Heart size={48} style={{ color: '#4c4af5', opacity: 0.9 }} />
+                        <ShieldCheck size={48} style={{ color: '#818cf8', opacity: 0.9 }} />
                         
                         <div>
                             <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.75rem' }}>Acerca de PCS Hogar</h2>
@@ -442,7 +442,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
                                 maxWidth: '500px',
                                 margin: '0 auto'
                             }}>
-                                Esta aplicación está desarrollada de forma independiente por <strong>Yo Te Ayudo (ESP)</strong> y su uso es íntegro y gratuito, sin ningún fin lucrativo. Si deseas ayudar económicamente a sostener el proyecto, las aportaciones voluntarias (puntuales o mensuales) serán destinadas de manera exclusiva al mantenimiento de los servidores que hacen posible el funcionamiento de la app. ¡PCS Hogar siempre funcionará exactamente igual y sin limitaciones para todos!
+                                Esta aplicación ha sido desarrollada de forma independiente por <strong>Yo Te Ayudo (ESP)</strong> y su uso es 100% gratuito, independiente y sin publicidad. Si deseas colaborar con el proyecto, la mejor forma de hacerlo es recomendando la app a tus familiares o enviándonos tus sugerencias por email.
                             </p>
                         </div>
 
@@ -453,48 +453,26 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
                             width: '100%', 
                             maxWidth: '400px' 
                         }}>
-                            <div style={{ display: 'flex', gap: '0.75rem' }}>
-                                <button 
-                                    onClick={handleOpenManual}
-                                    style={{ 
-                                        flex: 1,
-                                        background: '#D946EF',
-                                        color: 'white',
-                                        border: 'none',
-                                        padding: '0.75rem',
-                                        borderRadius: '4px',
-                                        fontWeight: 700,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: '0.5rem',
-                                        cursor: 'pointer',
-                                        fontSize: '0.85rem'
-                                    }}
-                                >
-                                    <BookOpen size={18} /> Ver Manual de Uso
-                                </button>
-                                <button 
-                                    onClick={handlePayPal}
-                                    style={{ 
-                                        flex: 1,
-                                        background: '#4c4af5',
-                                        color: 'white',
-                                        border: 'none',
-                                        padding: '0.75rem',
-                                        borderRadius: '4px',
-                                        fontWeight: 700,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: '0.5rem',
-                                        cursor: 'pointer',
-                                        fontSize: '0.85rem'
-                                    }}
-                                >
-                                    <Coffee size={18} /> Invitar a un café (PayPal)
-                                </button>
-                            </div>
+                            <button 
+                                onClick={handleOpenManual}
+                                style={{ 
+                                    width: '100%',
+                                    background: '#D946EF',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '0.75rem',
+                                    borderRadius: '8px',
+                                    fontWeight: 700,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '0.5rem',
+                                    cursor: 'pointer',
+                                    fontSize: '0.85rem'
+                                }}
+                            >
+                                <BookOpen size={18} /> Ver Manual de Uso
+                            </button>
                             <button 
                                 onClick={handleSuggestion}
                                 style={{ 

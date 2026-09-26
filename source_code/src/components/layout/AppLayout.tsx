@@ -1,5 +1,5 @@
 import React, { type ReactNode, useState, useEffect } from 'react';
-import { Heart, Eye, EyeOff } from 'lucide-react';
+import { HelpCircle, Eye, EyeOff } from 'lucide-react';
 import HelpFeedbackModal from '../common/HelpFeedbackModal';
 import logo from '../../assets/logo.png';
 import EconomySelector from './EconomySelector';
@@ -78,7 +78,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                         style={{
                             background: 'rgba(255, 255, 255, 0.05)',
                             border: 'none',
-                            color: '#ec4899',
+                            color: '#818cf8',
                             cursor: 'pointer',
                             padding: '10px',
                             borderRadius: '12px',
@@ -88,8 +88,9 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                             transition: 'all 0.2s ease',
                             boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
                         }}
+                        title="Sugerencias y Contacto"
                     >
-                        <Heart size={24} fill="#ec4899" />
+                        <HelpCircle size={24} />
                     </button>
                 </nav>
             </header>

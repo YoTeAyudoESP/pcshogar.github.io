@@ -667,7 +667,7 @@ const Dashboard: React.FC = () => {
                     if (n === 80)  return { title: '¡Vas cogiendo ritmo! 💪', text: `${n} acciones registradas. La constancia es la clave para unas finanzas sanas. Si tienes alguna idea de mejora, nos encantaría escucharte.` };
                     if (n === 160) return { title: '¡Usuario comprometido! 🌟', text: `Con ${n} acciones en PCS Hogar demuestras que te tomas en serio tus finanzas. ¿Todo funciona bien? ¡Cuéntanos!` };
                     if (n === 220) return { title: '¡Experto en marcha! 🎯', text: `¡${n} acciones! Estás dominando tu economía personal como un profesional. Tu opinión es muy valiosa para nosotros.` };
-                    if (n === 300) return { title: '¡Trescientas razones! 🏅', text: `${n} acciones demuestran tu compromiso con tus finanzas. Gracias por confiar en PCS Hogar. ¿Nos invitas a un café?` };
+                    if (n === 300) return { title: '¡Trescientas razones! 🏅', text: `${n} acciones demuestran tu compromiso con tus finanzas. ¡Gracias por confiar en PCS Hogar para llevar tus cuentas al día!` };
                     if (n === 360) return { title: '¡Un año de decisiones! 📅', text: `Con ${n} acciones llevas el equivalente a un año tomando decisiones financieras inteligentes. ¡Eres increíble!` };
                     if (n === 420) return { title: '¡Maestro Financiero! 💎', text: `${n} acciones. Pocas personas se implican tanto en su economía. Tu nivel de compromiso es excepcional.` };
                     if (n === 500) return { title: '🏆 ¡500 Acciones! Leyenda Financiera', text: `¡INCREÍBLE! Has alcanzado las 500 acciones en PCS Hogar. Eres un auténtico referente del ahorro inteligente. Gracias de corazón por tu fidelidad. 🎉` };
@@ -744,23 +744,24 @@ const Dashboard: React.FC = () => {
                                 </button>
                                 <button
                                     onClick={() => {
-                                        const paypalUrl = 'https://www.paypal.me/pherba/5';
-                                        window.open(paypalUrl, '_system');
-                                        localStorage.setItem('pcshogar_paypal_click_time', Date.now().toString());
-                                        localStorage.setItem('pcshogar_reminder_count', '0');
+                                        const subject = encodeURIComponent('Sugerencia app PCSHogar');
+                                        window.open(`mailto:yoayudo2020@gmail.com?subject=${subject}`, '_system');
+                                        if (isMilestone) {
+                                            localStorage.setItem('pcshogar_last_action_milestone_shown', activeMilestone.toString());
+                                        }
                                         setReminderType(null);
                                     }}
                                     style={{
                                         width: '100%', padding: '12px', borderRadius: '10px',
-                                        background: 'linear-gradient(135deg, #ec4899 0%, #d946ef 100%)',
+                                        background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
                                         color: 'white', border: 'none', fontWeight: 700, fontSize: '0.95rem',
                                         cursor: 'pointer', display: 'flex', alignItems: 'center',
                                         justifyContent: 'center', gap: '8px',
-                                        boxShadow: '0 4px 15px rgba(236, 72, 153, 0.3)',
+                                        boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)',
                                         boxSizing: 'border-box'
                                     }}
                                 >
-                                    <Coffee size={16} /> Invitar a un café (PayPal)
+                                    <Mail size={16} /> Enviar sugerencia por email
                                 </button>
                             </div>
                             {/* Close button */}

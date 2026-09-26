@@ -5,6 +5,12 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.7.8',
+    releaseNotes: `Novedades v2.7.8:
+- 🛡️ Persistencia de Avisos de Renovación: Opción de descartar permanentemente el aviso de vencimiento de seguros por cada ciclo de renovación anual al pulsar la X.
+- 💬 Rediseño de Sugerencias y Colaboración: Retirada completa de botones de PayPal e "Invitar a un café" en favor de un módulo limpio de sugerencias por email y difusión comunitarias.`
+  },
+  {
     version: '2.7.7',
     releaseNotes: `Novedades v2.7.7:
 - 📐 Margen de Eje Y en Gráfica de Huchas: Margen y ancho del eje Y ampliados para garantizar que cifras altas de huchas (ej. 6.000€) se vean perfectamente en teléfonos Android sin recortarse.

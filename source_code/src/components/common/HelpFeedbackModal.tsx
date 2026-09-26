@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, Coffee, Mail, X, Download, RefreshCw } from 'lucide-react';
+import { MessageSquare, Mail, X, Download, RefreshCw, Copy, Check, Share2, Sparkles } from 'lucide-react';
 import { Capacitor, registerPlugin } from '@capacitor/core';
 import { UpdateService } from '../../services/updateService';
 import versionInfo from '../../../public/version.json';
@@ -18,16 +18,18 @@ interface HelpFeedbackModalProps {
 const HelpFeedbackModal: React.FC<HelpFeedbackModalProps> = ({ isOpen, onClose }) => {
     if (!isOpen) return null;
 
-    const handlePayPal = () => {
-        const paypalUrl = 'https://www.paypal.me/pherba/5';
-        window.open(paypalUrl, '_system');
-    };
+    const [copied, setCopied] = useState(false);
 
     const handleSuggestion = () => {
         const subject = encodeURIComponent('Sugerencia app PCSHogar');
         const mailtoUrl = `mailto:yoayudo2020@gmail.com?subject=${subject}`;
-        // '_system' abre el cliente de correo nativo del dispositivo (Gmail, Outlook, etc.)
         window.open(mailtoUrl, '_system');
+    };
+
+    const handleCopyEmail = () => {
+        navigator.clipboard.writeText('yoayudo2020@gmail.com');
+        setCopied(true);
+        setTimeout(() => setCopied(false), 3000);
     };
 
     const [downloadUrlAndroid, setDownloadUrlAndroid] = useState(versionInfo.url);
@@ -40,7 +42,6 @@ const HelpFeedbackModal: React.FC<HelpFeedbackModalProps> = ({ isOpen, onClose }
     const isApp = Capacitor.isNativePlatform() || isElectron;
 
     useEffect(() => {
-        // Fetch the latest URLs dynamically on web platform
         if (!isApp) {
             fetch('https://pcshogar.es/version.json')
                 .then(res => res.json())
@@ -136,7 +137,7 @@ const HelpFeedbackModal: React.FC<HelpFeedbackModalProps> = ({ isOpen, onClose }
                 maxWidth: '440px',
                 width: '100%',
                 backgroundColor: '#12141a',
-                padding: '40px 30px',
+                padding: '35px 25px',
                 borderRadius: '24px',
                 textAlign: 'center',
                 position: 'relative',
@@ -165,29 +166,29 @@ const HelpFeedbackModal: React.FC<HelpFeedbackModalProps> = ({ isOpen, onClose }
                     <X size={20} />
                 </button>
 
-                {/* Heart Icon in Gradient Circle */}
+                {/* Message Icon in Gradient Circle */}
                 <div style={{
-                    width: '80px',
-                    height: '80px',
-                    margin: '0 auto 24px',
-                    background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)',
-                    borderRadius: '24px',
+                    width: '70px',
+                    height: '70px',
+                    margin: '0 auto 20px',
+                    background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+                    borderRadius: '20px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    boxShadow: '0 10px 20px rgba(236, 72, 153, 0.3)'
+                    boxShadow: '0 10px 20px rgba(99, 102, 241, 0.3)'
                 }}>
-                    <Heart size={40} color="white" fill="white" />
+                    <MessageSquare size={34} color="white" />
                 </div>
 
                 {/* Title */}
                 <h2 style={{
-                    fontSize: '1.75rem',
+                    fontSize: '1.5rem',
                     fontWeight: 800,
-                    marginBottom: '16px',
+                    marginBottom: '12px',
                     color: 'white'
                 }}>
-                    ¡Gracias por usar PCS Hogar!
+                    Sugerencias y Contacto
                 </h2>
 
                 {downloading ? (
@@ -219,100 +220,83 @@ const HelpFeedbackModal: React.FC<HelpFeedbackModalProps> = ({ isOpen, onClose }
                     </div>
                 ) : (
                     <>
-                        {/* Text */}
                         <p style={{
-                            fontSize: '1rem',
-                            lineHeight: '1.6',
-                            color: 'rgba(255, 255, 255, 0.7)',
-                            marginBottom: '32px'
+                            fontSize: '0.92rem',
+                            lineHeight: '1.5',
+                            color: 'rgba(255, 255, 255, 0.75)',
+                            marginBottom: '20px'
                         }}>
-                            Esta aplicación ha sido desarrollada de forma independiente y su uso es 100% gratuito. 
-                            Si te resulta útil, puedes invitarme a un café de forma totalmente opcional. 
-                            La app funcionará completa e idénticamente aportes o no.
+                            PCS Hogar es una aplicación de gestión económica 100% gratuita, independiente y sin publicidad.
                         </p>
 
+                        <div style={{
+                            background: 'rgba(255, 255, 255, 0.03)',
+                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                            borderRadius: '16px',
+                            padding: '16px',
+                            textAlign: 'left',
+                            marginBottom: '24px'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', color: '#a855f7', fontWeight: 700, fontSize: '0.9rem' }}>
+                                <Sparkles size={16} />
+                                <span>¿Te resulta útil y quieres apoyar el proyecto?</span>
+                            </div>
+                            <ul style={{ margin: 0, paddingLeft: '1.2rem', fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', lineHeight: '1.6' }}>
+                                <li><strong>Recomienda la app</strong> a tus familiares o amigos.</li>
+                                <li><strong>Envíanos tus sugerencias</strong> para seguir mejorando.</li>
+                                <li><strong>Reporta cualquier fallo</strong> para corregirlo rápidamente.</li>
+                            </ul>
+                        </div>
+
                         {/* Buttons */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
-
-                            {/* PayPal donation button */}
-                            <button
-                                onClick={handlePayPal}
-                                style={{
-                                    width: '100%',
-                                    padding: '16px',
-                                    borderRadius: '12px',
-                                    background: 'linear-gradient(135deg, #009cde 0%, #003087 100%)',
-                                    color: 'white',
-                                    border: 'none',
-                                    fontWeight: 700,
-                                    fontSize: '1.05rem',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '10px',
-                                    cursor: 'pointer',
-                                    boxShadow: '0 4px 20px rgba(0, 48, 135, 0.45)',
-                                    transition: 'opacity 0.2s'
-                                }}
-                                onMouseEnter={e => (e.currentTarget.style.opacity = '0.88')}
-                                onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
-                            >
-                                {/* Icono PayPal tipo "P" */}
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M19.554 9.488c.121-.079.144.041.129.142-.49 3.303-2.168 5.089-5.012 5.089H13.15l-.738 4.676-.091.542a.392.392 0 0 1-.385.33H9.964a.313.313 0 0 1-.308-.36l.048-.297.643-4.072.041-.224a.392.392 0 0 1 .385-.331h1.216c2.494 0 4.449-.985 5.02-3.835.234-1.174.12-2.155-.455-2.66z"/>
-                                    <path d="M18.605 9.01a5.398 5.398 0 0 0-.65-.144 8.22 8.22 0 0 0-1.3-.098h-3.928a.39.39 0 0 0-.386.33L11.3 14.72l-.034.217a.392.392 0 0 0 .385.45h1.52c2.845 0 4.522-1.786 5.013-5.09.136-.87.11-1.613-.58-2.287z"/>
-                                    <path d="M8.15 9.098a.39.39 0 0 1 .386-.33h4.927a8.23 8.23 0 0 1 1.3.097 5.4 5.4 0 0 1 .65.145c.69.674.716 1.417.58 2.287-.491 3.304-2.168 5.09-5.013 5.09H9.46a.392.392 0 0 1-.385-.45l.034-.218 1.041-6.621z" opacity=".5"/>
-                                </svg>
-                                <Coffee size={20} />
-                                Invitar a un café (PayPal)
-                            </button>
-
-                            {/* Email suggestion button */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
                             <button
                                 onClick={handleSuggestion}
                                 style={{
                                     width: '100%',
-                                    padding: '16px',
+                                    padding: '14px',
                                     borderRadius: '12px',
-                                    background: '#1e2028',
+                                    background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
                                     color: 'white',
-                                    border: '1px solid rgba(255, 255, 255, 0.12)',
-                                    fontWeight: 600,
-                                    fontSize: '1.05rem',
+                                    border: 'none',
+                                    fontWeight: 700,
+                                    fontSize: '0.98rem',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     gap: '10px',
                                     cursor: 'pointer',
-                                    transition: 'background 0.2s, border-color 0.2s'
-                                }}
-                                onMouseEnter={e => {
-                                    e.currentTarget.style.background = '#252830';
-                                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.22)';
-                                }}
-                                onMouseLeave={e => {
-                                    e.currentTarget.style.background = '#1e2028';
-                                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)';
+                                    boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)'
                                 }}
                             >
-                                <Mail size={22} />
-                                Enviar una sugerencia
+                                <Mail size={18} />
+                                Enviar sugerencia por email
+                            </button>
+
+                            <button
+                                onClick={handleCopyEmail}
+                                style={{
+                                    width: '100%',
+                                    padding: '12px',
+                                    borderRadius: '12px',
+                                    background: 'rgba(255, 255, 255, 0.05)',
+                                    color: copied ? '#10b981' : 'rgba(255, 255, 255, 0.7)',
+                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                    fontWeight: 600,
+                                    fontSize: '0.88rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '8px',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                {copied ? <Check size={16} /> : <Copy size={16} />}
+                                {copied ? '¡Correo copiado!' : 'Copiar correo de contacto'}
                             </button>
                         </div>
                     </>
                 )}
-
-                {/* Legal Text */}
-                <p style={{
-                    fontSize: '0.78rem',
-                    lineHeight: '1.4',
-                    color: 'rgba(255, 255, 255, 0.35)',
-                    marginBottom: '24px',
-                    padding: '0 10px'
-                }}>
-                    Aviso Legal: Toda aportación es 100% voluntaria, no reembolsable y no otorga servicios extra. 
-                    Yo Te Ayudo (ESP) no recopila datos de pago. Pagos gestionados externamente y de forma segura por PayPal.
-                </p>
             </div>
         </div>
     );

@@ -8,12 +8,20 @@ interface InsuranceRenewalAlertProps {
 
 const InsuranceRenewalAlert: React.FC<InsuranceRenewalAlertProps> = ({ onNavigateToInsurances }) => {
     const { insurances } = useFinance();
-    const [dismissedIds, setDismissedIds] = useState<string[]>([]);
+    const [dismissedMap, setDismissedMap] = useState<Record<string, number>>(() => {
+        try {
+            const saved = localStorage.getItem('pcs_dismissed_insurance_renewals');
+            return saved ? JSON.parse(saved) : {};
+        } catch {
+            return {};
+        }
+    });
 
     const now = Date.now();
     // Encuentra seguros que vencen en los próximos 60 días
     const upcomingRenewals = insurances.filter(ins => {
-        if (dismissedIds.includes(ins.id)) return false;
+        // Excluir si el usuario descartó el aviso para esta fecha concreta de vencimiento
+        if (dismissedMap[ins.id] === ins.expirationDate) return false;
         const daysLeft = Math.ceil((ins.expirationDate - now) / (1000 * 60 * 60 * 24));
         return daysLeft <= 60 && daysLeft >= -15; // Vence en 60 días o venció hace menos de 15 días
     });
@@ -23,8 +31,16 @@ const InsuranceRenewalAlert: React.FC<InsuranceRenewalAlertProps> = ({ onNavigat
     const targetIns = upcomingRenewals[0];
     const daysLeft = Math.ceil((targetIns.expirationDate - now) / (1000 * 60 * 60 * 24));
 
-    const handleDismiss = (id: string) => {
-        setDismissedIds(prev => [...prev, id]);
+    const handleDismiss = (id: string, expDate: number) => {
+        setDismissedMap(prev => {
+            const updated = { ...prev, [id]: expDate };
+            try {
+                localStorage.setItem('pcs_dismissed_insurance_renewals', JSON.stringify(updated));
+            } catch (e) {
+                console.warn('Could not save dismissed insurance renewal:', e);
+            }
+            return updated;
+        });
     };
 
     return (
@@ -105,7 +121,7 @@ const InsuranceRenewalAlert: React.FC<InsuranceRenewalAlertProps> = ({ onNavigat
                     </button>
                 )}
                 <button
-                    onClick={() => handleDismiss(targetIns.id)}
+                    onClick={() => handleDismiss(targetIns.id, targetIns.expirationDate)}
                     style={{
                         background: 'rgba(255, 255, 255, 0.05)',
                         border: '1px solid rgba(255, 255, 255, 0.1)',

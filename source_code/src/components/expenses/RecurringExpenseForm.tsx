@@ -107,6 +107,10 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
         return () => document.removeEventListener('app-back-pressed', handleBack);
     }, [description, amount, frequency, paymentDay, paymentMonth, categoryId, pmType, pmId, editingExpense, onClose]);
 
+    const now = new Date();
+    const currentMonthPeriod = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const [startPeriod, setStartPeriod] = useState(currentMonthPeriod);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!description || !amount || isFormBlocked) return;
@@ -123,6 +127,27 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
             paymentMethod = { type: 'cash', accountId: pmId };
         }
 
+        const ignoredSet = new Set<string>(editingExpense?.ignoredPeriods || []);
+        if (startPeriod) {
+            const [sYear, sMonth] = startPeriod.split('-').map(Number);
+            const curY = now.getFullYear();
+            const curM = now.getMonth() + 1; // 1-indexed
+
+            if (sYear > curY || (sYear === curY && sMonth > curM)) {
+                let loopY = curY;
+                let loopM = curM;
+                while (loopY < sYear || (loopY === sYear && loopM < sMonth)) {
+                    const pStr = `${loopY}-${String(loopM).padStart(2, '0')}`;
+                    ignoredSet.add(pStr);
+                    loopM++;
+                    if (loopM > 12) {
+                        loopM = 1;
+                        loopY++;
+                    }
+                }
+            }
+        }
+
         const expenseData = {
             description,
             amount: parseFloat(amount),
@@ -136,7 +161,7 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
             financingSavingGoalId: financingSavingGoalId || undefined,
             updatedAt: Date.now(),
             createdAt: editingExpense?.createdAt || Date.now(),
-            ignoredPeriods: editingExpense?.ignoredPeriods || []
+            ignoredPeriods: Array.from(ignoredSet)
         };
 
         if (editingExpense) {
@@ -347,7 +372,18 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
                 )}
             </div>
 
-            {/* Categoría */}
+            {/* Mes de Inicio */}
+            {!editingExpense && (
+                <div style={containerStyle}>
+                    <label style={labelStyle}>Mes de inicio del movimiento</label>
+                    <input 
+                        type="month" 
+                        style={inputStyle} 
+                        value={startPeriod} 
+                        onChange={e => setStartPeriod(e.target.value)} 
+                    />
+                </div>
+            )}
             <div style={containerStyle}>
                 <label style={labelStyle}>Categoría</label>
                 <select 

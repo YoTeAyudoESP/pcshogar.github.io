@@ -5,6 +5,13 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.8.0',
+    releaseNotes: `Novedades v2.8.0:
+- 💳 Herencia de Tarjeta en Préstamos: Los préstamos financiados por tarjeta asignan correctamente la forma de pago por tarjeta al movimiento fijo vinculado.
+- 📅 Cuotas Futuras en Préstamos: Las cuotas de préstamos con inicio en meses futuros ya no generan falsas alertas de pago pendiente en meses anteriores.
+- 🗓️ Mes de Inicio en Movimientos Fijos: Nuevo campo opcional para elegir el mes y año en el que comenzará a aplicarse un nuevo movimiento fijo.`
+  },
+  {
     version: '2.7.9',
     releaseNotes: `Novedades v2.7.9:
 - 💬 Limpieza Completa de Textos: Retirada definitiva de cualquier texto o mención a apoyo económico en la pestaña 'Acerca de' y popups de la app, homogeneizándolo con el módulo de colaboración comunitaria (sugerencias, recomendaciones y feedback).

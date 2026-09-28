@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useFinance } from '../../contexts/FinanceContext';
 import { X, Calculator, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
-import type { Loan } from '../../types/finance';
+import type { Loan, PaymentMethod } from '../../types/finance';
 import { formatMoney, computeTae, computeCommissionsFromTae, isItemInMonthAndYear } from '../../utils/financeCalculations';
 import { v4 as uuidv4 } from 'uuid';
 import ModalPortal from '../common/ModalPortal';
@@ -362,13 +362,14 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
             const startY = startD.getFullYear();
             const startM = startD.getMonth();
             
-            // Build ignoredPeriods array for all past months + current month state
+            // Build ignoredPeriods array for all past months & months prior to startDate
             const ignoredSet = new Set<string>();
             const existingRec = editingLoan?.linkedRecurringExpenseId
                 ? recurringExpenses.find(r => r.id === editingLoan.linkedRecurringExpenseId)
                 : undefined;
             (existingRec?.ignoredPeriods || []).forEach(p => ignoredSet.add(p));
 
+            // If start date is in the past, ignore months between start date and current month
             let tempY = startY;
             let tempM = startM;
             while (tempY < curY || (tempY === curY && tempM < curM)) {
@@ -381,13 +382,33 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                 }
             }
 
+            // If start date is in the future, ignore all months between current month and start date (excluding start month)
+            if (startY > curY || (startY === curY && startM > curM)) {
+                let loopY = curY;
+                let loopM = curM;
+                while (loopY < startY || (loopY === startY && loopM < startM)) {
+                    const pStr = `${loopY}-${String(loopM + 1).padStart(2, '0')}`;
+                    ignoredSet.add(pStr);
+                    loopM++;
+                    if (loopM > 11) {
+                        loopM = 0;
+                        loopY++;
+                    }
+                }
+            }
+
             if (isCurrentMonthPaid) {
                 ignoredSet.add(curPeriod);
-            } else {
+            } else if (startY < curY || (startY === curY && startM <= curM)) {
+                // Only un-ignore current period if startDate is at or before current month
                 ignoredSet.delete(curPeriod);
             }
 
             const finalIgnoredPeriods = Array.from(ignoredSet);
+
+            const recPaymentMethod: PaymentMethod = supportedByCardId
+                ? { type: 'card', cardId: supportedByCardId }
+                : { type: 'account', accountId: linkedAccountId };
 
             if (editingLoan) {
                 const updatedLoan: Loan = {
@@ -426,7 +447,8 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                         frequency: 'monthly',
                         paymentDay: payDay,
                         active: remaining > 0,
-                        sourceAccountId: supportedByCardId ? undefined : linkedAccountId,
+                        sourceAccountId: linkedAccountId,
+                        paymentMethod: recPaymentMethod,
                         categoryId: 'cat_loans',
                         ignoredPeriods: finalIgnoredPeriods
                     } as any);
@@ -442,7 +464,8 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                     frequency: 'monthly',
                     paymentDay: payDay,
                     active: true,
-                    sourceAccountId: supportedByCardId ? undefined : linkedAccountId,
+                    sourceAccountId: linkedAccountId,
+                    paymentMethod: recPaymentMethod,
                     categoryId: 'cat_loans',
                     ignoredPeriods: finalIgnoredPeriods
                 } as any);

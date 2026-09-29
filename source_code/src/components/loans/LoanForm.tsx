@@ -74,8 +74,11 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
     useEffect(() => {
         if (editingLoan) {
             setName(editingLoan.name || '');
-            setLinkedAccountId(editingLoan.linkedAccountId || '');
-            setSupportedByCardId(editingLoan.supportedByCardId || '');
+            const cardId = editingLoan.supportedByCardId || editingLoan.issuingCardId;
+            const cardObj = cardId ? cards.find(c => c.id === cardId) : null;
+            const resolvedAccount = editingLoan.linkedAccountId || (cardObj?.linkedAccountId || accounts.find(a => a.isMain)?.id || accounts[0]?.id || '');
+            setLinkedAccountId(resolvedAccount);
+            setSupportedByCardId(cardId || '');
             setAmount(editingLoan.totalAmount || '');
             setAmortizedAmount((editingLoan.totalAmount || 0) - (editingLoan.remainingAmount || 0));
             setTin(editingLoan.tin !== undefined ? editingLoan.tin : '');
@@ -410,9 +413,15 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
 
             const finalIgnoredPeriods = Array.from(ignoredSet);
 
-            const recPaymentMethod: PaymentMethod = supportedByCardId
-                ? { type: 'card', cardId: supportedByCardId }
-                : { type: 'account', accountId: linkedAccountId };
+            const cardObj = supportedByCardId ? cards.find(c => c.id === supportedByCardId) : null;
+            const targetAccountId = supportedByCardId
+                ? (cardObj?.linkedAccountId || linkedAccountId || accounts.find(a => a.isMain)?.id || accounts[0]?.id || '')
+                : (linkedAccountId || accounts.find(a => a.isMain)?.id || accounts[0]?.id || '');
+
+            const recPaymentMethod: PaymentMethod = {
+                type: 'account',
+                accountId: targetAccountId
+            };
 
             if (editingLoan) {
                 const updatedLoan: Loan = {
@@ -429,7 +438,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                     amountMode: amountMode,
                     grantDate: new Date(grantDate).getTime(),
                     startDate: new Date(startDate).getTime(),
-                    linkedAccountId: supportedByCardId ? undefined : linkedAccountId,
+                    linkedAccountId: targetAccountId || undefined,
                     supportedByCardId: supportedByCardId || undefined,
                     issuingCardId: supportedByCardId || undefined,
                     doesNotConsumeCardLimit: supportedByCardId ? doesNotConsumeCardLimit : false,
@@ -454,7 +463,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                         frequency: 'monthly',
                         paymentDay: payDay,
                         active: remaining > 0,
-                        sourceAccountId: linkedAccountId,
+                        sourceAccountId: targetAccountId,
                         paymentMethod: recPaymentMethod,
                         categoryId: 'cat_loans',
                         ignoredPeriods: finalIgnoredPeriods
@@ -471,7 +480,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                     frequency: 'monthly',
                     paymentDay: payDay,
                     active: true,
-                    sourceAccountId: linkedAccountId,
+                    sourceAccountId: targetAccountId,
                     paymentMethod: recPaymentMethod,
                     categoryId: 'cat_loans',
                     ignoredPeriods: finalIgnoredPeriods
@@ -492,7 +501,7 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                     amountMode: amountMode,
                     grantDate: new Date(grantDate).getTime(),
                     startDate: new Date(startDate).getTime(),
-                    linkedAccountId: supportedByCardId ? undefined : linkedAccountId,
+                    linkedAccountId: targetAccountId || undefined,
                     supportedByCardId: supportedByCardId || undefined,
                     issuingCardId: supportedByCardId || undefined,
                     doesNotConsumeCardLimit: supportedByCardId ? doesNotConsumeCardLimit : false,
@@ -585,8 +594,12 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                     onChange={e => {
                         const val = e.target.value;
                         if (val.startsWith('card:')) {
-                            setSupportedByCardId(val.replace('card:', ''));
-                            setLinkedAccountId('');
+                            const cardId = val.replace('card:', '');
+                            setSupportedByCardId(cardId);
+                            const cardObj = cards.find(c => c.id === cardId);
+                            if (cardObj?.linkedAccountId) {
+                                setLinkedAccountId(cardObj.linkedAccountId);
+                            }
                         } else {
                             setSupportedByCardId('');
                             setLinkedAccountId(val);
@@ -950,7 +963,10 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                                                 setName(exp.description);
                                                 setAmount(exp.amount);
                                                 setSupportedByCardId(selectedImportCardId);
-                                                setLinkedAccountId('');
+                                                const impCard = cards.find(c => c.id === selectedImportCardId);
+                                                if (impCard?.linkedAccountId) {
+                                                    setLinkedAccountId(impCard.linkedAccountId);
+                                                }
                                                 setImportedExpenseId(exp.id);
                                                 setShowImportCardModal(false);
                                             }}

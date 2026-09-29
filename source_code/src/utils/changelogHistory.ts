@@ -5,6 +5,11 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.8.2',
+    releaseNotes: `Novedades v2.8.2:
+- 🏦 Asignación Automática de Cuenta Bancaria en Préstamos de Tarjetas: Al asociar o editar un préstamo con una tarjeta de crédito (ej. PASS), la app asigna automáticamente la cuenta bancaria vinculada para la domiciliación de las cuotas fijas, manteniendo la tarjeta como entidad emisora de la financiación.`
+  },
+  {
     version: '2.8.1',
     releaseNotes: `Novedades v2.8.1:
 - 💳 Financiación Promocional de Tarjetas: Soporte para compras sin intereses (ej. Carrefour PASS 3 meses), Dinero Express o créditos preautorizados sin consumir el disponible de la tarjeta.

@@ -260,7 +260,7 @@ const CreditCardSettlement: React.FC = () => {
 
                         // Préstamos soportados por esta tarjeta
                         const supportedLoansCapital = loans
-                            .filter(l => l.status === 'active' && l.supportedByCardId === card.id)
+                            .filter(l => l.status === 'active' && l.supportedByCardId === card.id && !l.doesNotConsumeCardLimit)
                             .reduce((sum, l) => sum + (l.currentDebt || 0), 0);
 
                         // Disponible = límite - gasto ciclo ACTUAL - deuda ciclo anterior retenida (si holdCreditUntilPayment) - prestamos
@@ -500,7 +500,7 @@ const CreditCardSettlement: React.FC = () => {
                             
                             // Préstamos soportados por esta tarjeta
                             const supportedLoansCapital = loans
-                                .filter(l => l.status === 'active' && l.supportedByCardId === card.id)
+                                .filter(l => l.status === 'active' && l.supportedByCardId === card.id && !l.doesNotConsumeCardLimit)
                                 .reduce((sum, l) => sum + (l.currentDebt || 0), 0);
 
                             // Disponible = límite - prestamos (si no hay limite de financiacion separado)

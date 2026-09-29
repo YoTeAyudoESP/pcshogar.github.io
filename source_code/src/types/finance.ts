@@ -47,6 +47,7 @@ export interface Expense {
     status: 'pending' | 'paid';
     isSettled?: boolean;
     isFinanced?: boolean;
+    financedLoanId?: string;
     excludeFromBudget?: boolean;
     isSettlement?: boolean;
     settlementMetadata?: {
@@ -216,6 +217,9 @@ export interface Loan {
     earlyAmortizationFee?: number;
     linkedAccountId?: string;
     supportedByCardId?: string;
+    issuingCardId?: string;
+    doesNotConsumeCardLimit?: boolean;
+    paymentChargeType?: 'account' | 'card';
     linkedRecurringExpenseId?: string;
     status: 'active' | 'paid';
     isPaid?: boolean;          // Convenience flag

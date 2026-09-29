@@ -5,6 +5,12 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.8.1',
+    releaseNotes: `Novedades v2.8.1:
+- 💳 Financiación Promocional de Tarjetas: Soporte para compras sin intereses (ej. Carrefour PASS 3 meses), Dinero Express o créditos preautorizados sin consumir el disponible de la tarjeta.
+- 📥 Importador de Compras a Plazos: Convierte directamente cualquier compra del ciclo de tus tarjetas de crédito en un préstamo a plazos con un solo click.`
+  },
+  {
     version: '2.8.0',
     releaseNotes: `Novedades v2.8.0:
 - 💳 Herencia de Tarjeta en Préstamos: Los préstamos financiados por tarjeta asignan correctamente la forma de pago por tarjeta al movimiento fijo vinculado.

@@ -11,7 +11,7 @@ interface LoanListProps {
 }
 
 const LoanList: React.FC<LoanListProps> = ({ onEdit }) => {
-    const { loans, deleteLoan, expenses } = useFinance();
+    const { loans, deleteLoan, expenses, cards = [] } = useFinance();
     const [amortizingLoan, setAmortizingLoan] = useState<Loan | null>(null);
     const [scheduleLoan, setScheduleLoan] = useState<Loan | null>(null);
 
@@ -73,6 +73,16 @@ const LoanList: React.FC<LoanListProps> = ({ onEdit }) => {
                                     <span>Cuota: <strong>{formatMoney(monthlyPayment)}/mes</strong></span>
                                     {loan.tin !== undefined && <span>TIN: <strong>{loan.tin}%</strong></span>}
                                     {loan.tae !== undefined && <span>TAE: <strong>{loan.tae}%</strong></span>}
+                                    {(() => {
+                                        const cardId = loan.supportedByCardId || loan.issuingCardId;
+                                        const card = cards.find(c => c.id === cardId);
+                                        if (!card) return null;
+                                        return (
+                                            <span style={{ background: 'rgba(99, 102, 241, 0.15)', color: '#818cf8', padding: '2px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600 }}>
+                                                💳 {card.name} {loan.doesNotConsumeCardLimit ? '(Financiación Especial)' : ''}
+                                            </span>
+                                        );
+                                    })()}
                                 </div>
                             </div>
                             <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>

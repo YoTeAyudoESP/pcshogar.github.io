@@ -21,12 +21,16 @@ interface LoanFormProps {
 }
 
 const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelEdit, onClose }) => {
-    const { addLoan, updateLoan, accounts, cards = [], recurringExpenses = [], expenses = [], addRecurringExpense } = useFinance();
+    const { addLoan, updateLoan, accounts, cards = [], recurringExpenses = [], expenses = [], updateExpense, addRecurringExpense } = useFinance();
     
     // Basic Details
     const [name, setName] = useState('');
     const [linkedAccountId, setLinkedAccountId] = useState(accounts.find(a => a.isMain)?.id || accounts[0]?.id || '');
     const [supportedByCardId, setSupportedByCardId] = useState<string>('');
+    const [doesNotConsumeCardLimit, setDoesNotConsumeCardLimit] = useState<boolean>(editingLoan?.doesNotConsumeCardLimit || false);
+    const [showImportCardModal, setShowImportCardModal] = useState<boolean>(false);
+    const [selectedImportCardId, setSelectedImportCardId] = useState<string>('');
+    const [importedExpenseId, setImportedExpenseId] = useState<string>('');
     
     // Mathematics
     const [amount, setAmount] = useState<number | ''>('');
@@ -427,6 +431,9 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                     startDate: new Date(startDate).getTime(),
                     linkedAccountId: supportedByCardId ? undefined : linkedAccountId,
                     supportedByCardId: supportedByCardId || undefined,
+                    issuingCardId: supportedByCardId || undefined,
+                    doesNotConsumeCardLimit: supportedByCardId ? doesNotConsumeCardLimit : false,
+                    paymentChargeType: supportedByCardId ? 'card' : 'account',
                     firstInstallmentAmount: overrideFirstQuota !== '' ? Number(overrideFirstQuota) : undefined,
                     firstInstallmentInterestOnly: firstInstallmentInterestOnly,
                     firstInstallmentInterestAmount: overrideFirstQuotaInterest !== '' ? Number(overrideFirstQuotaInterest) : undefined,
@@ -487,6 +494,9 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                     startDate: new Date(startDate).getTime(),
                     linkedAccountId: supportedByCardId ? undefined : linkedAccountId,
                     supportedByCardId: supportedByCardId || undefined,
+                    issuingCardId: supportedByCardId || undefined,
+                    doesNotConsumeCardLimit: supportedByCardId ? doesNotConsumeCardLimit : false,
+                    paymentChargeType: supportedByCardId ? 'card' : 'account',
                     linkedRecurringExpenseId: recId,
                     firstInstallmentAmount: overrideFirstQuota !== '' ? Number(overrideFirstQuota) : undefined,
                     firstInstallmentInterestOnly: firstInstallmentInterestOnly,
@@ -498,6 +508,13 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                 };
 
                 await addLoan(newLoan);
+
+                if (importedExpenseId) {
+                    const expToUpdate = expenses.find(e => e.id === importedExpenseId);
+                    if (expToUpdate) {
+                        await updateExpense({ ...expToUpdate, isFinanced: true, financedLoanId: newLoan.id });
+                    }
+                }
             }
 
             if (onCancelEdit) onCancelEdit();
@@ -511,15 +528,42 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
 
     const formContent = (
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
                 <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800 }}>
                     {editingLoan ? 'Editar Préstamo' : 'Nuevo Préstamo'}
                 </h3>
-                {(onClose || onCancelEdit) && (
-                    <button type="button" onClick={onCancelEdit || onClose} style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.6)', cursor: 'pointer' }}>
-                        <X size={20} />
-                    </button>
-                )}
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    {!editingLoan && cards.some(c => c.type === 'credit') && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                const firstCard = cards.find(c => c.type === 'credit');
+                                setSelectedImportCardId(firstCard?.id || '');
+                                setShowImportCardModal(true);
+                            }}
+                            style={{
+                                background: 'rgba(99, 102, 241, 0.15)',
+                                color: '#818cf8',
+                                border: '1px solid rgba(99, 102, 241, 0.3)',
+                                padding: '0.4rem 0.75rem',
+                                borderRadius: '8px',
+                                fontSize: '0.8rem',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.35rem'
+                            }}
+                        >
+                            📥 Importar compra de tarjeta
+                        </button>
+                    )}
+                    {(onClose || onCancelEdit) && (
+                        <button type="button" onClick={onCancelEdit || onClose} style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.6)', cursor: 'pointer' }}>
+                            <X size={20} />
+                        </button>
+                    )}
+                </div>
             </div>
 
             <div>
@@ -562,6 +606,23 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                         ))}
                     </optgroup>
                 </select>
+
+                {supportedByCardId && (
+                    <div style={{ marginTop: '0.6rem', background: 'rgba(99, 102, 241, 0.1)', padding: '0.75rem 1rem', borderRadius: '0.75rem', border: '1px solid rgba(99, 102, 241, 0.2)' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: 'white', fontWeight: 600, cursor: 'pointer' }}>
+                            <input
+                                type="checkbox"
+                                checked={doesNotConsumeCardLimit}
+                                onChange={e => setDoesNotConsumeCardLimit(e.target.checked)}
+                                style={{ width: '16px', height: '16px', accentColor: '#6366f1' }}
+                            />
+                            Financiación Promocional / Especial (No descuenta del límite disponible de la tarjeta)
+                        </label>
+                        <p style={{ margin: '0.3rem 0 0 1.5rem', fontSize: '0.75rem', color: 'rgba(255,255,255,0.65)', lineHeight: '1.4' }}>
+                            Actívalo para compras a plazos sin intereses (ej. Carrefour 3 meses), Dinero Express o préstamos preautorizados que no consumen tu límite habitual.
+                        </p>
+                    </div>
+                )}
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
@@ -837,19 +898,114 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
         </form>
     );
 
+    const importModalContent = showImportCardModal && (
+        <ModalPortal>
+            <div className="modal-overlay" onClick={() => setShowImportCardModal(false)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.8)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100, padding: '1rem' }}>
+                <div className="modal-container glass-panel" style={{ padding: '1.5rem', maxWidth: '480px', width: '100%', position: 'relative', background: '#1e2028', borderRadius: '1.25rem', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }} onClick={e => e.stopPropagation()}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                        <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800 }}>Importar Compra de Tarjeta a Plazos</h3>
+                        <button type="button" onClick={() => setShowImportCardModal(false)} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}>
+                            <X size={20} />
+                        </button>
+                    </div>
+
+                    <div style={{ marginBottom: '1.25rem' }}>
+                        <label style={{ display: 'block', fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)', marginBottom: '0.4rem', fontWeight: 600 }}>1. Selecciona la Tarjeta de Crédito:</label>
+                        <select
+                            value={selectedImportCardId}
+                            onChange={e => setSelectedImportCardId(e.target.value)}
+                            style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.15)', fontSize: '0.9rem' }}
+                        >
+                            <option value="">-- Elige una tarjeta --</option>
+                            {cards.filter(c => c.type === 'credit').map(c => (
+                                <option key={c.id} value={c.id}>{c.name}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {selectedImportCardId && (() => {
+                        const cardExpenses = expenses.filter(exp => 
+                            exp.paymentMethod?.type === 'card' && 
+                            exp.paymentMethod.cardId === selectedImportCardId &&
+                            !exp.isFinanced
+                        ).sort((a, b) => b.date - a.date);
+
+                        if (cardExpenses.length === 0) {
+                            return (
+                                <div style={{ padding: '1.5rem', textAlign: 'center', opacity: 0.6, fontSize: '0.85rem' }}>
+                                    No hay compras disponibles para financiar en esta tarjeta.
+                                </div>
+                            );
+                        }
+
+                        return (
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)', marginBottom: '0.5rem', fontWeight: 600 }}>2. Haz click en la compra que deseas financiar a plazos:</label>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '240px', overflowY: 'auto' }}>
+                                    {cardExpenses.map(exp => (
+                                        <button
+                                            key={exp.id}
+                                            type="button"
+                                            onClick={() => {
+                                                setName(exp.description);
+                                                setAmount(exp.amount);
+                                                setSupportedByCardId(selectedImportCardId);
+                                                setLinkedAccountId('');
+                                                setImportedExpenseId(exp.id);
+                                                setShowImportCardModal(false);
+                                            }}
+                                            style={{
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center',
+                                                padding: '0.75rem 1rem',
+                                                borderRadius: '10px',
+                                                background: 'rgba(255,255,255,0.05)',
+                                                border: '1px solid rgba(255,255,255,0.1)',
+                                                color: 'white',
+                                                cursor: 'pointer',
+                                                textAlign: 'left'
+                                            }}
+                                        >
+                                            <div>
+                                                <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{exp.description}</div>
+                                                <div style={{ fontSize: '0.75rem', opacity: 0.6 }}>{new Date(exp.date).toLocaleDateString('es-ES')}</div>
+                                            </div>
+                                            <div style={{ fontWeight: 800, color: '#818cf8', fontSize: '1rem' }}>
+                                                {formatMoney(exp.amount)}
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        );
+                    })()}
+                </div>
+            </div>
+        </ModalPortal>
+    );
+
     if (onClose || onCancelEdit) {
         return (
-            <ModalPortal>
-                <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.75)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
-                    <div style={{ background: 'linear-gradient(145deg, #1e1e2d 0%, #151521 100%)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '1.25rem', width: '100%', maxWidth: '540px', maxHeight: '90vh', overflowY: 'auto', padding: '1.5rem', color: 'white' }}>
-                        {formContent}
+            <>
+                {importModalContent}
+                <ModalPortal>
+                    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.75)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
+                        <div style={{ background: 'linear-gradient(145deg, #1e1e2d 0%, #151521 100%)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '1.25rem', width: '100%', maxWidth: '540px', maxHeight: '90vh', overflowY: 'auto', padding: '1.5rem', color: 'white' }}>
+                            {formContent}
+                        </div>
                     </div>
-                </div>
-            </ModalPortal>
+                </ModalPortal>
+            </>
         );
     }
 
-    return formContent;
+    return (
+        <>
+            {importModalContent}
+            {formContent}
+        </>
+    );
 };
 
 export default LoanForm;

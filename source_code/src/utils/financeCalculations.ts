@@ -914,7 +914,7 @@ export function getCardAvailableCredit(card: CreditCard, expenses: Expense[], lo
     const extraHold = isHoldingPreviousCycle ? pendingTotal : 0;
 
     const supportedLoansCapital = (loans || [])
-        .filter(l => l.status === 'active' && l.supportedByCardId === card.id)
+        .filter(l => l.status === 'active' && l.supportedByCardId === card.id && !l.doesNotConsumeCardLimit)
         .reduce((sum, l) => sum + (l.currentDebt || 0), 0);
     const limitToDeduct = card.hasAdditionalFinanceLimit ? 0 : supportedLoansCapital;
 

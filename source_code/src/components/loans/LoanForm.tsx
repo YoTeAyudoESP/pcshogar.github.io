@@ -30,7 +30,8 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
     const [doesNotConsumeCardLimit, setDoesNotConsumeCardLimit] = useState<boolean>(editingLoan?.doesNotConsumeCardLimit || false);
     const [showImportCardModal, setShowImportCardModal] = useState<boolean>(false);
     const [selectedImportCardId, setSelectedImportCardId] = useState<string>('');
-    const [importedExpenseId, setImportedExpenseId] = useState<string>('');
+    const [selectedImportExpenseIds, setSelectedImportExpenseIds] = useState<string[]>([]);
+    const [importedExpenseIds, setImportedExpenseIds] = useState<string[]>([]);
     
     // Mathematics
     const [amount, setAmount] = useState<number | ''>('');
@@ -518,10 +519,12 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
 
                 await addLoan(newLoan);
 
-                if (importedExpenseId) {
-                    const expToUpdate = expenses.find(e => e.id === importedExpenseId);
-                    if (expToUpdate) {
-                        await updateExpense({ ...expToUpdate, isFinanced: true, financedLoanId: newLoan.id });
+                if (importedExpenseIds.length > 0) {
+                    for (const expId of importedExpenseIds) {
+                        const expToUpdate = expenses.find(e => e.id === expId);
+                        if (expToUpdate) {
+                            await updateExpense({ ...expToUpdate, isFinanced: true, financedLoanId: newLoan.id });
+                        }
                     }
                 }
             }
@@ -926,7 +929,10 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                         <label style={{ display: 'block', fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)', marginBottom: '0.4rem', fontWeight: 600 }}>1. Selecciona la Tarjeta de Crédito:</label>
                         <select
                             value={selectedImportCardId}
-                            onChange={e => setSelectedImportCardId(e.target.value)}
+                            onChange={e => {
+                                setSelectedImportCardId(e.target.value);
+                                setSelectedImportExpenseIds([]);
+                            }}
                             style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.15)', fontSize: '0.9rem' }}
                         >
                             <option value="">-- Elige una tarjeta --</option>
@@ -951,47 +957,121 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                             );
                         }
 
+                        const selectedExpenses = cardExpenses.filter(e => selectedImportExpenseIds.includes(e.id));
+                        const totalSelectedAmount = selectedExpenses.reduce((sum, e) => sum + e.amount, 0);
+                        const impCard = cards.find(c => c.id === selectedImportCardId);
+
+                        const toggleSelectAll = () => {
+                            if (selectedImportExpenseIds.length === cardExpenses.length) {
+                                setSelectedImportExpenseIds([]);
+                            } else {
+                                setSelectedImportExpenseIds(cardExpenses.map(e => e.id));
+                            }
+                        };
+
+                        const toggleItem = (id: string) => {
+                            if (selectedImportExpenseIds.includes(id)) {
+                                setSelectedImportExpenseIds(selectedImportExpenseIds.filter(i => i !== id));
+                            } else {
+                                setSelectedImportExpenseIds([...selectedImportExpenseIds, id]);
+                            }
+                        };
+
                         return (
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)', marginBottom: '0.5rem', fontWeight: 600 }}>2. Haz click en la compra que deseas financiar a plazos:</label>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '240px', overflowY: 'auto' }}>
-                                    {cardExpenses.map(exp => (
-                                        <button
-                                            key={exp.id}
-                                            type="button"
-                                            onClick={() => {
-                                                setName(exp.description);
-                                                setAmount(exp.amount);
-                                                setSupportedByCardId(selectedImportCardId);
-                                                const impCard = cards.find(c => c.id === selectedImportCardId);
-                                                if (impCard?.linkedAccountId) {
-                                                    setLinkedAccountId(impCard.linkedAccountId);
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                    <label style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)', fontWeight: 600 }}>2. Selecciona las compras a financiar:</label>
+                                    <button
+                                        type="button"
+                                        onClick={toggleSelectAll}
+                                        style={{ background: 'transparent', border: 'none', color: '#818cf8', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+                                    >
+                                        {selectedImportExpenseIds.length === cardExpenses.length ? 'Desmarcar todas' : 'Seleccionar todas'}
+                                    </button>
+                                </div>
+
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '220px', overflowY: 'auto', paddingRight: '0.2rem' }}>
+                                    {cardExpenses.map(exp => {
+                                        const isSelected = selectedImportExpenseIds.includes(exp.id);
+                                        return (
+                                            <div
+                                                key={exp.id}
+                                                onClick={() => toggleItem(exp.id)}
+                                                style={{
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                    padding: '0.75rem 1rem',
+                                                    borderRadius: '10px',
+                                                    background: isSelected ? 'rgba(99, 102, 241, 0.18)' : 'rgba(255,255,255,0.05)',
+                                                    border: isSelected ? '1px solid #818cf8' : '1px solid rgba(255,255,255,0.1)',
+                                                    color: 'white',
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.15s ease'
+                                                }}
+                                            >
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={isSelected}
+                                                        onChange={() => {}} // handled by parent div onClick
+                                                        style={{ accentColor: '#6366f1', width: '16px', height: '16px', cursor: 'pointer' }}
+                                                    />
+                                                    <div>
+                                                        <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{exp.description}</div>
+                                                        <div style={{ fontSize: '0.75rem', opacity: 0.6 }}>{new Date(exp.date).toLocaleDateString('es-ES')}</div>
+                                                    </div>
+                                                </div>
+                                                <div style={{ fontWeight: 800, color: isSelected ? '#a5b4fc' : '#818cf8', fontSize: '0.95rem' }}>
+                                                    {formatMoney(exp.amount)}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                <div style={{ marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                    <div style={{ fontSize: '0.85rem' }}>
+                                        <span style={{ color: 'rgba(255,255,255,0.7)' }}>Seleccionado: </span>
+                                        <strong>{selectedImportExpenseIds.length} compras</strong> ({formatMoney(totalSelectedAmount)})
+                                    </div>
+                                    <button
+                                        type="button"
+                                        disabled={selectedImportExpenseIds.length === 0}
+                                        onClick={() => {
+                                            if (selectedImportExpenseIds.length === 0) return;
+
+                                            setAmount(totalSelectedAmount);
+
+                                            if (!name || name.trim() === '') {
+                                                if (selectedExpenses.length === 1) {
+                                                    setName(selectedExpenses[0].description);
+                                                } else {
+                                                    setName(`Financiación ${selectedExpenses.length} compras ${impCard?.name || 'Tarjeta'}`);
                                                 }
-                                                setImportedExpenseId(exp.id);
-                                                setShowImportCardModal(false);
-                                            }}
-                                            style={{
-                                                display: 'flex',
-                                                justifyContent: 'space-between',
-                                                alignItems: 'center',
-                                                padding: '0.75rem 1rem',
-                                                borderRadius: '10px',
-                                                background: 'rgba(255,255,255,0.05)',
-                                                border: '1px solid rgba(255,255,255,0.1)',
-                                                color: 'white',
-                                                cursor: 'pointer',
-                                                textAlign: 'left'
-                                            }}
-                                        >
-                                            <div>
-                                                <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{exp.description}</div>
-                                                <div style={{ fontSize: '0.75rem', opacity: 0.6 }}>{new Date(exp.date).toLocaleDateString('es-ES')}</div>
-                                            </div>
-                                            <div style={{ fontWeight: 800, color: '#818cf8', fontSize: '1rem' }}>
-                                                {formatMoney(exp.amount)}
-                                            </div>
-                                        </button>
-                                    ))}
+                                            }
+
+                                            setSupportedByCardId(selectedImportCardId);
+                                            if (impCard?.linkedAccountId) {
+                                                setLinkedAccountId(impCard.linkedAccountId);
+                                            }
+                                            setImportedExpenseIds(selectedImportExpenseIds);
+                                            setShowImportCardModal(false);
+                                        }}
+                                        style={{
+                                            background: selectedImportExpenseIds.length > 0 ? '#6366f1' : 'rgba(255,255,255,0.1)',
+                                            color: selectedImportExpenseIds.length > 0 ? 'white' : 'rgba(255,255,255,0.4)',
+                                            border: 'none',
+                                            padding: '0.6rem 1.1rem',
+                                            borderRadius: '8px',
+                                            fontWeight: 700,
+                                            fontSize: '0.85rem',
+                                            cursor: selectedImportExpenseIds.length > 0 ? 'pointer' : 'not-allowed',
+                                            transition: 'background 0.2s ease'
+                                        }}
+                                    >
+                                        📥 Importar {selectedImportExpenseIds.length} {selectedImportExpenseIds.length === 1 ? 'compra' : 'compras'}
+                                    </button>
                                 </div>
                             </div>
                         );

@@ -236,16 +236,27 @@ class IncomeDB {
             const store = tx.objectStore(storeName);
             await store.clear();
             
-            // Try both original name and common variations from KEY_MAP
-            let items = data[storeName] || [];
-            if (!Array.isArray(items) || items.length === 0) {
-                // Find if there's any mapped key for this store that contains data in the input
-                for (const [jsonKey, targetStore] of Object.entries(KEY_MAP)) {
-                    if (targetStore === storeName && Array.isArray(data[jsonKey]) && data[jsonKey].length > 0) {
-                        items = data[jsonKey];
-                        break;
-                    }
+            // Collect items from storeName as well as any alias keys in input data
+            let rawItems: any[] = [];
+            if (Array.isArray(data[storeName])) {
+                rawItems.push(...data[storeName]);
+            }
+            for (const [jsonKey, targetStore] of Object.entries(KEY_MAP)) {
+                if (targetStore === storeName && Array.isArray(data[jsonKey])) {
+                    rawItems.push(...data[jsonKey]);
                 }
+            }
+
+            // Deduplicate items by ID if present
+            const seenIds = new Set<string>();
+            const items: any[] = [];
+            for (const item of rawItems) {
+                if (!item || typeof item !== 'object') continue;
+                if (item.id) {
+                    if (seenIds.has(item.id)) continue;
+                    seenIds.add(item.id);
+                }
+                items.push(item);
             }
 
             for (let item of items) {

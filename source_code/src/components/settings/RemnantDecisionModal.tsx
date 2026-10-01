@@ -50,8 +50,21 @@ const RemnantDecisionModal: React.FC<RemnantDecisionModalProps> = ({ closing, on
 
     const pendingIncomes = useMemo(() => {
         return fixedIncomes.filter(inc => {
+            if (!inc.active) return false;
             const isIgnored = inc.ignoredPeriods?.includes(period);
             if (isIgnored) return false;
+
+            const expectedPeriod = `${closing.year}-${(closing.month + 1).toString().padStart(2, '0')}`;
+
+            // Check if this fixed income was already confirmed/received for this budget cycle
+            const isConfirmed = incomes.some(ei => {
+                if (ei.fixedIncomeId !== inc.id) return false;
+                if (ei.period === expectedPeriod) return true;
+                if (ei.budgetMonth === closing.month && ei.budgetYear === closing.year) return true;
+                return isItemInMonthAndYear(ei, closing.month, closing.year);
+            });
+            if (isConfirmed || inc.status === 'received') return false;
+
             const start = inc.effectiveDate || inc.createdAt || 0;
             const end = inc.expirationDate || new Date(9999, 11, 31).getTime();
             const monthStart = new Date(closing.year, closing.month, 1).getTime();
@@ -62,7 +75,20 @@ const RemnantDecisionModal: React.FC<RemnantDecisionModalProps> = ({ closing, on
             }
             return false;
         });
-    }, [fixedIncomes, closing, period]);
+    }, [fixedIncomes, incomes, closing, period]);
+
+    const { availableToSpend: freshAvailableToSpend } = useMemo(() => {
+        return calculateAvailableBalanceForMonth(closing.year, closing.month, {
+            fixedIncomes,
+            extraIncomes: incomes.filter(i => i.type === 'extra' || i.type === 'rollover'),
+            expenses,
+            allocations: [],
+            savings,
+            recurringExpenses,
+            overrides,
+            cards: []
+        });
+    }, [closing.year, closing.month, fixedIncomes, incomes, expenses, savings, recurringExpenses, overrides]);
 
     const [wizardDone, setWizardDone] = useState(false);
 
@@ -78,19 +104,6 @@ const RemnantDecisionModal: React.FC<RemnantDecisionModalProps> = ({ closing, on
             />
         );
     }
-
-    const { availableToSpend: freshAvailableToSpend } = useMemo(() => {
-        return calculateAvailableBalanceForMonth(closing.year, closing.month, {
-            fixedIncomes,
-            extraIncomes: incomes.filter(i => i.type === 'extra' || i.type === 'rollover'),
-            expenses,
-            allocations: [],
-            savings,
-            recurringExpenses,
-            overrides,
-            cards: []
-        });
-    }, [closing.year, closing.month, fixedIncomes, incomes, expenses, savings, recurringExpenses, overrides]);
 
     let derivedFinalBalance = wizardDone ? freshAvailableToSpend : closing.finalBalance;
 

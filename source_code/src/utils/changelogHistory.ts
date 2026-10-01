@@ -5,6 +5,12 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.8.4',
+    releaseNotes: `Novedades v2.8.4:
+- 🗓️ Asignación Inteligente de Período en Cierre de Mes: Corrección en la confirmación de movimientos pendientes del mes anterior para asignar su presupuesto por defecto a la fecha real del movimiento o permitir trasladarlo a discreción del usuario liberando el remanente previo.
+- 🛡️ Corrección de Cierre de Mes y Renderizado: Solución definitiva al error de renderizado #310 y reconciliación de ingresos fijos con contabilización en mes posterior.`
+  },
+  {
     version: '2.8.3',
     releaseNotes: `Novedades v2.8.3:
 - 📥 Importación Múltiple de Compras a Plazos: Selección múltiple de varias compras del ciclo de tu tarjeta de crédito con checkboxes, calculando la suma total acumulada para agruparlas en un único préstamo.`

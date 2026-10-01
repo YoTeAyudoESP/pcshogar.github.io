@@ -196,8 +196,57 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
                     await incomeDB.updateExpense(updatedExp);
                     repairedExps[i] = updatedExp;
                 }
+
+                // Repair misallocated periods when an expense with date in month M-1 was saved with period M
+                if (exp.recurringExpenseId && exp.date) {
+                    const expDateObj = new Date(exp.date);
+                    if (!isNaN(expDateObj.getTime())) {
+                        const actualPeriod = `${expDateObj.getFullYear()}-${(expDateObj.getMonth() + 1).toString().padStart(2, '0')}`;
+                        if (exp.period && exp.period > actualPeriod) {
+                            didSettlementMigration = true;
+                            const updatedExp = {
+                                ...exp,
+                                period: actualPeriod,
+                                updatedAt: Date.now()
+                            };
+                            await incomeDB.updateExpense(updatedExp);
+                            repairedExps[i] = updatedExp;
+                        }
+                    }
+                }
             }
             setExpenses(repairedExps);
+
+            // Repair misallocated periods for fixed incomes confirmed across month boundary
+            const repairedIncomes = [...incs];
+            let didIncomeMigration = false;
+            for (let i = 0; i < repairedIncomes.length; i++) {
+                const inc = repairedIncomes[i];
+                const incDate = inc.effectiveDate || (inc as any).receivedDate || inc.createdAt;
+                if (inc.fixedIncomeId && incDate) {
+                    const template = (recs || []).find(r => r.id === inc.fixedIncomeId) || (incs || []).find(f => f.id === inc.fixedIncomeId);
+                    const isNextMonthTemplate = (template as any)?.countForNextMonth || (template as any)?.accountForNextMonth;
+                    if (!isNextMonthTemplate) {
+                        const incDateObj = new Date(incDate);
+                        if (!isNaN(incDateObj.getTime())) {
+                            const actualPeriod = `${incDateObj.getFullYear()}-${(incDateObj.getMonth() + 1).toString().padStart(2, '0')}`;
+                            if (inc.period && inc.period > actualPeriod) {
+                                didIncomeMigration = true;
+                                const updatedInc = {
+                                    ...inc,
+                                    period: actualPeriod,
+                                    updatedAt: Date.now()
+                                };
+                                await incomeDB.addIncomeWithTransaction(updatedInc);
+                                repairedIncomes[i] = updatedInc;
+                            }
+                        }
+                    }
+                }
+            }
+            if (didIncomeMigration) {
+                setIncomes(repairedIncomes);
+            }
 
             setSavings(svs);
             setAllocations(alls);

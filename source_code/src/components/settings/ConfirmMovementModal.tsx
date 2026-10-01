@@ -14,7 +14,7 @@ interface ConfirmMovementModalProps {
 }
 
 const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item, onClose }) => {
-    const { accounts, confirmFixedMovement, discardFixedMovement, savings, confirmExtraIncome, deleteIncome, incomes, expenses, updateExpense, deleteExpense } = useFinance();
+    const { accounts, confirmFixedMovement, discardFixedMovement, savings, confirmExtraIncome, deleteIncome, incomes, expenses, updateExpense, deleteExpense, recurringExpenses, fixedIncomes, updateRecurringExpense, updateIncome } = useFinance();
     const { showToast } = useToast();
 
     const currentRealPeriod = new Date().toISOString().substring(0, 7);
@@ -32,10 +32,18 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
     const isDuplicateExpense = type === 'expense' && (expenses || []).some(exp => exp.recurringExpenseId === item.id && exp.period === currentRealPeriod);
 
     const [amountStr, setAmountStr] = useState<string>(() => String(Math.abs(item.amount || 0)));
-    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    const [date, setDate] = useState(() => {
+        if (item.date) return new Date(item.date).toISOString().split('T')[0];
+        if (item.effectiveDate) return new Date(item.effectiveDate).toISOString().split('T')[0];
+        return new Date().toISOString().split('T')[0];
+    });
     const [budgetPeriod, setBudgetPeriod] = useState(() => {
         if (isDuplicateIncome) return nextMonthPeriod;
         if (isForNextMonthDefault) return nextMonthPeriod;
+        const dObj = new Date(item.date || item.effectiveDate || Date.now());
+        if (!isNaN(dObj.getTime())) {
+            return `${dObj.getFullYear()}-${(dObj.getMonth() + 1).toString().padStart(2, '0')}`;
+        }
         return currentRealPeriod;
     });
     const [accountId, setAccountId] = useState('');
@@ -51,9 +59,15 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
         } else if (isForNextMonthDefault) {
             setBudgetPeriod(nextMonthPeriod);
         } else {
-            setBudgetPeriod(currentRealPeriod);
+            const selectedDateObj = new Date(date);
+            if (!isNaN(selectedDateObj.getTime())) {
+                const datePeriod = `${selectedDateObj.getFullYear()}-${(selectedDateObj.getMonth() + 1).toString().padStart(2, '0')}`;
+                setBudgetPeriod(datePeriod);
+            } else {
+                setBudgetPeriod(currentRealPeriod);
+            }
         }
-    }, [isDuplicateIncome, isForNextMonthDefault, nextMonthPeriod, currentRealPeriod]);
+    }, [isDuplicateIncome, isForNextMonthDefault, nextMonthPeriod, currentRealPeriod, date]);
 
     const handleDuplicateOptionChange = (option: 'next' | 'current') => {
         setDuplicateOption(option);
@@ -161,6 +175,33 @@ const ConfirmMovementModal: React.FC<ConfirmMovementModalProps> = ({ type, item,
                 );
                 showToast("Ingreso confirmado con éxito.", "success");
             } else {
+                const selectedDateObj = new Date(date);
+                const datePeriod = !isNaN(selectedDateObj.getTime())
+                    ? `${selectedDateObj.getFullYear()}-${(selectedDateObj.getMonth() + 1).toString().padStart(2, '0')}`
+                    : period;
+
+                // If user assigned movement to a different budget period than its payment date,
+                // ignore the movement on its original datePeriod to free up the original month's balance.
+                if (period !== datePeriod) {
+                    if (type === 'expense') {
+                        const re = (recurringExpenses || []).find(r => r.id === item.id);
+                        if (re && !re.ignoredPeriods?.includes(datePeriod)) {
+                            await updateRecurringExpense({
+                                ...re,
+                                ignoredPeriods: [...(re.ignoredPeriods || []), datePeriod]
+                            });
+                        }
+                    } else if (type === 'income') {
+                        const inc = (fixedIncomes || []).find(i => i.id === item.id);
+                        if (inc && !inc.ignoredPeriods?.includes(datePeriod)) {
+                            await updateIncome({
+                                ...inc,
+                                ignoredPeriods: [...(inc.ignoredPeriods || []), datePeriod]
+                            });
+                        }
+                    }
+                }
+
                 await confirmFixedMovement(
                     type,
                     item.id,

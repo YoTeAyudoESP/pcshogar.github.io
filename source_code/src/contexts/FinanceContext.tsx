@@ -685,7 +685,26 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
     const [showRepairNoticeModal, setShowRepairNoticeModal] = useState(false);
 
     useEffect(() => {
-        refreshFinance(true);
+        if (activeEconomy?.id) {
+            setLoading(true);
+            setAccounts([]);
+            setCards([]);
+            setExpenses([]);
+            setSavings([]);
+            setAllocations([]);
+            setRecurringExpenses([]);
+            setLoans([]);
+            setMovements([]);
+            setCategories([]);
+            setTransfers([]);
+            setClosings([]);
+            setOverrides([]);
+            setIncomes([]);
+            setVehicles([]);
+            setInsurances([]);
+            setWarranties([]);
+            refreshFinance(true);
+        }
     }, [refreshFinance, activeEconomy?.id]);
 
     // Auto-sync watcher

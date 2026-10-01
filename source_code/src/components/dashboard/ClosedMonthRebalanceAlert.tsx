@@ -4,6 +4,8 @@ import { AlertTriangle, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { calculateAvailableBalanceForMonth, formatMoney } from '../../utils/financeCalculations';
 import type { FixedIncome } from '../../types/income';
 
+import { useDateSelection } from '../../contexts/DateSelectionContext';
+
 const MONTH_NAMES = [
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
@@ -15,43 +17,42 @@ const ClosedMonthRebalanceAlert: React.FC = () => {
         allocations, savings, recurringExpenses, overrides, cards,
         updateIncome, addExtraIncome
     } = useFinance();
+    const { selectedMonth, selectedYear } = useDateSelection();
 
     const [isProcessing, setIsProcessing] = useState(false);
     const [rebalancedMonth, setRebalancedMonth] = useState<string | null>(null);
 
-    // Detect the most recent processed closing whose actual calculated balance differs from closing.finalBalance
+    // Detect if the processed closing of the IMMEDIATELY PRECEDING month differs from closing.finalBalance
     const outOfSyncClosing = useMemo(() => {
-        const processedClosings = closings
-            .filter(c => c.status === 'processed')
-            .sort((a, b) => {
-                if (a.year !== b.year) return b.year - a.year;
-                return b.month - a.month;
-            });
+        const prevDate = new Date(selectedYear, selectedMonth - 1, 1);
+        const targetMonth = prevDate.getMonth();
+        const targetYear = prevDate.getFullYear();
 
-        for (const closing of processedClosings) {
-            const { availableToSpend: currentAvailable } = calculateAvailableBalanceForMonth(closing.year, closing.month, {
-                fixedIncomes: fixedIncomes.filter((i): i is FixedIncome => i.type === 'fixed'),
-                extraIncomes: incomes.filter(i => i.type === 'extra' || i.type === 'rollover'),
-                expenses,
-                allocations,
-                savings,
-                recurringExpenses,
-                overrides,
-                cards
-            });
+        const closing = closings.find(c => c.status === 'processed' && c.month === targetMonth && c.year === targetYear);
+        if (!closing) return null;
 
-            const diff = currentAvailable - (closing.finalBalance || 0);
-            if (Math.abs(diff) >= 0.01) {
-                return {
-                    closing,
-                    currentAvailable,
-                    oldBalance: closing.finalBalance || 0,
-                    diff
-                };
-            }
+        const { availableToSpend: currentAvailable } = calculateAvailableBalanceForMonth(closing.year, closing.month, {
+            fixedIncomes: fixedIncomes.filter((i): i is FixedIncome => i.type === 'fixed'),
+            extraIncomes: incomes.filter(i => i.type === 'extra' || i.type === 'rollover'),
+            expenses,
+            allocations,
+            savings,
+            recurringExpenses,
+            overrides,
+            cards
+        });
+
+        const diff = currentAvailable - (closing.finalBalance || 0);
+        if (Math.abs(diff) >= 0.01) {
+            return {
+                closing,
+                currentAvailable,
+                oldBalance: closing.finalBalance || 0,
+                diff
+            };
         }
         return null;
-    }, [closings, fixedIncomes, incomes, expenses, allocations, savings, recurringExpenses, overrides, cards]);
+    }, [closings, fixedIncomes, incomes, expenses, allocations, savings, recurringExpenses, overrides, cards, selectedMonth, selectedYear]);
 
     if (!outOfSyncClosing) return null;
 

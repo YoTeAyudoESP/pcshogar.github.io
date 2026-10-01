@@ -1,7 +1,7 @@
 {
   "version": "2.8.5",
   "versionCode": 28500,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.8.5/PCSHogar_Setup_v2.8.5.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.8.5/PCSHogar_Setup_v2.8.5.exe",
+  "url": "https://YoTeAyudoESP.github.io/pcshogar.github.io/PCSHogar_Setup_v2.8.5.apk",
+  "windowsUrl": "https://YoTeAyudoESP.github.io/pcshogar.github.io/PCSHogar_Setup_v2.8.5.exe",
   "releaseNotes": "Novedades versión 2.8.5:\n- 💳 Tarjetas de Crédito y Huchas: Integración completa de compras con tarjeta financiadas por huchas en el ciclo bruto de liquidación y listado de movimientos.\n- 🔄 Alerta de Re-ajuste de Cierre Pasado: Detección automática al modificar movimientos en meses ya cerrados con sincronización en 1 clic del remanente al mes actual."
 }

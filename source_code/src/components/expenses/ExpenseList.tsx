@@ -196,6 +196,16 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ onEdit }) => {
                                                         fontSize: '0.6rem'
                                                     }}>Financiado</span>
                                                 )}
+                                                {((expense.savingGoalFunding && expense.savingGoalFunding.length > 0) || expense.linkedSavingGoalId) && (
+                                                    <span style={{ 
+                                                        background: 'rgba(16, 185, 129, 0.15)', 
+                                                        color: '#10b981', 
+                                                        padding: '2px 6px', 
+                                                        borderRadius: '4px',
+                                                        fontWeight: 600,
+                                                        fontSize: '0.6rem'
+                                                    }}>Financiado con Hucha</span>
+                                                )}
                                             </div>
                                         </div>
 

@@ -5,6 +5,11 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.8.9',
+    releaseNotes: `Novedades v2.8.9:
+- 📥 Importador Ultra-Robusto Definitivo: Preparación en memoria e inyección sincrónica en ráfaga de IndexedDB para garantizar la restauración del 100% de los gastos fijos, ingresos y huchas en Web, Android y Windows.`
+  },
+  {
     version: '2.8.8',
     releaseNotes: `Novedades v2.8.8:
 - 📥 Importador Ultra-Robusto por Transacciones Independientes: Procesamiento aislado de IndexedDB por cada tabla para evitar cierres de transacción por timeout y restaurar con éxito el 100% de los gastos fijos e ingresos fijos.

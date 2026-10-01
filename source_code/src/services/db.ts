@@ -237,11 +237,7 @@ class IncomeDB {
         };
 
         for (const storeName of db.objectStoreNames) {
-            const tx = db.transaction(storeName, 'readwrite');
-            const store = tx.objectStore(storeName);
-            await store.clear();
-            
-            // Collect items from storeName as well as any alias keys in input data
+            // PHASE 1: Recolección, normalización y desduplicación en memoria RAM (sin pausas asíncronas)
             let rawItems: any[] = [];
             if (Array.isArray(data[storeName])) {
                 rawItems.push(...data[storeName]);
@@ -252,21 +248,18 @@ class IncomeDB {
                 }
             }
 
-            // Deduplicate items by ID if present
             const seenIds = new Set<string>();
-            const items: any[] = [];
-            for (const item of rawItems) {
+            const itemsToInsert: any[] = [];
+
+            for (let item of rawItems) {
                 if (!item || typeof item !== 'object') continue;
                 if (item.id) {
                     if (seenIds.has(item.id)) continue;
                     seenIds.add(item.id);
                 }
-                items.push(item);
-            }
 
-            for (let item of items) {
                 try {
-                    // Normalization
+                    // Normalización en memoria
                     if (storeName === 'loans') {
                         item = {
                             ...item,
@@ -276,11 +269,9 @@ class IncomeDB {
                         };
                     }
                     if (storeName === 'accounts' || storeName === 'cards') {
-                        // Support common color property names
                         item.color = item.color || item.backgroundColor || item.brandColor || item.hexColor;
                     }
                     if (storeName === 'expenses') {
-                        // Normalize legacy card settlements to be excluded from budget
                         const desc = item.description || '';
                         const isLegacySettlement = /\[LIQUIDACION\]|Liquidación Tarjeta|Remanente Liquidación/i.test(desc);
                         if (isLegacySettlement) {
@@ -289,11 +280,10 @@ class IncomeDB {
                         }
                     }
                     if (storeName === 'recurring_expenses' || storeName === 'incomes') {
-                        // Ensure required fields like ignoredPeriods exist
                         item.ignoredPeriods = item.ignoredPeriods || [];
                     }
 
-                    // ID Generation for Month-based stores if missing
+                    // Generación de ID para almacenes basados en fecha si faltara
                     if (storeName === 'closings' && !item.id && item.year !== undefined && item.month !== undefined) {
                         item.id = `${item.year}-${String(item.month + 1).padStart(2, '0')}`;
                         item.status = item.status || 'processed';
@@ -302,20 +292,18 @@ class IncomeDB {
                         item.id = `${item.year}-${String(item.month + 1).padStart(2, '0')}`;
                     }
 
-                    // Allocation type recovery
+                    // Recuperación de tipo en asignaciones
                     if (storeName === 'allocations' && !item.type) {
                         item.type = item.amount > 0 ? 'manual' : 'adjustment';
                     }
                     
-                    // Categorization bridge (name to ID)
+                    // Categorización (nombre a ID)
                     if ((storeName === 'expenses' || storeName === 'incomes' || storeName === 'recurring_expenses') && !item.categoryId && item.category) {
-                        // We check the categories already in the data if any, or seed them
                         const categories = data['categories'] || [];
                         const catMatch = categories.find((c: any) => c.name === item.category || c.id === item.category);
                         if (catMatch) {
                             item.categoryId = catMatch.id;
                         } else {
-                            // Fallback for default categories in Spanish/English
                             const name = String(item.category).toLowerCase();
                             if (name.includes('comida') || name.includes('food')) item.categoryId = 'cat_food';
                             else if (name.includes('transporte') || name.includes('transport')) item.categoryId = 'cat_transport';
@@ -328,10 +316,18 @@ class IncomeDB {
                         }
                     }
 
-                    await store.put(item);
+                    itemsToInsert.push(item);
                 } catch (e) {
-                    console.warn(`Error normalizando/importando ítem en ${String(storeName)}:`, e);
+                    console.warn(`Error normalizando ítem en ${String(storeName)}:`, e);
                 }
+            }
+
+            // PHASE 2: Inyección sincrónica en ráfaga dentro de la transacción de IndexedDB
+            const tx = db.transaction(storeName, 'readwrite');
+            const store = tx.objectStore(storeName);
+            store.clear();
+            for (const item of itemsToInsert) {
+                store.put(item);
             }
             await tx.done;
         }

@@ -5,6 +5,17 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.8.8',
+    releaseNotes: `Novedades v2.8.8:
+- 📥 Importador Ultra-Robusto por Transacciones Independientes: Procesamiento aislado de IndexedDB por cada tabla para evitar cierres de transacción por timeout y restaurar con éxito el 100% de los gastos fijos e ingresos fijos.
+- 🔄 Reapertura Limpia de Cierre de Mes: Rediseño del flujo de remanente al modificar meses pasados, reabriendo la ventana oficial de Cierre de Mes para generar el movimiento de remanente y mostrar siempre la etiqueta de Remanente del Mes Anterior.`
+  },
+  {
+    version: '2.8.7',
+    releaseNotes: `Novedades v2.8.7:
+- 📥 Importador Ultra-Robusto de Copias de Seguridad: Compatibilidad total y fusión automática de formatos de clave heredados para garantizar que el 100% de gastos e ingresos fijos se restauren sin importar la versión de origen del archivo.`
+  },
+  {
     version: '2.8.4',
     releaseNotes: `Novedades v2.8.4:
 - 🗓️ Asignación Inteligente de Período en Cierre de Mes: Corrección en la confirmación de movimientos pendientes del mes anterior para asignar su presupuesto por defecto a la fecha real del movimiento o permitir trasladarlo a discreción del usuario liberando el remanente previo.

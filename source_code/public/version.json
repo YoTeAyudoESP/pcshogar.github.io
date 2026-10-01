@@ -1,7 +1,7 @@
 {
-  "version": "2.8.7",
-  "versionCode": 28700,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.8.7/PCSHogar_Setup_v2.8.7.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.8.7/PCSHogar_Setup_v2.8.7.exe",
-  "releaseNotes": "Novedades versión 2.8.7:\n- 📥 Importador Ultra-Robusto de Copias de Seguridad: Compatibilidad total y fusión automática de formatos de clave heredados para garantizar que el 100% de gastos e ingresos fijos se restauren sin importar la versión de origen del archivo."
+  "version": "2.8.8",
+  "versionCode": 28800,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.8.8/PCSHogar_Setup_v2.8.8.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.8.8/PCSHogar_Setup_v2.8.8.exe",
+  "releaseNotes": "Novedades versión 2.8.8:\n- 📥 Importador Ultra-Robusto por Transacciones Independientes: Procesamiento aislado de IndexedDB por cada tabla para evitar cierres de transacción por timeout y restaurar con éxito el 100% de los gastos fijos e ingresos fijos.\n- 🔄 Reapertura Limpia de Cierre de Mes: Rediseño del flujo de remanente al modificar meses pasados, reabriendo la ventana oficial de Cierre de Mes para generar el movimiento de remanente y mostrar siempre la etiqueta de Remanente del Mes Anterior."
 }

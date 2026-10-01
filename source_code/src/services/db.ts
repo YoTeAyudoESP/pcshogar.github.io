@@ -217,22 +217,27 @@ class IncomeDB {
 
     async importFullData(data: any): Promise<void> {
         const db = await this.dbPromise;
-        const tx = db.transaction(db.objectStoreNames, 'readwrite');
         
         // Map common store name variations (camelCase vs snake_case)
         const KEY_MAP: Record<string, string> = {
             'recurringExpenses': 'recurring_expenses',
+            'recurring_expenses': 'recurring_expenses',
             'fixedExpenses': 'recurring_expenses',
+            'fixed_expenses': 'recurring_expenses',
+            'recurring': 'recurring_expenses',
+            'fixedIncomes': 'incomes',
+            'fixed_incomes': 'incomes',
+            'recurringIncomes': 'incomes',
+            'recurring_incomes': 'incomes',
             'savingGoals': 'savings',
             'savingAllocations': 'allocations',
             'accountMovements': 'movements',
             'accountOverrides': 'overrides',
             'monthClosings': 'closings',
-            'fixedIncomes': 'incomes',
-            'recurring': 'recurring_expenses'
         };
 
         for (const storeName of db.objectStoreNames) {
+            const tx = db.transaction(storeName, 'readwrite');
             const store = tx.objectStore(storeName);
             await store.clear();
             
@@ -242,7 +247,7 @@ class IncomeDB {
                 rawItems.push(...data[storeName]);
             }
             for (const [jsonKey, targetStore] of Object.entries(KEY_MAP)) {
-                if (targetStore === storeName && Array.isArray(data[jsonKey])) {
+                if (targetStore === storeName && jsonKey !== storeName && Array.isArray(data[jsonKey])) {
                     rawItems.push(...data[jsonKey]);
                 }
             }
@@ -328,8 +333,8 @@ class IncomeDB {
                     console.warn(`Error normalizando/importando ítem en ${String(storeName)}:`, e);
                 }
             }
+            await tx.done;
         }
-        await tx.done;
     }
 
     async recordDeletion(store: string, id: string): Promise<void> {

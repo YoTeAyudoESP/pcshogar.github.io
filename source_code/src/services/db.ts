@@ -205,6 +205,17 @@ class IncomeDB {
         });
     }
 
+    public close(): void {
+        if (this.dbInstance) {
+            try {
+                this.dbInstance.close();
+            } catch (e) {
+                console.error("Error closing database instance:", e);
+            }
+            this.dbInstance = null;
+        }
+    }
+
     async switchDatabase(newDbName: string): Promise<void> {
         if (newDbName === this.activeDbName) {
             await this.dbPromise;
@@ -1244,6 +1255,7 @@ export const incomeDB = new IncomeDB();
 
 export async function performFactoryReset(): Promise<void> {
     try {
+        incomeDB.close();
         localStorage.clear();
         sessionStorage.clear();
         if ('indexedDB' in window) {
@@ -1260,13 +1272,23 @@ export async function performFactoryReset(): Promise<void> {
                     console.warn('indexedDB.databases() error:', e);
                 }
             }
-            knownDbs.forEach(dbName => {
-                try {
-                    indexedDB.deleteDatabase(dbName);
-                } catch (e) {
-                    console.error('Error deleting database:', dbName, e);
-                }
+            const deletePromises = knownDbs.map(dbName => {
+                return new Promise<void>((resolve) => {
+                    try {
+                        const req = indexedDB.deleteDatabase(dbName);
+                        req.onsuccess = () => resolve();
+                        req.onerror = () => resolve();
+                        req.onblocked = () => {
+                            console.warn(`Database deletion for ${dbName} was blocked`);
+                            resolve();
+                        };
+                    } catch (e) {
+                        console.error('Error deleting database:', dbName, e);
+                        resolve();
+                    }
+                });
             });
+            await Promise.all(deletePromises);
         }
     } catch (e) {
         console.error('Error executing performFactoryReset:', e);

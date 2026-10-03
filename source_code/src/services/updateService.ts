@@ -31,7 +31,11 @@ export const UpdateService = {
                 !!(window as any).require || 
                 navigator.userAgent.toLowerCase().indexOf(' electron/') > -1
             );
-            const downloadUrl = isElectron ? (data.windowsUrl || data.url) : data.url;
+            const isWindowsOS = typeof window !== 'undefined' && (
+                navigator.userAgent.toLowerCase().indexOf('win') > -1 ||
+                isElectron
+            );
+            const downloadUrl = isWindowsOS ? (data.windowsUrl || data.url) : data.url;
             const releaseNotes = data.releaseNotes;
 
             // Get current local version from Capacitor/Electron

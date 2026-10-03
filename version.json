@@ -1,7 +1,7 @@
 {
-  "version": "2.9.1",
-  "versionCode": 29100,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.9.1/PCSHogar_Setup_v2.9.1.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.9.1/PCSHogar_Setup_v2.9.1.exe",
-  "releaseNotes": "Novedades versión 2.9.1:\n- 📅 Próxima Cuota Informativa: Fecha de cobro calculada automáticamente de solo lectura.\n- ⏳ Expiración Opcional en Gastos Fijos: Posibilidad de fijar fecha de finalización en gastos fijos.\n- 🛡️ Corrección de Cuotas en Seguros: Ajuste exacto de importes de recibos generados desde seguros.\n- 🔀 Vinculación Inteligente a la Nube: Firma de entorno única y Fusión Inteligente deduplicada al 100% en primera vinculación.\n- 🧹 Restablecimiento de Fábrica: Opción de borrado total y reseteo virgen en Ajustes -> Aplicación."
+  "version": "2.9.2",
+  "versionCode": 29200,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.9.2/PCSHogar_Setup_v2.9.2.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.9.2/PCSHogar_Setup_v2.9.2.exe",
+  "releaseNotes": "Novedades versión 2.9.2:\n- 🧹 Restablecimiento de Fábrica 100% Robusto: Corrección del cierre de IndexedDB y escucha asíncrona de borrado físico para garantizar el limpiado total de datos locales.\n- 📦 Enlaces de Descarga y Actualización Corregidos: Corrección en la selección de binarios Android (.apk) y Windows (.exe) tanto en escritorio como en la web oficial.\n- 📅 Próxima Cuota Informativa: Fecha de cobro calculada automáticamente de solo lectura.\n- ⏳ Expiración Opcional en Gastos Fijos: Posibilidad de fijar fecha de finalización en gastos fijos.\n- 🛡️ Corrección de Cuotas en Seguros: Ajuste exacto de importes de recibos generados desde seguros.\n- 🔀 Vinculación Inteligente a la Nube: Firma de entorno única y Fusión Inteligente deduplicada al 100% en primera vinculación."
 }

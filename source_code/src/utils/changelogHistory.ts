@@ -5,6 +5,16 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.9.2',
+    releaseNotes: `Novedades v2.9.2:
+- 🧹 Restablecimiento de Fábrica 100% Robusto: Cierre explícito de conexión IndexedDB y escucha asíncrona de borrado físico en disco para garantizar el borrado total de datos locales sin bloqueos.
+- 📦 Corrección de Descargas y Actualizaciones: Enlaces directos verificados para instalar Android (.apk) y Windows (.exe) tanto desde la app de escritorio como desde la web oficial.
+- 📅 Próxima Cuota Informativa: Fecha de cobro calculada automáticamente de solo lectura.
+- ⏳ Expiración Opcional en Gastos Fijos: Posibilidad de fijar fecha de finalización en gastos fijos.
+- 🛡️ Corrección de Cuotas en Seguros: Ajuste exacto de importes de recibos generados desde seguros.
+- 🔀 Vinculación Inteligente a la Nube: Firma de entorno única y Fusión Inteligente deduplicada al 100% en primera vinculación.`
+  },
+  {
     version: '2.9.1',
     releaseNotes: `Novedades v2.9.1:
 - 📅 Próxima Cuota Informativa: Fecha de cobro calculada automáticamente de solo lectura.

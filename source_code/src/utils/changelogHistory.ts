@@ -5,6 +5,20 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.9.1',
+    releaseNotes: `Novedades v2.9.1:
+- 📅 Próxima Cuota Informativa: Fecha de cobro calculada automáticamente de solo lectura.
+- ⏳ Expiración Opcional en Gastos Fijos: Posibilidad de fijar fecha de finalización en gastos fijos.
+- 🛡️ Corrección de Cuotas en Seguros: Ajuste exacto de importes de recibos generados desde seguros.
+- 🔀 Vinculación Inteligente a la Nube: Firma de entorno única y Fusión Inteligente deduplicada al 100% en primera vinculación.
+- 🧹 Restablecimiento de Fábrica: Opción de borrado total y reseteo virgen en Ajustes -> Aplicación.`
+  },
+  {
+    version: '2.9.0',
+    releaseNotes: `Novedades v2.9.0:
+- 🔄 Recarga Automática y Refresco Limpio tras Importación: Reinicio inmediato del estado de la aplicación al importar copias de seguridad para refrescar al instante el 100% de los gastos fijos, ingresos y huchas.`
+  },
+  {
     version: '2.8.9',
     releaseNotes: `Novedades v2.8.9:
 - 📥 Importador Ultra-Robusto Definitivo: Preparación en memoria e inyección sincrónica en ráfaga de IndexedDB para garantizar la restauración del 100% de los gastos fijos, ingresos y huchas en Web, Android y Windows.`

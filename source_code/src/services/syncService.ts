@@ -79,5 +79,100 @@ export class SyncService {
             URL.revokeObjectURL(url);
         }
     }
+
+    static smartMerge(localData: any, remoteData: any): { mergedData: any; summary: { unified: number; added: number } } {
+        const rootLocal = localData?.data || localData?.backup || localData || {};
+        const rootRemote = remoteData?.data || remoteData?.backup || remoteData || {};
+
+        const merged: Record<string, any[]> = {};
+        const summary = {
+            unified: 0,
+            added: 0
+        };
+
+        const allStoreKeys = Array.from(new Set([
+            ...Object.keys(rootLocal),
+            ...Object.keys(rootRemote)
+        ]));
+
+        for (const store of allStoreKeys) {
+            const localArr: any[] = Array.isArray(rootLocal[store]) ? rootLocal[store] : [];
+            const remoteArr: any[] = Array.isArray(rootRemote[store]) ? rootRemote[store] : [];
+
+            if (localArr.length === 0 && remoteArr.length === 0) continue;
+
+            const storeMerged: any[] = [...localArr];
+            let storeUnifiedCount = 0;
+            let storeAddedCount = 0;
+
+            for (const remoteItem of remoteArr) {
+                if (!remoteItem || typeof remoteItem !== 'object') continue;
+
+                let existingMatchIndex = -1;
+
+                if (store === 'accounts' || store === 'cards') {
+                    existingMatchIndex = storeMerged.findIndex(l => 
+                        l.id === remoteItem.id || 
+                        (l.name && remoteItem.name && l.name.trim().toLowerCase() === remoteItem.name.trim().toLowerCase())
+                    );
+                } else if (store === 'savings') {
+                    existingMatchIndex = storeMerged.findIndex(l => 
+                        l.id === remoteItem.id || 
+                        (l.name && remoteItem.name && l.name.trim().toLowerCase() === remoteItem.name.trim().toLowerCase())
+                    );
+                } else if (store === 'recurring_expenses' || store === 'recurringExpenses') {
+                    existingMatchIndex = storeMerged.findIndex(l => 
+                        l.id === remoteItem.id || 
+                        (l.description && remoteItem.description && 
+                         l.description.trim().toLowerCase() === remoteItem.description.trim().toLowerCase() && 
+                         Math.abs((l.amount || 0) - (remoteItem.amount || 0)) < 0.01 &&
+                         l.frequency === remoteItem.frequency)
+                    );
+                } else if (store === 'vehicles') {
+                    existingMatchIndex = storeMerged.findIndex(l => 
+                        l.id === remoteItem.id || 
+                        (l.licensePlate && remoteItem.licensePlate && l.licensePlate.trim().toLowerCase() === remoteItem.licensePlate.trim().toLowerCase()) ||
+                        (l.name && remoteItem.name && l.name.trim().toLowerCase() === remoteItem.name.trim().toLowerCase())
+                    );
+                } else if (store === 'insurances') {
+                    existingMatchIndex = storeMerged.findIndex(l => 
+                        l.id === remoteItem.id || 
+                        (l.policyNumber && remoteItem.policyNumber && l.policyNumber.trim().toLowerCase() === remoteItem.policyNumber.trim().toLowerCase()) ||
+                        (l.name && remoteItem.name && l.name.trim().toLowerCase() === remoteItem.name.trim().toLowerCase())
+                    );
+                } else if (store === 'expenses' || store === 'incomes' || store === 'movements') {
+                    existingMatchIndex = storeMerged.findIndex(l => {
+                        if (l.id === remoteItem.id) return true;
+                        const lDesc = l.description || l.name || '';
+                        const rDesc = remoteItem.description || remoteItem.name || '';
+                        const lDate = l.date || l.effectiveDate || l.receivedDate || l.createdAt;
+                        const rDate = remoteItem.date || remoteItem.effectiveDate || remoteItem.receivedDate || remoteItem.createdAt;
+                        return lDesc.trim().toLowerCase() === rDesc.trim().toLowerCase() &&
+                               Math.abs((l.amount || 0) - (remoteItem.amount || 0)) < 0.01 &&
+                               Math.abs((lDate || 0) - (rDate || 0)) < 60000;
+                    });
+                } else {
+                    existingMatchIndex = storeMerged.findIndex(l => l.id && remoteItem.id && l.id === remoteItem.id);
+                }
+
+                if (existingMatchIndex >= 0) {
+                    storeUnifiedCount++;
+                    storeMerged[existingMatchIndex] = {
+                        ...remoteItem,
+                        ...storeMerged[existingMatchIndex]
+                    };
+                } else {
+                    storeAddedCount++;
+                    storeMerged.push(remoteItem);
+                }
+            }
+
+            merged[store] = storeMerged;
+            summary.unified += storeUnifiedCount;
+            summary.added += storeAddedCount;
+        }
+
+        return { mergedData: merged, summary };
+    }
 }
 

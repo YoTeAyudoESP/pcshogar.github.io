@@ -107,7 +107,7 @@ interface FinanceContextType {
     editMonthClosingAmount: (closingId: string, newAmount: number) => Promise<void>;
     setPendingClosing: (closing: MonthClosing | null) => void;
     pendingClosing: MonthClosing | null;
-    importData: (data: any) => Promise<void>;
+    importData: (data: any) => Promise<Record<string, number> | void>;
     settleCardCycle: (cardId: string, amount: number, totalPending: number, date: number, accountId: string, rangeStart?: number, rangeEnd?: number) => Promise<void>;
     refreshFinance: (isInitialLoad?: boolean) => Promise<void>;
     privacyMode?: boolean;
@@ -758,8 +758,9 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
     ]);
 
     const importData = async (data: any) => {
-        await incomeDB.importFullData(data);
+        const summary = await incomeDB.importFullData(data);
         await refreshFinance();
+        return summary;
     };
 
     const addAccount = async (name: string, type: 'bank' | 'cash', initialBalance: number, color?: string) => {

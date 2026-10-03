@@ -16,6 +16,7 @@ import UserManagementView from './UserManagementView';
 import { useFinance } from '../../contexts/FinanceContext';
 import { useToast } from '../../contexts/ToastContext';
 import { useAppSettings } from '../../contexts/AppSettingsContext';
+import { performFactoryReset } from '../../services/db';
 import versionInfo from '../../../public/version.json';
 const version = versionInfo.version;
 // Browser plugin removed: manual opens in-app via window.location.href
@@ -33,6 +34,7 @@ import {
     FileJson,
     Check,
     X,
+    Trash2,
     Plus,
     BookOpen,
     Coffee,
@@ -171,8 +173,16 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
         reader.onload = async (e) => {
             try {
                 const content = JSON.parse(e.target?.result as string);
-                await importData(content);
-                showToast('Datos importados con éxito.', 'success');
+                const summary: any = await importData(content);
+                const expCount = summary?.expenses ?? 0;
+                const incCount = summary?.incomes ?? 0;
+                const recCount = summary?.recurring_expenses ?? 0;
+                const savCount = summary?.savings ?? 0;
+
+                showToast(`Datos importados: ${expCount} gastos, ${incCount} ingresos, ${recCount} mov. fijos, ${savCount} huchas. Reiniciando...`, 'success');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
                 setSelectedImportFile(null);
             } catch (err) {
                 showToast('Error al procesar el archivo JSON.', 'error');
@@ -180,6 +190,28 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
             }
         };
         reader.readAsText(selectedImportFile);
+    };
+
+    const handleFactoryResetClick = async () => {
+        const confirmFirst = window.confirm('¿Estás COMPLETAMENTE SEGURO de que deseas borrar TODOS los datos de la aplicación y restablecerla de fábrica?\n\nSe eliminarán perfiles, movimientos, huchas y configuraciones locales. Esta acción no se puede deshacer.');
+        if (!confirmFirst) return;
+
+        const confirmSecond = window.prompt('Para confirmar el borrado total de la aplicación, escribe la palabra BORRAR en mayúsculas:');
+        if (confirmSecond !== 'BORRAR') {
+            showToast('Operación cancelada. No se ha borrado nada.', 'info');
+            return;
+        }
+
+        try {
+            await performFactoryReset();
+            showToast('Aplicación restablecida de fábrica. Reiniciando...', 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 600);
+        } catch (e) {
+            console.error('Error al restablecer la aplicación:', e);
+            showToast('Error al intentar borrar los datos locales', 'error');
+        }
     };
 
     const cancelImport = () => {
@@ -507,6 +539,25 @@ const SettingsView: React.FC<SettingsViewProps> = ({ initialTab = 'accounts' }) 
                                 }}
                             >
                                 <MessageSquare size={18} /> Enviar Sugerencia por Email
+                            </button>
+                            <button 
+                                onClick={handleFactoryResetClick}
+                                style={{ 
+                                    background: 'rgba(239, 68, 68, 0.1)',
+                                    color: '#ef4444',
+                                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                                    padding: '0.75rem',
+                                    borderRadius: '8px',
+                                    fontWeight: 700,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '0.5rem',
+                                    cursor: 'pointer',
+                                    fontSize: '0.85rem'
+                                }}
+                            >
+                                <Trash2 size={18} /> Restablecer datos de fábrica
                             </button>
                         </div>
 

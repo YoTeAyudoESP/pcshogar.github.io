@@ -189,6 +189,7 @@ export interface RecurringExpense {
     insuranceId?: string;
     vehicleId?: string;
     vehicleExpenseType?: 'fuel' | 'maintenance' | 'insurance' | 'tax_fine' | 'other';
+    expirationDate?: number; // Optional timestamp (ms) when the recurring expense expires
 }
 
 export interface Loan {

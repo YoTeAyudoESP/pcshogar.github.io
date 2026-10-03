@@ -19,12 +19,13 @@ import {
     Shield,
     Fingerprint,
     Bell,
-    Monitor
+    Monitor,
+    Trash2
 } from 'lucide-react';
 import { useAppSettings } from '../../contexts/AppSettingsContext';
 import { useFinance } from '../../contexts/FinanceContext';
 import { SyncService } from '../../services/syncService';
-import { incomeDB } from '../../services/db';
+import { incomeDB, performFactoryReset } from '../../services/db';
 import { DropboxService } from '../../services/dropboxService';
 import { GoogleDriveService } from '../../services/googleDriveService';
 import { SUPPORTED_CURRENCIES, SUPPORTED_LANGUAGES, APP_THEMES } from '../../types/finance';
@@ -194,8 +195,16 @@ const AppSettingsView: React.FC = () => {
         reader.onload = async (event) => {
             try {
                 const data = JSON.parse(event.target?.result as string);
-                await importData(data);
-                showToast('Importación completada con éxito', 'success');
+                const summary: any = await importData(data);
+                const expCount = summary?.expenses ?? 0;
+                const incCount = summary?.incomes ?? 0;
+                const recCount = summary?.recurring_expenses ?? 0;
+                const savCount = summary?.savings ?? 0;
+                
+                showToast(`Importación completada: ${expCount} gastos, ${incCount} ingresos, ${recCount} mov. fijos, ${savCount} huchas. Reiniciando...`, 'success');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
             } catch (err) {
                 showToast('Archivo no válido', 'error');
                 console.error(err);
@@ -205,6 +214,28 @@ const AppSettingsView: React.FC = () => {
             }
         };
         reader.readAsText(importFile);
+    };
+
+    const handleFactoryResetClick = async () => {
+        const confirmFirst = window.confirm('¿Estás COMPLETAMENTE SEGURO de que deseas borrar TODOS los datos de la aplicación y restablecerla de fábrica?\n\nSe eliminarán perfiles, movimientos, huchas y configuraciones locales. Esta acción no se puede deshacer.');
+        if (!confirmFirst) return;
+
+        const confirmSecond = window.prompt('Para confirmar el borrado total de la aplicación, escribe la palabra BORRAR en mayúsculas:');
+        if (confirmSecond !== 'BORRAR') {
+            showToast('Operación cancelada. No se ha borrado nada.', 'info');
+            return;
+        }
+
+        try {
+            await performFactoryReset();
+            showToast('Aplicación restablecida de fábrica. Reiniciando...', 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 600);
+        } catch (e) {
+            console.error('Error al restablecer la aplicación:', e);
+            showToast('Error al intentar borrar los datos locales', 'error');
+        }
     };
 
     const groupStyle: React.CSSProperties = {
@@ -1095,6 +1126,51 @@ const AppSettingsView: React.FC = () => {
                             </button>
                         )}
                     </div>
+
+                    {/* Restablecer datos de fábrica */}
+                    <div style={{ 
+                        display: 'flex', 
+                        flexDirection: 'column',
+                        alignItems: 'flex-start',
+                        gap: '0.75rem',
+                        padding: '1rem', 
+                        background: 'rgba(239, 68, 68, 0.05)',
+                        border: '1px solid rgba(239, 68, 68, 0.2)',
+                        borderRadius: '12px',
+                        maxWidth: '500px'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <Trash2 size={20} color="#ef4444" />
+                            <div style={{ textAlign: 'left' }}>
+                                <div style={{ fontWeight: 600, fontSize: '0.95rem', color: '#ef4444' }}>Restablecer aplicación a estado inicial</div>
+                                <div style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.6)' }}>Borra permanentemente todos los datos, perfiles y ajustes de este dispositivo para dejar la app virgen de fábrica.</div>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={handleFactoryResetClick}
+                            style={{
+                                marginTop: '0.5rem',
+                                padding: '8px 16px',
+                                borderRadius: '8px',
+                                background: '#ef4444',
+                                color: 'white',
+                                border: 'none',
+                                fontWeight: 700,
+                                fontSize: '0.85rem',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                transition: 'opacity 0.2s'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
+                            onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                        >
+                            <Trash2 size={14} /> Restablecer datos de fábrica
+                        </button>
+                    </div>
+
                 </div>
             </section>
         </div>

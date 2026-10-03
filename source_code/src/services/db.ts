@@ -215,9 +215,13 @@ class IncomeDB {
         await this.dbPromise;
     }
 
-    async importFullData(data: any): Promise<void> {
+    async importFullData(data: any): Promise<Record<string, number>> {
         const db = await this.dbPromise;
-        
+        const summary: Record<string, number> = {};
+
+        // Unwrap envelope if data is nested inside data or backup property
+        const rootData = (data && typeof data === 'object') ? (data.data || data.backup || data.db || data) : {};
+
         // Map common store name variations (camelCase vs snake_case)
         const KEY_MAP: Record<string, string> = {
             'recurringExpenses': 'recurring_expenses',
@@ -239,12 +243,12 @@ class IncomeDB {
         for (const storeName of db.objectStoreNames) {
             // PHASE 1: Recolección, normalización y desduplicación en memoria RAM (sin pausas asíncronas)
             let rawItems: any[] = [];
-            if (Array.isArray(data[storeName])) {
-                rawItems.push(...data[storeName]);
+            if (Array.isArray(rootData[storeName])) {
+                rawItems.push(...rootData[storeName]);
             }
             for (const [jsonKey, targetStore] of Object.entries(KEY_MAP)) {
-                if (targetStore === storeName && jsonKey !== storeName && Array.isArray(data[jsonKey])) {
-                    rawItems.push(...data[jsonKey]);
+                if (targetStore === storeName && jsonKey !== storeName && Array.isArray(rootData[jsonKey])) {
+                    rawItems.push(...rootData[jsonKey]);
                 }
             }
 
@@ -299,7 +303,7 @@ class IncomeDB {
                     
                     // Categorización (nombre a ID)
                     if ((storeName === 'expenses' || storeName === 'incomes' || storeName === 'recurring_expenses') && !item.categoryId && item.category) {
-                        const categories = data['categories'] || [];
+                        const categories = rootData['categories'] || [];
                         const catMatch = categories.find((c: any) => c.name === item.category || c.id === item.category);
                         if (catMatch) {
                             item.categoryId = catMatch.id;
@@ -330,7 +334,10 @@ class IncomeDB {
                 store.put(item);
             }
             await tx.done;
+            summary[storeName] = itemsToInsert.length;
         }
+
+        return summary;
     }
 
     async recordDeletion(store: string, id: string): Promise<void> {
@@ -1234,3 +1241,35 @@ class IncomeDB {
 
 
 export const incomeDB = new IncomeDB();
+
+export async function performFactoryReset(): Promise<void> {
+    try {
+        localStorage.clear();
+        sessionStorage.clear();
+        if ('indexedDB' in window) {
+            const knownDbs = ['domestic-economy-db'];
+            if (indexedDB.databases) {
+                try {
+                    const dbs = await indexedDB.databases();
+                    dbs.forEach(d => {
+                        if (d.name && !knownDbs.includes(d.name)) {
+                            knownDbs.push(d.name);
+                        }
+                    });
+                } catch (e) {
+                    console.warn('indexedDB.databases() error:', e);
+                }
+            }
+            knownDbs.forEach(dbName => {
+                try {
+                    indexedDB.deleteDatabase(dbName);
+                } catch (e) {
+                    console.error('Error deleting database:', dbName, e);
+                }
+            });
+        }
+    } catch (e) {
+        console.error('Error executing performFactoryReset:', e);
+    }
+}
+

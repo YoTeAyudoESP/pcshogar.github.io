@@ -26,6 +26,42 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
     const [vehicleExpenseType, setVehicleExpenseType] = useState<'fuel' | 'maintenance' | 'insurance' | 'tax_fine' | 'other'>(editingExpense?.vehicleExpenseType || 'other');
     const [financingSavingGoalId, setFinancingSavingGoalId] = useState(editingExpense?.financingSavingGoalId || '');
     
+    // Expiration Date State
+    const [hasExpirationDate, setHasExpirationDate] = useState(!!editingExpense?.expirationDate);
+    const [expirationDate, setExpirationDate] = useState(() => {
+        if (editingExpense?.expirationDate) {
+            const d = new Date(editingExpense.expirationDate);
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+        return '';
+    });
+
+    const calculateNextReceiptDate = () => {
+        const dDay = parseInt(paymentDay) || 1;
+        const pMonth = (frequency !== 'monthly' && frequency !== 'weekly') ? parseInt(paymentMonth) : undefined;
+        const today = new Date();
+        let year = today.getFullYear();
+        let month = today.getMonth();
+
+        if (pMonth !== undefined) {
+            month = pMonth - 1;
+            if (month < today.getMonth() || (month === today.getMonth() && dDay < today.getDate())) {
+                year++;
+            }
+        } else {
+            if (dDay < today.getDate()) {
+                month++;
+                if (month > 11) {
+                    month = 0;
+                    year++;
+                }
+            }
+        }
+        const dateObj = new Date(year, month, Math.min(dDay, 28));
+        const monthsEs = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        return `${dDay} de ${monthsEs[dateObj.getMonth()]} de ${dateObj.getFullYear()}`;
+    };
+    
     // Payment Method State
     const [pmType, setPmType] = useState<'account' | 'card' | 'cash'>(
         editingExpense?.paymentMethod?.type || 'account'
@@ -159,6 +195,7 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
             categoryId,
             paymentMethod,
             financingSavingGoalId: financingSavingGoalId || undefined,
+            expirationDate: (hasExpirationDate && expirationDate) ? new Date(expirationDate).getTime() : undefined,
             updatedAt: Date.now(),
             createdAt: editingExpense?.createdAt || Date.now(),
             ignoredPeriods: Array.from(ignoredSet)
@@ -368,6 +405,54 @@ const RecurringExpenseForm: React.FC<RecurringExpenseFormProps> = ({ editingExpe
                             <option value="11">Noviembre</option>
                             <option value="12">Diciembre</option>
                         </select>
+                    </div>
+                )}
+            </div>
+
+            {/* Próxima cuota calculada (Informativo de solo lectura) */}
+            <div style={{ 
+                ...containerStyle, 
+                padding: '0.875rem 1rem', 
+                background: 'rgba(59, 130, 246, 0.08)', 
+                borderRadius: '0.75rem', 
+                border: '1px solid rgba(59, 130, 246, 0.2)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.25rem'
+            }}>
+                <span style={{ fontSize: '0.8rem', color: '#60a5fa', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    📅 Próxima cuota estimada (calculada automáticamente):
+                </span>
+                <span style={{ fontSize: '1rem', color: 'white', fontWeight: 700 }}>
+                    {calculateNextReceiptDate()}
+                </span>
+            </div>
+
+            {/* Fecha de Expiración / Finalización Opcional */}
+            <div style={{ ...containerStyle, padding: '1rem', background: 'rgba(255, 255, 255, 0.02)', borderRadius: '0.75rem', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', userSelect: 'none', margin: 0 }}>
+                    <input 
+                        type="checkbox" 
+                        checked={hasExpirationDate} 
+                        onChange={e => setHasExpirationDate(e.target.checked)} 
+                        style={{ width: '18px', height: '18px', accentColor: '#6366f1', cursor: 'pointer' }}
+                    />
+                    <span style={{ fontSize: '0.9rem', color: 'white', fontWeight: 600 }}>Establecer fecha de expiración o finalización (opcional)</span>
+                </label>
+
+                {hasExpirationDate && (
+                    <div style={{ marginTop: '0.75rem' }}>
+                        <label style={labelStyle}>Fecha de finalización</label>
+                        <input 
+                            type="date" 
+                            style={inputStyle} 
+                            value={expirationDate} 
+                            onChange={e => setExpirationDate(e.target.value)}
+                            required={hasExpirationDate}
+                        />
+                        <span style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.4)', marginTop: '0.35rem', display: 'block' }}>
+                            A partir de esta fecha, el gasto fijo se desactivará automáticamente.
+                        </span>
                     </div>
                 )}
             </div>

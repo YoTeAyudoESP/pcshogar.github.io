@@ -61,13 +61,24 @@ const InsuranceForm: React.FC<InsuranceFormProps> = ({ insurance, onClose }) => 
         // Si el usuario marcó crear un nuevo Gasto Fijo automáticamente
         if (createNewRecurring) {
             const premiumNum = Number(annualPremium) || 0;
-            const monthlyPayment = paymentFrequency === 'yearly' ? premiumNum / 12 : (paymentFrequency === 'semi-annually' ? premiumNum / 6 : (paymentFrequency === 'quarterly' ? premiumNum / 4 : premiumNum));
+            const installmentAmount = paymentFrequency === 'yearly' 
+                ? premiumNum 
+                : (paymentFrequency === 'semi-annually' 
+                    ? premiumNum / 2 
+                    : (paymentFrequency === 'quarterly' 
+                        ? premiumNum / 4 
+                        : (paymentFrequency === 'monthly' ? premiumNum / 12 : premiumNum)));
+            const expDateObj = new Date(expirationDate);
+            const pDay = !isNaN(expDateObj.getTime()) ? expDateObj.getDate() : 1;
+            const pMonth = !isNaN(expDateObj.getTime()) ? expDateObj.getMonth() + 1 : 1;
+
             const newRecId = await addRecurringExpense({
                 description: `Seguro: ${name.trim()}`,
-                amount: Math.round(monthlyPayment * 100) / 100,
+                amount: Math.round(installmentAmount * 100) / 100,
                 currency: 'EUR',
                 frequency: paymentFrequency,
-                paymentDay: 1,
+                paymentDay: pDay,
+                paymentMonth: paymentFrequency !== 'monthly' ? pMonth : undefined,
                 active: true,
                 categoryId: 'cat_housing'
             });

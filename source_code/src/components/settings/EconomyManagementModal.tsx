@@ -153,7 +153,10 @@ const EconomyManagementModal: React.FC<EconomyManagementModalProps> = ({ isOpen,
                 await incomeDB.switchDatabase(newEco.dbName);
                 await incomeDB.importFullData(importJsonData);
                 await incomeDB.switchDatabase(currentDbName);
-                showToast('Datos importados correctamente al nuevo entorno.', 'success');
+                showToast('Datos importados correctamente al nuevo entorno. Reiniciando...', 'success');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 600);
             }
 
             setName('');

@@ -215,14 +215,70 @@ const CardForm: React.FC<CardFormProps> = ({ onClose, editingCard, onCancelEdit 
                         <label style={{ display: 'block', marginBottom: '0.75rem', color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.9rem' }}>Límite de Crédito</label>
                         <input type="number" style={inputStyle} value={limit} onChange={e => setLimit(e.target.value)} placeholder="3000" />
                     </div>
-                    <div style={{ display: 'flex', gap: '1.5rem' }}>
-                        <div style={{ flex: 1 }}>
-                            <label style={{ display: 'block', marginBottom: '0.75rem', color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.9rem' }}>Día Cierre</label>
-                            <input type="number" min="1" max="31" style={inputStyle} value={cutoffDay} onChange={e => setCutoffDay(e.target.value)} />
+                    <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+                        <div style={{ flex: 1, minWidth: '140px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                                <label style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.9rem' }}>Día Cierre</label>
+                                <button 
+                                    type="button" 
+                                    onClick={() => setCutoffDay('31')}
+                                    style={{
+                                        background: cutoffDay === '31' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.08)',
+                                        border: cutoffDay === '31' ? '1px solid #10b981' : '1px solid rgba(255, 255, 255, 0.15)',
+                                        color: cutoffDay === '31' ? '#34d399' : '#e2e8f0',
+                                        fontSize: '0.75rem',
+                                        padding: '0.25rem 0.5rem',
+                                        borderRadius: '0.5rem',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    📅 Fin de mes (31)
+                                </button>
+                            </div>
+                            <input 
+                                type="number" 
+                                min="1" 
+                                max="31" 
+                                style={inputStyle} 
+                                value={cutoffDay} 
+                                onChange={e => {
+                                    const val = e.target.value;
+                                    if (val === '') { setCutoffDay(''); return; }
+                                    let num = parseInt(val, 10);
+                                    if (isNaN(num)) return;
+                                    if (num > 31) num = 31;
+                                    if (num < 1) num = 1;
+                                    setCutoffDay(num.toString());
+                                }} 
+                            />
+                            {cutoffDay === '31' ? (
+                                <div style={{ fontSize: '0.75rem', color: '#34d399', marginTop: '0.4rem', background: 'rgba(16, 185, 129, 0.1)', padding: '0.4rem 0.6rem', borderRadius: '0.5rem', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                                    💡 Cierre a fin de mes. En meses con menos de 31 días (como septiembre o febrero), la app ajustará automáticamente el cierre al último día real del mes.
+                                </div>
+                            ) : parseInt(cutoffDay) > 0 ? (
+                                <div style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.5)', marginTop: '0.4rem' }}>
+                                    🗓️ Cierra el día {cutoffDay} de cada mes.
+                                </div>
+                            ) : null}
                         </div>
-                        <div style={{ flex: 1 }}>
+                        <div style={{ flex: 1, minWidth: '140px' }}>
                             <label style={{ display: 'block', marginBottom: '0.75rem', color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.9rem' }}>Día Pago</label>
-                            <input type="number" min="1" max="31" style={inputStyle} value={paymentDay} onChange={e => setPaymentDay(e.target.value)} />
+                            <input 
+                                type="number" 
+                                min="1" 
+                                max="31" 
+                                style={inputStyle} 
+                                value={paymentDay} 
+                                onChange={e => {
+                                    const val = e.target.value;
+                                    if (val === '') { setPaymentDay(''); return; }
+                                    let num = parseInt(val, 10);
+                                    if (isNaN(num)) return;
+                                    if (num > 31) num = 31;
+                                    if (num < 1) num = 1;
+                                    setPaymentDay(num.toString());
+                                }} 
+                            />
                         </div>
                     </div>
                     

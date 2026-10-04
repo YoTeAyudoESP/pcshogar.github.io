@@ -5,6 +5,14 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.9.3',
+    releaseNotes: `Novedades v2.9.3:
+- 💳 Cierre de Tarjetas Inteligente: Control de día de cierre dinámico según los días reales de cada mes (ej. 30 de septiembre o 28/29 de febrero al configurar día 31) con botón de acceso rápido.
+- ⏳ Avisos de Expiración en Dashboard: Recordatorio preventivo 30 días antes de la última cuota/cobro de Gastos e Ingresos Fijos temporales con fecha de caducidad.
+- 🧹 Restablecimiento de Fábrica 100% Robusto: Cierre explícito de conexión IndexedDB y escucha asíncrona de borrado físico en disco.
+- 📦 Enlaces de Descarga Directa: Garantía de descargas sin 404 para Android (.apk) y Windows (.exe).`
+  },
+  {
     version: '2.9.2',
     releaseNotes: `Novedades v2.9.2:
 - 🧹 Restablecimiento de Fábrica 100% Robusto: Cierre explícito de conexión IndexedDB y escucha asíncrona de borrado físico en disco para garantizar el borrado total de datos locales sin bloqueos.

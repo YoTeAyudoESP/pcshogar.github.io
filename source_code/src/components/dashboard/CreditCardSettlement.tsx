@@ -41,26 +41,47 @@ const CreditCardSettlement: React.FC = () => {
         let pendingStart: Date;
         let pendingPayment: Date;
 
-        if (day > cutoffDay) {
-            activeCutoff = new Date(year, month + 1, cutoffDay, 23, 59, 59);
-            activeStart = new Date(year, month, cutoffDay + 1, 0, 0, 0);
-            activePayment = new Date(year, month + 1, paymentDay, 12, 0, 0);
-            if (paymentDay <= cutoffDay) activePayment = new Date(year, month + 2, paymentDay, 12, 0, 0);
+        const getSafeCutoffDate = (y: number, m: number, targetDay: number) => {
+            const maxDays = new Date(y, m + 1, 0).getDate();
+            const actualDay = Math.min(targetDay, maxDays);
+            return new Date(y, m, actualDay, 23, 59, 59);
+        };
 
-            pendingCutoff = new Date(year, month, cutoffDay, 23, 59, 59);
-            pendingStart = new Date(year, month - 1, cutoffDay + 1, 0, 0, 0);
-            pendingPayment = new Date(year, month, paymentDay, 12, 0, 0);
-            if (paymentDay <= cutoffDay) pendingPayment = new Date(year, month + 1, paymentDay, 12, 0, 0);
+        const getSafeStartDate = (y: number, m: number, targetDay: number) => {
+            const maxDays = new Date(y, m + 1, 0).getDate();
+            const actualDay = Math.min(targetDay, maxDays);
+            return new Date(y, m, actualDay + 1, 0, 0, 0);
+        };
+
+        const getSafePaymentDate = (y: number, m: number, targetDay: number) => {
+            const maxDays = new Date(y, m + 1, 0).getDate();
+            const actualDay = Math.min(targetDay, maxDays);
+            return new Date(y, m, actualDay, 12, 0, 0);
+        };
+
+        const currentMaxDays = new Date(year, month + 1, 0).getDate();
+        const currentActualCutoff = Math.min(cutoffDay, currentMaxDays);
+
+        if (day > currentActualCutoff) {
+            activeCutoff = getSafeCutoffDate(year, month + 1, cutoffDay);
+            activeStart = getSafeStartDate(year, month, cutoffDay);
+            activePayment = getSafePaymentDate(year, month + 1, paymentDay);
+            if (paymentDay <= cutoffDay) activePayment = getSafePaymentDate(year, month + 2, paymentDay);
+
+            pendingCutoff = getSafeCutoffDate(year, month, cutoffDay);
+            pendingStart = getSafeStartDate(year, month - 1, cutoffDay);
+            pendingPayment = getSafePaymentDate(year, month, paymentDay);
+            if (paymentDay <= cutoffDay) pendingPayment = getSafePaymentDate(year, month + 1, paymentDay);
         } else {
-            activeCutoff = new Date(year, month, cutoffDay, 23, 59, 59);
-            activeStart = new Date(year, month - 1, cutoffDay + 1, 0, 0, 0);
-            activePayment = new Date(year, month, paymentDay, 12, 0, 0);
-            if (paymentDay <= cutoffDay) activePayment = new Date(year, month + 1, paymentDay, 12, 0, 0);
+            activeCutoff = getSafeCutoffDate(year, month, cutoffDay);
+            activeStart = getSafeStartDate(year, month - 1, cutoffDay);
+            activePayment = getSafePaymentDate(year, month, paymentDay);
+            if (paymentDay <= cutoffDay) activePayment = getSafePaymentDate(year, month + 1, paymentDay);
 
-            pendingCutoff = new Date(year, month - 1, cutoffDay, 23, 59, 59);
-            pendingStart = new Date(year, month - 2, cutoffDay + 1, 0, 0, 0);
-            pendingPayment = new Date(year, month - 1, paymentDay, 12, 0, 0);
-            if (paymentDay <= cutoffDay) pendingPayment = new Date(year, month, paymentDay, 12, 0, 0);
+            pendingCutoff = getSafeCutoffDate(year, month - 1, cutoffDay);
+            pendingStart = getSafeStartDate(year, month - 2, cutoffDay);
+            pendingPayment = getSafePaymentDate(year, month - 1, paymentDay);
+            if (paymentDay <= cutoffDay) pendingPayment = getSafePaymentDate(year, month, paymentDay);
         }
 
         return {

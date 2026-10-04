@@ -37,6 +37,7 @@ import InsuranceRenewalAlert from './InsuranceRenewalAlert';
 import VehicleMaintenanceAlert from './VehicleMaintenanceAlert';
 import UnlinkedVehicleAlert from './UnlinkedVehicleAlert';
 import InsurancesDateReviewAlert from './InsurancesDateReviewAlert';
+import ExpiringRecurringAlert from './ExpiringRecurringAlert';
 import CashUpdateNoticeModal from './CashUpdateNoticeModal';
 import type { Expense } from '../../types/finance';
 import type { Income } from '../../types/income';
@@ -541,6 +542,7 @@ const Dashboard: React.FC = () => {
                     <UnlinkedVehicleAlert onNavigateToVehicles={() => { setCurrentView('settings'); setSettingsTab('vehicles'); }} />
                     <InsurancesDateReviewAlert onNavigateToInsurances={() => { setCurrentView('settings'); setSettingsTab('insurances'); }} />
                     <InsuranceRenewalAlert onNavigateToInsurances={() => { setCurrentView('settings'); setSettingsTab('insurances'); }} />
+                    <ExpiringRecurringAlert onNavigateToSettings={() => { setCurrentView('settings'); setSettingsTab('app'); }} />
                     <VehicleMaintenanceAlert onNavigateToVehicles={() => { setCurrentView('settings'); setSettingsTab('vehicles'); }} />
                     <FinanceSummary />
                     <PendingActionsWidget onEdit={(item, type, isFromPending) => { setEditingTx(item); setEditingType(type); setIsEditingFromPendingWidget(!!isFromPending); }} />

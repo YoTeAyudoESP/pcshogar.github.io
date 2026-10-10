@@ -5,6 +5,11 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.9.8',
+    releaseNotes: `Novedades v2.9.8:
+- ⚖️ Configuración de Comisión de Amortización Anticipada: Selección de modo (Estándar Legal vs Porcentaje Fijo/Exento) y edición de porcentajes de comisión en el formulario de alta y edición de préstamos.`
+  },
+  {
     version: '2.9.7',
     releaseNotes: `Novedades v2.9.7:
 - 🏦 Corrección de Capital Vivo Pendiente en Préstamos: Sincronización exacta del 100% de amortización anticipada con el cuadro real de capital neta viva (evitando descuadres por cuotas anteriores con intereses).

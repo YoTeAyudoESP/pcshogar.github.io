@@ -64,6 +64,10 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
     const [openingFee, setOpeningFee] = useState<number | ''>('');
     const [tae, setTae] = useState<number | ''>('');
     const [earlyAmortizationFee, setEarlyAmortizationFee] = useState<number | ''>('');
+    const [commissionType, setCommissionType] = useState<'legal_standard' | 'manual'>('legal_standard');
+    const [commissionRateOver1Year, setCommissionRateOver1Year] = useState<number | ''>(1.0);
+    const [commissionRateUnder1Year, setCommissionRateUnder1Year] = useState<number | ''>(0.5);
+    const [commissionRate, setCommissionRate] = useState<number | ''>('');
     const [amountMode, setAmountMode] = useState<'principal' | 'total_cost'>('principal');
 
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -126,7 +130,12 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                 setMonths(editingLoan.months);
             }
             
-            if (editingLoan.firstInstallmentAmount !== undefined || editingLoan.firstInstallmentInterestAmount !== undefined || editingLoan.lastInstallmentAmount !== undefined || editingLoan.openingFee !== undefined || editingLoan.earlyAmortizationFee !== undefined || editingLoan.firstInstallmentInterestOnly) {
+            setCommissionType(editingLoan.commissionType || 'legal_standard');
+            setCommissionRateOver1Year(editingLoan.commissionRateOver1Year !== undefined ? editingLoan.commissionRateOver1Year : 1.0);
+            setCommissionRateUnder1Year(editingLoan.commissionRateUnder1Year !== undefined ? editingLoan.commissionRateUnder1Year : 0.5);
+            setCommissionRate(editingLoan.commissionRate !== undefined ? editingLoan.commissionRate : '');
+
+            if (editingLoan.firstInstallmentAmount !== undefined || editingLoan.firstInstallmentInterestAmount !== undefined || editingLoan.lastInstallmentAmount !== undefined || editingLoan.openingFee !== undefined || editingLoan.earlyAmortizationFee !== undefined || editingLoan.firstInstallmentInterestOnly || editingLoan.commissionType !== undefined) {
                 setOverrideFirstQuota(editingLoan.firstInstallmentAmount !== undefined ? editingLoan.firstInstallmentAmount : '');
                 setOverrideFirstQuotaInterest(editingLoan.firstInstallmentInterestAmount !== undefined ? editingLoan.firstInstallmentInterestAmount : '');
                 setFirstInstallmentInterestOnly(!!editingLoan.firstInstallmentInterestOnly);
@@ -458,6 +467,10 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                     lastInstallmentAmount: overrideLastQuota !== '' ? Number(overrideLastQuota) : ((results as any).lastQuota || undefined),
                     openingFee: openingFee !== '' ? Number(openingFee) : undefined,
                     earlyAmortizationFee: earlyAmortizationFee !== '' ? Number(earlyAmortizationFee) : undefined,
+                    commissionType,
+                    commissionRateOver1Year: commissionType === 'legal_standard' ? (commissionRateOver1Year !== '' ? Number(commissionRateOver1Year) : 1.0) : undefined,
+                    commissionRateUnder1Year: commissionType === 'legal_standard' ? (commissionRateUnder1Year !== '' ? Number(commissionRateUnder1Year) : 0.5) : undefined,
+                    commissionRate: commissionType === 'manual' ? (commissionRate !== '' ? Number(commissionRate) : 0) : undefined,
                     status: remaining === 0 ? 'paid' : 'active'
                 };
 
@@ -524,6 +537,10 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                     lastInstallmentAmount: overrideLastQuota !== '' ? Number(overrideLastQuota) : ((results as any).lastQuota || undefined),
                     openingFee: openingFee !== '' ? Number(openingFee) : undefined,
                     earlyAmortizationFee: earlyAmortizationFee !== '' ? Number(earlyAmortizationFee) : undefined,
+                    commissionType,
+                    commissionRateOver1Year: commissionType === 'legal_standard' ? (commissionRateOver1Year !== '' ? Number(commissionRateOver1Year) : 1.0) : undefined,
+                    commissionRateUnder1Year: commissionType === 'legal_standard' ? (commissionRateUnder1Year !== '' ? Number(commissionRateUnder1Year) : 0.5) : undefined,
+                    commissionRate: commissionType === 'manual' ? (commissionRate !== '' ? Number(commissionRate) : 0) : undefined,
                     status: remaining === 0 ? 'paid' : 'active'
                 };
 
@@ -884,6 +901,95 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                         />
                     </div>
                 </div>
+            </div>
+
+            {/* Comisión por Amortización Anticipada */}
+            <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', padding: '0.85rem', borderRadius: '0.75rem' }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'rgba(255,255,255,0.85)', marginBottom: '0.5rem' }}>
+                    ⚖️ Comisión por Amortización Anticipada
+                </div>
+                
+                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                    <button
+                        type="button"
+                        onClick={() => setCommissionType('legal_standard')}
+                        style={{
+                            flex: 1,
+                            padding: '0.45rem 0.6rem',
+                            borderRadius: '0.5rem',
+                            border: commissionType === 'legal_standard' ? '1px solid #10b981' : '1px solid rgba(255,255,255,0.1)',
+                            background: commissionType === 'legal_standard' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.04)',
+                            color: commissionType === 'legal_standard' ? '#10b981' : 'rgba(255,255,255,0.6)',
+                            fontSize: '0.78rem',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                        }}
+                    >
+                        Estándar Legal (Por Plazo)
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setCommissionType('manual')}
+                        style={{
+                            flex: 1,
+                            padding: '0.45rem 0.6rem',
+                            borderRadius: '0.5rem',
+                            border: commissionType === 'manual' ? '1px solid #6366f1' : '1px solid rgba(255,255,255,0.1)',
+                            background: commissionType === 'manual' ? 'rgba(99, 102, 241, 0.15)' : 'rgba(255,255,255,0.04)',
+                            color: commissionType === 'manual' ? '#818cf8' : 'rgba(255,255,255,0.6)',
+                            fontSize: '0.78rem',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                        }}
+                    >
+                        Porcentaje Fijo / Exento
+                    </button>
+                </div>
+
+                {commissionType === 'legal_standard' ? (
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', marginBottom: '0.3rem' }}>Quedando &gt; 1 año (%)</label>
+                            <input
+                                type="number"
+                                step="0.05"
+                                min="0"
+                                max="10"
+                                value={commissionRateOver1Year}
+                                onChange={e => setCommissionRateOver1Year(e.target.value === '' ? '' : Number(e.target.value))}
+                                placeholder="1.0"
+                                style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.04)', color: 'white', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                            />
+                        </div>
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', marginBottom: '0.3rem' }}>Quedando ≤ 1 año (%)</label>
+                            <input
+                                type="number"
+                                step="0.05"
+                                min="0"
+                                max="10"
+                                value={commissionRateUnder1Year}
+                                onChange={e => setCommissionRateUnder1Year(e.target.value === '' ? '' : Number(e.target.value))}
+                                placeholder="0.5"
+                                style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.04)', color: 'white', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                            />
+                        </div>
+                    </div>
+                ) : (
+                    <div>
+                        <label style={{ display: 'block', fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', marginBottom: '0.3rem' }}>Porcentaje de Comisión Fijo (%)</label>
+                        <input
+                            type="number"
+                            step="0.05"
+                            min="0"
+                            max="10"
+                            value={commissionRate}
+                            onChange={e => setCommissionRate(e.target.value === '' ? '' : Number(e.target.value))}
+                            placeholder="0.0 (Sin comisión)"
+                            style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: '0.5rem', border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.04)', color: 'white', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                        />
+                    </div>
+                )}
             </div>
 
             {results && !(results as any).error && (

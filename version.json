@@ -1,7 +1,7 @@
 {
-  "version": "2.9.7",
-  "versionCode": 29700,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.9.7/PCSHogar_Setup_v2.9.7.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.9.7/PCSHogar_Setup_v2.9.7.exe",
-  "releaseNotes": "Novedades versión 2.9.7:\n- 🏦 Corrección de Capital Vivo Pendiente en Préstamos: Sincronización exacta del 100% de amortización anticipada con el cuadro real de capital neta viva (evitando descuadres por cuotas anteriores con intereses).\n- 🐷 Proyección de Huchas y Alertas de Fondos: Saldo dinámico proyectado en huchas (saldo actual + aportaciones del mes) con aviso preventivo de fondos insuficientes al cubrir gastos fijos soportados."
+  "version": "2.9.8",
+  "versionCode": 29800,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.9.8/PCSHogar_Setup_v2.9.8.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.9.8/PCSHogar_Setup_v2.9.8.exe",
+  "releaseNotes": "Novedades versión 2.9.8:\n- ⚖️ Configuración de Comisión de Amortización Anticipada: Selección de modo (Estándar Legal vs Porcentaje Fijo/Exento) y edición de porcentajes de comisión en el formulario de alta y edición de préstamos."
 }

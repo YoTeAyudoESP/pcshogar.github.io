@@ -12,7 +12,12 @@ interface AmortizeLoanModalProps {
 
 const AmortizeLoanModal: React.FC<AmortizeLoanModalProps> = ({ loan, onClose }) => {
     const { accounts, savings = [], amortizeLoan, recurringExpenses } = useFinance();
-    const currentDebt = loan.currentDebt ?? loan.remainingAmount ?? 0;
+
+    // Calculate schedule and effective remaining principal
+    const calc = calculateLoanAmortization(loan);
+    const currentDebt = (calc && calc.remainingCapital !== undefined && calc.remainingCapital > 0)
+        ? calc.remainingCapital
+        : (loan.currentDebt ?? loan.remainingAmount ?? 0);
 
     // Input mode: 'capital' | 'total'
     const [inputMode, setInputMode] = useState<'capital' | 'total'>('capital');
@@ -28,7 +33,6 @@ const AmortizeLoanModal: React.FC<AmortizeLoanModalProps> = ({ loan, onClose }) 
     const [amortizationMode, setAmortizationMode] = useState<'reduce_quota' | 'reduce_term' | 'total'>('reduce_quota');
 
     // Commission logic
-    const calc = calculateLoanAmortization(loan);
     const remainingMonths = calc?.schedule ? calc.schedule.filter(r => !r.isPaid).length : (loan.months || 12);
 
     const defaultCommissionRate = (() => {

@@ -39,6 +39,7 @@ import UnlinkedVehicleAlert from './UnlinkedVehicleAlert';
 import InsurancesDateReviewAlert from './InsurancesDateReviewAlert';
 import ExpiringRecurringAlert from './ExpiringRecurringAlert';
 import LoanCompletionAlert from './LoanCompletionAlert';
+import InsufficientHuchaFundsAlert from './InsufficientHuchaFundsAlert';
 import CashUpdateNoticeModal from './CashUpdateNoticeModal';
 import type { Expense } from '../../types/finance';
 import type { Income } from '../../types/income';
@@ -537,6 +538,7 @@ const Dashboard: React.FC = () => {
 
                     <OverdueFixedExpenseAlert />
                     <LoanCompletionAlert />
+                    <InsufficientHuchaFundsAlert />
                     <NextDayPaymentAlert />
                     <UnlinkedLoanAlert />
                     <ClosedMonthRebalanceAlert />

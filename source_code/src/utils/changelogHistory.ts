@@ -5,6 +5,12 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.9.7',
+    releaseNotes: `Novedades v2.9.7:
+- 🏦 Corrección de Capital Vivo Pendiente en Préstamos: Sincronización exacta del 100% de amortización anticipada con el cuadro real de capital neta viva (evitando descuadres por cuotas anteriores con intereses).
+- 🐷 Proyección de Huchas y Alertas de Fondos: Saldo dinámico proyectado en huchas (saldo actual + aportaciones del mes) con aviso preventivo de fondos insuficientes al cubrir gastos fijos soportados.`
+  },
+  {
     version: '2.9.6',
     releaseNotes: `Novedades v2.9.6:
 - 🗓️ Expiración Automática en Préstamos: Autoconfiguración y filtrado por fecha de vencimiento (expirationDate) en gastos fijos derivados de préstamos.

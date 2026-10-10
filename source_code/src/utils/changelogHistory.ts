@@ -5,6 +5,14 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.9.5',
+    releaseNotes: `Novedades v2.9.5:
+- 🏦 Amortización Única y Bidireccional: Casilla monetaria principal con selector de modo ([Capital Neto] vs [Total en Cuenta]) y desglose automático en tarjeta informativa.
+- 🐷 Soporte de Huchas en Amortización: Opción de amortizar desde huchas de ahorro previas sin penalizar el disponible mensual a gastar (excludeFromBudget).
+- 📱 Experiencia Móvil de Scroll Único: Eliminación del doble scroll contenedor en Android/móvil con diseño bottom-sheet ultra fluido.
+- 📦 Despliegue Multiplataforma Garantizado: Actualizaciones oficiales verificadas para Web, Android (.apk) y Windows (.exe).`
+  },
+  {
     version: '2.9.4',
     releaseNotes: `Novedades v2.9.4:
 - 📅 Ajuste Inteligente a Fin de Mes (Día 31): Cálculo automático del día de cobro/cierre en meses de 28, 29 o 30 días con botón de acceso rápido [Fin de mes (31)] y nota dinámica informativa.

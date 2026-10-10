@@ -1,7 +1,7 @@
 {
-  "version": "2.9.4",
-  "versionCode": 29400,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.9.4/PCSHogar_Setup_v2.9.4.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.9.4/PCSHogar_Setup_v2.9.4.exe",
-  "releaseNotes": "Novedades versión 2.9.4:\n- 📅 Ajuste Inteligente a Fin de Mes (Día 31): Cálculo automático del día de cobro/cierre en meses de 28, 29 o 30 días con botón de acceso rápido [Fin de mes (31)] y nota dinámica informativa.\n- 🏦 Amortización Inteligente de Préstamos: Elección entre Reducir Cuota (mantener plazo) o Reducir Plazo (mantener cuota) con recálculo automático del gasto fijo asociado.\n- 📊 Cálculo de Comisiones de Amortización: Aplicación automática de comisión legal por defecto (1% a más de 1 año, 0,5% a 1 año o menos) o porcentaje personalizado editable.\n- 🏁 Filtro de Préstamos En Curso vs Finalizados: Pestaña dedicada para consultar préstamos finalizados sin saturar la vista principal y eliminación segura con confirmación.\n- 🎉 Banner de Celebración de Préstamo Completado: Aviso flotante de enhorabuena en el Dashboard al liquidar completamente una deuda de préstamo.\n- 📦 Despliegue Multiplataforma sin Errores 404: Verificación garantizada de assets de descarga en pcshogar.es para Android (.apk) y Windows (.exe)."
+  "version": "2.9.5",
+  "versionCode": 29500,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.9.5/PCSHogar_Setup_v2.9.5.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.9.5/PCSHogar_Setup_v2.9.5.exe",
+  "releaseNotes": "Novedades versión 2.9.5:\n- 🏦 Amortización Única y Bidireccional: Casilla monetaria principal con selector de modo ([Capital Neto] vs [Total en Cuenta]) y desglose automático en tarjeta informativa.\n- 🐷 Soporte de Huchas en Amortización: Opción de amortizar desde huchas de ahorro previas sin penalizar el disponible mensual a gastar (excludeFromBudget).\n- 📱 Experiencia Móvil de Scroll Único: Eliminación del doble scroll contenedor en Android/móvil con diseño bottom-sheet ultra fluido.\n- 📦 Despliegue Multiplataforma Garantizado: Actualizaciones oficiales verificadas para Web, Android (.apk) y Windows (.exe)."
 }

@@ -773,14 +773,16 @@ class IncomeDB {
         accountId: string, 
         date: number, 
         notes?: string,
-        options?: { totalCharge?: number; commissionAmount?: number; updatedLoanData?: Partial<Loan> }
+        options?: { totalCharge?: number; commissionAmount?: number; updatedLoanData?: Partial<Loan>; savingGoalId?: string }
     ): Promise<void> {
         const db = await this.dbPromise;
-        const tx = db.transaction(['loans', 'accounts', 'expenses', 'movements'], 'readwrite');
+        const tx = db.transaction(['loans', 'accounts', 'expenses', 'movements', 'savings', 'allocations'], 'readwrite');
         const loanStore = tx.objectStore('loans');
         const accountStore = tx.objectStore('accounts');
         const expenseStore = tx.objectStore('expenses');
         const movementStore = tx.objectStore('movements');
+        const savingGoalStore = tx.objectStore('savings');
+        const allocationStore = tx.objectStore('allocations');
 
         const loan = await loanStore.get(loanId);
         const account = await accountStore.get(accountId);
@@ -802,6 +804,27 @@ class IncomeDB {
 
         const totalDeduction = options?.totalCharge !== undefined ? options.totalCharge : amount;
 
+        // Handle saving goal if selected
+        if (options?.savingGoalId) {
+            const goal = await savingGoalStore.get(options.savingGoalId);
+            if (goal) {
+                goal.currentAmount = Math.max(0, (goal.currentAmount || 0) - totalDeduction);
+                goal.updatedAt = Date.now();
+                await savingGoalStore.put(goal);
+
+                await allocationStore.add({
+                    id: `alloc_amort_${Date.now()}`,
+                    goalId: options.savingGoalId,
+                    amount: totalDeduction,
+                    date: date,
+                    type: 'transfer_out',
+                    description: `Amortización préstamo: ${loan.name}`,
+                    sourceAccountId: accountId,
+                    updatedAt: Date.now()
+                });
+            }
+        }
+
         // Update account
         account.balance -= totalDeduction;
         account.updatedAt = Date.now();
@@ -821,6 +844,8 @@ class IncomeDB {
             paymentMethod: { type: 'account', accountId },
             isFixed: false,
             status: 'paid',
+            excludeFromBudget: !!options?.savingGoalId,
+            linkedSavingGoalId: options?.savingGoalId,
             updatedAt: Date.now()
         };
         await expenseStore.add(expense);

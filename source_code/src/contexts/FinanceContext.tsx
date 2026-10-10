@@ -90,7 +90,7 @@ interface FinanceContextType {
     updateCard: (card: CreditCard) => Promise<void>;
     updateSavingGoal: (goal: SavingGoal) => Promise<void>;
     updateLoan: (loan: Loan) => Promise<void>;
-    amortizeLoan: (loanId: string, amount: number, accountId: string, date: number, notes?: string, options?: { totalCharge?: number; commissionAmount?: number; updatedLoanData?: Partial<Loan> }) => Promise<void>;
+    amortizeLoan: (loanId: string, amount: number, accountId: string, date: number, notes?: string, options?: { totalCharge?: number; commissionAmount?: number; updatedLoanData?: Partial<Loan>; savingGoalId?: string }) => Promise<void>;
     deleteLoan: (id: string) => Promise<void>;
     deleteAccount: (id: string) => Promise<void>;
     deleteCard: (id: string) => Promise<void>;
@@ -1200,7 +1200,7 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         accountId: string, 
         date: number, 
         notes?: string,
-        options?: { totalCharge?: number; commissionAmount?: number; updatedLoanData?: Partial<Loan> }
+        options?: { totalCharge?: number; commissionAmount?: number; updatedLoanData?: Partial<Loan>; savingGoalId?: string }
     ) => {
         await incomeDB.amortizeLoanWithTransaction(loanId, amount, accountId, date, notes, options);
         

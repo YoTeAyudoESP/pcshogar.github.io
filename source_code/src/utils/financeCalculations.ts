@@ -1067,3 +1067,66 @@ export function calculateLoanAmortization(loan: Loan, isCurrentPaid: boolean = f
         schedule
     };
 }
+
+export function calculatePartialAmortizationEffect(
+    loan: Loan,
+    capitalToAmortize: number,
+    type: 'reduce_quota' | 'reduce_term'
+) {
+    const currentDebt = loan.currentDebt ?? loan.remainingAmount ?? 0;
+    const newDebt = Math.max(0, currentDebt - capitalToAmortize);
+    const tin = loan.tin || loan.tae || 0;
+    const r = (tin / 100) / 12;
+    const currentQuota = loan.monthlyPayment || loan.monthlyInstallment || 0;
+
+    let remainingMonths = loan.months || 12;
+    if (tin > 0 && currentQuota > 0 && r > 0 && currentDebt > 0) {
+        const fraction = (currentDebt * r) / currentQuota;
+        if (fraction < 1) {
+            remainingMonths = Math.ceil(-Math.log(1 - fraction) / Math.log(1 + r));
+        }
+    }
+
+    if (newDebt <= 0) {
+        return {
+            newQuota: 0,
+            newMonths: 0,
+            monthsSaved: remainingMonths,
+            quotaSaved: currentQuota
+        };
+    }
+
+    if (type === 'reduce_quota') {
+        let newQuota = currentQuota;
+        if (r > 0 && remainingMonths > 0) {
+            newQuota = newDebt * (r * Math.pow(1 + r, remainingMonths)) / (Math.pow(1 + r, remainingMonths) - 1);
+        } else if (remainingMonths > 0) {
+            newQuota = newDebt / remainingMonths;
+        }
+        newQuota = Math.round(newQuota * 100) / 100;
+        return {
+            newQuota,
+            newMonths: remainingMonths,
+            monthsSaved: 0,
+            quotaSaved: Math.round((currentQuota - newQuota) * 100) / 100
+        };
+    } else {
+        let newMonths = remainingMonths;
+        if (r > 0 && currentQuota > 0) {
+            const fraction = (newDebt * r) / currentQuota;
+            if (fraction < 1) {
+                newMonths = Math.ceil(-Math.log(1 - fraction) / Math.log(1 + r));
+            }
+        } else if (currentQuota > 0) {
+            newMonths = Math.ceil(newDebt / currentQuota);
+        }
+        const monthsSaved = Math.max(0, remainingMonths - newMonths);
+        return {
+            newQuota: currentQuota,
+            newMonths,
+            monthsSaved,
+            quotaSaved: 0
+        };
+    }
+}
+

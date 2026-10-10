@@ -767,7 +767,14 @@ class IncomeDB {
     async updateLoan(loan: Loan): Promise<void> { await (await this.dbPromise).put('loans', { ...loan, updatedAt: Date.now() }); }
     async deleteLoan(id: string): Promise<void> { await (await this.dbPromise).delete('loans', id); }
 
-    async amortizeLoanWithTransaction(loanId: string, amount: number, accountId: string, date: number, notes?: string): Promise<void> {
+    async amortizeLoanWithTransaction(
+        loanId: string, 
+        amount: number, 
+        accountId: string, 
+        date: number, 
+        notes?: string,
+        options?: { totalCharge?: number; commissionAmount?: number; updatedLoanData?: Partial<Loan> }
+    ): Promise<void> {
         const db = await this.dbPromise;
         const tx = db.transaction(['loans', 'accounts', 'expenses', 'movements'], 'readwrite');
         const loanStore = tx.objectStore('loans');
@@ -784,22 +791,30 @@ class IncomeDB {
         loan.currentDebt = Math.max(0, (loan.currentDebt ?? 0) - amount);
         loan.remainingAmount = loan.currentDebt;
         if (loan.currentDebt <= 0) {
-            loan.status = 'paid';
+            loan.status = 'completed';
             loan.isPaid = true;
+        }
+        if (options?.updatedLoanData) {
+            Object.assign(loan, options.updatedLoanData);
         }
         loan.updatedAt = Date.now();
         await loanStore.put(loan);
 
+        const totalDeduction = options?.totalCharge !== undefined ? options.totalCharge : amount;
+
         // Update account
-        account.balance -= amount;
+        account.balance -= totalDeduction;
         account.updatedAt = Date.now();
         await accountStore.put(account);
 
         // Create expense
+        const commText = options?.commissionAmount && options.commissionAmount > 0 
+            ? ` (comisión ${options.commissionAmount.toFixed(2)}€)` 
+            : '';
         const expense: Expense = {
             id: `exp_amort_${Date.now()}`,
-            description: `Amortización: ${loan.name} ${notes ? `(${notes})` : ''}`,
-            amount: amount,
+            description: `Amortización: ${loan.name}${commText}${notes ? ` - ${notes}` : ''}`,
+            amount: totalDeduction,
             currency: 'EUR',
             date: date,
             categoryId: 'cat_loans',
@@ -814,9 +829,9 @@ class IncomeDB {
         await movementStore.add({
             id: `mv_amort_${Date.now()}`,
             accountId: accountId,
-            amount: -amount,
+            amount: -totalDeduction,
             type: 'expense',
-            description: `Amortización: ${loan.name}`,
+            description: `Amortización: ${loan.name}${commText}`,
             relatedId: loanId,
             date: date,
             updatedAt: Date.now()

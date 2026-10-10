@@ -149,10 +149,13 @@ const PendingActionsWidget: React.FC<PendingActionsWidgetProps> = ({ onEdit }) =
                 physicalYear--;
             }
             
+            const maxDays = new Date(physicalYear, physicalMonth + 1, 0).getDate();
+            const actualPDay = Math.min(pDay, maxDays);
+
             // If physical payment date is in the future relative to today's real date, it's NOT overdue
             if (physicalYear > realYear) return false;
             if (physicalYear === realYear && physicalMonth > realMonth) return false;
-            if (physicalYear === realYear && physicalMonth === realMonth && pDay >= realDay) return false;
+            if (physicalYear === realYear && physicalMonth === realMonth && actualPDay >= realDay) return false;
         }
 
         if (item.period && item.period < period) return true;

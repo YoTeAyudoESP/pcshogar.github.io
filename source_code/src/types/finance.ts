@@ -216,13 +216,17 @@ export interface Loan {
     grantDate?: number;
     openingFee?: number;
     earlyAmortizationFee?: number;
+    commissionType?: 'legal_standard' | 'manual';
+    commissionRateOver1Year?: number;
+    commissionRateUnder1Year?: number;
+    commissionRate?: number;
     linkedAccountId?: string;
     supportedByCardId?: string;
     issuingCardId?: string;
     doesNotConsumeCardLimit?: boolean;
     paymentChargeType?: 'account' | 'card';
     linkedRecurringExpenseId?: string;
-    status: 'active' | 'paid';
+    status: 'active' | 'completed' | 'paid';
     isPaid?: boolean;          // Convenience flag
     amountMode?: 'principal' | 'total_cost';
     updatedAt?: number;

@@ -5,6 +5,16 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.9.4',
+    releaseNotes: `Novedades v2.9.4:
+- 📅 Ajuste Inteligente a Fin de Mes (Día 31): Cálculo automático del día de cobro/cierre en meses de 28, 29 o 30 días con botón de acceso rápido [Fin de mes (31)] y nota dinámica informativa.
+- 🏦 Amortización Inteligente de Préstamos: Elección entre Reducir Cuota (mantener plazo) o Reducir Plazo (mantener cuota) con recálculo automático del gasto fijo asociado.
+- 📊 Cálculo de Comisiones de Amortización: Aplicación automática de comisión legal por defecto (1% a más de 1 año, 0,5% a 1 año o menos) o porcentaje personalizado editable.
+- 🏁 Filtro de Préstamos En Curso vs Finalizados: Pestaña dedicada para consultar préstamos finalizados sin saturar la vista principal y eliminación segura con confirmación.
+- 🎉 Banner de Celebración de Préstamo Completado: Aviso flotante de enhorabuena en el Dashboard al liquidar completamente una deuda de préstamo.
+- 📦 Despliegue Multiplataforma sin Errores 404: Verificación garantizada de assets de descarga en pcshogar.es para Android (.apk) y Windows (.exe).`
+  },
+  {
     version: '2.9.3',
     releaseNotes: `Novedades v2.9.3:
 - 💳 Cierre de Tarjetas Inteligente: Control de día de cierre dinámico según los días reales de cada mes (ej. 30 de septiembre o 28/29 de febrero al configurar día 31) con botón de acceso rápido.

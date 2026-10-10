@@ -90,7 +90,7 @@ interface FinanceContextType {
     updateCard: (card: CreditCard) => Promise<void>;
     updateSavingGoal: (goal: SavingGoal) => Promise<void>;
     updateLoan: (loan: Loan) => Promise<void>;
-    amortizeLoan: (loanId: string, amount: number, accountId: string, date: number, notes?: string) => Promise<void>;
+    amortizeLoan: (loanId: string, amount: number, accountId: string, date: number, notes?: string, options?: { totalCharge?: number; commissionAmount?: number; updatedLoanData?: Partial<Loan> }) => Promise<void>;
     deleteLoan: (id: string) => Promise<void>;
     deleteAccount: (id: string) => Promise<void>;
     deleteCard: (id: string) => Promise<void>;
@@ -1194,8 +1194,15 @@ export const FinanceProvider = ({ children }: { children: ReactNode }) => {
         await refreshFinance();
     };
     
-    const amortizeLoan = async (loanId: string, amount: number, accountId: string, date: number, notes?: string) => {
-        await incomeDB.amortizeLoanWithTransaction(loanId, amount, accountId, date, notes);
+    const amortizeLoan = async (
+        loanId: string, 
+        amount: number, 
+        accountId: string, 
+        date: number, 
+        notes?: string,
+        options?: { totalCharge?: number; commissionAmount?: number; updatedLoanData?: Partial<Loan> }
+    ) => {
+        await incomeDB.amortizeLoanWithTransaction(loanId, amount, accountId, date, notes, options);
         
         // Check if the loan is now paid to deactivate its linked recurring expense
         const updatedLoans = await incomeDB.getAllLoans();

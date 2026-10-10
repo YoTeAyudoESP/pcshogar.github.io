@@ -1,7 +1,7 @@
 {
-  "version": "2.9.3",
-  "versionCode": 29300,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.9.3/PCSHogar_Setup_v2.9.3.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.9.3/PCSHogar_Setup_v2.9.3.exe",
-  "releaseNotes": "Novedades versión 2.9.3:\n- 💳 Cierre de Tarjetas Inteligente: Control de día de cierre dinámico según los días reales de cada mes (ej. 30 de septiembre o 28/29 de febrero al configurar día 31) con botón de acceso rápido.\n- ⏳ Avisos de Expiración en Dashboard: Recordatorio preventivo 30 días antes de la última cuota/cobro de Gastos e Ingresos Fijos temporales con fecha de caducidad.\n- 🧹 Restablecimiento de Fábrica 100% Robusto: Cierre explícito de conexión IndexedDB y escucha asíncrona de borrado físico en disco.\n- 📦 Enlaces de Descarga Directa: Garantía de descargas sin 404 para Android (.apk) y Windows (.exe)."
+  "version": "2.9.4",
+  "versionCode": 29400,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.9.4/PCSHogar_Setup_v2.9.4.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.9.4/PCSHogar_Setup_v2.9.4.exe",
+  "releaseNotes": "Novedades versión 2.9.4:\n- 📅 Ajuste Inteligente a Fin de Mes (Día 31): Cálculo automático del día de cobro/cierre en meses de 28, 29 o 30 días con botón de acceso rápido [Fin de mes (31)] y nota dinámica informativa.\n- 🏦 Amortización Inteligente de Préstamos: Elección entre Reducir Cuota (mantener plazo) o Reducir Plazo (mantener cuota) con recálculo automático del gasto fijo asociado.\n- 📊 Cálculo de Comisiones de Amortización: Aplicación automática de comisión legal por defecto (1% a más de 1 año, 0,5% a 1 año o menos) o porcentaje personalizado editable.\n- 🏁 Filtro de Préstamos En Curso vs Finalizados: Pestaña dedicada para consultar préstamos finalizados sin saturar la vista principal y eliminación segura con confirmación.\n- 🎉 Banner de Celebración de Préstamo Completado: Aviso flotante de enhorabuena en el Dashboard al liquidar completamente una deuda de préstamo.\n- 📦 Despliegue Multiplataforma sin Errores 404: Verificación garantizada de assets de descarga en pcshogar.es para Android (.apk) y Windows (.exe)."
 }

@@ -315,17 +315,51 @@ const FixedIncomeForm: React.FC<FixedIncomeFormProps> = ({ editingIncome, onClos
                         <option value="yearly">Anual</option>
                     </select>
                 </div>
-                <div style={{ flex: 1 }}>
-                    <label style={labelStyle}>Día</label>
+                <div style={{ flex: 1, minWidth: '160px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                        <label style={labelStyle}>Día de Cobro</label>
+                        <button 
+                            type="button" 
+                            onClick={() => setPaymentDay('31')}
+                            style={{
+                                background: paymentDay === '31' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.08)',
+                                border: paymentDay === '31' ? '1px solid #10b981' : '1px solid rgba(255, 255, 255, 0.15)',
+                                color: paymentDay === '31' ? '#34d399' : '#e2e8f0',
+                                fontSize: '0.75rem',
+                                padding: '0.2rem 0.45rem',
+                                borderRadius: '0.4rem',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            📅 Fin de mes (31)
+                        </button>
+                    </div>
                     <input 
                         type="number" 
                         min="1" 
                         max="31" 
                         style={inputStyle} 
                         value={paymentDay} 
-                        onChange={e => setPaymentDay(e.target.value)} 
+                        onChange={e => {
+                            const val = e.target.value;
+                            if (val === '') { setPaymentDay(''); return; }
+                            let num = parseInt(val, 10);
+                            if (isNaN(num)) return;
+                            if (num > 31) num = 31;
+                            if (num < 1) num = 1;
+                            setPaymentDay(num.toString());
+                        }} 
                         required 
                     />
+                    {paymentDay === '31' ? (
+                        <div style={{ fontSize: '0.75rem', color: '#34d399', marginTop: '0.4rem', background: 'rgba(16, 185, 129, 0.1)', padding: '0.35rem 0.5rem', borderRadius: '0.4rem', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                            💡 Cierre a fin de mes. En meses con menos de 31 días (como septiembre o febrero), la app ajustará automáticamente el cobro al último día real del mes.
+                        </div>
+                    ) : parseInt(paymentDay) > 0 ? (
+                        <div style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.5)', marginTop: '0.4rem' }}>
+                            🗓️ Cobro el día {paymentDay} de cada mes.
+                        </div>
+                    ) : null}
                 </div>
             </div>
 

@@ -327,7 +327,7 @@ const FixedMovementsView: React.FC<FixedMovementsViewProps> = ({ onBack, onNavig
                                                 Mes: {new Date(2000, (item as any).paymentMonth - 1, 1).toLocaleString('es-ES', { month: 'long' })}
                                             </span>
                                         )}
-                                        <span>Día { (item as any).paymentDay || (item as any).dayOfMonth || 1 }</span>
+                                        <span>Día { Math.min((item as any).paymentDay || (item as any).dayOfMonth || 1, new Date(selectedYear, selectedMonth + 1, 0).getDate()) }</span>
                                     </div>
                                 </div>
 

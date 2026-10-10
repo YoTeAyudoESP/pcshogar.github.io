@@ -232,7 +232,9 @@ const PendingActionsWidget: React.FC<PendingActionsWidgetProps> = ({ onEdit }) =
             }}>
                 {allPending.map((item: any) => {
                     const isOverdueItem = checkIsOverdue(item);
-                    const displayDay = isOverdueItem ? 1 : (item.actionType === 'refund' || item.isPunctualPending ? (isRollover(item) ? 1 : new Date(item.date).getDate()) : (item.paymentDay || (item.receivedDate ? new Date(item.receivedDate).getDate() : new Date(item.date || item.createdAt).getDate())));
+                    const rawDay = isOverdueItem ? 1 : (item.actionType === 'refund' || item.isPunctualPending ? (isRollover(item) ? 1 : new Date(item.date).getDate()) : (item.paymentDay || (item.receivedDate ? new Date(item.receivedDate).getDate() : new Date(item.date || item.createdAt).getDate())));
+                    const maxDaysInSelectedMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+                    const displayDay = Math.min(rawDay, maxDaysInSelectedMonth);
                     
                     return (
                     <div 

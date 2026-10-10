@@ -253,7 +253,8 @@ export function calculateAvailableBalanceForMonth(
     recurringExpenses.forEach(re => {
         if (!re.active) return;
         const start = re.createdAt || re.updatedAt || 0;
-        if (start > monthEnd) return;
+        const end = re.expirationDate || new Date(9999, 11, 31).getTime();
+        if (start > monthEnd || end < monthStart) return;
         const isIgnored = re.ignoredPeriods?.includes(period);
         
         if (!isIgnored && isRecurringActiveInMonth(re.frequency, re.paymentMonth, month, year, start)) {
@@ -282,8 +283,9 @@ export function calculateAvailableBalanceForMonth(
         const re = recurringExpenses.find(r => r.id === reId);
         if (re) {
             const start = re.createdAt || re.updatedAt || 0;
+            const end = re.expirationDate || new Date(9999, 11, 31).getTime();
             const isIgnored = re.ignoredPeriods?.includes(period);
-            const isProjected = re.active && start <= monthEnd && !isIgnored && isRecurringActiveInMonth(re.frequency, re.paymentMonth, month, year, start);
+            const isProjected = re.active && start <= monthEnd && end >= monthStart && !isIgnored && isRecurringActiveInMonth(re.frequency, re.paymentMonth, month, year, start);
             
             let projectedAmount = 0;
             if (isProjected) {
@@ -706,8 +708,10 @@ export function calculateBalanceDiscrepancy(
     recurringExpenses.forEach(re => {
         if (!re.active) return;
         const start = re.createdAt || re.updatedAt || 0;
+        const end = re.expirationDate || new Date(9999, 11, 31).getTime();
+        const monthStart = new Date(currentYear, currentMonth, 1).getTime();
         const monthEnd = new Date(currentYear, currentMonth + 1, 0, 23, 59, 59, 999).getTime();
-        if (start > monthEnd) return;
+        if (start > monthEnd || end < monthStart) return;
         const isIgnored = re.ignoredPeriods?.includes(mesActual);
         
         if (!isIgnored && isRecurringActiveInMonth(re.frequency, re.paymentMonth, currentMonth, currentYear, start)) {

@@ -33,7 +33,8 @@ const PendingActionsWidget: React.FC<PendingActionsWidgetProps> = ({ onEdit }) =
     const pendingExpenses = recurringExpenses.filter(re => {
         if (!re.active) return false;
         const start = re.updatedAt || 0;
-        if (start > monthEnd) return false;
+        const end = re.expirationDate || new Date(9999, 11, 31).getTime();
+        if (start > monthEnd || end < monthStart) return false;
 
         const isPaid = expenses.some(e => e.recurringExpenseId === re.id && (e.period === period || isItemInMonthAndYear(e, selectedMonth, selectedYear)));
         const isIgnored = re.ignoredPeriods?.includes(period);
@@ -138,6 +139,32 @@ const PendingActionsWidget: React.FC<PendingActionsWidgetProps> = ({ onEdit }) =
         const realYear = today.getFullYear();
         const realMonth = today.getMonth();
         const realDay = today.getDate();
+
+        // Recurring templates (Fixed Income / Fixed Expense) active in the selected month are scheduled for selectedMonth, not overdue movements
+        if (item.actionType === 'income' && !item.isExtraPending) {
+            if (item.accountForNextMonth || item.countForNextMonth) {
+                const pDay = item.paymentDay || 1;
+                let physicalMonth = selectedMonth - 1;
+                let physicalYear = selectedYear;
+                if (physicalMonth < 0) {
+                    physicalMonth = 11;
+                    physicalYear--;
+                }
+                
+                const maxDays = new Date(physicalYear, physicalMonth + 1, 0).getDate();
+                const actualPDay = Math.min(pDay, maxDays);
+
+                if (physicalYear > realYear) return false;
+                if (physicalYear === realYear && physicalMonth > realMonth) return false;
+                if (physicalYear === realYear && physicalMonth === realMonth && actualPDay >= realDay) return false;
+                return true;
+            }
+            return false;
+        }
+
+        if (item.actionType === 'expense' && !item.isPunctualPending) {
+            return false;
+        }
 
         // For fixed incomes counting for next month, check if physical payment date has passed in real life
         if (item.accountForNextMonth || item.countForNextMonth) {

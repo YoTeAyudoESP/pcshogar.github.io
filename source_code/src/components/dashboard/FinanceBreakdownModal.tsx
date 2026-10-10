@@ -102,8 +102,10 @@ const FinanceBreakdownModal: React.FC<FinanceBreakdownModalProps> = ({ isOpen, o
             if (!re.active) return false;
             
             const start = re.createdAt || re.updatedAt || 0;
+            const end = re.expirationDate || new Date(9999, 11, 31).getTime();
+            const monthStart = new Date(selectedYear, selectedMonth, 1).getTime();
             const monthEnd = new Date(selectedYear, selectedMonth + 1, 0).getTime();
-            if (start > monthEnd) return false;
+            if (start > monthEnd || end < monthStart) return false;
 
             // Si ya hay un gasto este mes vinculado a este recurrente
             const isPaid = expenses.some(e => e.recurringExpenseId === re.id && isItemInSelectedMonth(e));

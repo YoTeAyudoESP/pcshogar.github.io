@@ -424,6 +424,14 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                 accountId: targetAccountId
             };
 
+            const loanMonths = Number((results as any).months) || 0;
+            let loanExpirationDate: number | undefined = undefined;
+            if (startDate && loanMonths > 0) {
+                const startDObj = new Date(startDate);
+                const endDObj = new Date(startDObj.getFullYear(), startDObj.getMonth() + loanMonths, payDay || startDObj.getDate());
+                loanExpirationDate = endDObj.getTime();
+            }
+
             if (editingLoan) {
                 const updatedLoan: Loan = {
                     ...editingLoan,
@@ -467,7 +475,8 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                         sourceAccountId: targetAccountId,
                         paymentMethod: recPaymentMethod,
                         categoryId: 'cat_loans',
-                        ignoredPeriods: finalIgnoredPeriods
+                        ignoredPeriods: finalIgnoredPeriods,
+                        expirationDate: loanExpirationDate
                     } as any);
                 }
             } else {
@@ -484,7 +493,8 @@ const LoanForm: React.FC<LoanFormProps> = ({ editingLoan, initialData, onCancelE
                     sourceAccountId: targetAccountId,
                     paymentMethod: recPaymentMethod,
                     categoryId: 'cat_loans',
-                    ignoredPeriods: finalIgnoredPeriods
+                    ignoredPeriods: finalIgnoredPeriods,
+                    expirationDate: loanExpirationDate
                 } as any);
 
                 const newLoan: Loan = {

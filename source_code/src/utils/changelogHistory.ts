@@ -5,6 +5,13 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.9.6',
+    releaseNotes: `Novedades v2.9.6:
+- 🗓️ Expiración Automática en Préstamos: Autoconfiguración y filtrado por fecha de vencimiento (expirationDate) en gastos fijos derivados de préstamos.
+- ⏰ Corrección de Falsos Atrasados en Dashboard: Eliminación de alertas erróneas de atraso en plantillas de ingresos y gastos fijos periódicos (semestrales, trimestrales, etc.), respetando el día exacto de cobro configurado.
+- 📊 Ajustes Finanzas y Dashboard: Filtrado de gastos fijos vencidos en disponible mensual y desglose de movimientos.`
+  },
+  {
     version: '2.9.5',
     releaseNotes: `Novedades v2.9.5:
 - 🏦 Amortización Única y Bidireccional: Casilla monetaria principal con selector de modo ([Capital Neto] vs [Total en Cuenta]) y desglose automático en tarjeta informativa.

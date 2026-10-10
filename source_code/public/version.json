@@ -1,7 +1,7 @@
 {
-  "version": "2.9.5",
-  "versionCode": 29500,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.9.5/PCSHogar_Setup_v2.9.5.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.9.5/PCSHogar_Setup_v2.9.5.exe",
-  "releaseNotes": "Novedades versión 2.9.5:\n- 🏦 Amortización Única y Bidireccional: Casilla monetaria principal con selector de modo ([Capital Neto] vs [Total en Cuenta]) y desglose automático en tarjeta informativa.\n- 🐷 Soporte de Huchas en Amortización: Opción de amortizar desde huchas de ahorro previas sin penalizar el disponible mensual a gastar (excludeFromBudget).\n- 📱 Experiencia Móvil de Scroll Único: Eliminación del doble scroll contenedor en Android/móvil con diseño bottom-sheet ultra fluido.\n- 📦 Despliegue Multiplataforma Garantizado: Actualizaciones oficiales verificadas para Web, Android (.apk) y Windows (.exe)."
+  "version": "2.9.6",
+  "versionCode": 29600,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.9.6/PCSHogar_Setup_v2.9.6.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.9.6/PCSHogar_Setup_v2.9.6.exe",
+  "releaseNotes": "Novedades versión 2.9.6:\n- 🗓️ Expiración Automática en Préstamos: Autoconfiguración y filtrado por fecha de vencimiento (expirationDate) en gastos fijos derivados de préstamos.\n- ⏰ Corrección de Falsos Atrasados en Dashboard: Eliminación de alertas erróneas de atraso en plantillas de ingresos y gastos fijos periódicos (semestrales, trimestrales, etc.), respetando el día exacto de cobro configurado.\n- 📊 Ajustes Finanzas y Dashboard: Filtrado de gastos fijos vencidos en disponible mensual y desglose de movimientos."
 }

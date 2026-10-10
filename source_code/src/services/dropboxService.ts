@@ -298,6 +298,28 @@ export class DropboxService {
                     // Existing item, compare timestamps
                     const localItem = result[localIndex];
                     const localTs = getItemTimestamp(localItem, storeName);
+
+                    // STATUS PRECEDENCE GUARD:
+                    // Preserve confirmed status ('received' / 'paid') over 'pending' from remote sync
+                    if (storeName === 'incomes' || storeName === 'expenses') {
+                        const localStatus = localItem.status;
+                        const remoteStatus = remoteItem.status;
+                        const isLocalConfirmed = localStatus === 'received' || localStatus === 'paid';
+                        const isRemotePending = remoteStatus === 'pending';
+
+                        if (isLocalConfirmed && isRemotePending) {
+                            const mergedItem = {
+                                ...remoteItem,
+                                status: localStatus,
+                                period: localItem.period || remoteItem.period,
+                                budgetMonth: localItem.budgetMonth !== undefined ? localItem.budgetMonth : remoteItem.budgetMonth,
+                                budgetYear: localItem.budgetYear !== undefined ? localItem.budgetYear : remoteItem.budgetYear
+                            };
+                            result[localIndex] = mergedItem;
+                            return;
+                        }
+                    }
+
                     if (remoteTs > localTs) {
                         result[localIndex] = remoteItem;
                     }
@@ -340,6 +362,7 @@ export class DropboxService {
         if (!this.dbx) return null;
 
         try {
+            await incomeDB.savePreSyncSnapshot();
             // 1. Export local and normalize
             const rawLocal = await incomeDB.exportFullData();
             const localData = this.normalizeDataKeys(rawLocal);

@@ -351,6 +351,34 @@ class IncomeDB {
         return summary;
     }
 
+    async savePreSyncSnapshot(): Promise<void> {
+        try {
+            const data = await this.exportFullData();
+            localStorage.setItem('pcs_presync_snapshot', JSON.stringify({
+                timestamp: Date.now(),
+                data
+            }));
+        } catch (e) {
+            console.error('Error saving pre-sync snapshot:', e);
+        }
+    }
+
+    async restorePreSyncSnapshot(): Promise<boolean> {
+        try {
+            const raw = localStorage.getItem('pcs_presync_snapshot');
+            if (!raw) return false;
+            const parsed = JSON.parse(raw);
+            if (parsed && parsed.data) {
+                await this.importFullData(parsed.data);
+                return true;
+            }
+            return false;
+        } catch (e) {
+            console.error('Error restoring pre-sync snapshot:', e);
+            return false;
+        }
+    }
+
     async recordDeletion(store: string, id: string): Promise<void> {
         const db = await this.dbPromise;
         await db.put('deleted_items', {

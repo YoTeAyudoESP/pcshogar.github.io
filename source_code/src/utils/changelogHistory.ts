@@ -5,6 +5,11 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '3.0.0',
+    releaseNotes: `Novedades v3.0.0:
+- 🛡️ Motor de Sincronización Multi-Dispositivo Blindado: Prevalencia estricta de estados confirmados sobre pendientes, aislamiento de automatizaciones retroactivas, tombstones de borrado reforzados y respaldo preventivo automático pre-sincronización.`
+  },
+  {
     version: '2.9.9',
     releaseNotes: `Novedades v2.9.9:
 - 📅 Corrección de Fecha y Atraso en Ingresos Fijos: Respeto estricto del día real de cobro configurado (ej. Día 28) en ingresos fijos contabilizados para el mes siguiente, evitando falsos atrasos y forzado al Día 1 en el mes en curso.`

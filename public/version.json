@@ -1,7 +1,7 @@
 {
-  "version": "2.9.9",
-  "versionCode": 29900,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.9.9/PCSHogar_Setup_v2.9.9.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.9.9/PCSHogar_Setup_v2.9.9.exe",
-  "releaseNotes": "Novedades versión 2.9.9:\n- 📅 Corrección de Fecha y Atraso en Ingresos Fijos: Respeto estricto del día real de cobro configurado (ej. Día 28) en ingresos fijos contabilizados para el mes siguiente, evitando falsos atrasos y forzado al Día 1 en el mes en curso."
+  "version": "3.0.0",
+  "versionCode": 30000,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v3.0.0/PCSHogar_Setup_v3.0.0.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v3.0.0/PCSHogar_Setup_v3.0.0.exe",
+  "releaseNotes": "Novedades versión 3.0.0:\n- 🛡️ Motor de Sincronización Multi-Dispositivo Blindado: Prevalencia estricta de estados confirmados sobre pendientes, aislamiento de automatizaciones retroactivas, tombstones de borrado reforzados y respaldo preventivo automático pre-sincronización."
 }

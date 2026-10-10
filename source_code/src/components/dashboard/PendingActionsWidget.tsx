@@ -140,49 +140,23 @@ const PendingActionsWidget: React.FC<PendingActionsWidgetProps> = ({ onEdit }) =
         const realMonth = today.getMonth();
         const realDay = today.getDate();
 
-        // Recurring templates (Fixed Income / Fixed Expense) active in the selected month are scheduled for selectedMonth, not overdue movements
+        // Recurring templates (Fixed Income) active in the selected month are scheduled for selectedMonth with physical day item.paymentDay
         if (item.actionType === 'income' && !item.isExtraPending) {
-            if (item.accountForNextMonth || item.countForNextMonth) {
-                const pDay = item.paymentDay || 1;
-                let physicalMonth = selectedMonth - 1;
-                let physicalYear = selectedYear;
-                if (physicalMonth < 0) {
-                    physicalMonth = 11;
-                    physicalYear--;
-                }
-                
-                const maxDays = new Date(physicalYear, physicalMonth + 1, 0).getDate();
-                const actualPDay = Math.min(pDay, maxDays);
-
-                if (physicalYear > realYear) return false;
-                if (physicalYear === realYear && physicalMonth > realMonth) return false;
-                if (physicalYear === realYear && physicalMonth === realMonth && actualPDay >= realDay) return false;
-                return true;
-            }
-            return false;
-        }
-
-        if (item.actionType === 'expense' && !item.isPunctualPending) {
-            return false;
-        }
-
-        // For fixed incomes counting for next month, check if physical payment date has passed in real life
-        if (item.accountForNextMonth || item.countForNextMonth) {
             const pDay = item.paymentDay || 1;
-            let physicalMonth = selectedMonth - 1;
-            let physicalYear = selectedYear;
-            if (physicalMonth < 0) {
-                physicalMonth = 11;
-                physicalYear--;
-            }
+            const physicalMonth = selectedMonth;
+            const physicalYear = selectedYear;
             
             const maxDays = new Date(physicalYear, physicalMonth + 1, 0).getDate();
             const actualPDay = Math.min(pDay, maxDays);
 
-            // If physical payment date is in the future relative to today's real date, it's NOT overdue
             if (physicalYear > realYear) return false;
             if (physicalYear === realYear && physicalMonth > realMonth) return false;
             if (physicalYear === realYear && physicalMonth === realMonth && actualPDay >= realDay) return false;
+            return true;
+        }
+
+        if (item.actionType === 'expense' && !item.isPunctualPending) {
+            return false;
         }
 
         if (item.period && item.period < period) return true;

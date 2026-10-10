@@ -5,6 +5,11 @@ export interface ChangelogEntry {
 
 export const changelogHistory: ChangelogEntry[] = [
   {
+    version: '2.9.9',
+    releaseNotes: `Novedades v2.9.9:
+- 📅 Corrección de Fecha y Atraso en Ingresos Fijos: Respeto estricto del día real de cobro configurado (ej. Día 28) en ingresos fijos contabilizados para el mes siguiente, evitando falsos atrasos y forzado al Día 1 en el mes en curso.`
+  },
+  {
     version: '2.9.8',
     releaseNotes: `Novedades v2.9.8:
 - ⚖️ Configuración de Comisión de Amortización Anticipada: Selección de modo (Estándar Legal vs Porcentaje Fijo/Exento) y edición de porcentajes de comisión en el formulario de alta y edición de préstamos.`

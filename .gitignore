@@ -10,3 +10,4 @@ dist_android/
 .DS_Store
 scratch/
 release.json
+source_code/

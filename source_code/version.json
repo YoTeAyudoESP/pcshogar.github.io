@@ -1,7 +1,0 @@
-{
-  "version": "2.9.3",
-  "versionCode": 29300,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.9.3/PCSHogar_Setup_v2.9.3.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v2.9.3/PCSHogar_Setup_v2.9.3.exe",
-  "releaseNotes": "Novedades versión 2.9.3:\n- 💳 Cierre de Tarjetas Inteligente: Control de día de cierre dinámico según los días reales de cada mes (ej. 30 de septiembre o 28/29 de febrero al configurar día 31) con botón de acceso rápido.\n- ⏳ Avisos de Expiración en Dashboard: Recordatorio preventivo 30 días antes de la última cuota/cobro de Gastos e Ingresos Fijos temporales con fecha de caducidad.\n- 🧹 Restablecimiento de Fábrica 100% Robusto: Cierre explícito de conexión IndexedDB y escucha asíncrona de borrado físico en disco.\n- 📦 Enlaces de Descarga Directa: Garantía de descargas sin 404 para Android (.apk) y Windows (.exe)."
-}

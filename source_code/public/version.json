@@ -1,7 +1,0 @@
-{
-  "version": "3.0.0",
-  "versionCode": 30000,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v3.0.0/PCSHogar_Setup_v3.0.0.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v3.0.0/PCSHogar_Setup_v3.0.0.exe",
-  "releaseNotes": "Novedades versión 3.0.0:\n- 🛡️ Motor de Sincronización Multi-Dispositivo Blindado: Prevalencia estricta de estados confirmados sobre pendientes, aislamiento de automatizaciones retroactivas, tombstones de borrado reforzados y respaldo preventivo automático pre-sincronización."
-}

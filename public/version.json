@@ -1,7 +1,7 @@
 {
-  "version": "3.0.1",
-  "versionCode": 30010,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v3.0.1/PCSHogar_Setup_v3.0.1.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v3.0.1/PCSHogar_Setup_v3.0.1.exe",
-  "releaseNotes": "Novedades versión 3.0.1:\n- ✨ Iconos Inteligentes de Marcas, Bancos y Comercios: Reconocimiento automático con caché local permanente de iconos públicos para bancos, tarjetas, supermercados, tiendas, aseguradoras, suministros y vehículos en todas las secciones de la app, optimizado con diseño Espacio Cero para móviles Android."
+  "version": "3.0.2",
+  "versionCode": 30020,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v3.0.2/PCSHogar_Setup_v3.0.2.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v3.0.2/PCSHogar_Setup_v3.0.2.exe",
+  "releaseNotes": "Novedades versión 3.0.2:\n- ✨ Iconos Inteligentes de Marcas, Bancos y Comercios: Corrección del motor de precarga de iconos en Chromium/WebView (soluciona el bloqueo con lazy-loading) y respaldo automático multimotor con caché local permanente."
 }

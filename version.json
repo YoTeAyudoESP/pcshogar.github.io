@@ -1,7 +1,7 @@
 {
-  "version": "3.0.3",
-  "versionCode": 30030,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v3.0.3/PCSHogar_Setup_v3.0.3.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v3.0.3/PCSHogar_Setup_v3.0.3.exe",
-  "releaseNotes": "Novedades versión 3.0.3:\n- 🏦 Nueva casilla «Entidad Financiera» en Préstamos con herencia automática de icono a sus gastos fijos y cuotas.\n- 🛡️ Herencia inteligente del icono de la Compañía Aseguradora en gastos fijos y recibos vinculados a Seguros.\n- 🐷 Huchas Virtuales libres de iconos comerciales."
+  "version": "3.0.4",
+  "versionCode": 30040,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v3.0.4/PCSHogar_Setup_v3.0.4.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v3.0.4/PCSHogar_Setup_v3.0.4.exe",
+  "releaseNotes": "Novedades versión 3.0.4:\n- 💳 Tarjetas Virtuales: corrección de precisión decimal (2 decimales exactos) y cómputo como dinero disponible (activo) en lugar de pasivo/deuda.\n- 📝 Movimientos Fijos: corrección inmediata de cambios de nombre al editar Ingresos Fijos.\n- 🐷 Gastos financiados con Hucha: corrección del cálculo de compromisos para evitar falsos desajustes negativos en el Dashboard."
 }

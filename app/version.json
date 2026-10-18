@@ -1,7 +1,7 @@
 {
-  "version": "3.0.7",
-  "versionCode": 30070,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v3.0.7/PCSHogar_Setup_v3.0.7.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v3.0.7/PCSHogar_Setup_v3.0.7.exe",
-  "releaseNotes": "Novedades versión 3.0.7:\n- 📄 Visor y Exportación de Facturas en Garantías: solución integral para visualizar facturas y tickets en formato PDF e imágenes sin pantallas en blanco en Android y Windows.\n- 🚀 Apertura nativa en móvil: botón para abrir directamente con el lector de PDFs nativo de tu teléfono (Google PDF, Samsung, Adobe) o compartir.\n- 💾 Guardado flexible: opción de guardar por defecto en la carpeta 'Descargas' o elegir ruta personalizada con 'Guardar como...' en Windows."
+  "version": "3.0.8",
+  "versionCode": 30080,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v3.0.8/PCSHogar_Setup_v3.0.8.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v3.0.8/PCSHogar_Setup_v3.0.8.exe",
+  "releaseNotes": "Novedades versión 3.0.8:\n- 📄 Visor de PDF Integrado (Offline): lectura y visualización directa de facturas y tickets en PDF dentro de la app mediante motor integrado en Android, Windows y Web.\n- 🔍 Herramientas completas de lectura: controles de zoom (ampliar/reducir), ajuste al ancho, rotación de página y navegación multi-página.\n- 💾 Compatibilidad universal de apertura: elimina la dependencia de visores externos en Android y resuelve los bloqueos o restricciones de permisos al visualizar documentos adjuntos."
 }

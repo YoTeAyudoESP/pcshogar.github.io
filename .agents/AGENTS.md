@@ -1,7 +1,9 @@
+## Actualizaciones de Versi贸n
 
-## Actualizaciones de Versi髇
-Al crear una nueva versi髇 de la aplicaci髇 (crear un nuevo release, apk o exe), SIEMPRE se debe:
+Al crear una nueva versi贸n de la aplicaci贸n (crear un nuevo release, apk o exe), SIEMPRE se debe:
+
 1. Actualizar el package.json (version y versionCode).
 2. Actualizar el archivo version.json del repositorio.
-3. Actualizar el n鷐ero de versi髇 DENTRO del c骴igo de la propia app (UI, constantes de versi髇, etc.).
-4. A馻dir las notas de la versi髇/mejoras/correcciones en el historial de cambios interno de la aplicaci髇 para que se muestre a los usuarios al abrir la nueva actualizaci髇.
+3. Actualizar el n煤mero de versi贸n DENTRO del c贸digo de la propia app (UI, constantes de versi贸n, etc.).
+4. A帽adir las notas de la versi贸n/mejoras/correcciones en el historial de cambios interno de la aplicaci贸n para que se muestre a los usuarios al abrir la nueva actualizaci贸n.
+

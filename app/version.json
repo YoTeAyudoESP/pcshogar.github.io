@@ -1,7 +1,7 @@
 {
-  "version": "3.0.9",
-  "versionCode": 30090,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v3.0.9/PCSHogar_Setup_v3.0.9.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v3.0.9/PCSHogar_Setup_v3.0.9.exe",
-  "releaseNotes": "Novedades versión 3.0.9:\n- 📝 Visualización de Notas en Garantías: consulta directa de observaciones y apuntes del producto en la tarjeta del listado sin necesidad de editar.\n- 🔗 Vinculación de Facturas Compartidas: reutiliza la misma factura o ticket para múltiples productos comprados juntos sin duplicar archivos ni consumir espacio innecesario.\n- 🛡️ Protección de documentos enlazados: traspaso automático del archivo original a los productos dependientes si se elimina la garantía raíz."
+  "version": "3.1.0",
+  "versionCode": 31000,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v3.1.0/PCSHogar_Setup_v3.1.0.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v3.1.0/PCSHogar_Setup_v3.1.0.exe",
+  "releaseNotes": "Novedades versión 3.1.0:\n- 📄 Autocorrección y Tolerancia en Facturas PDF: Compatibilidad total con escáneres móviles (como Xiaomi HyperOS / POCO) que añaden metadatos tras el marcador EOF, evitando errores de archivo dañado.\n- 🚀 Apertura Externa de Emergencia: Botón directo para visualizar facturas y tickets complejos en visores nativos del sistema o Adobe Acrobat.\n- 🐷 Rediseño Unificado de Huchas: Distribución optimizada en tres franjas (encabezado, compromisos a ancho completo y acciones) eliminando texto comprimido vertical y desbordamientos en móviles, tablets y escritorio."
 }

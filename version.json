@@ -1,7 +1,7 @@
 {
-  "version": "3.1.0",
-  "versionCode": 31000,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v3.1.0/PCSHogar_Setup_v3.1.0.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v3.1.0/PCSHogar_Setup_v3.1.0.exe",
-  "releaseNotes": "Novedades versión 3.1.0:\n- 📄 Autocorrección y Tolerancia en Facturas PDF: Compatibilidad total con escáneres móviles (como Xiaomi HyperOS / POCO) que añaden metadatos tras el marcador EOF, evitando errores de archivo dañado.\n- 🚀 Apertura Externa de Emergencia: Botón directo para visualizar facturas y tickets complejos en visores nativos del sistema o Adobe Acrobat.\n- 🐷 Rediseño Unificado de Huchas: Distribución optimizada en tres franjas (encabezado, compromisos a ancho completo y acciones) eliminando texto comprimido vertical y desbordamientos en móviles, tablets y escritorio."
+  "version": "3.1.1",
+  "versionCode": 31100,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v3.1.1/PCSHogar_Setup_v3.1.1.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v3.1.1/PCSHogar_Setup_v3.1.1.exe",
+  "releaseNotes": "Novedades versión 3.1.1:\n- 🔄 Traspaso Hucha a Disponible Seguro: Eliminados falsos avisos de descuadre y desajuste de saldo al mover fondos entre huchas y el dinero disponible del mes.\n- ☁️ Prevalencia Maestra de Copias de Seguridad (Master Overwrite): Al importar manualmente un archivo de respaldo (.json), los datos restaurados prevalecen y sobreescriben automáticamente la nube (Dropbox y Google Drive) sin fusiones indeseadas.\n- 📱 Alerta de Pagos Previstos 100% Responsiva: Diseño adaptativo con salto de línea inteligente para que los avisos de pagos previstos no se desborden en pantallas móviles.\n- 💳 Precisión en Métricas y Gráfica Anual: Los gastos de tarjeta en estado pendiente ya no inflan erróneamente el gasto total consumido ni distorsionan la Gráfica de Evolución Anual."
 }

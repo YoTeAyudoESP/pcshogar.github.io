@@ -1,7 +1,7 @@
 {
-  "version": "3.1.1",
-  "versionCode": 31100,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v3.1.1/PCSHogar_Setup_v3.1.1.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v3.1.1/PCSHogar_Setup_v3.1.1.exe",
-  "releaseNotes": "Novedades versión 3.1.1:\n- 🔄 Traspaso Hucha a Disponible Seguro: Eliminados falsos avisos de descuadre y desajuste de saldo al mover fondos entre huchas y el dinero disponible del mes.\n- ☁️ Prevalencia Maestra de Copias de Seguridad (Master Overwrite): Al importar manualmente un archivo de respaldo (.json), los datos restaurados prevalecen y sobreescriben automáticamente la nube (Dropbox y Google Drive) sin fusiones indeseadas.\n- 📱 Alerta de Pagos Previstos 100% Responsiva: Diseño adaptativo con salto de línea inteligente para que los avisos de pagos previstos no se desborden en pantallas móviles.\n- 💳 Precisión en Métricas y Gráfica Anual: Los gastos de tarjeta en estado pendiente ya no inflan erróneamente el gasto total consumido ni distorsionan la Gráfica de Evolución Anual."
+  "version": "3.1.2",
+  "versionCode": 31200,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v3.1.2/PCSHogar_Setup_v3.1.2.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v3.1.2/PCSHogar_Setup_v3.1.2.exe",
+  "releaseNotes": "Novedades versión 3.1.2:\n- ⚡ Fluidez Total en Cierre de Mes (Error #310 corregido): Solucionada la interrupción visual al pasar del asistente de gastos fijos atrasados al modal de reparto del disponible, permitiendo completar el cierre de mes de forma continua y sin reiniciar.\n- 🔙 Navegación Atrás Inteligente (Back Stack): El botón de retroceso del sistema y gestos en móviles Android y web ahora cierran limpiamente la ventana emergente o visor de factura activo sin salirse al Dashboard ni perder la posición en Garantías, Huchas o Ajustes.\n- 📱 Salida Controlada: Al retroceder desde Ajustes se vuelve con fluidez al Dashboard, y únicamente desde el Dashboard principal se solicita confirmación para salir de la aplicación."
 }

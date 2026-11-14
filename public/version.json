@@ -1,7 +1,7 @@
 {
-  "version": "3.1.3",
-  "versionCode": 31300,
-  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v3.1.3/PCSHogar_Setup_v3.1.3.apk",
-  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v3.1.3/PCSHogar_Setup_v3.1.3.exe",
-  "releaseNotes": "Novedades versión 3.1.3:\n- 🛡️ Sincronización Blindada Multidispositivo: Prevalencia bidireccional absoluta de movimientos confirmados (pagados o recibidos) sobre pendientes, garantizando que los gastos pagados en el móvil nunca vuelvan a ponerse como pendientes en el PC.\n- 💳 Precisión en Compromisos de Tarjeta de Crédito: Corregida la alerta de saldos para no descontar inmediatamente de las cuentas bancarias los gastos pendientes con tarjeta de crédito cuyo cobro corresponde al ciclo del mes siguiente.\n- ☁️ Subida de Copia Maestra: Nueva opción en Ajustes para forzar el envío del estado íntegro del dispositivo actual como versión principal a Dropbox sin fusiones cruzadas.\n- 📊 Disponible y Desglose 100% Coherentes: La asignación de saldos libres se registra ahora como ajuste de ingreso en el presupuesto, manteniendo la ventana informativa (i) en perfecta concordancia con el saldo disponible."
+  "version": "3.1.4",
+  "versionCode": 31400,
+  "url": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v3.1.4/PCSHogar_Setup_v3.1.4.apk",
+  "windowsUrl": "https://github.com/YoTeAyudoESP/pcshogar.github.io/releases/download/v3.1.4/PCSHogar_Setup_v3.1.4.exe",
+  "releaseNotes": "Novedades versión 3.1.4:\n- 💳 Compromisos de Tarjeta en Tiempo Real: La alerta de saldos y descuadres ahora calcula la deuda de tarjetas de crédito en vivo según los ciclos de facturación reales, eliminando falsos avisos de compromiso al editar o reasignar compras entre tarjetas.\n- 🛠️ Saneamiento Automático de Tarjetas: Auto-recuperación de saldos negativos en tarjetas de crédito para mantener la base de datos y los respaldos 100% íntegros.\n- 🪟 Instalador de Windows Actualizado: Solucionado el error de descarga en Windows mediante el despliegue sincronizado del paquete .exe y .apk."
 }
